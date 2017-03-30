@@ -4,10 +4,13 @@
     <title>Shapescapes</title>
     <style type="text/css">
         body {
+            margin: 0;
+            padding: 0;
             font-family: sans-serif;
             background: #f0f0f0;
         }
         #example {
+            margin: 20px;
             position: relative;
             width: 400px;
             height: 600px;
@@ -24,7 +27,25 @@
 
         #example {}
 
+        #saved {
+            position: fixed;
+            border-left: 1px solid #ccc;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 50%;
+            overflow: auto;
+        }
+
+        #saved > img {
+            margin: 10px;
+            box-shadow: 0 1px 10px rgba(0, 0, 0, 0.2);
+            width: 100px;
+        }
+
         #controls {
+                display: none;
+
                 position: absolute;
                 bottom: 0;
                 left: 0;
@@ -44,6 +65,7 @@
 </head>
 <body>
     <div id="example"></div>
+    <div id="saved"></div>
     <div id="controls">
         <button onclick="loadOpts(exampleSeeded)">Seeded overlap</button>
         <!--<button onclick="loadOpts(exampleLayer)">Translucent Layer</button>-->
@@ -123,6 +145,19 @@
             var kode = e.which || e.keyCode;
             if (kode === 32) {
                 requestAnimationFrame(loadOpts);
+            }
+        });
+
+        function saveCanvas(canvas) {
+            var pixels = canvas.toDataURL('image/png');
+            var image = document.createElement('img');
+            image.src = pixels;
+            document.querySelector('#saved').appendChild(image);
+        }
+
+        document.addEventListener('click', function(e) {
+            if (e.target.nodeName === 'CANVAS') {
+                saveCanvas(e.target);
             }
         });
         
