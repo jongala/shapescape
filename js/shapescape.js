@@ -124,7 +124,7 @@
             x,
             y,
             r,
-            getFill(ctx, x, y, r)
+            getFill(ctx, x, y - r, 2 * r)
         );
         return ctx;
     }
@@ -134,7 +134,7 @@
         var cx = w/2;
         var cy = randomInRange(h/3, 2 * h/3);
         var leg = Math.cos(30 * Math.PI/180) * (d / 2);
-        ctx.fillStyle = getFill(ctx, cx, cy, d);
+        ctx.fillStyle = getFill(ctx, cx, cy - leg, 2 * leg);
         ctx.beginPath();
         ctx.moveTo(cx, cy - leg);
         ctx.lineTo(cx + d/2, cy + leg);
