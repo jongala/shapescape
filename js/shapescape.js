@@ -75,28 +75,27 @@
         return (min + (max - min) * Math.random());
     }
 
-    var PALETTE = ['#222222', '#f7d4f8', '#b966d3', '#362599', '#fff9de', '#fae1f6'];
-
 
     /**
      * Get a fill, either in solid or gradients
      * @param  {context} ctx  the canvas rendering context
+     * @param {array} palette an array of color values
      * @param  {num} x    center x of shape
      * @param  {num} y    center y of shape
      * @param  {num} size half the size of the shape (r for circle)
      * @return {fillStyle}      a solid color or canvas gradient
      */
-    function getFill(ctx, x, y, size) {
+    function getFill(ctx, palette, x, y, size) {
         if (Math.random() > 0.9) {
             // solid
-            return randItem(PALETTE);
+            return randItem(palette);
         } else {
             // gradient
             var grad = ctx.createLinearGradient(
                 x, y - size,
                 x, y + size);
-            grad.addColorStop(0, randItem(PALETTE));
-            grad.addColorStop(1, randItem(PALETTE));
+            grad.addColorStop(0, randItem(palette));
+            grad.addColorStop(1, randItem(palette));
             return grad;
         }
     }
@@ -135,7 +134,7 @@
             x,
             y,
             r,
-            getFill(ctx, x, y, r)
+            getFill(ctx, opts.palette, x, y, r)
         );
         return ctx;
     }
@@ -145,7 +144,7 @@
         var cx = w/2;
         var cy = randomInRange(h/3, 2 * h/3);
         var leg = Math.cos(30 * Math.PI/180) * (d / 2);
-        ctx.fillStyle = getFill(ctx, cx, cy, leg);
+        ctx.fillStyle = getFill(ctx, opts.palette, cx, cy, leg);
         ctx.beginPath();
         ctx.moveTo(cx, cy - leg);
         ctx.lineTo(cx + d/2, cy + leg);
@@ -159,7 +158,7 @@
         var d = Math.min(w, h) * 0.5;
         var x = w/2 - d/2;
         var y = randomInRange(h/3, 2 * h/3) - d/2;
-        ctx.fillStyle = getFill(ctx, x, y + d/2, d/2);
+        ctx.fillStyle = getFill(ctx, opts.palette, x, y + d/2, d/2);
         ctx.fillRect(
             x,
             y,
@@ -174,16 +173,12 @@
     function shapescape(options) {
         var defaults = {
             container: 'body',
+            palette: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
             drawShadows: true,
             clear: true
         };
         var opts = {};
         opts = extend(extend(opts, defaults), options);
-
-        // convert color constants to functions
-        opts.pointColor = constToFunc(opts.pointColor);
-        opts.strokeColor = constToFunc(opts.strokeColor);
-        opts.fillColor = constToFunc(opts.fillColor);
 
         var container = options.container;
 
@@ -234,11 +229,11 @@
         }
 
         // add one or two bg blocks
-        ctx.fillStyle = getFill(ctx, 0, 0, h);
+        ctx.fillStyle = getFill(ctx, opts.palette, 0, 0, h);
         ctx.fillRect(0, 0, w, h);
         if (Math.random() > 0.66) {
-            var horizon = randomInRange(h * 0.4, h * 0.85);
-            ctx.fillStyle = getFill(ctx, 0, 0, h - horizon);
+            var horizon = randomInRange(h * 0.3, h * 0.85);
+            ctx.fillStyle = getFill(ctx, opts.palette, 0, 0, h - horizon);
             ctx.fillRect(0, horizon, w, h - horizon);
         }
 
