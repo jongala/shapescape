@@ -77,13 +77,24 @@
 
     var PALETTE = ['#222222', '#f7d4f8', '#b966d3', '#362599', '#fff9de', '#fae1f6'];
 
+
+    /**
+     * Get a fill, either in solid or gradients
+     * @param  {context} ctx  the canvas rendering context
+     * @param  {num} x    center x of shape
+     * @param  {num} y    center y of shape
+     * @param  {num} size half the size of the shape (r for circle)
+     * @return {fillStyle}      a solid color or canvas gradient
+     */
     function getFill(ctx, x, y, size) {
         if (Math.random() > 0.9) {
             // solid
             return randItem(PALETTE);
         } else {
             // gradient
-            var grad = ctx.createLinearGradient(x, y, x, y + size);
+            var grad = ctx.createLinearGradient(
+                x, y - size,
+                x, y + size);
             grad.addColorStop(0, randItem(PALETTE));
             grad.addColorStop(1, randItem(PALETTE));
             return grad;
@@ -124,7 +135,7 @@
             x,
             y,
             r,
-            getFill(ctx, x, y - r, 2 * r)
+            getFill(ctx, x, y, r)
         );
         return ctx;
     }
@@ -134,7 +145,7 @@
         var cx = w/2;
         var cy = randomInRange(h/3, 2 * h/3);
         var leg = Math.cos(30 * Math.PI/180) * (d / 2);
-        ctx.fillStyle = getFill(ctx, cx, cy - leg, 2 * leg);
+        ctx.fillStyle = getFill(ctx, cx, cy, leg);
         ctx.beginPath();
         ctx.moveTo(cx, cy - leg);
         ctx.lineTo(cx + d/2, cy + leg);
@@ -148,7 +159,7 @@
         var d = Math.min(w, h) * 0.5;
         var x = w/2 - d/2;
         var y = randomInRange(h/3, 2 * h/3) - d/2;
-        ctx.fillStyle = getFill(ctx, x, y, d);
+        ctx.fillStyle = getFill(ctx, x, y + d/2, d/2);
         ctx.fillRect(
             x,
             y,
