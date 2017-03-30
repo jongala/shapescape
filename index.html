@@ -40,17 +40,15 @@
         #saved > img {
             margin: 10px;
             box-shadow: 0 1px 10px rgba(0, 0, 0, 0.2);
-            width: 100px;
+            width: 200px;
         }
 
         #controls {
-                display: none;
-
-                position: absolute;
-                bottom: 0;
-                left: 0;
-                padding: 0.5em 1em;
-            }
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            padding: 0.5em 20px;
+        }
 
         #controls button {
             padding: 0 1em;
@@ -67,16 +65,12 @@
     <div id="example"></div>
     <div id="saved"></div>
     <div id="controls">
-        <button onclick="loadOpts(exampleSeeded)">Seeded overlap</button>
-        <!--<button onclick="loadOpts(exampleLayer)">Translucent Layer</button>-->
-        <button onclick="loadOpts(exampleGrid)">Grid</button>
-        <button onclick="loadOpts(exampleOverlap)">Overlap</button>
-        <!--<button onclick="loadOpts(exampleTiled)">Tiled</button>-->
+        <button onclick="createBatch(9)" id="newBatchTrigger">New Batch</button>
     </div>
     <script src="js/shapescape.js"></script>
     <script src="3p/DAT.GUI.min.js"></script>
     <script type="text/javascript">
-        
+
 
         // Obj/array helpers
         function extend(dest, src) {
@@ -111,7 +105,7 @@
         // Default Palette
         DEFAULT_PALETTE = ["#ff0099", "#774aa4", "#3399cc", "#ffcc00"];
 
-        
+
 
         // GUI controlled opts
         var visualOpts = {
@@ -122,24 +116,13 @@
 
         var exampleNode = document.getElementById('example');
 
-        function renderOpts(opts) {
-            shapescape(opts);
-        }
-
-        // shorthand
-        var r = function(){
-            renderOpts(visualOpts);
-        };
 
         function loadOpts(opts) {
             visualOpts = extend(visualOpts, opts);
-            renderOpts(visualOpts);
+            shapescape(visualOpts);
         }
 
-        loadOpts({
-
-
-        });
+        loadOpts({});
 
         document.addEventListener('keypress', function(e) {
             var kode = e.which || e.keyCode;
@@ -148,19 +131,35 @@
             }
         });
 
-        function saveCanvas(canvas) {
+        function saveCanvas(canvas, container) {
             var pixels = canvas.toDataURL('image/png');
             var image = document.createElement('img');
             image.src = pixels;
-            document.querySelector('#saved').appendChild(image);
+            container.appendChild(image);
         }
 
         document.addEventListener('click', function(e) {
             if (e.target.nodeName === 'CANVAS') {
-                saveCanvas(e.target);
+                saveCanvas(e.target, document.querySelector('#saved'));
             }
         });
-        
+
+        function createBatch(N) {
+            N = N || 10;
+            var canvas = document.querySelector('#example canvas');
+            var container = document.querySelector('#saved');
+            container.innerHTML = '';
+            for (var i=0; i < N ; i++) {
+                requestAnimationFrame(function(){
+                    loadOpts();
+                    saveCanvas(canvas, container);
+                });
+            }
+        }
+
+        document.querySelector('#newBatchTrigger').focus();
+
+
 
     </script>
 </body>
