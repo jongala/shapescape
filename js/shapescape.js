@@ -77,8 +77,17 @@
 
     var PALETTE = ['#222222', '#f7d4f8', '#b966d3', '#362599', '#fff9de', '#fae1f6'];
 
-    function getFill() {
-        return randItem(PALETTE);
+    function getFill(ctx, x, y, size) {
+        if (Math.random() > 0.9) {
+            // solid
+            return randItem(PALETTE);
+        } else {
+            // gradient
+            var grad = ctx.createLinearGradient(x, y, x, y + size);
+            grad.addColorStop(0, randItem(PALETTE));
+            grad.addColorStop(1, randItem(PALETTE));
+            return grad;
+        }
     }
 
 
@@ -107,12 +116,15 @@
     }
 
     function addCircle(ctx, w, h, opts) {
+        var x = w/2;
+        var y = h * randomInRange(0.4, 0.6);
+        var r = Math.min(w,h) * randomInRange(0.2, 0.4);
         drawCircle(
             ctx,
-            w/2,
-            h/2,
-            Math.min(w,h) * randomInRange(0.2, 0.4),
-            getFill()
+            x,
+            y,
+            r,
+            getFill(ctx, x, y, r)
         );
         return ctx;
     }
@@ -122,7 +134,7 @@
         var cx = w/2;
         var cy = randomInRange(h/3, 2 * h/3);
         var leg = Math.cos(30 * Math.PI/180) * (d / 2);
-        ctx.fillStyle = getFill();
+        ctx.fillStyle = getFill(ctx, cx, cy, d);
         ctx.beginPath();
         ctx.moveTo(cx, cy - leg);
         ctx.lineTo(cx + d/2, cy + leg);
@@ -134,10 +146,12 @@
 
     function addSquare(ctx, w, h, opts) {
         var d = Math.min(w, h) * 0.5;
-        ctx.fillStyle = getFill();
+        var x = w/2 - d/2;
+        var y = randomInRange(h/3, 2 * h/3) - d/2;
+        ctx.fillStyle = getFill(ctx, x, y, d);
         ctx.fillRect(
-            w/2 - d/2,
-            randomInRange(h/3, 2 * h/3) - d/2,
+            x,
+            y,
             d,
             d
         );
@@ -190,7 +204,7 @@
             el.height = container.offsetHeight;
             ctx.clearRect(0, 0, w, h);
         }
-        
+
         var renderer;
         var renderMap = {
             'circle': addCircle,
@@ -209,11 +223,11 @@
         }
 
         // add one or two bg blocks
-        ctx.fillStyle = getFill();
+        ctx.fillStyle = getFill(ctx, 0, 0, h);
         ctx.fillRect(0, 0, w, h);
         if (Math.random() > 0.66) {
             var horizon = randomInRange(h * 0.4, h * 0.85);
-            ctx.fillStyle = getFill();
+            ctx.fillStyle = getFill(ctx, 0, 0, h - horizon);
             ctx.fillRect(0, horizon, w, h - horizon);
         }
 
@@ -224,7 +238,7 @@
         // pop a renderer name, get render func and execute X 2
         renderMap[shapes.pop()](ctx, w, h, opts);
         renderMap[shapes.pop()](ctx, w, h, opts);
-        
+
 
         // Add effect elements
         // ...
@@ -232,7 +246,7 @@
 
         // add noise
         addNoisePattern(el, 0.04);
-      
+
         // END RENDERING
 
         // if new canvas child was created, append it
