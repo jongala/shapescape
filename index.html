@@ -118,6 +118,13 @@
 
 
         });
+
+        document.addEventListener('keypress', function(e) {
+            var kode = e.which || e.keyCode;
+            if (kode === 32) {
+                loadOpts({});
+            }
+        });
         
 
     </script>
