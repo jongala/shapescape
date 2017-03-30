@@ -149,16 +149,7 @@
     function shapescape(options) {
         var defaults = {
             container: 'body',
-            scale: 256,
-            layout: 'tile', // [tile, overlap]
-            pointR: 0.1,
-            fillOpacity: 1,
-            strokeOpacity: 1,
-            pointOpacity: 1,
-            pointColor: function(palette, row, col, x, y, w, h) {return null},
-            strokeColor: function(palette, row, col, x, y, w, h) {return null},
-            fillColor: function(palette, row, col, x, y, w, h) {return randomColor(palette)},
-            palette: ['#3399cc', '#774aa4', '#ff0099', '#ffcc00'],
+            drawShadows: true,
             clear: true
         };
         var opts = {};
@@ -209,6 +200,13 @@
         var shapes = Object.keys(renderMap);
 
         // BEGIN RENDERING
+
+        if (opts.drawShadows) {
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 3 * Math.min(w,h)/400;
+            ctx.shadowBlur = 10 * Math.min(w,h)/400;
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+        }
 
         // add one or two bg blocks
         ctx.fillStyle = getFill();
