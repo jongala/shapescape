@@ -231,10 +231,16 @@
         // add one or two bg blocks
         ctx.fillStyle = getFill(ctx, opts.palette, 0, 0, h);
         ctx.fillRect(0, 0, w, h);
-        if (Math.random() > 0.66) {
-            var horizon = randomInRange(h * 0.3, h * 0.85);
-            ctx.fillStyle = getFill(ctx, opts.palette, 0, 0, h - horizon);
-            ctx.fillRect(0, horizon, w, h - horizon);
+        if (Math.random() > 0.25) {
+            var hr = randomInRange(3, 12) * w;
+            var hy = hr + randomInRange(0.3, 0.85) * h;
+            drawCircle(
+                ctx,
+                w/2,
+                hy,
+                hr,
+                getFill(ctx, opts.palette, w/2, hy, hr)
+            );
         }
 
         // draw two shape layers in some order:

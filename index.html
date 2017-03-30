@@ -122,7 +122,8 @@
             shapescape(visualOpts);
         }
 
-        loadOpts({});
+
+        // Handlers for redraw, batching, and manual saving
 
         document.addEventListener('keypress', function(e) {
             var kode = e.which || e.keyCode;
@@ -157,7 +158,11 @@
             }
         }
 
+        // focus the batch button
         document.querySelector('#newBatchTrigger').focus();
+
+        // draw one to start
+        loadOpts({});
 
 
 
