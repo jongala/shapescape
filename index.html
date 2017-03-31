@@ -3,6 +3,7 @@
     <meta charset="utf-8"/>
     <title>Shapescapes</title>
     <style type="text/css">
+        html {font-size: 13px;}
         body {
             margin: 0;
             padding: 0;
@@ -52,6 +53,7 @@
 
         #controls button {
             padding: 0 1em;
+            font-size: 1.0rem;
             line-height: 3em;
             color: #000;
             background: rgba(255, 255, 255, 0.25);
@@ -65,7 +67,12 @@
     <div id="example"></div>
     <div id="saved"></div>
     <div id="controls">
-        <button onclick="createBatch(9)" id="newBatchTrigger">New Batch</button>
+        Batches: 
+        <button onclick="createBatch()" id="newBatchTrigger">Default</button>
+        <button onclick="createBatch(bw)" id="newBatchTrigger">Black/White</button>
+        <button onclick="createBatch(bwr)" id="newBatchTrigger">Black/White/Red</button>
+        <button onclick="createBatch(dd)" id="newBatchTrigger">DD</button>
+        <button onclick="createBatch(brewer)" id="newBatchTrigger">Brewer</button>
     </div>
     <script src="js/shapescape.js"></script>
     <script src="3p/DAT.GUI.min.js"></script>
@@ -100,10 +107,7 @@
             return obj;
         }
 
-        // Examples and controls
 
-        // Default Palette
-        DEFAULT_PALETTE = ["#ff0099", "#774aa4", "#3399cc", "#ffcc00"];
 
 
 
@@ -145,14 +149,14 @@
             }
         });
 
-        function createBatch(N) {
-            N = N || 10;
+        function createBatch(opts, N) {
+            N = N || 9;
             var canvas = document.querySelector('#example canvas');
             var container = document.querySelector('#saved');
             container.innerHTML = '';
             for (var i=0; i < N ; i++) {
                 requestAnimationFrame(function(){
-                    loadOpts();
+                    loadOpts(opts);
                     saveCanvas(canvas, container);
                 });
             }
@@ -164,6 +168,23 @@
         // draw one to start
         loadOpts({});
 
+        // Option sets:
+
+        var dd = {
+            palette: ["#ff0099", "#774aa4", "#3399cc", "#ffcc00"]
+        }
+
+        var bw = {
+            palette: ["#111111", "#444444", "#999999", "#ffffff"]
+        }
+
+        var bwr = {
+            palette: ["#111111", "#444444", "#999999", "#ffffff", '#880000', '#dd0000']
+        }
+
+        var brewer = {
+            palette: ["rgb(215,25,28)", "rgb(253,174,97)", "rgb(171,221,164)", "rgb(43,131,186)"]
+        }
 
 
     </script>
