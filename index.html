@@ -51,10 +51,13 @@
             padding: 0.5em 20px;
         }
 
-        #controls button {
+        #controls button,
+        #controls select {
+            display: inline-block;
             padding: 0 1em;
             font-size: 1.0rem;
             line-height: 3em;
+            height: 3em;
             color: #000;
             background: rgba(255, 255, 255, 0.25);
             border: 1px solid rgba(255, 255, 255, 0.5);
@@ -67,13 +70,13 @@
     <div id="example"></div>
     <div id="saved"></div>
     <div id="controls">
-        Batches: 
         <button onclick="createBatch()" id="newBatchTrigger">Default</button>
-        <button onclick="createBatch(bw)" id="newBatchTrigger">Black/White</button>
-        <button onclick="createBatch(bwr)" id="newBatchTrigger">Black/White/Red</button>
-        <button onclick="createBatch(dd)" id="newBatchTrigger">DD</button>
-        <button onclick="createBatch(brewer)" id="newBatchTrigger">Brewer</button>
+        <button onclick="createBatch(bw)" id="">Black/White</button>
+        <button onclick="createBatch(bwr)" id="">Black/White/Red</button>
+        <button onclick="createBatch(dd)" id="">DD</button>
+        <select onchange="brewerBatch(this.value)" id="brewerSelector"><option value=''>---</option></select>
     </div>
+    <script src="js/colorbrewer.js"></script>
     <script src="js/shapescape.js"></script>
     <script src="3p/DAT.GUI.min.js"></script>
     <script type="text/javascript">
@@ -182,8 +185,22 @@
             palette: ["#111111", "#444444", "#999999", "#ffffff", '#880000', '#dd0000']
         }
 
-        var brewer = {
-            palette: ["rgb(215,25,28)", "rgb(253,174,97)", "rgb(171,221,164)", "rgb(43,131,186)"]
+        // create a batch from a colorbrewer name
+        function brewerBatch(pname) {
+            createBatch({
+                palette: colorbrewer[pname][6]
+            });
+        }
+
+        // populate the selector for colorbrewer palettes
+        if (colorbrewer) {
+            var select = document.querySelector('#brewerSelector');
+            var pnames = Object.keys(colorbrewer);
+            pnames.forEach(function (pname) {
+                var option = document.createElement('option');
+                option.value = option.innerHTML = pname;
+                select.appendChild(option);
+            });
         }
 
 
