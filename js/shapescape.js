@@ -91,9 +91,14 @@
             return randItem(palette);
         } else {
             // gradient
+            // pick xoffset as fraction of size to get a shallow angle
+            var xoff = randomInRange(-0.5, 0.5) * size;
+            // build gradient, add stops
             var grad = ctx.createLinearGradient(
-                x, y - size,
-                x, y + size);
+                x - xoff,
+                y - size,
+                x + xoff,
+                y + size);
             grad.addColorStop(0, randItem(palette));
             grad.addColorStop(1, randItem(palette));
             return grad;
