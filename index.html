@@ -70,7 +70,7 @@
     <div id="example"></div>
     <div id="saved"></div>
     <div id="controls">
-        <button onclick="createBatch()" id="newBatchTrigger">Default</button>
+        <button onclick="defaultBatch()" id="newBatchTrigger">Default</button>
         <button onclick="createBatch(bw)" id="">Black/White</button>
         <button onclick="createBatch(bwr)" id="">Black/White/Red</button>
         <button onclick="createBatch(dd)" id="">DD</button>
@@ -165,11 +165,6 @@
             }
         }
 
-        // focus the batch button
-        document.querySelector('#newBatchTrigger').focus();
-
-        // draw one to start
-        loadOpts({});
 
         // Option sets:
 
@@ -183,6 +178,11 @@
 
         var bwr = {
             palette: ["#111111", "#444444", "#999999", "#ffffff", '#880000', '#dd0000']
+        }
+
+        function defaultBatch() {
+            delete visualOpts.palette;
+            createBatch();
         }
 
         // create a batch from a colorbrewer name
@@ -202,6 +202,12 @@
                 select.appendChild(option);
             });
         }
+
+        // focus the batch button
+        document.querySelector('#newBatchTrigger').focus();
+
+        // draw one to start
+        loadOpts();
 
 
     </script>

@@ -180,6 +180,7 @@
             container: 'body',
             palette: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
             drawShadows: true,
+            addNoise: 0.04,
             clear: true
         };
         var opts = {};
@@ -262,7 +263,9 @@
 
 
         // add noise
-        addNoisePattern(el, 0.04);
+        if (opts.addNoise) {
+            addNoisePattern(el, opts.addNoise, w/3);
+        }
 
         // END RENDERING
 
