@@ -85,14 +85,14 @@
      * @param  {num} size half the size of the shape (r for circle)
      * @return {fillStyle}      a solid color or canvas gradient
      */
-    function getFill(ctx, palette, x, y, size) {
+    function getFill(ctx, palette, x, y, size, skew) {
         if (Math.random() > 0.9) {
             // solid
             return randItem(palette);
         } else {
             // gradient
             // pick xoffset as fraction of size to get a shallow angle
-            var xoff = randomInRange(-0.5, 0.5) * size;
+            var xoff = randomInRange(-skew/2, skew/2) * size;
             // build gradient, add stops
             var grad = ctx.createLinearGradient(
                 x - xoff,
@@ -139,7 +139,7 @@
             x,
             y,
             r,
-            getFill(ctx, opts.palette, x, y, r)
+            getFill(ctx, opts.palette, x, y, r, opts.skew)
         );
         return ctx;
     }
@@ -149,7 +149,7 @@
         var cx = w/2;
         var cy = randomInRange(h/3, 2 * h/3);
         var leg = Math.cos(30 * Math.PI/180) * (d / 2);
-        ctx.fillStyle = getFill(ctx, opts.palette, cx, cy, leg);
+        ctx.fillStyle = getFill(ctx, opts.palette, cx, cy, leg, opts.skew);
         ctx.beginPath();
         ctx.moveTo(cx, cy - leg);
         ctx.lineTo(cx + d/2, cy + leg);
@@ -163,7 +163,7 @@
         var d = Math.min(w, h) * 0.5;
         var x = w/2 - d/2;
         var y = randomInRange(h/3, 2 * h/3) - d/2;
-        ctx.fillStyle = getFill(ctx, opts.palette, x, y + d/2, d/2);
+        ctx.fillStyle = getFill(ctx, opts.palette, x, y + d/2, d/2, opts.skew);
         ctx.fillRect(
             x,
             y,
@@ -181,6 +181,7 @@
             palette: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
             drawShadows: true,
             addNoise: 0.04,
+            skew: 1, // normalized skew
             clear: true
         };
         var opts = {};
@@ -235,7 +236,7 @@
         }
 
         // add one or two bg blocks
-        ctx.fillStyle = getFill(ctx, opts.palette, 0, 0, h);
+        ctx.fillStyle = getFill(ctx, opts.palette, 0, 0, h, opts.skew);
         ctx.fillRect(0, 0, w, h);
         if (Math.random() > 0.25) {
             var hr = randomInRange(3, 12) * w;
@@ -245,7 +246,7 @@
                 w/2,
                 hy,
                 hr,
-                getFill(ctx, opts.palette, w/2, hy, hr)
+                getFill(ctx, opts.palette, w/2, hy, hr, opts.skew)
             );
         }
 
