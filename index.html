@@ -70,11 +70,8 @@
     <div id="example"></div>
     <div id="saved"></div>
     <div id="controls">
-        <button onclick="defaultBatch()" id="newBatchTrigger">Default</button>
-        <button onclick="createBatch(bw)" id="">Black/White</button>
-        <button onclick="createBatch(bwr)" id="">Black/White/Red</button>
-        <button onclick="createBatch(dd)" id="">DD</button>
-        <select onchange="brewerBatch(this.value)" id="brewerSelector"><option value=''>---</option></select>
+        <select onchange="setPalette(this.value)" id="paletteSelector"></select>
+        <button onclick="createBatch()" id="newBatchTrigger">New Batch</button>
     </div>
     <script src="js/colorbrewer.js"></script>
     <script src="js/shapescape.js"></script>
@@ -169,43 +166,39 @@
 
         // Option sets:
 
-        var dd = {
-            palette: ["#ff0099", "#774aa4", "#3399cc", "#ffcc00"]
-        }
-
-        var bw = {
-            palette: ["#111111", "#444444", "#999999", "#ffffff"]
-        }
-
-        var bwr = {
-            palette: ["#111111", "#444444", "#999999", "#ffffff", '#880000', '#dd0000']
-        }
-
-        function defaultBatch() {
-            delete visualOpts.palette;
-            createBatch();
+        var palettes = {
+            standard: null,
+            black_white: ["#111111", "#444444", "#999999", "#ffffff"],
+            black_white_red: ["#111111", "#444444", "#999999", "#ffffff", '#880000', '#dd0000'],
+            dd: ["#ff0099", "#774aa4", "#3399cc", "#ffcc00"]
         }
 
         // create a batch from a colorbrewer name
-        function brewerBatch(pname) {
-            createBatch({
-                palette: colorbrewer[pname][6]
-            });
+        function setPalette(pname) {
+            if (!palettes[pname]) {
+                delete visualOpts.palette;
+            } else {
+                visualOpts.palette = palettes[pname];
+            }
+            return loadOpts({});
         }
 
         // populate the selector for colorbrewer palettes
         if (colorbrewer) {
-            var select = document.querySelector('#brewerSelector');
-            var pnames = Object.keys(colorbrewer);
-            pnames.forEach(function (pname) {
-                var option = document.createElement('option');
-                option.value = option.innerHTML = pname;
-                select.appendChild(option);
+            var cbnames = Object.keys(colorbrewer);
+            cbnames.forEach(function (pname) {
+                palettes[pname] = colorbrewer[pname][6];
             });
         }
 
-        // focus the batch button
-        document.querySelector('#newBatchTrigger').focus();
+        var selectEl = document.querySelector('#paletteSelector');
+        var pnames = Object.keys(palettes);
+        pnames.forEach(function (pname) {
+            var option = document.createElement('option');
+            option.value = pname;
+            option.innerHTML = pname;
+            selectEl.appendChild(option);
+        });
 
         // draw one to start
         loadOpts();
