@@ -19,7 +19,7 @@
         }
     }
 
-    function addNoise(canvas, opacity) {
+    function addNoiseToCanvas(canvas, opacity) {
         var ctx = canvas.getContext('2d'),
         x,
         y,
@@ -39,7 +39,19 @@
         }
     }
 
-    function addNoisePattern(canvas, opacity, tileSize, useOverlay) {
+    function addNoiseFromPattern(canvas, opacity, tileSize, useOverlay) {
+        // create an offscreen canvas where we will generate
+        // noise to use as a pattern
+        var noiseCanvas = createNoiseCanvas(opacity, tileSize);
+        applyNoiseCanvas(canvas, noiseCanvas, useOverlay);
+
+        return {
+            noiseCanvas: noiseCanvas,
+            canvas: canvas
+        }
+    }
+
+    function createNoiseCanvas(opacity, tileSize) {
         // create an offscreen canvas where we will generate
         // noise to use as a pattern
         tileSize = tileSize || 100;
@@ -48,22 +60,25 @@
         noise.height = tileSize;
         var noiseCtx = noise.getContext('2d');
 
-        // main canvas context
-        var ctx = canvas.getContext('2d');
-
         // add noise to the offscreen canvas
-        addNoise(noise, opacity);
+        addNoiseToCanvas(noise, opacity);
 
+        return noise;
+    }
+
+    function applyNoiseCanvas(targetCanvas, noiseCanvas, useOverlay) {
+        var ctx = targetCanvas.getContext('2d');
         // create a noise pattern from the offscreen canvas
-        var noisePattern = ctx.createPattern(noise, 'repeat');
+        var noisePattern = ctx.createPattern(noiseCanvas, 'repeat');
         ctx.fillStyle = noisePattern;
         if (useOverlay) {
             ctx.globalCompositeOperation = 'overlay';
         }
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, targetCanvas.width, targetCanvas.height);
         if (useOverlay) {
             ctx.globalCompositeOperation = 'normal';
         }
+        return targetCanvas;
     }
 
     // random Array member
@@ -181,6 +196,7 @@
             palette: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
             drawShadows: true,
             addNoise: 0.04,
+            noiseInput: null,
             skew: 1, // normalized skew
             clear: true
         };
@@ -265,7 +281,7 @@
 
         // add noise
         if (opts.addNoise) {
-            addNoisePattern(el, opts.addNoise, w/3);
+            addNoiseFromPattern(el, opts.addNoise, w/3);
         }
 
         // END RENDERING
