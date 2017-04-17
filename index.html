@@ -34,7 +34,8 @@
             top: 0;
             right: 0;
             bottom: 0;
-            width: 50%;
+            left: 440px;
+            padding-left: 10px;
             overflow: auto;
         }
 
@@ -74,6 +75,7 @@
         <button onclick="createBatch()" id="newBatchTrigger">New Batch</button>
     </div>
     <script src="js/colorbrewer.js"></script>
+    <script src="js/noiseutils.js"></script>
     <script src="js/shapescape.js"></script>
     <script src="3p/DAT.GUI.min.js"></script>
     <script type="text/javascript">
@@ -112,10 +114,13 @@
 
 
         // GUI controlled opts
+
+
         var visualOpts = {
             container: document.querySelector('#example'),
             clear: true,
-            skew: 1
+            skew: 1,
+            noiseInput: noiseUtils.createNoiseCanvas(0.04, 200)
         };
 
 
@@ -168,6 +173,15 @@
 
         var palettes = {
             standard: null,
+
+            fernweh: ["#fbc483","#daaf52","#df9e54","#a08567","#6b604b","#483b2a"],
+            fingerspritzen: ["#f4dda8","#eda87c","#c8907e","#9cacc3","#485e80","#3b465b"],
+            fruhjahr: ["#f8da52","#c1d6f6","#7797c4","#8ca762","#678a00","#1a3b01"],
+            geborgenheit: ["#f7e193","#853108","#361313","#2f3b46","#161c28","#0a131c"],
+            kopfkino: ["#a07564","#af8c70","#7c9a9a","#427080","#0c3646","#0a0c07"],
+
+
+
             black_white: ["#111111", "#444444", "#999999", "#ffffff"],
             black_white_red: ["#111111", "#444444", "#999999", "#ffffff", '#880000', '#dd0000'],
             dd: ["#ff0099", "#774aa4", "#3399cc", "#ffcc00"]
@@ -199,6 +213,7 @@
             option.innerHTML = pname;
             selectEl.appendChild(option);
         });
+
 
         // draw one to start
         loadOpts();
