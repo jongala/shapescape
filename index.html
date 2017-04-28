@@ -53,7 +53,8 @@
         }
 
         #controls button,
-        #controls select {
+        #controls select,
+        #controls input {
             display: inline-block;
             padding: 0 1em;
             font-size: 1.0rem;
@@ -73,6 +74,7 @@
     <div id="controls">
         <select onchange="setPalette(this.value)" id="paletteSelector"></select>
         <button onclick="createBatch()" id="newBatchTrigger">New Batch</button>
+        <input type="text" id="customColors" placeholder="paste colors" />
     </div>
     <script src="js/colorbrewer.js"></script>
     <script src="js/noiseutils.js"></script>
@@ -214,6 +216,28 @@
             selectEl.appendChild(option);
         });
 
+
+        function useCustomPalette(palette) {
+            if(palette && palette.length) {
+                visualOpts.palette = palette;
+                selectEl.value = 'custom';
+                shapescape(visualOpts);
+            }
+        }
+
+        var custom = document.querySelector('#customColors');
+        custom.addEventListener('keypress', function (e) {
+            var hexPattern = /#?[0-9a-f]{3,6}/;
+            var palette = e.target.value.split(',');
+            palette = palette.map((s) => {
+                s = s.trim();
+                if (hexPattern.test(s) && !s.startsWith('#')) {
+                    s = '#' + s;
+                }
+                return s;
+            })
+            useCustomPalette(palette);
+        });
 
         // draw one to start
         loadOpts();
