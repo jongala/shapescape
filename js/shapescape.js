@@ -174,6 +174,18 @@
         return ctx;
     }
 
+    function drawTriangle(ctx, x, y, height, angle, opts) {
+        var side = height / Math.cos(Math.PI/6);
+        ctx.fillStyle = opts.fill;// || getFill(ctx, opts.palette, x, y + height/2, height, opts.skew);
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + side/2, y + height);
+        ctx.lineTo(x - side/2, y + height);
+        ctx.closePath();
+        ctx.fill();
+        return ctx;
+    }
+
     function addSquare(ctx, w, h, opts) {
         var d = Math.min(w, h) * 0.5;
         var x = w/2 - d/2;
@@ -251,28 +263,57 @@
             ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
         }
 
-        // add one or two bg blocks
+        // add bg block
         ctx.fillStyle = getFill(ctx, opts.palette, 0, 0, h, opts.skew);
         ctx.fillRect(0, 0, w, h);
-        if (Math.random() > 0.25) {
-            var hr = randomInRange(3, 12) * w;
-            var hy = hr + randomInRange(0.3, 0.85) * h;
-            drawCircle(
-                ctx,
-                w/2,
-                hy,
-                hr,
-                getFill(ctx, opts.palette, w/2, hy, hr, opts.skew)
-            );
+        
+        var hz = randomInRange(0.25, 0.65) * h; // horizon level
+        var hr = randomInRange(3, 12) * w;
+        var hy = hr + hz;
+        drawCircle(
+            ctx,
+            w/2,
+            hy,
+            hr,
+            getFill(ctx, opts.palette, w/2, hy, hr, opts.skew)
+        );
+        
+        var triCount = Math.round(randomInRange(3,7));
+        ctx.save();
+
+        console.log(triCount);
+        ctx.globalCompositeOperation = 'soft-light';
+        ctx.globalAlpha = randomInRange(0.4, 0.8);
+        // clip path
+        ctx.beginPath();
+        ctx.moveTo(w/2 + hr/2, hy);
+        ctx.arc(w/2, hy, hr, 0, 2 * Math.PI, false);
+        ctx.clip();
+        ctx.closePath();
+        while (triCount--) {
+            var th = randomInRange(h - hz, h);
+            console.log(hz, th);
+            var grad = ctx.createLinearGradient(0, hz,
+                w, h);
+            grad.addColorStop(0, 'rgba(255, 255, 211, 1)');
+            grad.addColorStop(1, 'rgba(255, 255, 211, 0)');
+            drawTriangle(ctx, randomInRange(-w, w), h - th, th, 0, {
+                palette: ['#fff', '#ff9', '#fd6'],
+                fill: grad,
+                skew: 0
+            })
         }
+        ctx.restore();
+
+
 
         // draw two shape layers in some order:
         // shuffle shape list
         shapes.sort(function(a, b) { return randomInRange(-1, 1)});
 
         // pop a renderer name, get render func and execute X 2
-        renderMap[shapes.pop()](ctx, w, h, opts);
-        renderMap[shapes.pop()](ctx, w, h, opts);
+        //renderMap[shapes.pop()](ctx, w, h, opts);
+        //renderMap[shapes.pop()](ctx, w, h, opts);
 
 
         // Add effect elements
