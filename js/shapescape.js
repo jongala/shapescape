@@ -9,6 +9,8 @@
         return dest;
     }
 
+
+
     // Turn constants into functions which return the constant,
     // used to allow passing colors as strings or functions
     function constToFunc(x) {
@@ -101,6 +103,9 @@
      * @return {fillStyle}      a solid color or canvas gradient
      */
     function getFill(ctx, palette, x, y, size, skew) {
+        if (skew === undefined) {
+            skew = 0;
+        }
         if (Math.random() > 0.9) {
             // solid
             return randItem(palette);
@@ -132,51 +137,20 @@
     }
 
 
-    function drawCircle(ctx, x, y, r, fill, stroke, alpha) {
-        alpha = (alpha === undefined) ? 1 : alpha;
-        ctx.fillStyle = fill;
-        ctx.strokeStyle = stroke;
-        ctx.globalAlpha = alpha;
+    function drawCircle(ctx, x, y, r, opts) {
+        ctx.fillStyle = opts.fill;
+        ctx.strokeStyle = opts.stroke;
         ctx.beginPath();
         ctx.moveTo(x + r, y);
         ctx.arc(x, y, r, 0, 2 * Math.PI, false);
         ctx.fill();
-        stroke && ctx.stroke();
+        opts.stroke && ctx.stroke();
         ctx.closePath();
     }
 
-    function addCircle(ctx, w, h, opts) {
-        var x = w/2;
-        var y = h * randomInRange(0.4, 0.6);
-        var r = Math.min(w,h) * randomInRange(0.2, 0.4);
-        drawCircle(
-            ctx,
-            x,
-            y,
-            r,
-            getFill(ctx, opts.palette, x, y, r, opts.skew)
-        );
-        return ctx;
-    }
-
-    function addTriangle(ctx, w, h, opts) {
-        var d = Math.min(w, h) * randomInRange(0.5, 0.85);
-        var cx = w/2;
-        var cy = randomInRange(h/3, 2 * h/3);
-        var leg = Math.cos(30 * Math.PI/180) * (d / 2);
-        ctx.fillStyle = getFill(ctx, opts.palette, cx, cy, leg, opts.skew);
-        ctx.beginPath();
-        ctx.moveTo(cx, cy - leg);
-        ctx.lineTo(cx + d/2, cy + leg);
-        ctx.lineTo(cx - d/2, cy + leg);
-        ctx.closePath();
-        ctx.fill();
-        return ctx;
-    }
-
-    function drawTriangle(ctx, x, y, height, angle, opts) {
+    function drawTriangle(ctx, x, y, height, opts) {
         var side = height / Math.cos(Math.PI/6);
-        ctx.fillStyle = opts.fill;// || getFill(ctx, opts.palette, x, y + height/2, height, opts.skew);
+        ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, x, y + height/2, height, opts.skew);
         ctx.beginPath();
         ctx.moveTo(x, y);
         ctx.lineTo(x + side/2, y + height);
@@ -186,18 +160,47 @@
         return ctx;
     }
 
-    function addSquare(ctx, w, h, opts) {
-        var d = Math.min(w, h) * 0.5;
-        var x = w/2 - d/2;
-        var y = randomInRange(h/3, 2 * h/3) - d/2;
-        ctx.fillStyle = getFill(ctx, opts.palette, x, y + d/2, d/2, opts.skew);
-        ctx.fillRect(
-            x,
-            y,
-            d,
-            d
-        );
-        return ctx;
+    function drawSquare(ctx, x, y, d, opts) {
+        ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, x, y + d/2, d);
+        ctx.fillRect(x - d/2, y - d/2, d, d);
+    }
+
+    function drawWaterline(ctx, y1, c1, c2, y2, w, h, opts) {
+        ctx.save();
+        //ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, 0, 0, h - Math.min(y1, y2), opts.skew);
+        if (opts.fill) {
+            ctx.fillStyle = opts.fill;
+        }
+        ctx.beginPath();
+        ctx.moveTo(0, y1);
+        ctx.bezierCurveTo(w / 3, c1, 2 * w / 3, c2, w, y2);
+        ctx.lineTo(w, h);
+        ctx.lineTo(0, h);
+        ctx.closePath();
+
+
+        ctx.fill();
+
+
+        ctx.restore();
+    }
+
+    // Draw a waterline shape, clip to it, execute renderFunc,
+    // then restore canvas to remove clipping
+    function clipInWaterline(ctx, y1, c1, c2, y2, w, h, renderFunc) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(0, y1);
+        ctx.bezierCurveTo(w / 3, c1, 2 * w / 3, c2, w, y2);
+        ctx.lineTo(w, h);
+        ctx.lineTo(0, h);
+        ctx.clip();
+
+        renderFunc(ctx, w, h, y1, y2);
+
+        ctx.closePath();
+        ctx.restore();
+
     }
 
 
@@ -248,9 +251,9 @@
 
         var renderer;
         var renderMap = {
-            'circle': addCircle,
-            'triangle': addTriangle,
-            'square': addSquare
+            'circle': drawCircle,
+            'triangle': drawTriangle,
+            'square': drawSquare
         };
         var shapes = Object.keys(renderMap);
 
@@ -263,57 +266,92 @@
             ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
         }
 
-        // add bg block
+        // draw background/sky
         ctx.fillStyle = getFill(ctx, opts.palette, 0, 0, h, opts.skew);
         ctx.fillRect(0, 0, w, h);
-        
-        var hz = randomInRange(0.25, 0.65) * h; // horizon level
-        var hr = randomInRange(3, 12) * w;
-        var hy = hr + hz;
-        drawCircle(
-            ctx,
-            w/2,
-            hy,
-            hr,
-            getFill(ctx, opts.palette, w/2, hy, hr, opts.skew)
-        );
-        
-        var triCount = Math.round(randomInRange(3,7));
-        ctx.save();
 
-        console.log(triCount);
-        ctx.globalCompositeOperation = 'soft-light';
-        ctx.globalAlpha = randomInRange(0.4, 0.8);
-        // clip path
-        ctx.beginPath();
-        ctx.moveTo(w/2 + hr/2, hy);
-        ctx.arc(w/2, hy, hr, 0, 2 * Math.PI, false);
-        ctx.clip();
-        ctx.closePath();
-        while (triCount--) {
-            var th = randomInRange(h - hz, h);
-            console.log(hz, th);
-            var grad = ctx.createLinearGradient(0, hz,
-                w, h);
-            grad.addColorStop(0, 'rgba(255, 255, 211, 1)');
-            grad.addColorStop(1, 'rgba(255, 255, 211, 0)');
-            drawTriangle(ctx, randomInRange(-w, w), h - th, th, 0, {
-                palette: ['#fff', '#ff9', '#fd6'],
-                fill: grad,
-                skew: 0
-            })
-        }
-        ctx.restore();
-
-
-
-        // draw two shape layers in some order:
-        // shuffle shape list
+        // shuffle shape list and pick a shape
         shapes.sort(function(a, b) { return randomInRange(-1, 1)});
+        var shape = renderMap[shapes[0]];
 
-        // pop a renderer name, get render func and execute X 2
-        //renderMap[shapes.pop()](ctx, w, h, opts);
-        //renderMap[shapes.pop()](ctx, w, h, opts);
+        // pick centerpoint for shape
+        var shapeX = w/2;
+        var shapeY = h * randomInRange(0.4, 0.6);
+        var shapeSize = Math.min(w,h) * randomInRange(0.2, 0.4);
+        var magnification = randomInRange(1.07, 1.12);
+
+        // adjust params for triangle
+        if (shapes[0] === 'triangle') {
+            shapeY -= shapeSize/2;
+            magnification = randomInRange(1.2, 1.4);
+        }
+
+        // create a fill we will reuse for both renderings of the shape
+        var shapeFill = getFill(ctx, opts.palette, shapeX, shapeY, shapeSize, 0);
+
+        // draw the shape above waterline
+        shape(ctx, shapeX, shapeY, shapeSize, {
+            fill: shapeFill
+        });
+
+        // draw waterline
+        var wl; // left waterline
+        var wr; // right waterline
+        var wc1; // control point
+        var wc2;  // control point
+
+        wl = randomInRange(0.47, 0.52) * h;
+        wr = randomInRange(0.45, 0.55) * h;
+        wc1 = randomInRange(0.45, 0.55) * h;
+        wc2 = randomInRange(0.47, 0.52) * h;
+
+        var wtop = Math.min(wl, wr);
+
+        drawWaterline(ctx, wl, wc1, wc2, wr, w, h, extend({
+            fill: getFill(ctx, opts.palette, 0, wtop, h - wtop, 0)
+        }, opts));
+
+        // rendering to be done within the waterline clipping
+        function underwater(ctx, w, h, y1, y2) {
+
+            // draw light beams
+            var hz = Math.min(y1, y2);
+
+            var triCount = Math.round(randomInRange(3,7));
+            console.log(triCount);
+            ctx.globalCompositeOperation = 'soft-light';
+            ctx.globalAlpha = randomInRange(0.4, 0.8);
+            while (triCount--) {
+                var th = randomInRange(h - hz, h);
+                console.log(hz, th);
+                var grad = ctx.createLinearGradient(0, hz,
+                    w, h);
+                grad.addColorStop(0, 'rgba(255, 255, 211, 1)');
+                grad.addColorStop(1, 'rgba(255, 255, 211, 0)');
+                drawTriangle(ctx, randomInRange(-w, w), h - th, th, {
+                    palette: ['#fff', '#ff9', '#fd6'],
+                    fill: grad,
+                    skew: 0
+                })
+            }
+
+            // draw shape, a little bigger
+            ctx.globalCompositeOperation = 'normal';
+            shape(ctx, shapeX, shapeY, shapeSize * magnification, {
+                fill: shapeFill
+            });
+
+            // top edge
+            /*var edgeFill = ctx.createLinearGradient(0, hz, 0, hz + h/10);
+            edgeFill.addColorStop(0, '#fff');
+            edgeFill.addColorStop(1, '#000');
+            ctx.globalCompositeOperation = 'screen';
+            drawWaterline(ctx, wl, wc1, wc2, wr, w, h, {
+                fill: edgeFill
+            });*/
+        }
+
+        clipInWaterline(ctx, wl, wc1, wc2, wr, w, h, underwater);
 
 
         // Add effect elements
