@@ -278,7 +278,7 @@
         var shapeX = w/2;
         var shapeY = h * randomInRange(0.4, 0.6);
         var shapeSize = Math.min(w,h) * randomInRange(0.2, 0.4);
-        var magnification = randomInRange(1.07, 1.12);
+        var magnification = randomInRange(1.07, 1.1);
 
         // adjust params for triangle
         if (shapes[0] === 'triangle') {
@@ -340,6 +340,34 @@
             shape(ctx, shapeX, shapeY, shapeSize * magnification, {
                 fill: shapeFill
             });
+
+            var waterCount = Math.round(randomInRange(3,7));
+            var colorSample = ctx.getImageData(w/2, Math.floor((h -hz)/2), 1, 1);
+            var colorData = colorSample.data;
+            var waterLevel = hz;
+            var waterFill = ctx.createLinearGradient(0, hz, 0, hz * randomInRange(1.1, 1.2));
+            waterFill.addColorStop(0, `rgba(${colorData[0]}, ${colorData[1]}, ${colorData[2]}, 1)`);
+            waterFill.addColorStop(1, `rgba(${colorData[0]}, ${colorData[1]}, ${colorData[2]}, 1)`);
+
+            function drawWaterlines(composite) {
+
+            }
+
+            console.log(colorData.toString());
+
+            ctx.globalCompositeOperation = 'soft-light';
+            while (waterCount--) {
+                ctx.globalAlpha = randomInRange(0.2, 0.8);
+                waterLevel = hz + waterCount * h/15;
+                drawWaterline(ctx,
+                    waterLevel * randomInRange(0.9, 1.1),
+                    waterLevel * randomInRange(0.9, 1.1),
+                    waterLevel * randomInRange(0.9, 1.1),
+                    waterLevel * randomInRange(0.9, 1.1),
+                    w, h, {
+                    fill: waterFill
+                });
+            }
 
             // top edge
             /*var edgeFill = ctx.createLinearGradient(0, hz, 0, hz + h/10);
