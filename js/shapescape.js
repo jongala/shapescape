@@ -162,7 +162,7 @@
 
     function drawSquare(ctx, x, y, d, opts) {
         ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, x, y + d/2, d);
-        ctx.fillRect(x - d/2, y - d/2, d, d);
+        ctx.fillRect(x - d, y - d, d * 2, d * 2);
     }
 
     function drawWaterline(ctx, y1, c1, c2, y2, w, h, opts) {
@@ -183,6 +183,20 @@
 
 
         ctx.restore();
+    }
+
+    function addShadow(ctx, w, h) {
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 3 * Math.min(w,h)/400;
+        ctx.shadowBlur = 10 * Math.min(w,h)/400;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+    }
+
+    function removeShadow(ctx) {
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = 'transparent';
     }
 
     // Draw a waterline shape, clip to it, execute renderFunc,
@@ -260,10 +274,7 @@
         // BEGIN RENDERING
 
         if (opts.drawShadows) {
-            ctx.shadowOffsetX = 0;
-            ctx.shadowOffsetY = 3 * Math.min(w,h)/400;
-            ctx.shadowBlur = 10 * Math.min(w,h)/400;
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+            addShadow(ctx, w, h);
         }
 
         // draw background/sky
@@ -294,16 +305,17 @@
             fill: shapeFill
         });
 
-        // draw waterline
+        // Prepare main waterline
         var wl; // left waterline
-        var wr; // right waterline
         var wc1; // control point
         var wc2;  // control point
+        var wr; // right waterline
 
         wl = randomInRange(0.47, 0.52) * h;
-        wr = randomInRange(0.45, 0.55) * h;
         wc1 = randomInRange(0.45, 0.55) * h;
-        wc2 = randomInRange(0.47, 0.52) * h;
+        wc2 = randomInRange(0.45, 0.55
+            ) * h;
+        wr = randomInRange(0.47, 0.52) * h;
 
         var wtop = Math.min(wl, wr);
 
@@ -313,17 +325,26 @@
 
         // rendering to be done within the waterline clipping
         function underwater(ctx, w, h, y1, y2) {
-
-            // draw light beams
             var hz = Math.min(y1, y2);
+            removeShadow(ctx);
 
+            // Get a color sample from the underwater background block.
+            // This will be used in the wavy overlays. We get it from
+            // just below the horizon line in the middle, before we render
+            // the underwater half of the main shape.
+            var colorSample = ctx.getImageData(w/2, Math.floor((h -hz)/2), 1, 1);
+            var colorData = colorSample.data;
+            var waterLevel = hz;
+            var waterFill = ctx.createLinearGradient(0, hz, 0, hz * randomInRange(1.3, 2.2));
+            waterFill.addColorStop(0, `rgba(${colorData[0]}, ${colorData[1]}, ${colorData[2]}, 1)`);
+            waterFill.addColorStop(1, `rgba(${colorData[0]}, ${colorData[1]}, ${colorData[2]}, 1)`);
+
+            // Draw light beams with some yellowish triangles
             var triCount = Math.round(randomInRange(3,7));
-            console.log(triCount);
             ctx.globalCompositeOperation = 'soft-light';
             ctx.globalAlpha = randomInRange(0.4, 0.8);
             while (triCount--) {
                 var th = randomInRange(h - hz, h);
-                console.log(hz, th);
                 var grad = ctx.createLinearGradient(0, hz,
                     w, h);
                 grad.addColorStop(0, 'rgba(255, 255, 211, 1)');
@@ -335,20 +356,14 @@
                 })
             }
 
-            // draw shape, a little bigger
+            // Draw the underwater half of the main shape, a little bigger
             ctx.globalCompositeOperation = 'normal';
+            addShadow(ctx, w, h);
             shape(ctx, shapeX, shapeY, shapeSize * magnification, {
                 fill: shapeFill
             });
 
-            
-            var colorSample = ctx.getImageData(w/2, Math.floor((h -hz)/2), 1, 1);
-            var colorData = colorSample.data;
-            var waterLevel = hz;
-            var waterFill = ctx.createLinearGradient(0, hz, 0, hz * randomInRange(1.1, 1.2));
-            waterFill.addColorStop(0, `rgba(${colorData[0]}, ${colorData[1]}, ${colorData[2]}, 1)`);
-            waterFill.addColorStop(1, `rgba(${colorData[0]}, ${colorData[1]}, ${colorData[2]}, 1)`);
-
+            // Batch create some wavy lines under the water
             function drawWaterlines(composite, ymin, ymax, amin, amax) {
                 ctx.globalCompositeOperation = composite || 'normal';
                 ymin = ymin || 0;
@@ -374,13 +389,16 @@
                 }
             }
 
-            
+            removeShadow(ctx);
+
+            // light blended waves near the surface
             drawWaterlines('soft-light',
                 hz,
                 hz + (h - hz)/3,
                 0.2,
                 0.8);
 
+            // dark blended waves near the bottom
             drawWaterlines('multiply',
                 hz + (h - hz)/2,
                 h,
@@ -390,14 +408,27 @@
 
 
 
-            // top edge
-            /*var edgeFill = ctx.createLinearGradient(0, hz, 0, hz + h/10);
-            edgeFill.addColorStop(0, '#fff');
-            edgeFill.addColorStop(1, '#000');
-            ctx.globalCompositeOperation = 'screen';
-            drawWaterline(ctx, wl, wc1, wc2, wr, w, h, {
-                fill: edgeFill
-            });*/
+            // At the top edge, use main waterline points and repeat the
+            // curve back to left edge, slightly lower.  Fill with a light
+            // gradient and blend over.
+            var edgeThickness = h * 0.0075;
+            var edgeFill = ctx.createLinearGradient(0, 0, w, 0);
+            edgeFill.addColorStop(0, '#808080');
+            edgeFill.addColorStop(randomInRange(0, 0.5), '#fff');
+            edgeFill.addColorStop(randomInRange(0.5, 1), '#fff');
+            edgeFill.addColorStop(1, '#808080');
+
+            ctx.fillStyle = edgeFill;
+            ctx.globalCompositeOperation = 'overlay';
+            ctx.globalAlpha = randomInRange(0.1, 0.75);
+
+            ctx.beginPath();
+            ctx.moveTo(0, wl);
+            ctx.bezierCurveTo(w / 3, wc1 - 1, 2 * w / 3, wc2 - 1, w, wr);
+            ctx.lineTo(w, wr + 3);
+            ctx.bezierCurveTo(2 * w / 3, wc2 + edgeThickness, w / 3, wc1 + edgeThickness, 0, wl + 2);
+            ctx.closePath();
+            ctx.fill();
         }
 
         clipInWaterline(ctx, wl, wc1, wc2, wr, w, h, underwater);
