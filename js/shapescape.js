@@ -335,9 +335,8 @@
             var colorSample = ctx.getImageData(w/2, Math.floor((h -hz)/2), 1, 1);
             var colorData = colorSample.data;
             var waterLevel = hz;
-            var waterFill = ctx.createLinearGradient(0, hz, 0, hz * randomInRange(1.3, 2.2));
-            waterFill.addColorStop(0, `rgba(${colorData[0]}, ${colorData[1]}, ${colorData[2]}, 1)`);
-            waterFill.addColorStop(1, `rgba(${colorData[0]}, ${colorData[1]}, ${colorData[2]}, 1)`);
+            var waterColor = `${colorData[0]}, ${colorData[1]}, ${colorData[2]}`;
+            var waterFill;
 
             // Draw light beams with some yellowish triangles
             var triCount = Math.round(randomInRange(3,7));
@@ -372,12 +371,20 @@
                 amax = amax || 0.8;
 
                 var waterCount = Math.round(randomInRange(3,7));
-
                 var increment = (ymax - ymin)/waterCount;
 
                 while (waterCount--) {
                     ctx.globalAlpha = randomInRange(amin, amax);
                     waterLevel = ymin + waterCount * increment;
+
+                    waterFill = ctx.createLinearGradient(
+                        randomInRange(w/3, 2*w/3),
+                        randomInRange(hz, waterLevel),
+                        w/2,
+                        randomInRange(waterLevel, h));
+                    waterFill.addColorStop(0, `rgba(${waterColor}, 1)`);
+                    waterFill.addColorStop(1, `rgba(${waterColor}, 0)`);
+
                     drawWaterline(ctx,
                         waterLevel * randomInRange(0.9, 1.1),
                         waterLevel * randomInRange(0.9, 1.1),
@@ -404,8 +411,6 @@
                 h,
                 0.1,
                 0.3);
-
-
 
 
             // At the top edge, use main waterline points and repeat the
