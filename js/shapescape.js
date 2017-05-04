@@ -341,7 +341,7 @@
                 fill: shapeFill
             });
 
-            var waterCount = Math.round(randomInRange(3,7));
+            
             var colorSample = ctx.getImageData(w/2, Math.floor((h -hz)/2), 1, 1);
             var colorData = colorSample.data;
             var waterLevel = hz;
@@ -349,25 +349,46 @@
             waterFill.addColorStop(0, `rgba(${colorData[0]}, ${colorData[1]}, ${colorData[2]}, 1)`);
             waterFill.addColorStop(1, `rgba(${colorData[0]}, ${colorData[1]}, ${colorData[2]}, 1)`);
 
-            function drawWaterlines(composite) {
+            function drawWaterlines(composite, ymin, ymax, amin, amax) {
+                ctx.globalCompositeOperation = composite || 'normal';
+                ymin = ymin || 0;
+                ymax = ymax || h;
+                amin = amin || 0.2;
+                amax = amax || 0.8;
 
+                var waterCount = Math.round(randomInRange(3,7));
+
+                var increment = (ymax - ymin)/waterCount;
+
+                while (waterCount--) {
+                    ctx.globalAlpha = randomInRange(amin, amax);
+                    waterLevel = ymin + waterCount * increment;
+                    drawWaterline(ctx,
+                        waterLevel * randomInRange(0.9, 1.1),
+                        waterLevel * randomInRange(0.9, 1.1),
+                        waterLevel * randomInRange(0.9, 1.1),
+                        waterLevel * randomInRange(0.9, 1.1),
+                        w, h, {
+                        fill: waterFill
+                    });
+                }
             }
 
-            console.log(colorData.toString());
+            
+            drawWaterlines('soft-light',
+                hz,
+                hz + (h - hz)/3,
+                0.2,
+                0.8);
 
-            ctx.globalCompositeOperation = 'soft-light';
-            while (waterCount--) {
-                ctx.globalAlpha = randomInRange(0.2, 0.8);
-                waterLevel = hz + waterCount * h/15;
-                drawWaterline(ctx,
-                    waterLevel * randomInRange(0.9, 1.1),
-                    waterLevel * randomInRange(0.9, 1.1),
-                    waterLevel * randomInRange(0.9, 1.1),
-                    waterLevel * randomInRange(0.9, 1.1),
-                    w, h, {
-                    fill: waterFill
-                });
-            }
+            drawWaterlines('multiply',
+                hz + (h - hz)/2,
+                h,
+                0.1,
+                0.3);
+
+
+
 
             // top edge
             /*var edgeFill = ctx.createLinearGradient(0, hz, 0, hz + h/10);
