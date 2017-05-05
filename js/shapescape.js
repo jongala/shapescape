@@ -317,36 +317,59 @@
         var shapeSize = Math.min(w,h) * randomInRange(0.2, 0.4);
         var magnification = randomInRange(1.07, 1.1);
 
-        // adjust params for triangle
+        // Adjust params for triangle
         if (shapes[0] === 'triangle') {
             shapeY -= shapeSize/2;
             magnification = randomInRange(1.2, 1.4);
         }
 
-        // create a fill we will reuse for both renderings of the shape
+        // Create a fill we will reuse for both renderings of the shape
         var shapeFill = getFill(ctx, opts.palette, shapeX, shapeY, shapeSize, 0);
 
-        // draw the shape above waterline
-        shape(ctx, shapeX, shapeY, shapeSize, {
-            fill: shapeFill
-        });
-
-        // Prepare main waterline
+        // Prepare main waterlines
         var wl; // left waterline
         var wc1; // control point
         var wc2;  // control point
         var wr; // right waterline
+        var wtop; // the min of the waterline heights
+        var wfill; // main waterline fill
+        var bgOffset; // offset of background waterline
 
+        // Set waterline params for background renderin, and common fill
+        wl = randomInRange(0.49, 0.51) * h;
+        wc1 = randomInRange(0.48, 0.52) * h;
+        wc2 = randomInRange(0.48, 0.52) * h;
+        wr = randomInRange(0.49, 0.51) * h;
+        wtop = Math.min(wl, wr);
+        wfill = getFill(ctx, opts.palette, 0, wtop, h - wtop, 0);
+
+        // Draw background waterline at low opacity, slightly offset upward
+        ctx.globalAlpha = randomInRange(0, 0.6);
+        bgOffset = h / randomInRange(40, 100);
+        drawWaterline(ctx,
+            wr - bgOffset,
+            wc2 - bgOffset,
+            wc1 - bgOffset,
+            wl - bgOffset,
+            w, h, extend({
+            fill: wfill
+        }, opts));
+        ctx.globalAlpha = 1;
+
+        // Draw the shape above waterline
+        shape(ctx, shapeX, shapeY, shapeSize, {
+            fill: shapeFill
+        });
+
+        // Draw main foreground waterline. We will reuse these params
+        // for clipping the underwater elements
         wl = randomInRange(0.47, 0.52) * h;
         wc1 = randomInRange(0.45, 0.55) * h;
-        wc2 = randomInRange(0.45, 0.55
-            ) * h;
+        wc2 = randomInRange(0.45, 0.55) * h;
         wr = randomInRange(0.47, 0.52) * h;
-
-        var wtop = Math.min(wl, wr);
-
+        wtop = Math.min(wl, wr);
         drawWaterline(ctx, wl, wc1, wc2, wr, w, h, extend({
-            fill: getFill(ctx, opts.palette, 0, wtop, h - wtop, 0)
+            fill: wfill
         }, opts));
 
         // rendering to be done within the waterline clipping
@@ -379,7 +402,7 @@
                 fill: shapeFill
             });
 
-            // Batch create some wavy lines under the water
+            // Function to batch create sets of wavy lines under the water
             function drawWaterlines(composite, ymin, ymax, amin, amax) {
                 ctx.globalCompositeOperation = composite || 'normal';
                 ymin = ymin || 0;
@@ -415,14 +438,14 @@
 
             removeShadow(ctx);
 
-            // light blended waves near the surface
+            // Draw light blended waves near the surface
             drawWaterlines('soft-light',
                 hz,
                 hz + (h - hz)/3,
                 0.2,
                 0.8);
 
-            // dark blended waves near the bottom
+            // Draw dark blended waves near the bottom
             drawWaterlines('multiply',
                 hz + (h - hz)/2,
                 h,
