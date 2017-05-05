@@ -185,6 +185,32 @@
         ctx.restore();
     }
 
+    function drawSunbeams(ctx, x, y, w, h) {
+        var triCount = Math.round(randomInRange(3,7));
+        var x2;
+        var y2;
+        var tw;
+        var tx;
+        var grad;
+        ctx.globalCompositeOperation = 'soft-light';
+        ctx.globalAlpha = randomInRange(0.1, 0.5);
+        while (triCount--) {
+            tw = randomInRange(w/30, w/3);
+            tx = randomInRange(-w/3, 4 * w/3);
+            grad = ctx.createLinearGradient(x, y,
+                tx, randomInRange(h/2, h));
+
+            grad.addColorStop(0, 'rgba(255, 255, 211, 1)');
+            grad.addColorStop(1, 'rgba(255, 255, 211, 0)');
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(tx + tw/2, h);
+            ctx.lineTo(tx - tw/2, h);
+            ctx.closePath();
+            ctx.fill();
+        }
+    }
+
     function addShadow(ctx, w, h) {
         ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = 3 * Math.min(w,h)/400;
@@ -339,21 +365,11 @@
             var waterFill;
 
             // Draw light beams with some yellowish triangles
-            var triCount = Math.round(randomInRange(3,7));
-            ctx.globalCompositeOperation = 'soft-light';
-            ctx.globalAlpha = randomInRange(0.4, 0.8);
-            while (triCount--) {
-                var th = randomInRange(h - hz, h);
-                var grad = ctx.createLinearGradient(0, hz,
-                    w, h);
-                grad.addColorStop(0, 'rgba(255, 255, 211, 1)');
-                grad.addColorStop(1, 'rgba(255, 255, 211, 0)');
-                drawTriangle(ctx, randomInRange(-w, w), h - th, th, {
-                    palette: ['#fff', '#ff9', '#fd6'],
-                    fill: grad,
-                    skew: 0
-                })
-            }
+            drawSunbeams(ctx,
+                randomInRange(0, w),
+                randomInRange(-2 * h, -h/2 ),
+                w,
+                h);
 
             // Draw the underwater half of the main shape, a little bigger
             ctx.globalCompositeOperation = 'normal';
