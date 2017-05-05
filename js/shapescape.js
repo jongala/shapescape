@@ -373,6 +373,7 @@
 
             // Draw the underwater half of the main shape, a little bigger
             ctx.globalCompositeOperation = 'normal';
+            ctx.globalAlpha = randomInRange(0.2, 1);
             addShadow(ctx, w, h);
             shape(ctx, shapeX, shapeY, shapeSize * magnification, {
                 fill: shapeFill
