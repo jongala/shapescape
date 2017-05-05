@@ -148,13 +148,13 @@
         ctx.closePath();
     }
 
-    function drawTriangle(ctx, x, y, height, opts) {
-        var side = height / Math.cos(Math.PI/6);
+    function drawTriangle(ctx, x, y, size, opts) {
+        var h = 2 * size * Math.cos(Math.PI/6);
         ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, x, y + height/2, height, opts.skew);
         ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x + side/2, y + height);
-        ctx.lineTo(x - side/2, y + height);
+        ctx.moveTo(x, y - h/2);
+        ctx.lineTo(x + size, y + h/2);
+        ctx.lineTo(x - size, y + h/2);
         ctx.closePath();
         ctx.fill();
         return ctx;
@@ -309,19 +309,13 @@
 
         // shuffle shape list and pick a shape
         shapes.sort(function(a, b) { return randomInRange(-1, 1)});
-        var shape = renderMap[shapes[0]];
+        renderer = renderMap[shapes[0]];
 
         // pick centerpoint for shape
         var shapeX = w/2;
         var shapeY = h * randomInRange(0.4, 0.6);
         var shapeSize = Math.min(w,h) * randomInRange(0.2, 0.4);
         var magnification = randomInRange(1.07, 1.1);
-
-        // Adjust params for triangle
-        if (shapes[0] === 'triangle') {
-            shapeY -= shapeSize/2;
-            magnification = randomInRange(1.2, 1.4);
-        }
 
         // Create a fill we will reuse for both renderings of the shape
         var shapeFill = getFill(ctx, opts.palette, shapeX, shapeY, shapeSize, 0);
@@ -344,7 +338,7 @@
         wfill = getFill(ctx, opts.palette, 0, wtop, h - wtop, 0);
 
         // Draw background waterline at low opacity, slightly offset upward
-        ctx.globalAlpha = randomInRange(0, 0.6);
+        ctx.globalAlpha = randomInRange(0.2, 0.6);
         bgOffset = h / randomInRange(40, 100);
         drawWaterline(ctx,
             wr - bgOffset,
@@ -357,7 +351,7 @@
         ctx.globalAlpha = 1;
 
         // Draw the shape above waterline
-        shape(ctx, shapeX, shapeY, shapeSize, {
+        renderer(ctx, shapeX, shapeY, shapeSize, {
             fill: shapeFill
         });
 
@@ -398,7 +392,7 @@
             ctx.globalCompositeOperation = 'normal';
             ctx.globalAlpha = randomInRange(0.2, 1);
             addShadow(ctx, w, h);
-            shape(ctx, shapeX, shapeY, shapeSize * magnification, {
+            renderer(ctx, shapeX, shapeY, shapeSize * magnification, {
                 fill: shapeFill
             });
 
