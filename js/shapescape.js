@@ -315,7 +315,7 @@
         var shapeX = w/2;
         var shapeY = h * randomInRange(0.4, 0.6);
         var shapeSize = Math.min(w,h) * randomInRange(0.2, 0.4);
-        var magnification = randomInRange(1.07, 1.1);
+        var shapeMagnified = shapeSize + Math.min(w,h) / randomInRange(50, 80);
 
         // Create a fill we will reuse for both renderings of the shape
         var shapeFill = getFill(ctx, opts.palette, shapeX, shapeY, shapeSize, 0);
@@ -392,7 +392,7 @@
             ctx.globalCompositeOperation = 'normal';
             ctx.globalAlpha = randomInRange(0.2, 1);
             addShadow(ctx, w, h);
-            renderer(ctx, shapeX, shapeY, shapeSize * magnification, {
+            renderer(ctx, shapeX, shapeY, shapeMagnified, {
                 fill: shapeFill
             });
 
