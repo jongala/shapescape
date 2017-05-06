@@ -185,7 +185,7 @@
         ctx.restore();
     }
 
-    function drawSunbeams(ctx, x, y, w, h) {
+    function drawSunbeams(ctx, x, y, w, h, fill) {
         var triCount = Math.round(randomInRange(5,10));
         var x2;
         var y2;
@@ -193,20 +193,14 @@
         var tx;
         var grad;
         ctx.globalCompositeOperation = 'soft-light';
-        ctx.globalAlpha = randomInRange(0, 1);
+        ctx.globalAlpha = randomInRange(0.2, 0.8);
         while (triCount--) {
             // Set triangle width, and target x centerpoint.
             // Target x can be on or off page, with width spread bringing part
             // of the beam into the image
             tw = randomInRange(w / 30, w / 3); // width range
             tx = randomInRange(-w / 3, 4 * w / 3); // target (bottom) x
-            // Create a gradient ending somewhere in or below the bottom half
-            // of the image.
-            grad = ctx.createLinearGradient(x, y,
-                tx, randomInRange(2 * h / 3, 3 * h / 2));
-            grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
-            grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-            ctx.fillStyle = grad;
+            ctx.fillStyle = fill || '#fff';
             ctx.beginPath();
             ctx.moveTo(x, y);
             ctx.lineTo(tx + tw/2, h);
@@ -390,7 +384,8 @@
                 randomInRange(0, w),
                 randomInRange(-2 * h, -h/2 ),
                 w,
-                h);
+                h,
+                wfill);
 
             // Draw the underwater half of the main shape, a little bigger
             ctx.globalCompositeOperation = 'normal';
