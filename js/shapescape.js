@@ -450,7 +450,7 @@
             // At the top edge, use main waterline points and repeat the
             // curve back to left edge, slightly lower.  Fill with a light
             // gradient and blend over.
-            var edgeThickness = h * 0.0075;
+            var edgeThickness = h * 0.005 * Math.random() + 1.5;
             var edgeFill = ctx.createLinearGradient(0, 0, w, 0);
             edgeFill.addColorStop(0, '#808080');
             edgeFill.addColorStop(randomInRange(0, 0.5), '#fff');
