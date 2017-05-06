@@ -186,22 +186,27 @@
     }
 
     function drawSunbeams(ctx, x, y, w, h) {
-        var triCount = Math.round(randomInRange(3,7));
+        var triCount = Math.round(randomInRange(5,10));
         var x2;
         var y2;
         var tw;
         var tx;
         var grad;
         ctx.globalCompositeOperation = 'soft-light';
-        ctx.globalAlpha = randomInRange(0.1, 0.5);
+        ctx.globalAlpha = randomInRange(0, 1);
         while (triCount--) {
-            tw = randomInRange(w/30, w/3);
-            tx = randomInRange(-w/3, 4 * w/3);
+            // Set triangle width, and target x centerpoint.
+            // Target x can be on or off page, with width spread bringing part
+            // of the beam into the image
+            tw = randomInRange(w / 30, w / 3); // width range
+            tx = randomInRange(-w / 3, 4 * w / 3); // target (bottom) x
+            // Create a gradient ending somewhere in or below the bottom half
+            // of the image.
             grad = ctx.createLinearGradient(x, y,
-                tx, randomInRange(h/2, h));
-
-            grad.addColorStop(0, 'rgba(255, 255, 211, 1)');
-            grad.addColorStop(1, 'rgba(255, 255, 211, 0)');
+                tx, randomInRange(2 * h / 3, 3 * h / 2));
+            grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = grad;
             ctx.beginPath();
             ctx.moveTo(x, y);
             ctx.lineTo(tx + tw/2, h);
@@ -240,11 +245,10 @@
 
         ctx.closePath();
         ctx.restore();
-
     }
 
 
-    // Tile the container
+    // draw it!
     function shapescape(options) {
         var defaults = {
             container: 'body',
