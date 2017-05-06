@@ -250,6 +250,7 @@
             drawShadows: true,
             addNoise: 0.04,
             noiseInput: null,
+            dust: false,
             skew: 1, // normalized skew
             clear: true
         };
@@ -467,10 +468,26 @@
             ctx.bezierCurveTo(2 * w / 3, wc2 + edgeThickness, w / 3, wc1 + edgeThickness, 0, wl + 2);
             ctx.closePath();
             ctx.fill();
+
+            if (opts.dust) {
+                var spotCount = Math.floor(randomInRange(200, 1000));
+                ctx.globalCompositeOperation = 'soft-light';
+                while (--spotCount) {
+                    ctx.globalAlpha = randomInRange(0, 0.5);
+                    drawCircle(ctx,
+                        randomInRange(0, w),
+                        randomInRange(hz, h),
+                        randomInRange(0.5,1.5) * w/800,
+                        {fill: '#fff'}
+                        )
+                }
+            }
         }
 
         clipInWaterline(ctx, wl, wc1, wc2, wr, w, h, underwater);
 
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'normal';
 
         // Add effect elements
         // ...
