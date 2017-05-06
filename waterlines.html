@@ -19,13 +19,14 @@
 <body>
     <h1><a href="waterlines.html">Waterlines</a> | <a href="index.html">Shapescapes</a></h1>
     <div id="example"></div>
-    <div id="saved"><div id="instructions">Press space to redraw.<br/>Click image to add to tray.<br/>Drag from tray to desktop to save.</div></div>
+    <div id="saved"><div id="instructions">Press space to redraw.<br/>Click image to add to tray.<br/>Drag out from tray to save.</div></div>
     <div id="controls">
         <select onchange="setPalette(this.value)" id="paletteSelector"></select>
         <button onclick="createBatch()" id="newBatchTrigger">New Batch</button>
         <input type="text" id="customColors" placeholder="paste colors" />
     </div>
     <script src="js/colorbrewer.js"></script>
+    <script src="js/noiseutils.js"></script>
     <script src="js/waterline.js"></script>
     <script src="3p/DAT.GUI.min.js"></script>
     <script type="text/javascript">
@@ -68,7 +69,8 @@
             container: document.querySelector('#example'),
             clear: true,
             dust: true,
-            skew: 1
+            skew: 1,
+            noiseInput: noiseUtils.createNoiseCanvas(0.04, 200)
         };
 
 
