@@ -50,6 +50,19 @@
         }
     }
 
+    function sampleColor(ctx, x, y, w, h){
+        w = w || 1;
+        h = h || 1;
+        var colorSample = ctx.getImageData(x, y, 1, 1);
+        var colorData = colorSample.data;
+        return {
+            r: colorData[0],
+            g: colorData[1],
+            b: colorData[2],
+            a: colorData[3]
+        };
+    }
+
 
     function setAttrs(el, attrs) {
         if (el && el.setAttribute) {
@@ -110,22 +123,50 @@
         ctx.restore();
     }
 
-    function drawSunbeams(ctx, x, y, w, h, fill) {
+    function drawSunbeams(ctx, x, y, w, h, opts) {
         var triCount = Math.round(randomInRange(5,10));
         var x2;
         var y2;
         var tw;
         var tx;
         var grad;
+
         ctx.globalCompositeOperation = 'soft-light';
-        ctx.globalAlpha = randomInRange(0.2, 0.8);
+        ctx.globalAlpha = randomInRange(0.8, 0.99);
+
+
+        // Samples: an array of {r,g,b,a} objects as from
+        // sampleColor()
+        function makeBeamFill(samples, x1, y1, x2, y2) {
+            if (samples.length < 2) {
+                return samples[0];
+            }
+            // create fill
+            var fill = ctx.createLinearGradient(x1, y1, x2, y2);
+            var c1 = samples[0];
+            //c1 = {r:0,g:255,b:0,a:1};
+            var c2 = samples[1];
+            // place stops roughly in the underwater region.
+            fill.addColorStop(randomInRange(0.65, 0.8), `rgba(${c1.r}, ${c1.g}, ${c1.b}, 1)`);
+            fill.addColorStop(randomInRange(0.85, 1), `rgba(${c2.r}, ${c2.g}, ${c2.b}, 0)`);
+            return fill
+        }
+
+
         while (triCount--) {
             // Set triangle width, and target x centerpoint.
             // Target x can be on or off page, with width spread bringing part
             // of the beam into the image
             tw = randomInRange(w / 30, w / 3); // width range
             tx = randomInRange(-w / 3, 4 * w / 3); // target (bottom) x
-            ctx.fillStyle = fill || '#fff';
+
+            if (opts.fill) {
+                ctx.fillStyle = opts.fill;
+            }
+            if (opts.samples) {
+                ctx.fillStyle = makeBeamFill(opts.samples, x, y, tx, h);
+            }
+
             ctx.beginPath();
             ctx.moveTo(x, y);
             ctx.lineTo(tx + tw/2, h);
@@ -228,7 +269,8 @@
         }
 
         // draw background/sky
-        ctx.fillStyle = getFill(ctx, opts.palette, 0, 0, h, opts.skew);
+        var skyFill = getFill(ctx, opts.palette, 0, 0, h, opts.skew);
+        ctx.fillStyle = skyFill;
         ctx.fillRect(0, 0, w, h);
 
         // shuffle shape list and pick a shape
@@ -299,11 +341,15 @@
             // This will be used in the wavy overlays. We get it from
             // just below the horizon line in the middle, before we render
             // the underwater half of the main shape.
-            var colorSample = ctx.getImageData(w/2, Math.floor((h -hz)/2), 1, 1);
-            var colorData = colorSample.data;
+            var colorData = sampleColor(ctx, w/2, Math.floor((h -hz)/2), 1, 1);
             var waterLevel = hz;
-            var waterColor = `${colorData[0]}, ${colorData[1]}, ${colorData[2]}`;
+            var waterColor = `${colorData.r}, ${colorData.g}, ${colorData.b}`;
             var waterFill;
+
+
+            // sample colors
+            var top = sampleColor(ctx, 0, 1, 1, 1);
+            var bottom = sampleColor(ctx, 0, hz - 5, 1, 1);
 
             // Draw light beams with some yellowish triangles
             drawSunbeams(ctx,
@@ -311,7 +357,9 @@
                 randomInRange(-2 * h, -h/2 ),
                 w,
                 h,
-                wfill);
+                {
+                    samples: [top, bottom]
+                });
 
             // Draw the underwater half of the main shape, a little bigger
             ctx.globalCompositeOperation = 'normal';
