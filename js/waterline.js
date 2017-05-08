@@ -123,7 +123,7 @@
         ctx.restore();
     }
 
-    function drawSunbeams(ctx, x, y, w, h, opts) {
+    function drawSunbeams(ctx, x, y, w, h, hz, opts) {
         var triCount = Math.round(randomInRange(5,10));
         var x2;
         var y2;
@@ -134,21 +134,32 @@
         ctx.globalCompositeOperation = 'soft-light';
         ctx.globalAlpha = randomInRange(0.8, 0.99);
 
-
         // Samples: an array of {r,g,b,a} objects as from
         // sampleColor()
         function makeBeamFill(samples, x1, y1, x2, y2) {
             if (samples.length < 2) {
                 return samples[0];
             }
+
+            // get endpoint coords
+            // slope of beam line
+            var m = (y2 - y1) / (x2 - x1);
+            var b = y1 - m * x1;
+
+            // start point
+            var g1y = randomInRange(0, hz); // start above or at horizon level
+            var g1x = (g1y - b)/m;
+
+            // end point
+            var g2y = randomInRange(hz, h * 1.5); // end somewhere in the middle or just beyond
+            var g2x = (g2y -b)/m;
+
             // create fill
-            var fill = ctx.createLinearGradient(x1, y1, x2, y2);
+            var fill = ctx.createLinearGradient(g1x, g1y, g2x, g2y);
             var c1 = samples[0];
-            //c1 = {r:0,g:255,b:0,a:1};
             var c2 = samples[1];
-            // place stops roughly in the underwater region.
-            fill.addColorStop(randomInRange(0.65, 0.8), `rgba(${c1.r}, ${c1.g}, ${c1.b}, 1)`);
-            fill.addColorStop(randomInRange(0.85, 1), `rgba(${c2.r}, ${c2.g}, ${c2.b}, 0)`);
+            fill.addColorStop(0, `rgba(${c1.r}, ${c1.g}, ${c1.b}, 1)`);
+            fill.addColorStop(1, `rgba(${c2.r}, ${c2.g}, ${c2.b}, 0)`);
             return fill
         }
 
@@ -357,8 +368,10 @@
                 randomInRange(-2 * h, -h/2 ),
                 w,
                 h,
+                hz,
                 {
                     samples: [top, bottom]
+
                 });
 
             // Draw the underwater half of the main shape, a little bigger
