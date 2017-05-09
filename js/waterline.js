@@ -111,7 +111,7 @@
     }
 
     function drawSunbeams(ctx, x, y, w, h, fill) {
-        var triCount = Math.round(randomInRange(30,60));
+        var triCount = Math.round(randomInRange(5,60));
         var x2;
         var y2;
         var tw;
@@ -119,6 +119,8 @@
         var grad;
         ctx.globalCompositeOperation = 'soft-light';
         ctx.globalAlpha = randomInRange(0.1, 0.3);
+        // Add opacity when there are small counts of beams
+        ctx.globalAlpha += (1 - triCount/60) * .4 + randomInRange(0.1, 0.3);
         while (triCount--) {
             // Set triangle width, and target x centerpoint.
             // Target x can be on or off page, with width spread bringing part
@@ -305,7 +307,10 @@
             var waterColor = `${colorData[0]}, ${colorData[1]}, ${colorData[2]}`;
             var waterFill;
 
-            // Draw light beams with some yellowish triangles
+            // Draw light beams with the same fill as the water
+            // (will render in a different blending mode)
+            // The beams start anywhere across width, and somewhere above
+            // the top of the image (hence negative y vals)
             drawSunbeams(ctx,
                 randomInRange(0, w),
                 randomInRange(-2 * h, -h/2 ),
@@ -314,6 +319,8 @@
                 wfill);
 
             // Draw the underwater half of the main shape, a little bigger
+            // for the liquid magnification effect. Fade it out to get different
+            // apparent depth and clarity in liquid.
             ctx.globalCompositeOperation = 'normal';
             ctx.globalAlpha = randomInRange(0.2, 1);
             addShadow(ctx, w, h);
@@ -355,6 +362,7 @@
                 }
             }
 
+            // The waves look bad when they cast shadows
             removeShadow(ctx);
 
             // Draw light blended waves near the surface
@@ -372,8 +380,8 @@
                 0.3);
 
 
-            // At the top edge, use main waterline points and repeat the
-            // curve back to left edge, slightly lower.  Fill with a light
+            // At the top edge, use the main waterline points, then repeat the
+            // curve going back to the left, slightly lower.  Fill with a light
             // gradient and blend over.
             var edgeThickness = h * 0.005 * Math.random() + 1.5;
             var edgeFill = ctx.createLinearGradient(0, 0, w, 0);
@@ -409,6 +417,7 @@
             }
         }
 
+        // Now render the above function inside the waterline clipping area
         clipInWaterline(ctx, wl, wc1, wc2, wr, w, h, underwater);
 
         ctx.globalAlpha = 1;
