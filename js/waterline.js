@@ -127,7 +127,7 @@
     }
 
     function drawSunbeams(ctx, x, y, w, h, hz, opts) {
-        var triCount = Math.round(randomInRange(5,10));
+        var triCount = Math.round(randomInRange(5, 10));
         var x2;
         var y2;
         var tw;
@@ -136,17 +136,28 @@
 
         var wc = sampleColor(ctx, w/2, hz + 10, 1, 1);
         var c1;
+
+        ctx.globalCompositeOperation = 'soft-light';
+
+
         if (opts.samples) {
             c1 = opts.samples[0];
             //bdiff = (c1.r + c1.g + c1.b)/3 - (wc.r + wc.g + wc.b)/3;
             bdiff = luminance(c1) - luminance(wc);
             console.log(bdiff);
-            ctx.globalAlpha = 1;
+
+            if (bdiff >= 0) {
+                ctx.globalCompositeOperation = 'color-dodge';
+            } else {
+                ctx.globalCompositeOperation = 'color-burn';
+            }
+
+            ctx.globalAlpha = 1 - (Math.abs(bdiff)/150);
+            console.log('normdiff', Math.abs(bdiff)/150, 'alpha', ctx.globalAlpha);
+
         } else {
             ctx.globalAlpha = randomInRange(0.2, 0.4);
         }
-
-        ctx.globalCompositeOperation = 'color-dodge';
 
         //console.log('beam blend', ctx.globalAlpha.toPrecision(2));
 
