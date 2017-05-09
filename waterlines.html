@@ -5,14 +5,19 @@
     <link rel="stylesheet" href="css/demo.css" />
     <style type="text/css">
         #example {
-            width: 800px;
-            height: 600px;
+            //width: 800px;
+            //height: 600px;
+
         }
 
         #saved {
             border-left: none;
             left: auto;
-            width: 220px;            
+            width: 420px;
+        }
+
+        #saved img {
+            width: 400px;
         }
     </style>
 </head>
@@ -176,6 +181,15 @@
             })
             useCustomPalette(palette);
         });
+
+        // set up the elements
+        var width = 2400;
+        var height = 2400;
+        visualOpts.container.style.width = width;
+        visualOpts.container.style.height = height;
+
+        visualOpts.container.style.transformOrigin = 'top left';
+        visualOpts.container.style.transform = 'scale(0.25)';
 
         // draw one to start
         loadOpts();
