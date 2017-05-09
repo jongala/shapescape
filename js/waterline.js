@@ -111,14 +111,14 @@
     }
 
     function drawSunbeams(ctx, x, y, w, h, fill) {
-        var triCount = Math.round(randomInRange(5,10));
+        var triCount = Math.round(randomInRange(30,60));
         var x2;
         var y2;
         var tw;
         var tx;
         var grad;
         ctx.globalCompositeOperation = 'soft-light';
-        ctx.globalAlpha = randomInRange(0.2, 0.8);
+        ctx.globalAlpha = randomInRange(0.1, 0.3);
         while (triCount--) {
             // Set triangle width, and target x centerpoint.
             // Target x can be on or off page, with width spread bringing part
