@@ -63,6 +63,9 @@
         };
     }
 
+    function luminance(rgb) {
+        return (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b);
+    }
 
     function setAttrs(el, attrs) {
         if (el && el.setAttribute) {
@@ -131,8 +134,21 @@
         var tx;
         var grad;
 
-        ctx.globalCompositeOperation = 'soft-light';
-        ctx.globalAlpha = randomInRange(0.8, 0.99);
+        var wc = sampleColor(ctx, w/2, hz + 10, 1, 1);
+        var c1;
+        if (opts.samples) {
+            c1 = opts.samples[0];
+            //bdiff = (c1.r + c1.g + c1.b)/3 - (wc.r + wc.g + wc.b)/3;
+            bdiff = luminance(c1) - luminance(wc);
+            console.log(bdiff);
+            ctx.globalAlpha = 1;
+        } else {
+            ctx.globalAlpha = randomInRange(0.2, 0.4);
+        }
+
+        ctx.globalCompositeOperation = 'color-dodge';
+
+        //console.log('beam blend', ctx.globalAlpha.toPrecision(2));
 
         // Samples: an array of {r,g,b,a} objects as from
         // sampleColor()
