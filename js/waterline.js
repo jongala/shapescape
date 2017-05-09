@@ -111,16 +111,24 @@
     }
 
     function drawSunbeams(ctx, x, y, w, h, fill) {
-        var triCount = Math.round(randomInRange(5,60));
+        var triCount;
         var x2;
         var y2;
         var tw;
         var tx;
         var grad;
         ctx.globalCompositeOperation = 'soft-light';
-        ctx.globalAlpha = randomInRange(0.1, 0.3);
-        // Add opacity when there are small counts of beams
-        ctx.globalAlpha += (1 - triCount/60) * .4 + randomInRange(0.1, 0.3);
+
+        if (Math.random() > 0.2) {
+            // Most of the time, render many beams at low opacity
+             triCount = Math.round(randomInRange(40,60));
+             ctx.globalAlpha = randomInRange(0.1, 0.3);
+        } else {
+            // … sometimes, render a few beams at more varying opacities
+            triCount = Math.round(randomInRange(5,10));
+            ctx.globalAlpha = randomInRange(0.2, 0.8);
+        }
+
         while (triCount--) {
             // Set triangle width, and target x centerpoint.
             // Target x can be on or off page, with width spread bringing part
