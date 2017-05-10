@@ -105,6 +105,12 @@
         ctx.fillRect(x - d, y - d, d * 2, d * 2);
     }
 
+    function drawRect(ctx, x, y, d, opts) {
+        var gl = 0.6180339;
+        ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, x, y + d/2, d);
+        ctx.fillRect(x - d, y - d * gl, d * 2, d * 2 * gl);
+    }
+
     function drawBox(ctx, x, y, d, opts) {
         var r = d * 0.4;
         ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, x, y + d/2, d);
@@ -261,7 +267,8 @@
             'ring': drawRing,
             'triangle': drawTriangle,
             'square': drawSquare,
-            'box': drawBox
+            'box': drawBox,
+            'rect': drawRect
         };
         var shapes = Object.keys(renderMap);
 
@@ -283,6 +290,10 @@
         var shapeX = w/2;
         var shapeY = h * randomInRange(0.4, 0.6);
         var shapeSize = Math.min(w,h) * randomInRange(0.2, 0.4);
+        if (shapes[0] === 'rect') {
+            // bump up size of rectangles
+            shapeSize *= 1.2;
+        }
         var shapeMagnified = shapeSize + Math.min(w,h) / randomInRange(50, 80);
 
         // Create a fill we will reuse for both renderings of the shape
