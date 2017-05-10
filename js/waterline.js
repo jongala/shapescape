@@ -73,6 +73,20 @@
         ctx.closePath();
     }
 
+    function drawRing(ctx, x, y, r, opts) {
+        var inner = r * 0.5;
+        ctx.fillStyle = opts.fill;
+        ctx.strokeStyle = opts.stroke;
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arc(x, y, r, 0, 2 * Math.PI, false);
+        ctx.moveTo(x + inner, y);
+        ctx.arc(x, y, inner, 0, 2 * Math.PI, true);
+        ctx.fill();
+        opts.stroke && ctx.stroke();
+        ctx.closePath();
+    }
+
     function drawTriangle(ctx, x, y, size, opts) {
         var h = 2 * size * Math.cos(Math.PI/6);
         ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, x, y + height/2, height, opts.skew);
@@ -226,6 +240,7 @@
         var renderer;
         var renderMap = {
             'circle': drawCircle,
+            'ring': drawRing,
             'triangle': drawTriangle,
             'square': drawSquare
         };
