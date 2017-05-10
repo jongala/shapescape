@@ -80,6 +80,7 @@
         ctx.beginPath();
         ctx.moveTo(x + r, y);
         ctx.arc(x, y, r, 0, 2 * Math.PI, false);
+        // cutout
         ctx.moveTo(x + inner, y);
         ctx.arc(x, y, inner, 0, 2 * Math.PI, true);
         ctx.fill();
@@ -102,6 +103,23 @@
     function drawSquare(ctx, x, y, d, opts) {
         ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, x, y + d/2, d);
         ctx.fillRect(x - d, y - d, d * 2, d * 2);
+    }
+
+    function drawBox(ctx, x, y, d, opts) {
+        var r = d * 0.4;
+        ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, x, y + d/2, d);
+        ctx.beginPath();
+        ctx.moveTo(x - d, y - d);
+        ctx.lineTo(x + d, y - d);
+        ctx.lineTo(x + d, y + d);
+        ctx.lineTo(x - d, y + d);
+        // cutout
+        ctx.moveTo(x - r, y - r);
+        ctx.lineTo(x - r, y + r);
+        ctx.lineTo(x + r, y + r);
+        ctx.lineTo(x + r, y - r);
+        ctx.closePath();
+        ctx.fill();
     }
 
     function drawWaterline(ctx, y1, c1, c2, y2, w, h, opts) {
@@ -242,7 +260,8 @@
             'circle': drawCircle,
             'ring': drawRing,
             'triangle': drawTriangle,
-            'square': drawSquare
+            'square': drawSquare,
+            'box': drawBox
         };
         var shapes = Object.keys(renderMap);
 
