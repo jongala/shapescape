@@ -366,7 +366,7 @@
             // the top of the image (hence negative y vals)
             drawSunbeams(ctx,
                 randomInRange(0, w),
-                randomInRange(-2 * h, -h/2 ),
+                randomInRange(-2 * h, hz/2),
                 w,
                 h,
                 wfill);
