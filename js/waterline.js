@@ -136,6 +136,10 @@
         var gl = 0.6180339;
         ctx.save();
         ctx.translate(x, y);
+        if (opts.angle) {
+            ctx.rotate(opts.angle)
+        }
+
         ctx.beginPath();
         ctx.rect(-d, -d * gl, d * 2, d * 2 * gl);
         ctx.closePath();
@@ -151,6 +155,9 @@
 
         ctx.save();
         ctx.translate(x, y);
+        if (opts.angle) {
+            ctx.rotate(opts.angle)
+        }
         ctx.beginPath();
         ctx.moveTo(-d, -d);
         ctx.lineTo(+d, -d);
@@ -334,6 +341,8 @@
             shapeSize *= 1.2;
         }
         var shapeMagnified = shapeSize + Math.min(w,h) / randomInRange(50, 80);
+        // Rotate shape. Not all renderers will use this.
+        var shapeAngle = randomInRange(-Math.PI/12, Math.PI/12);
 
         // Create a fill we will reuse for both renderings of the shape
         var shapeFill = getFill(ctx, opts.palette, shapeX, shapeY, shapeSize, 0);
@@ -370,7 +379,8 @@
 
         // Draw the shape above waterline
         renderer(ctx, shapeX, shapeY, shapeSize, {
-            fill: shapeFill
+            fill: shapeFill,
+            angle: shapeAngle
         });
 
         // Draw main foreground waterline. We will reuse these params
@@ -417,7 +427,8 @@
             ctx.globalAlpha = randomInRange(0.2, 1);
             addShadow(ctx, w, h);
             renderer(ctx, shapeX, shapeY, shapeMagnified, {
-                fill: shapeFill
+                fill: shapeFill,
+                angle: shapeAngle
             });
 
             // Function to batch create sets of wavy lines under the water
