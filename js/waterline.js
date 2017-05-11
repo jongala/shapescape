@@ -63,74 +63,116 @@
 
 
     function drawCircle(ctx, x, y, r, opts) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.beginPath();
+        ctx.moveTo(r, 0);
+        ctx.arc(0, 0, r, 0, 2 * Math.PI, false);
+        ctx.closePath();
+        ctx.restore();
+
         ctx.fillStyle = opts.fill;
         ctx.strokeStyle = opts.stroke;
-        ctx.beginPath();
-        ctx.moveTo(x + r, y);
-        ctx.arc(x, y, r, 0, 2 * Math.PI, false);
         ctx.fill();
         opts.stroke && ctx.stroke();
-        ctx.closePath();
+
+        return ctx;
     }
 
     function drawRing(ctx, x, y, r, opts) {
         var inner = r * 0.5;
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.beginPath();
+        ctx.moveTo(r, 0);
+        ctx.arc(0, 0, r, 0, 2 * Math.PI, false);
+        // cutout
+        ctx.moveTo(inner, 0);
+        ctx.arc(0, 0, inner, 0, 2 * Math.PI, true);
+        ctx.closePath();
+        ctx.restore();
+
         ctx.fillStyle = opts.fill;
         ctx.strokeStyle = opts.stroke;
-        ctx.beginPath();
-        ctx.moveTo(x + r, y);
-        ctx.arc(x, y, r, 0, 2 * Math.PI, false);
-        // cutout
-        ctx.moveTo(x + inner, y);
-        ctx.arc(x, y, inner, 0, 2 * Math.PI, true);
         ctx.fill();
         opts.stroke && ctx.stroke();
-        ctx.closePath();
+        return ctx;
     }
 
     function drawTriangle(ctx, x, y, size, opts) {
         var h = 2 * size * Math.cos(Math.PI/6);
-        ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, x, y + height/2, height, opts.skew);
+
+        ctx.save();
+        ctx.translate(x, y);
         ctx.beginPath();
-        ctx.moveTo(x, y - h/2);
-        ctx.lineTo(x + size, y + h/2);
-        ctx.lineTo(x - size, y + h/2);
+        ctx.moveTo(0, -h/2);
+        ctx.lineTo(size, h/2);
+        ctx.lineTo(-size, h/2);
         ctx.closePath();
+        ctx.restore();
+
+        ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, 0, 0 + size/2, size, opts.skew);
         ctx.fill();
+
         return ctx;
     }
 
     function drawSquare(ctx, x, y, d, opts) {
-        ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, x, y + d/2, d);
-        ctx.fillRect(x - d, y - d, d * 2, d * 2);
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.beginPath();
+        ctx.rect(-d, -d, d * 2, d * 2);
+        ctx.closePath();
+        ctx.restore();
+
+        ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, 0, 0 + d/2, d);
+        ctx.fill();
+
+        return ctx;
     }
 
     function drawRect(ctx, x, y, d, opts) {
         var gl = 0.6180339;
-        ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, x, y + d/2, d);
-        ctx.fillRect(x - d, y - d * gl, d * 2, d * 2 * gl);
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.beginPath();
+        ctx.rect(-d, -d * gl, d * 2, d * 2 * gl);
+        ctx.closePath();
+        ctx.restore();
+
+        ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, 0, 0 + d/2, d);
+        ctx.fill();
+        return ctx;
     }
 
     function drawBox(ctx, x, y, d, opts) {
         var r = d * 0.4;
-        ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, x, y + d/2, d);
+
+        ctx.save();
+        ctx.translate(x, y);
         ctx.beginPath();
-        ctx.moveTo(x - d, y - d);
-        ctx.lineTo(x + d, y - d);
-        ctx.lineTo(x + d, y + d);
-        ctx.lineTo(x - d, y + d);
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(+d, -d);
+        ctx.lineTo(+d, +d);
+        ctx.lineTo(-d, +d);
         // cutout
-        ctx.moveTo(x - r, y - r);
-        ctx.lineTo(x - r, y + r);
-        ctx.lineTo(x + r, y + r);
-        ctx.lineTo(x + r, y - r);
+        ctx.moveTo(-r, -r);
+        ctx.lineTo(-r, +r);
+        ctx.lineTo(+r, +r);
+        ctx.lineTo(+r, -r);
+
         ctx.closePath();
+        ctx.restore();
+
+        ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, 0, 0 + d/2, d);
         ctx.fill();
+
+        return ctx;
     }
 
     function drawWaterline(ctx, y1, c1, c2, y2, w, h, opts) {
         ctx.save();
-        //ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, 0, 0, h - Math.min(y1, y2), opts.skew);
         if (opts.fill) {
             ctx.fillStyle = opts.fill;
         }
@@ -141,10 +183,7 @@
         ctx.lineTo(0, h);
         ctx.closePath();
 
-
         ctx.fill();
-
-
         ctx.restore();
     }
 
