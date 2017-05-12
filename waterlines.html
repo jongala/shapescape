@@ -9,6 +9,20 @@
             height: 600px;
         }
 
+
+
+        #preview {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.7);
+        }
+
         #saved {
             border-left: none;
             left: auto;
@@ -85,10 +99,13 @@
 
         // Handlers for redraw, batching, and manual saving
 
-        document.addEventListener('keypress', function(e) {
+        document.addEventListener('keydown', function(e) {
             var kode = e.which || e.keyCode;
-            if (kode === 32) {
+            if (kode === 32) { // space
+                removePreview();
                 requestAnimationFrame(loadOpts);
+            } else if (kode === 27) { // ESC
+                removePreview();
             }
         });
 
@@ -98,12 +115,6 @@
             image.src = pixels;
             container.appendChild(image);
         }
-
-        document.addEventListener('click', function(e) {
-            if (e.target.nodeName === 'CANVAS') {
-                saveCanvas(e.target, document.querySelector('#saved'));
-            }
-        });
 
         function createBatch(opts, N) {
             N = N || 9;
@@ -175,6 +186,35 @@
                 return s;
             })
             useCustomPalette(palette);
+        });
+
+        function previewImage(image) {
+            var preview = document.createElement('div');
+            preview.id = 'preview';
+            preview.appendChild(image);
+            preview.onclick = function(e) {
+                if (e.target.nodeName !== 'IMG') {
+                    removePreview();
+                }
+            }
+            document.querySelector('body').appendChild(preview);
+        }
+
+        function removePreview() {
+            var p = document.querySelector('#preview');
+            p && p.remove();
+        }
+
+        document.querySelector('#saved').addEventListener('click', function(e) {
+            if (e.target.nodeName === 'IMG') {
+                previewImage(e.target.cloneNode());
+            }
+        });
+
+        exampleNode.addEventListener('click', function(e) {
+            if (e.target.nodeName === 'CANVAS') {
+                saveCanvas(e.target, document.querySelector('#saved'));
+            }
         });
 
         // draw one to start
