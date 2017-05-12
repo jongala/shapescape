@@ -9,8 +9,6 @@
             height: 600px;
         }
 
-
-
         #preview {
             position: fixed;
             top: 0;
@@ -23,17 +21,22 @@
             background: rgba(0,0,0,0.7);
         }
 
+        #preview img {
+            max-height: 100vh;
+            max-width: 100vw;
+        }
+
         #saved {
             border-left: none;
             left: auto;
-            width: 220px;            
+            width: 220px;
         }
     </style>
 </head>
 <body>
     <h1><a href="waterlines.html">Waterlines</a> | <a href="index.html">Shapescapes</a></h1>
     <div id="example"></div>
-    <div id="saved"><div id="instructions">Press space to redraw.<br/>Click image to add to tray.<br/>Drag out from tray to save.</div></div>
+    <div id="saved"><div id="instructions">Press space to redraw.<br/>Click image to add to tray.</div></div>
     <div id="controls">
         <select onchange="setPalette(this.value)" id="paletteSelector"></select>
         <button onclick="createBatch()" id="newBatchTrigger">New Batch</button>
@@ -90,10 +93,16 @@
 
         var exampleNode = document.getElementById('example');
 
-
-        function loadOpts(opts) {
+        // @fast skips re-rendering the canvas in place as an img,
+        // which makes for easy saving but slows down rendering
+        function loadOpts(opts, fast) {
+            var img = exampleNode.querySelector('img');
+            img && img.remove();
             visualOpts = extend(visualOpts, opts);
             waterline(visualOpts);
+            if (!fast) {
+                saveCanvas(exampleNode.querySelector('canvas'), exampleNode);
+            }
         }
 
 
@@ -123,7 +132,7 @@
             container.innerHTML = '';
             for (var i=0; i < N ; i++) {
                 requestAnimationFrame(function(){
-                    loadOpts(opts);
+                    loadOpts(opts, true);
                     saveCanvas(canvas, container);
                 });
             }
@@ -212,9 +221,7 @@
         });
 
         exampleNode.addEventListener('click', function(e) {
-            if (e.target.nodeName === 'CANVAS') {
-                saveCanvas(e.target, document.querySelector('#saved'));
-            }
+            saveCanvas(exampleNode.querySelector('canvas'), document.querySelector('#saved'));
         });
 
         // draw one to start
