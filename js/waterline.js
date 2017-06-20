@@ -203,7 +203,7 @@
         var grad;
         ctx.globalCompositeOperation = 'soft-light';
 
-        if (Math.random() > 0.2) {
+        if (Math.random() > 0.15) {
             // Most of the time, render many beams at low opacity
              triCount = Math.round(randomInRange(40,60));
              ctx.globalAlpha = randomInRange(0.1, 0.3);
