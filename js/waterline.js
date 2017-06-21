@@ -178,6 +178,39 @@
         return ctx;
     }
 
+    function _drawPolygon(SIDES, SCALE) {
+        SCALE = SCALE || 1;
+
+        return function(ctx, x, y, d, opts) {
+            ctx.save();
+            ctx.translate(x, y);
+            if (opts.angle) {
+                ctx.rotate(opts.angle)
+            }
+
+            var r = d * SCALE;
+            var a = Math.PI * 2/SIDES;
+            function _x(theta) {return r * Math.cos(theta - Math.PI/2)};
+            function _y(theta) {return r * Math.sin(theta - Math.PI/2)};
+
+            ctx.beginPath();
+            ctx.moveTo(_x(a * 0), _y(a * 0));
+            for (var i = 1; i <= SIDES; i++) {
+                ctx.lineTo(_x(a * i), _y(a * i));
+            }
+            ctx.closePath();
+            ctx.restore();
+
+            ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, 0, 0 + d/2, d);
+            ctx.fill();
+
+            return ctx;
+        }
+    }
+
+    var drawPentagon = _drawPolygon(5, 1.1);
+    var drawHexagon = _drawPolygon(6, 1.05);
+
     function drawWaterline(ctx, y1, c1, c2, y2, w, h, opts) {
         ctx.save();
         if (opts.fill) {
@@ -314,7 +347,9 @@
             'triangle': drawTriangle,
             'square': drawSquare,
             'box': drawBox,
-            'rect': drawRect
+            'rect': drawRect,
+            'pentagon': drawPentagon,
+            'hexagon': drawHexagon
         };
         var shapes = Object.keys(renderMap);
 
@@ -335,7 +370,7 @@
         // pick centerpoint for shape
         var shapeX = w/2;
         var shapeY = h * randomInRange(0.4, 0.6);
-        var shapeSize = Math.min(w,h) * randomInRange(0.2, 0.4);
+        var shapeSize = Math.min(w,h) * randomInRange(0.25, 0.4);
         if (shapes[0] === 'rect') {
             // bump up size of rectangles
             shapeSize *= 1.2;
