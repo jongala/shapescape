@@ -3,11 +3,44 @@
     <meta charset="utf-8"/>
     <title>Shapescapes</title>
     <link rel="stylesheet" href="css/demo.css" />
+    <style type="text/css">
+        #example {
+            width: 800px;
+            height: 800px;
+        }
+
+        #preview {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.7);
+        }
+
+        #preview img {
+            max-height: 100vh;
+            max-width: 100vw;
+        }
+
+        #saved {
+            border-left: none;
+            left: auto;
+            width: 320px;
+        }
+
+        #saved img {
+            width: 300px;
+        }
+    </style>
 </head>
 <body>
     <h1><a href="index.html">Shapescapes</a> | <a href="waterlines.html">Waterlines</a></h1>
     <div id="example"></div>
-    <div id="saved"><div id="instructions">Press space to redraw.<br/>Click image to add to tray.<br/>Drag from tray to desktop to save.</div></div>
+    <div id="saved"><div id="instructions">[space] to redraw. Click image to add to tray. Click thumbnail to preview.</div></div>
     <div id="controls">
         <select onchange="setPalette(this.value)" id="paletteSelector"></select>
         <button onclick="createBatch()" id="newBatchTrigger">New Batch</button>
@@ -41,18 +74,26 @@
         var exampleNode = document.getElementById('example');
 
 
-        function loadOpts(opts) {
+        function loadOpts(opts, fast) {
+            var img = exampleNode.querySelector('img');
+            img && img.remove();
             visualOpts = extend(visualOpts, opts);
             shapescape(visualOpts);
+            if (!fast) {
+                saveCanvas(exampleNode.querySelector('canvas'), exampleNode);
+            }
         }
 
 
         // Handlers for redraw, batching, and manual saving
 
-        document.addEventListener('keypress', function(e) {
+        document.addEventListener('keydown', function(e) {
             var kode = e.which || e.keyCode;
-            if (kode === 32) {
+            if (kode === 32) { // space
+                removePreview();
                 requestAnimationFrame(loadOpts);
+            } else if (kode === 27) { // ESC
+                removePreview();
             }
         });
 
@@ -63,12 +104,6 @@
             container.appendChild(image);
         }
 
-        document.addEventListener('click', function(e) {
-            if (e.target.nodeName === 'CANVAS') {
-                saveCanvas(e.target, document.querySelector('#saved'));
-            }
-        });
-
         function createBatch(opts, N) {
             N = N || 9;
             var canvas = document.querySelector('#example canvas');
@@ -76,23 +111,24 @@
             container.innerHTML = '';
             for (var i=0; i < N ; i++) {
                 requestAnimationFrame(function(){
-                    loadOpts(opts);
+                    loadOpts(opts, true);
                     saveCanvas(canvas, container);
                 });
             }
-
-            // focus image for rerender binding
-            document.querySelector('#newBatchTrigger').blur();
-            document.querySelector('#example').focus();
         }
 
 
         // Option sets:
 
         var palettes = {
-            Standard: null,
-            black_white: ["#111111", "#444444", "#999999", "#ffffff"],
-            black_white_red: ["#111111", "#444444", "#999999", "#ffffff", '#880000', '#dd0000'],
+            standard: null,
+            high_contrast: ["#111111", "#444444",  "#dddddd", "#f9f9f9"],
+            low_contrast: ["#111111", "#666666",  "#999999", "#cccccc", "#f9f9f9"],
+            black_white_red: ["#111111", "#444444", "#dddddd", "#ffffff", '#880000', '#dd0000'],
+            magma: ['#000004','#3b0f70','#8c2981','#de4968','#fe9f6d','#fcfdbf'],
+            inferno: ['#000004','#420a68','#932667','#dd513a','#fca50a','#fcffa4'],
+            plasma: ['#0d0887','#6a00a8','#b12a90','#e16462','#fca636','#f0f921'],
+            viridis: ['#440154','#414487','#2a788e','#22a884','#7ad151','#fde725']
         }
 
         // create a batch from a colorbrewer name
@@ -142,6 +178,33 @@
                 return s;
             })
             useCustomPalette(palette);
+        });
+
+        function previewImage(image) {
+            var preview = document.createElement('div');
+            preview.id = 'preview';
+            preview.appendChild(image);
+            preview.onclick = function(e) {
+                if (e.target.nodeName !== 'IMG') {
+                    removePreview();
+                }
+            }
+            document.querySelector('body').appendChild(preview);
+        }
+
+        function removePreview() {
+            var p = document.querySelector('#preview');
+            p && p.remove();
+        }
+
+        document.querySelector('#saved').addEventListener('click', function(e) {
+            if (e.target.nodeName === 'IMG') {
+                previewImage(e.target.cloneNode());
+            }
+        });
+
+        exampleNode.addEventListener('click', function(e) {
+            saveCanvas(exampleNode.querySelector('canvas'), document.querySelector('#saved'));
         });
 
         // draw one to start
