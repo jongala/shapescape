@@ -211,7 +211,7 @@
     var drawPentagon = _drawPolygon(5, 1.1);
     var drawHexagon = _drawPolygon(6, 1.05);
 
-    function drawWaterline(ctx, y1, c1, c2, y2, w, h, opts) {
+    function drawWave(ctx, y1, c1, c2, y2, w, h, opts) {
         ctx.save();
         if (opts.fill) {
             ctx.fillStyle = opts.fill;
@@ -402,7 +402,7 @@
         // Draw background waterline at low opacity, slightly offset upward
         ctx.globalAlpha = randomInRange(0.2, 0.6);
         bgOffset = h / randomInRange(40, 100);
-        drawWaterline(ctx,
+        drawWave(ctx,
             wr - bgOffset,
             wc2 - bgOffset,
             wc1 - bgOffset,
@@ -425,7 +425,7 @@
         wc2 = randomInRange(0.45, 0.55) * h;
         wr = randomInRange(0.47, 0.52) * h;
         wtop = Math.min(wl, wr);
-        drawWaterline(ctx, wl, wc1, wc2, wr, w, h, extend({
+        drawWave(ctx, wl, wc1, wc2, wr, w, h, extend({
             fill: wfill
         }, opts));
 
@@ -467,7 +467,7 @@
             });
 
             // Function to batch create sets of wavy lines under the water
-            function drawWaterlines(composite, ymin, ymax, amin, amax) {
+            function drawWaveSet(composite, ymin, ymax, amin, amax) {
                 ctx.globalCompositeOperation = composite || 'normal';
                 ymin = ymin || 0;
                 ymax = ymax || h;
@@ -489,7 +489,7 @@
                     waterFill.addColorStop(0, `rgba(${waterColor}, 1)`);
                     waterFill.addColorStop(1, `rgba(${waterColor}, 0)`);
 
-                    drawWaterline(ctx,
+                    drawWave(ctx,
                         waterLevel * randomInRange(0.9, 1.1),
                         waterLevel * randomInRange(0.9, 1.1),
                         waterLevel * randomInRange(0.9, 1.1),
@@ -504,14 +504,14 @@
             removeShadow(ctx);
 
             // Draw light blended waves near the surface
-            drawWaterlines('soft-light',
+            drawWaveSet('soft-light',
                 hz,
                 hz + (h - hz)/3,
                 0.2,
                 0.8);
 
             // Draw dark blended waves near the bottom
-            drawWaterlines('multiply',
+            drawWaveSet('multiply',
                 hz + (h - hz)/2,
                 h,
                 0.1,
