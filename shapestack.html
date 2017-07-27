@@ -1,0 +1,209 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Stacks</title>
+    <link rel="stylesheet" href="css/demo.css" />
+</head>
+<body>
+    <h1><a href="waterlines.html">Waterlines</a> | <a href="stacks.html">Stacks</a> | <a href="index.html">Shapescapes</a></h1>
+    <div id="example"></div>
+    <div id="saved"><div id="instructions">[space] to redraw. Click image to add to tray. Click thumbnail to preview.</div></div>
+    <div id="controls">
+        <select onchange="setPalette(this.value)" id="paletteSelector"></select>
+        <button onclick="createBatch()" id="newBatchTrigger">New Batch</button>
+        <input type="text" id="customColors" placeholder="paste colors" />
+    </div>
+    <script src="js/colorbrewer.js"></script>
+    <script src="js/noiseutils.js"></script>
+    <script src="js/shapestack.js"></script>
+    <script src="3p/DAT.GUI.min.js"></script>
+    <script type="text/javascript">
+
+
+        // Obj/array helpers
+        function extend(dest, src) {
+            for (k in src) {
+                if (src.hasOwnProperty(k)) {
+                    dest[k] = src[k];
+                }
+            }
+            return dest;
+        }
+
+        function objToArray(obj) {
+            var arr = [];
+            for (key in obj) {
+                if (obj.hasOwnProperty(key)) {
+                    arr.push(obj[key]);
+                }
+            }
+            return arr;
+        }
+
+        function arrayToObj(arr) {
+            var obj = {};
+            arr.forEach(function(val, i){
+                obj[i] = val;
+            });
+            return obj;
+        }
+
+
+
+
+
+        // GUI controlled opts
+        var visualOpts = {
+            container: document.querySelector('#example'),
+            clear: true,
+            dust: true,
+            skew: 1,
+            noiseInput: noiseUtils.createNoiseCanvas(0.04, 200)
+        };
+
+
+        var exampleNode = document.getElementById('example');
+
+        // @fast skips re-rendering the canvas in place as an img,
+        // which makes for easy saving but slows down rendering
+        function loadOpts(opts, fast) {
+            var img = exampleNode.querySelector('img');
+            img && img.remove();
+            visualOpts = extend(visualOpts, opts);
+            shapestack(visualOpts);
+            if (!fast) {
+                saveCanvas(exampleNode.querySelector('canvas'), exampleNode);
+            }
+        }
+
+
+        // Handlers for redraw, batching, and manual saving
+
+        document.addEventListener('keydown', function(e) {
+            var kode = e.which || e.keyCode;
+            if (kode === 32) { // space
+                removePreview();
+                requestAnimationFrame(loadOpts);
+            } else if (kode === 27) { // ESC
+                removePreview();
+            }
+        });
+
+        function saveCanvas(canvas, container) {
+            var pixels = canvas.toDataURL('image/png');
+            var image = document.createElement('img');
+            image.src = pixels;
+            container.appendChild(image);
+        }
+
+        function createBatch(opts, N) {
+            N = N || 9;
+            var canvas = document.querySelector('#example canvas');
+            var container = document.querySelector('#saved');
+            container.innerHTML = '';
+            for (var i=0; i < N ; i++) {
+                requestAnimationFrame(function(){
+                    loadOpts(opts, true);
+                    saveCanvas(canvas, container);
+                });
+            }
+        }
+
+
+        // Option sets:
+
+        var palettes = {
+            standard: null,
+            high_contrast: ["#111111", "#444444",  "#dddddd", "#f9f9f9"],
+            low_contrast: ["#111111", "#666666",  "#999999", "#cccccc", "#f9f9f9"],
+            black_white_red: ["#111111", "#444444", "#dddddd", "#ffffff", '#880000', '#dd0000'],
+            lemon_beach: ['#d7d7d7', '#979797', '#cabd9d', '#11758e', '#89bed3', '#e4ca49'],
+            magma: ['#000004','#3b0f70','#8c2981','#de4968','#fe9f6d','#fcfdbf'],
+            inferno: ['#000004','#420a68','#932667','#dd513a','#fca50a','#fcffa4'],
+            plasma: ['#0d0887','#6a00a8','#b12a90','#e16462','#fca636','#f0f921'],
+            viridis: ['#440154','#414487','#2a788e','#22a884','#7ad151','#fde725']
+        }
+
+        // create a batch from a colorbrewer name
+        function setPalette(pname) {
+            if (!palettes[pname]) {
+                delete visualOpts.palette;
+            } else {
+                visualOpts.palette = palettes[pname];
+            }
+            return loadOpts({});
+        }
+
+        // populate the selector for colorbrewer palettes
+        if (colorbrewer) {
+            var cbnames = Object.keys(colorbrewer);
+            cbnames.forEach(function (pname) {
+                palettes[pname] = colorbrewer[pname][6];
+            });
+        }
+
+        var selectEl = document.querySelector('#paletteSelector');
+        var pnames = Object.keys(palettes);
+        pnames.forEach(function (pname) {
+            var option = document.createElement('option');
+            option.value = pname;
+            option.innerHTML = pname;
+            selectEl.appendChild(option);
+        });
+
+        function useCustomPalette(palette) {
+            if(palette && palette.length) {
+                visualOpts.palette = palette;
+                selectEl.value = 'custom';
+                shapestack(visualOpts);
+            }
+        }
+
+        var custom = document.querySelector('#customColors');
+        custom.addEventListener('keypress', function (e) {
+            var hexPattern = /#?[0-9a-f]{3,6}/;
+            var palette = e.target.value.split(',');
+            palette = palette.map((s) => {
+                s = s.trim();
+                if (hexPattern.test(s) && !s.startsWith('#')) {
+                    s = '#' + s;
+                }
+                return s;
+            })
+            useCustomPalette(palette);
+        });
+
+        function previewImage(image) {
+            var preview = document.createElement('div');
+            preview.id = 'preview';
+            preview.appendChild(image);
+            preview.onclick = function(e) {
+                if (e.target.nodeName !== 'IMG') {
+                    removePreview();
+                }
+            }
+            document.querySelector('body').appendChild(preview);
+        }
+
+        function removePreview() {
+            var p = document.querySelector('#preview');
+            p && p.remove();
+        }
+
+        document.querySelector('#saved').addEventListener('click', function(e) {
+            if (e.target.nodeName === 'IMG') {
+                previewImage(e.target.cloneNode());
+            }
+        });
+
+        exampleNode.addEventListener('click', function(e) {
+            saveCanvas(exampleNode.querySelector('canvas'), document.querySelector('#saved'));
+        });
+
+        // draw one to start
+        loadOpts();
+
+
+    </script>
+</body>
+</html>
