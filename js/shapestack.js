@@ -353,6 +353,8 @@
         };
         var shapes = Object.keys(renderMap);
 
+        var grays = ["#111111", "#666666",  "#999999", "#cccccc", "#f9f9f9"];
+
         // BEGIN RENDERING
 
         if (opts.drawShadows) {
@@ -410,7 +412,11 @@
 
         function drawStack(stack, x, palette) {
             stack.forEach(function(y, i) {
-                ctx.fillStyle = getFill(ctx, palette);
+                if (palette === 'gray') {
+                    ctx.fillStyle = 'rgba(0, 0, 0,' + (i + 1) * 0.8/stackSize + ')';
+                } else {
+                    ctx.fillStyle = getFill(ctx, palette);
+                }
 
                 ctx.beginPath();
                 ctx.rect(x, y[0], w/2, y[1] - y[0]);
@@ -420,8 +426,8 @@
             });
         }
 
-        drawStack(stackA, 0, opts.palette);
-        drawStack(stackB, w/2, opts.palette);
+        drawStack(stackA, 0, 'gray');
+        drawStack(stackB, w/2, 'gray');
 
 
         // Draw Mask
@@ -461,11 +467,7 @@
         ctx.strokeStyle = '#ffffff';
         ctx.stroke();
 
-        
 
-
-
-        
         // Add effect elements
         // ...
 
