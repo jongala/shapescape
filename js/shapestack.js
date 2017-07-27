@@ -395,11 +395,11 @@
         var i = 1;
         while (i++ <= stackSize) {
             console.log(i);
-            block = [levelA, levelA + randomInRange(0, heightA / stackSize)];
+            block = [levelA, levelA + randomInRange(0.25 * heightA / stackSize, heightA / stackSize)];
             levelA = block[1];
             stackA.push(block);
 
-            block = [levelB, levelB + randomInRange(0, heightB / stackSize)];
+            block = [levelB, levelB + randomInRange(0.25 * heightB / stackSize, heightB / stackSize)];
             levelB = block[1];
             stackB.push(block);
 
