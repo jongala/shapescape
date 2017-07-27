@@ -378,7 +378,7 @@
         var maskSize = Math.min(w,h) * randomInRange(0.33, 0.45);
 
         // pick depth of stack
-        var stackSize = randomInRange(2, 6);
+        var stackSize = randomInRange(1, 4);
         var heightA = h * randomInRange(0.4, 0.6);
         var heightB = heightA * randomInRange(0.95, 1.05);
 
@@ -389,8 +389,6 @@
         var levelB = h - heightB;
 
         var block;
-
-        stackSize = 2;
 
         var i = 1;
         while (i++ <= stackSize) {
