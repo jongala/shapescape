@@ -391,13 +391,16 @@
         var block;
 
         var i = 1;
+        var blockH;
         while (i++ <= stackSize) {
             console.log(i);
-            block = [levelA, levelA + randomInRange(0.25 * heightA / stackSize, heightA / stackSize)];
+            blockH = heightA / stackSize;
+            block = [levelA, levelA + randomInRange(0.25 * blockH, blockH)];
             levelA = block[1];
             stackA.push(block);
 
-            block = [levelB, levelB + randomInRange(0.25 * heightB / stackSize, heightB / stackSize)];
+            blockH = heightB / stackSize;
+            block = [levelB, levelB + randomInRange(0.25 * blockH, blockH)];
             levelB = block[1];
             stackB.push(block);
 
@@ -407,11 +410,12 @@
 
         console.log(stackA, stackB);
 
-
+        var gray;
         function drawStack(stack, x, palette) {
             stack.forEach(function(y, i) {
                 if (palette === 'gray') {
-                    ctx.fillStyle = 'rgba(0, 0, 0,' + (i + 1) * 0.8/stackSize + ')';
+                    gray = randomInRange(0.55, 0.85);
+                    ctx.fillStyle = 'rgba(0, 0, 0,' + (i + 1) * gray/stackSize + ')';
                 } else {
                     ctx.fillStyle = getFill(ctx, palette);
                 }
