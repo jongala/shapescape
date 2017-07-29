@@ -65,6 +65,7 @@
     function drawCircle(ctx, x, y, r, opts) {
         ctx.save();
         ctx.translate(x, y);
+        console.log('translated');
         ctx.beginPath();
         ctx.moveTo(r, 0);
         ctx.arc(0, 0, r, 0, 2 * Math.PI, false);
@@ -211,56 +212,7 @@
     var drawPentagon = _drawPolygon(5, 1.1);
     var drawHexagon = _drawPolygon(6, 1.05);
 
-    function drawWave(ctx, y1, c1, c2, y2, w, h, opts) {
-        ctx.save();
-        if (opts.fill) {
-            ctx.fillStyle = opts.fill;
-        }
-        ctx.beginPath();
-        ctx.moveTo(0, y1);
-        ctx.bezierCurveTo(w / 3, c1, 2 * w / 3, c2, w, y2);
-        ctx.lineTo(w, h);
-        ctx.lineTo(0, h);
-        ctx.closePath();
 
-        ctx.fill();
-        ctx.restore();
-    }
-
-    function drawSunbeams(ctx, x, y, w, h, fill) {
-        var triCount;
-        var x2;
-        var y2;
-        var tw;
-        var tx;
-        var grad;
-        ctx.globalCompositeOperation = 'soft-light';
-
-        if (Math.random() > 0.15) {
-            // Most of the time, render many beams at low opacity
-             triCount = Math.round(randomInRange(40,60));
-             ctx.globalAlpha = randomInRange(0.1, 0.3);
-        } else {
-            // … sometimes, render a few beams at more varying opacities
-            triCount = Math.round(randomInRange(5,10));
-            ctx.globalAlpha = randomInRange(0.2, 0.8);
-        }
-
-        while (triCount--) {
-            // Set triangle width, and target x centerpoint.
-            // Target x can be on or off page, with width spread bringing part
-            // of the beam into the image
-            tw = randomInRange(w / 30, w / 3); // width range
-            tx = randomInRange(-w / 3, 4 * w / 3); // target (bottom) x
-            ctx.fillStyle = fill || '#fff';
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(tx + tw/2, h);
-            ctx.lineTo(tx - tw/2, h);
-            ctx.closePath();
-            ctx.fill();
-        }
-    }
 
     function addShadow(ctx, w, h) {
         ctx.shadowOffsetX = 0;
@@ -428,26 +380,21 @@
             });
         }
 
+        // Draw stacks with gray
         drawStack(stackA, 0, 'gray');
         drawStack(stackB, w/2, 'gray');
 
 
-        // Draw Mask
-        console.log('mask', w/2 + maskSize, maskY);
-
-        ctx.save();
-        ctx.beginPath();
-        //ctx.moveTo(w/2 + maskSize, maskY);
-        ctx.arc(w/2, maskY, maskSize, 0, 2 * Math.PI, false);
-        ctx.closePath();
-        ctx.fillStyle = '#ffffff';
-        ctx.fill();
-
+        // Draw main shape + mask
+        drawCircle(ctx, w/2, maskY, maskSize, {fill: '#ffffff'});
+        // clip mask
         ctx.clip();
 
+        // draw color stacks in mask
         drawStack(stackA, 0, opts.palette);
         drawStack(stackB, w/2, opts.palette);
 
+        // unclip
         ctx.restore();
 
         // vertical pin
