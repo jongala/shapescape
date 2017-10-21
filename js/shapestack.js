@@ -301,7 +301,8 @@
 
         // shuffle shape list and pick a shape
         shapes.sort(function(a, b) { return randomInRange(-1, 1)});
-        renderer = renderMap[shapes[0]];
+        var shape = shapes[0];
+        renderer = renderMap[shape];
 
         // pick centerpoint for shape
         var maskX = w/2;
@@ -376,25 +377,26 @@
         // unclip
         ctx.restore();
 
-        // vertical pin
-        var nudge = (heightA > heightB) ? -0.5 : 0.5;
-        ctx.globalAlpha = 0.3;
-        ctx.lineWidth = 1;
+        if (['box','ring'].indexOf(shape) === -1) {
+            // vertical pin
+            var nudge = (heightA > heightB) ? -0.5 : 0.5;
+            ctx.globalAlpha = 0.3;
+            ctx.lineWidth = 1;
 
-        ctx.beginPath();
-        ctx.moveTo(w/2 + nudge, 0);
-        ctx.lineTo(w/2 + nudge, h - Math.max(heightA, heightB));
-        ctx.closePath();
-        ctx.strokeStyle = '#000000';
-        ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(w/2 + nudge, 0);
+            ctx.lineTo(w/2 + nudge, h - Math.max(heightA, heightB));
+            ctx.closePath();
+            ctx.strokeStyle = '#000000';
+            ctx.stroke();
 
-        ctx.beginPath();
-        ctx.moveTo(w/2 + nudge, maskY + maskSize);
-        ctx.lineTo(w/2 + nudge, h);
-        ctx.closePath();
-        ctx.strokeStyle = '#ffffff';
-        ctx.stroke();
-
+            ctx.beginPath();
+            ctx.moveTo(w/2 + nudge, maskY + maskSize);
+            ctx.lineTo(w/2 + nudge, h);
+            ctx.closePath();
+            ctx.strokeStyle = '#ffffff';
+            ctx.stroke();
+        }
 
         // Add effect elements
         // ...
