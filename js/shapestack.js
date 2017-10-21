@@ -18,35 +18,16 @@
         return (min + (max - min) * Math.random());
     }
 
-    /**
-     * Get a fill, either in solid or gradients
-     * @param  {context} ctx  the canvas rendering context
-     * @param {array} palette an array of color values
-     * @param  {num} x    center x of shape
-     * @param  {num} y    center y of shape
-     * @param  {num} size half the size of the shape (r for circle)
-     * @return {fillStyle}      a solid color or canvas gradient
-     */
-    function getFill(ctx, palette, x, y, size, skew) {
-        if (skew === undefined) {
-            skew = 0;
+    // Creates a function that returns a different random entry
+    // from @palette each time it is called.
+    createFillFunc = function(palette) {
+        var refresh = function() {
+            return palette.map(function(c){return c}).sort(function(a, b){ return Math.random() - 0.5});
         }
-        if (Math.random() > 0) {
-            // solid
-            return randItem(palette);
-        } else {
-            // gradient
-            // pick xoffset as fraction of size to get a shallow angle
-            var xoff = randomInRange(-skew/2, skew/2) * size;
-            // build gradient, add stops
-            var grad = ctx.createLinearGradient(
-                x - xoff,
-                y - size,
-                x + xoff,
-                y + size);
-            grad.addColorStop(0, randItem(palette));
-            grad.addColorStop(1, randItem(palette));
-            return grad;
+        var p = refresh();
+        return function() {
+            if (!p.length) p = refresh();
+            return p.pop();
         }
     }
 
@@ -113,7 +94,7 @@
         ctx.closePath();
         ctx.restore();
 
-        ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, 0, 0 + size/2, size, opts.skew);
+        ctx.fillStyle = opts.fill || randItem(opts.palette);
         ctx.fill();
 
         return ctx;
@@ -127,7 +108,7 @@
         ctx.closePath();
         ctx.restore();
 
-        ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, 0, 0 + d/2, d);
+        ctx.fillStyle = opts.fill || randItem(opts.palette);
         ctx.fill();
 
         return ctx;
@@ -146,7 +127,7 @@
         ctx.closePath();
         ctx.restore();
 
-        ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, 0, 0 + d/2, d);
+        ctx.fillStyle = opts.fill || randItem(opts.palette);
         ctx.fill();
         return ctx;
     }
@@ -173,7 +154,7 @@
         ctx.closePath();
         ctx.restore();
 
-        ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, 0, 0 + d/2, d);
+        ctx.fillStyle = opts.fill || randItem(opts.palette);
         ctx.fill();
 
         return ctx;
@@ -202,7 +183,7 @@
             ctx.closePath();
             ctx.restore();
 
-            ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, 0, 0 + d/2, d);
+            ctx.fillStyle = opts.fill || randItem(opts.palette);
             ctx.fill();
 
             return ctx;
@@ -260,6 +241,7 @@
         };
         var opts = {};
         opts = extend(extend(opts, defaults), options);
+        opts.getColor = createFillFunc(opts.palette);
 
         var container = options.container;
 
@@ -366,7 +348,7 @@
                     gray = randomInRange(0.55, 0.85);
                     ctx.fillStyle = 'rgba(0, 0, 0,' + (i + 1) * gray/stackSize + ')';
                 } else {
-                    ctx.fillStyle = getFill(ctx, palette);
+                    ctx.fillStyle = opts.getColor();
                 }
 
                 ctx.beginPath();
