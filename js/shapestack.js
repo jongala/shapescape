@@ -46,7 +46,6 @@
     function drawCircle(ctx, x, y, r, opts) {
         ctx.save();
         ctx.translate(x, y);
-        console.log('translated');
         ctx.beginPath();
         ctx.moveTo(r, 0);
         ctx.arc(0, 0, r, 0, 2 * Math.PI, false);
@@ -325,7 +324,6 @@
         var i = 1;
         var blockH;
         while (i++ <= stackSize) {
-            console.log(i);
             blockH = heightA / stackSize;
             block = [levelA, levelA + randomInRange(0.25 * blockH, blockH)];
             levelA = block[1];
@@ -339,8 +337,6 @@
         }
         stackA.push([levelA, h]);
         stackB.push([levelB, h]);
-
-        console.log(stackA, stackB);
 
         var gray;
         function drawStack(stack, x, palette) {
