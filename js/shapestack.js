@@ -321,9 +321,6 @@
         shapes.sort(function(a, b) { return randomInRange(-1, 1)});
         renderer = renderMap[shapes[0]];
 
-        // DEBUG
-        renderer = drawCircle;
-
         // pick centerpoint for shape
         var maskX = w/2;
         var maskY = h * randomInRange(0.45, 0.55);
@@ -386,7 +383,7 @@
 
 
         // Draw main shape + mask
-        drawCircle(ctx, w/2, maskY, maskSize, {fill: '#ffffff'});
+        renderer(ctx, w/2, maskY, maskSize, {fill: '#ffffff'});
         // clip mask
         ctx.clip();
 
