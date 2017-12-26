@@ -302,6 +302,8 @@
         shapes.sort(function(a, b) { return randomInRange(-1, 1)});
         var shape = shapes[0];
         renderer = renderMap[shape];
+        // xmas
+        renderer = drawTriangle;
 
         // pick centerpoint for shape
         var maskX = w/2;
@@ -310,7 +312,11 @@
 
         // pick depth of stack
         var stackSize = randomInRange(1, 4);
+        // xmas
+        stackSize = 6;
         var heightA = h * randomInRange(0.4, 0.6);
+        // xmas
+        heightA = h * randomInRange(0.55, 0.66);
         var heightB = heightA * randomInRange(0.95, 1.05);
 
         var stackA = [];
