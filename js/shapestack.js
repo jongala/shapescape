@@ -308,9 +308,20 @@
         var maskY = h * randomInRange(0.45, 0.55);
         var maskSize = Math.min(w,h) * randomInRange(0.33, 0.45);
 
+        // pick angle for stacks
+        // only do it if skew option is truthy,
+        // and then only some of the time
+        var tilt = 0;
+        if (opts.skew && Math.random() > 0.5) {
+            // small angles look bad so avoid them
+            tilt = randomInRange(0.15, 0.5);
+            // random direction
+            tilt *= Math.round(Math.random()) * 2 - 1;
+        }
+
         // pick depth of stack
         var stackSize = randomInRange(1, 4);
-        var heightA = h * randomInRange(0.4, 0.6);
+        var heightA = h * randomInRange(0.4, 0.7);
         var heightB = heightA * randomInRange(0.95, 1.05);
 
         var stackA = [];
@@ -335,8 +346,8 @@
             stackB.push(block);
 
         }
-        stackA.push([levelA, h]);
-        stackB.push([levelB, h]);
+        stackA.push([levelA, h * 1.5]);
+        stackB.push([levelB, h * 1.5]);
 
         var gray;
         function drawStack(stack, x, palette) {
@@ -349,31 +360,39 @@
                 }
 
                 ctx.beginPath();
-                ctx.rect(x, y[0], w/2, y[1] - y[0]);
+                ctx.rect(x, y[0], x + w, y[1] - y[0]);
                 ctx.closePath();
 
                 ctx.fill();
             });
         }
 
+        ctx.translate(w/2, h/2);
+        ctx.rotate(tilt);
+        ctx.translate(-w/2, -h/2);
+
         // Draw stacks with gray
-        drawStack(stackA, 0, 'gray');
+        drawStack(stackA, -w/4, 'gray');
         drawStack(stackB, w/2, 'gray');
 
+
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
 
         // Draw main shape + mask
         renderer(ctx, w/2, maskY, maskSize, {fill: '#ffffff'});
         // clip mask
         ctx.clip();
 
+        ctx.translate(w/2, h/2);
+        ctx.rotate(tilt);
+        ctx.translate(-w/2, -h/2);
+
         // draw color stacks in mask
-        drawStack(stackA, 0, opts.palette);
+        drawStack(stackA, -w/4, opts.palette);
         drawStack(stackB, w/2, opts.palette);
 
-        // unclip
-        ctx.restore();
-
         if (['box','ring'].indexOf(shape) === -1) {
+
             // vertical pin
             var nudge = (heightA > heightB) ? -0.5 : 0.5;
             ctx.globalAlpha = 0.3;
@@ -381,7 +400,8 @@
 
             ctx.beginPath();
             ctx.moveTo(w/2 + nudge, 0);
-            ctx.lineTo(w/2 + nudge, h - Math.max(heightA, heightB));
+            //ctx.lineTo(w/2 + nudge, h - Math.max(heightA, heightB));
+            ctx.lineTo(w/2 + nudge, h);
             ctx.closePath();
             ctx.strokeStyle = '#000000';
             ctx.stroke();
@@ -393,6 +413,12 @@
             ctx.strokeStyle = '#ffffff';
             ctx.stroke();
         }
+
+        // unclip
+        ctx.restore();
+
+        // reset transform
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
 
         // Add effect elements
         // ...
