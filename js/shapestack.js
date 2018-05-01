@@ -326,7 +326,7 @@
         var tilt = 0;
         if (opts.skew && Math.random() > 0.5) {
             // small angles look bad so avoid them
-            tilt = randomInRange(0.15, 0.5);
+            tilt = randomInRange(0.05, 0.50);
             // random direction
             tilt *= Math.round(Math.random()) * 2 - 1;
         }
