@@ -225,6 +225,18 @@
         ctx.restore();
     }
 
+    // rotate canvas around center point
+    function rotateCanvas(ctx, w, h, angle) {
+        ctx.translate(w/2, h/2);
+        ctx.rotate(angle);
+        ctx.translate(-w/2, -h/2);
+    }
+
+    // reset canvas transformations
+    function resetCanvas(ctx) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+    }
+
 
     // draw it!
     function shapestack(options) {
@@ -367,25 +379,23 @@
             });
         }
 
-        ctx.translate(w/2, h/2);
-        ctx.rotate(tilt);
-        ctx.translate(-w/2, -h/2);
+        // rotate the canvas before drawing stacks
+        rotateCanvas(ctx, w, h, tilt);
 
         // Draw stacks with gray
         drawStack(stackA, -w/4, 'gray');
         drawStack(stackB, w/2, 'gray');
 
-
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        // un-rotate to draw main shape
+        resetCanvas(ctx);
 
         // Draw main shape + mask
         renderer(ctx, w/2, maskY, maskSize, {fill: '#ffffff'});
         // clip mask
         ctx.clip();
 
-        ctx.translate(w/2, h/2);
-        ctx.rotate(tilt);
-        ctx.translate(-w/2, -h/2);
+        // rotate the canvas before drawing stacks
+        rotateCanvas(ctx, w, h, tilt);
 
         // draw color stacks in mask
         drawStack(stackA, -w/4, opts.palette);
@@ -418,7 +428,7 @@
         ctx.restore();
 
         // reset transform
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        resetCanvas(ctx);
 
         // Add effect elements
         // ...
