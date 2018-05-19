@@ -307,7 +307,8 @@
         }
 
         // draw background/sky
-        ctx.fillStyle = '#cccccc';
+        var sky = Math.round(randomInRange(204, 235)).toString(16);
+        ctx.fillStyle = '#' + sky + sky + sky;
         ctx.fillRect(0, 0, w, h);
 
         // shuffle shape list and pick a shape
@@ -390,7 +391,7 @@
         resetCanvas(ctx);
 
         // Draw main shape + mask
-        renderer(ctx, w/2, maskY, maskSize, {fill: '#ffffff'});
+        renderer(ctx, w/2, maskY, maskSize, { fill: '#ffffff' });
         // clip mask
         ctx.clip();
 
