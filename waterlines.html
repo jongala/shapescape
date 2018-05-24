@@ -72,7 +72,7 @@
             visualOpts = extend(visualOpts, opts);
             waterline(visualOpts);
             if (!fast) {
-                saveCanvas(exampleNode.querySelector('canvas'), exampleNode);
+                renderCanvasToImg(exampleNode.querySelector('canvas'), exampleNode);
             }
         }
 
@@ -89,11 +89,20 @@
             }
         });
 
-        function saveCanvas(canvas, container) {
+        function renderCanvasToImg(canvas, container) {
             var pixels = canvas.toDataURL('image/png');
             var image = document.createElement('img');
             image.src = pixels;
             container.appendChild(image);
+        }
+
+        function createDownloadLink(pixels, container) {
+            var anchor = document.createElement('a');
+            anchor.href = pixels;
+            anchor.download = "waterlines-" + new Date().getTime();
+            anchor.target = "_blank";
+            anchor.innerHTML = 'save ↓';
+            container.appendChild(anchor);
         }
 
         function createBatch(opts, N) {
@@ -104,7 +113,7 @@
             for (var i=0; i < N ; i++) {
                 requestAnimationFrame(function(){
                     loadOpts(opts, true);
-                    saveCanvas(canvas, container);
+                    renderCanvasToImg(canvas, container);
                 });
             }
         }
@@ -197,7 +206,7 @@
         });
 
         exampleNode.addEventListener('click', function(e) {
-            saveCanvas(exampleNode.querySelector('canvas'), document.querySelector('#saved'));
+            renderCanvasToImg(exampleNode.querySelector('canvas'), document.querySelector('#saved'));
         });
 
         // draw one to start
