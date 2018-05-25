@@ -72,7 +72,7 @@
             visualOpts = extend(visualOpts, opts);
             waterline(visualOpts);
             if (!fast) {
-                renderCanvasToImg(exampleNode.querySelector('canvas'), exampleNode);
+                //renderCanvasToImg(exampleNode.querySelector('canvas'), exampleNode);
             }
         }
 
@@ -91,19 +91,26 @@
 
         function renderCanvasToImg(canvas, container) {
             var pixels = canvas.toDataURL('image/png');
+
             var image = document.createElement('img');
             image.src = pixels;
-            container.appendChild(image);
-        }
 
-        function createDownloadLink(pixels, container) {
             var anchor = document.createElement('a');
             anchor.href = pixels;
-            anchor.download = "waterlines-" + new Date().getTime();
+            anchor.download = "waterline-" + new Date().getTime();
             anchor.target = "_blank";
-            anchor.innerHTML = 'save ↓';
-            container.appendChild(anchor);
+            anchor.innerHTML = '↓';
+
+            var wrapper = document.createElement('div');
+            wrapper.className = "downloader";
+
+            wrapper.appendChild(image);
+            wrapper.appendChild(anchor);
+
+            container.appendChild(wrapper);
         }
+
+
 
         function createBatch(opts, N) {
             N = N || 9;
