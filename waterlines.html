@@ -89,6 +89,12 @@
             }
         });
 
+        function doDownload(anchor, image) {
+            anchor.href = image.src;
+            anchor.download = "waterline-" + new Date().getTime();
+            anchor.target = "_blank";
+        }
+
         function renderCanvasToImg(canvas, container) {
             var pixels = canvas.toDataURL('image/png');
 
@@ -96,10 +102,8 @@
             image.src = pixels;
 
             var anchor = document.createElement('a');
-            anchor.href = pixels;
-            anchor.download = "waterline-" + new Date().getTime();
-            anchor.target = "_blank";
             anchor.innerHTML = '↓';
+            anchor.onclick = function(){doDownload(anchor, image);}
 
             var wrapper = document.createElement('div');
             wrapper.className = "downloader";
