@@ -94,6 +94,7 @@
             anchor.href = pixels;
             anchor.download = "waterline-" + new Date().toISOString().replace(/[-:]/g,'').replace('T','-').replace(/\.\w+/,'');
             anchor.target = "_blank";
+            return false;
         }
 
         function renderCanvasToImg(canvas, container) {
