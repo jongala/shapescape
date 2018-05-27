@@ -208,7 +208,8 @@
 
         document.querySelector('#saved').addEventListener('click', function(e) {
             if (e.target.nodeName === 'IMG') {
-                previewImage(e.target.cloneNode());
+                // HACK: this relies on .downloader > img DOM structure
+                previewImage(e.target.parentNode.cloneNode(true));
             }
         });
 

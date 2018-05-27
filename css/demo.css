@@ -93,6 +93,13 @@ h1 a:hover {
     border-radius: 3px;
 
     transition: all 150ms ease-out;
+
+    /* hide till hover */
+    display: none;
+}
+
+.downloader:hover > a {
+    display: inline-block;
 }
 
 .downloader > a:hover {
