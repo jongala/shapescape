@@ -12,6 +12,7 @@
         <select onchange="setPalette(this.value)" id="paletteSelector"></select>
         <button onclick="createBatch()" id="newBatchTrigger">New Batch</button>
         <input type="text" id="customColors" placeholder="paste colors" />
+        <a href="#" onclick="doDownload(this, document.querySelector('#example canvas').toDataURL());">↓</a>
     </div>
     <script src="js/colorbrewer.js"></script>
     <script src="js/noiseutils.js"></script>
@@ -89,9 +90,9 @@
             }
         });
 
-        function doDownload(anchor, image) {
-            anchor.href = image.src;
-            anchor.download = "waterline-" + new Date().getTime();
+        function doDownload(anchor, pixels) {
+            anchor.href = pixels;
+            anchor.download = "waterline-" + new Date().toISOString().replace(/[-:]/g,'').replace('T','-').replace(/\.\w+/,'');
             anchor.target = "_blank";
         }
 
@@ -103,7 +104,7 @@
 
             var anchor = document.createElement('a');
             anchor.innerHTML = '↓';
-            anchor.onclick = function(){doDownload(anchor, image);}
+            anchor.onclick = function(){doDownload(anchor, image.src);}
 
             var wrapper = document.createElement('div');
             wrapper.className = "downloader";
