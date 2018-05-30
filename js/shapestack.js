@@ -42,7 +42,6 @@
         }
     }
 
-
     function drawCircle(ctx, x, y, r, opts) {
         ctx.save();
         ctx.translate(x, y);
@@ -196,9 +195,9 @@
 
     function addShadow(ctx, w, h) {
         ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 3 * Math.min(w,h)/400;
-        ctx.shadowBlur = 10 * Math.min(w,h)/400;
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+        ctx.shadowOffsetY = 0;
+        ctx.shadowBlur = 0.5 * Math.min(w,h)/800;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
     }
 
     function removeShadow(ctx) {
@@ -390,8 +389,16 @@
         // un-rotate to draw main shape
         resetCanvas(ctx);
 
+        // add a pin shadow if it's an open shape
+        if (['box', 'ring'].indexOf(shape) >= 0 ) {
+            addShadow(ctx, w, h);
+        }
+
         // Draw main shape + mask
         renderer(ctx, w/2, maskY, maskSize, { fill: '#ffffff' });
+        // clear shadow
+        removeShadow(ctx);
+
         // clip mask
         ctx.clip();
 
