@@ -1,14 +1,4 @@
 (function(){
-    // simple object extender
-    function extend(dest, src) {
-        for (k in src) {
-            if (src.hasOwnProperty(k)) {
-                dest[k] = src[k];
-            }
-        }
-        return dest;
-    }
-
     // Turn constants into functions which return the constant,
     // used to allow passing colors as strings or functions
     function constToFunc(x) {
@@ -140,7 +130,7 @@
             clear: true
         };
         var opts = {};
-        opts = extend(extend(opts, defaults), options);
+        opts = Object.assign(Object.assign(opts, defaults), options);
 
         var container = options.container;
 

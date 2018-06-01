@@ -1,14 +1,4 @@
 (function(){
-    // simple object extender
-    function extend(dest, src) {
-        for (k in src) {
-            if (src.hasOwnProperty(k)) {
-                dest[k] = src[k];
-            }
-        }
-        return dest;
-    }
-
     // random Array member
     function randItem(arr) {
         return arr[Math.floor(arr.length * Math.random())];
@@ -250,7 +240,7 @@
             clear: true
         };
         var opts = {};
-        opts = extend(extend(opts, defaults), options);
+        opts = Object.assign(Object.assign(opts, defaults), options);
         opts.getColor = createFillFunc(opts.palette);
 
         var container = options.container;

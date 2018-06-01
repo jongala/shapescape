@@ -20,39 +20,6 @@
     <script src="3p/DAT.GUI.min.js"></script>
     <script type="text/javascript">
 
-
-        // Obj/array helpers
-        function extend(dest, src) {
-            for (k in src) {
-                if (src.hasOwnProperty(k)) {
-                    dest[k] = src[k];
-                }
-            }
-            return dest;
-        }
-
-        function objToArray(obj) {
-            var arr = [];
-            for (key in obj) {
-                if (obj.hasOwnProperty(key)) {
-                    arr.push(obj[key]);
-                }
-            }
-            return arr;
-        }
-
-        function arrayToObj(arr) {
-            var obj = {};
-            arr.forEach(function(val, i){
-                obj[i] = val;
-            });
-            return obj;
-        }
-
-
-
-
-
         // GUI controlled opts
         var visualOpts = {
             container: document.querySelector('#example'),
@@ -70,7 +37,7 @@
         function loadOpts(opts, fast) {
             var img = exampleNode.querySelector('img');
             img && img.remove();
-            visualOpts = extend(visualOpts, opts);
+            visualOpts = Object.assign(visualOpts, opts);
             waterline(visualOpts);
             if (!fast) {
                 //renderCanvasToImg(exampleNode.querySelector('canvas'), exampleNode);

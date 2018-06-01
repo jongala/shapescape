@@ -18,15 +18,6 @@
     <script src="js/shapescape.js"></script>
     <script src="3p/DAT.GUI.min.js"></script>
     <script type="text/javascript">
-        // Obj/array helpers
-        function extend(dest, src) {
-            for (k in src) {
-                if (src.hasOwnProperty(k)) {
-                    dest[k] = src[k];
-                }
-            }
-            return dest;
-        }
 
         // GUI controlled opts
 
@@ -44,13 +35,12 @@
         function loadOpts(opts, fast) {
             var img = exampleNode.querySelector('img');
             img && img.remove();
-            visualOpts = extend(visualOpts, opts);
+            visualOpts = Object.assign(visualOpts, opts);
             shapescape(visualOpts);
             if (!fast) {
                 saveCanvas(exampleNode.querySelector('canvas'), exampleNode);
             }
         }
-
 
         // Handlers for redraw, batching, and manual saving
 

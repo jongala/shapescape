@@ -1,14 +1,4 @@
 (function(){
-    // simple object extender
-    function extend(dest, src) {
-        for (k in src) {
-            if (src.hasOwnProperty(k)) {
-                dest[k] = src[k];
-            }
-        }
-        return dest;
-    }
-
     // random Array member
     function randItem(arr) {
         return arr[Math.floor(arr.length * Math.random())];
@@ -307,7 +297,7 @@
             clear: true
         };
         var opts = {};
-        opts = extend(extend(opts, defaults), options);
+        opts = Object.assign( Object.assign(opts, defaults), options);
 
         var container = options.container;
 
@@ -407,9 +397,9 @@
             wc2 - bgOffset,
             wc1 - bgOffset,
             wl - bgOffset,
-            w, h, extend({
-            fill: wfill
-        }, opts));
+            w, h,
+            Object.assign({fill: wfill}, opts)
+            );
         ctx.globalAlpha = 1;
 
         // Draw the shape above waterline
@@ -425,7 +415,7 @@
         wc2 = randomInRange(0.45, 0.55) * h;
         wr = randomInRange(0.47, 0.52) * h;
         wtop = Math.min(wl, wr);
-        drawWave(ctx, wl, wc1, wc2, wr, w, h, extend({
+        drawWave(ctx, wl, wc1, wc2, wr, w, h, Object.assign({
             fill: wfill
         }, opts));
 
