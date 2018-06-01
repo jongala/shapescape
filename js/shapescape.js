@@ -1,15 +1,4 @@
 (function(){
-    // Turn constants into functions which return the constant,
-    // used to allow passing colors as strings or functions
-    function constToFunc(x) {
-        if (typeof x !== "function") {
-            return function(){return x;}
-        } else {
-            return x;
-        }
-    }
-
-
     // random Array member
     function randItem(arr) {
         return arr[Math.floor(arr.length * Math.random())];
