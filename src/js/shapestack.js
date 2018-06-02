@@ -1,4 +1,5 @@
-(function(){
+    import "./noiseutils";
+
     // random Array member
     function randItem(arr) {
         return arr[Math.floor(arr.length * Math.random())];
@@ -10,7 +11,7 @@
 
     // Creates a function that returns a different random entry
     // from @palette each time it is called.
-    createFillFunc = function(palette) {
+    function createFillFunc (palette) {
         var refresh = function() {
             return palette.map(function(c){return c}).sort(function(a, b){ return Math.random() - 0.5});
         }
@@ -433,7 +434,7 @@
 
 
         // add noise
-        if (opts.addNoise && window.noiseUtils) {
+        if (opts.addNoise) {
             if (opts.noiseInput) {
                 noiseUtils.applyNoiseCanvas(el, opts.noiseInput);
             } else {
@@ -451,5 +452,5 @@
     }
 
     // export
-    window.shapestack = shapestack;
-}());
+    export default shapestack;
+

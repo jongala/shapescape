@@ -1,4 +1,5 @@
-(function(){
+    import "./noiseutils";
+
     // random Array member
     function randItem(arr) {
         return arr[Math.floor(arr.length * Math.random())];
@@ -285,7 +286,7 @@
 
 
     // draw it!
-    function waterline(options) {
+    function waterline (options) {
         var defaults = {
             container: 'body',
             palette: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
@@ -556,7 +557,7 @@
 
 
         // add noise
-        if (opts.addNoise && window.noiseUtils) {
+        if (opts.addNoise) {
             if (opts.noiseInput) {
                 noiseUtils.applyNoiseCanvas(el, opts.noiseInput);
             } else {
@@ -574,5 +575,5 @@
     }
 
     // export
-    window.waterline = waterline;
-}());
+    export default waterline;
+

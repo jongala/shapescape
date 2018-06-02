@@ -1,4 +1,5 @@
-(function(){
+    import "./noiseutils";
+
     // random Array member
     function randItem(arr) {
         return arr[Math.floor(arr.length * Math.random())];
@@ -198,7 +199,7 @@
 
 
         // add noise
-        if (opts.addNoise && window.noiseUtils) {
+        if (opts.addNoise) {
             if (opts.noiseInput) {
                 noiseUtils.applyNoiseCanvas(el, opts.noiseInput);
             } else {
@@ -216,5 +217,6 @@
     }
 
     // export
-    window.shapescape = shapescape;
-}());
+    //window.shapescape = shapescape;
+    export default shapescape;
+

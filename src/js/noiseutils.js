@@ -1,4 +1,4 @@
-(function() {
+
     function addNoiseToCanvas(canvas, opacity) {
         var ctx = canvas.getContext('2d'),
         x,
@@ -61,12 +61,12 @@
         return targetCanvas;
     }
 
-    window.noiseUtils = {
-        addNoiseToCanvas: addNoiseToCanvas,
-        addNoiseFromPattern: addNoiseFromPattern,
-        createNoiseCanvas: createNoiseCanvas,
-        applyNoiseCanvas: applyNoiseCanvas
+    export default {
+        addNoiseToCanvas,
+        addNoiseFromPattern,
+        createNoiseCanvas,
+        applyNoiseCanvas
     }
 
-}());
+
     
