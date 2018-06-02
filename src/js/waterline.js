@@ -1,4 +1,4 @@
-    import "./noiseutils";
+    import noiseUtils from "./noiseutils";
 
     // random Array member
     function randItem(arr) {
@@ -43,6 +43,7 @@
 
 
     function setAttrs(el, attrs) {
+        var a;
         if (el && el.setAttribute) {
             for (a in attrs) {
                 if (attrs.hasOwnProperty(a)) {

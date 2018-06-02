@@ -1,13 +1,11 @@
 import '../css/style.css';
 
-import './colorbrewer';
-console.log(colorbrewer);
+import noiseUtils from './noiseutils';
+import colorbrewer from './colorbrewer';
+import waterline from './waterline';
+import shapestack from './shapestack';
+import shapescape from './shapescape';
 
-import './waterline';
-
-
-import './shapestack';
-import './shapescape';
 
 console.log('hi');
 
@@ -34,6 +32,7 @@ function setRenderer(rname, ctrl) {
     }
     loadOpts();
 }
+window.setRenderer = setRenderer;
 
 
 // GUI controlled opts
