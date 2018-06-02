@@ -138,6 +138,7 @@ function setPalette(pname) {
     }
     return loadOpts({});
 }
+window.setPalette = setPalette;
 
 // populate the selector for colorbrewer palettes
 if (colorbrewer) {
