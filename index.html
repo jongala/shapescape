@@ -5,11 +5,12 @@
     <link rel="stylesheet" href="css/demo.css" />
 </head>
 <body>
-    <h1><a href="waterlines.html">Waterlines</a> | <a href="shapestacks.html">Stacks</a> | <a href="index.html">Shapescapes</a></h1>
+    <h1><button class="renderPicker" onClick="setRenderer('waterline', this)">Waterlines</button> | 
+    <button class="renderPicker" onClick="setRenderer('shapestack', this)">Shapestacks</button> | 
+    <button class="renderPicker" onClick="setRenderer('shapescape', this)">Shapescapes</button></h1>
     <div id="example"></div>
     <div id="saved"><div id="instructions">[space] to redraw. Click image to add to tray. Click thumbnail to preview.</div></div>
     <div id="controls">
-        <select onchange="setRenderer(this.value, this)" id="rendererSelector"></select>
         <select onchange="setPalette(this.value)" id="paletteSelector"></select>
         <button onclick="createBatch()" id="newBatchTrigger">New Batch</button>
         <input type="text" id="customColors" placeholder="paste colors" />
@@ -30,22 +31,18 @@
             shapestack: shapestack
         }
 
-        var rendererEl = document.querySelector('#rendererSelector');
-        Object.keys(renderers).forEach(function (rname) {
-            var option = document.createElement('option');
-            option.value = rname;
-            option.innerHTML = rname;
-            rendererEl.appendChild(option);
-        });
-
         var rendererName;
         var Renderer;
+        var activeButton;
 
         function setRenderer(rname, ctrl) {
             rendererName = rname;
             Renderer = renderers[rendererName];
             if (ctrl) {
                 ctrl.blur();
+                activeButton = document.querySelector('.renderPicker.activeRenderer');
+                activeButton && activeButton.classList.remove('activeRenderer');
+                ctrl.classList.add('activeRenderer');
             }
             loadOpts();
         }
@@ -83,6 +80,7 @@
             if (kode === 32) { // space
                 removePreview();
                 requestAnimationFrame(loadOpts);
+                return false;
             } else if (kode === 27) { // ESC
                 removePreview();
             }
@@ -222,7 +220,7 @@
         });
 
         // draw one to start
-        setRenderer('shapescape');
+        setRenderer('waterline', document.querySelector('.renderPicker'));
         //loadOpts();
 
 
