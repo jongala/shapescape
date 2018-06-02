@@ -5,9 +5,9 @@
     <link rel="stylesheet" href="css/demo.css" />
 </head>
 <body>
-    <h1><button class="renderPicker" onClick="setRenderer('waterline', this)">Waterlines</button> | 
-    <button class="renderPicker" onClick="setRenderer('shapestack', this)">Shapestacks</button> | 
-    <button class="renderPicker" onClick="setRenderer('shapescape', this)">Shapescapes</button></h1>
+    <h1><button class="renderPicker" data-renderer="waterline" onClick="setRenderer('waterline', this)">Waterlines</button> |
+    <button class="renderPicker" data-renderer="shapestack" onClick="setRenderer('shapestack', this)">Shapestacks</button> |
+    <button class="renderPicker" data-renderer="shapescape" onClick="setRenderer('shapescape', this)">Shapescapes</button></h1>
     <div id="example"></div>
     <div id="saved"><div id="instructions">[space] to redraw. Click image to add to tray. Click thumbnail to preview.</div></div>
     <div id="controls">
@@ -38,6 +38,7 @@
         function setRenderer(rname, ctrl) {
             rendererName = rname;
             Renderer = renderers[rendererName];
+            window.location.hash = rendererName;
             if (ctrl) {
                 ctrl.blur();
                 activeButton = document.querySelector('.renderPicker.activeRenderer');
@@ -67,9 +68,6 @@
             img && img.remove();
             visualOpts = Object.assign(visualOpts, opts);
             Renderer(visualOpts);
-            if (!fast) {
-                //renderCanvasToImg(exampleNode.querySelector('canvas'), exampleNode);
-            }
         }
 
 
@@ -219,9 +217,13 @@
             renderCanvasToImg(exampleNode.querySelector('canvas'), document.querySelector('#saved'));
         });
 
-        // draw one to start
-        setRenderer('waterline', document.querySelector('.renderPicker'));
-        //loadOpts();
+        // draw one to start, take renderer from hash if it is valid
+        var initRenderer = 'waterline';
+        var h = window.location.hash.slice(1);
+        if(h && renderers.hasOwnProperty(h)) {
+            initRenderer = h;
+        }
+        setRenderer(initRenderer, document.querySelector("[data-renderer='"+ initRenderer +"']"));
 
 
     </script>
