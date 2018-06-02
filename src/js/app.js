@@ -6,8 +6,6 @@ import waterline from './waterline';
 import shapestack from './shapestack';
 import shapescape from './shapescape';
 
-console.log('hi');
-
 // Renderers
 var renderers = {
     waterline: waterline,
@@ -115,6 +113,7 @@ function createBatch(opts, N) {
         });
     }
 }
+window.createBatch = createBatch;
 
 // Option sets:
 
