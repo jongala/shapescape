@@ -1,29 +1,61 @@
 <html>
 <head>
     <meta charset="utf-8"/>
-    <title>Shapescapes</title>
+    <title>Renderers</title>
     <link rel="stylesheet" href="css/demo.css" />
 </head>
 <body>
-    <h1><a href="index.html">Shapescapes</a> | <a href="waterlines.html">Waterlines</a> | <a href="shapestacks.html">Stacks</a></h1>
+    <h1><a href="waterlines.html">Waterlines</a> | <a href="shapestacks.html">Stacks</a> | <a href="index.html">Shapescapes</a></h1>
     <div id="example"></div>
     <div id="saved"><div id="instructions">[space] to redraw. Click image to add to tray. Click thumbnail to preview.</div></div>
     <div id="controls">
+        <select onchange="setRenderer(this.value, this)" id="rendererSelector"></select>
         <select onchange="setPalette(this.value)" id="paletteSelector"></select>
         <button onclick="createBatch()" id="newBatchTrigger">New Batch</button>
         <input type="text" id="customColors" placeholder="paste colors" />
+        <a href="#" onclick="doDownload(this, document.querySelector('#example canvas').toDataURL());">↓</a>
     </div>
     <script src="js/colorbrewer.js"></script>
     <script src="js/noiseutils.js"></script>
     <script src="js/shapescape.js"></script>
+    <script src="js/waterline.js"></script>
+    <script src="js/shapestack.js"></script>
     <script src="3p/DAT.GUI.min.js"></script>
     <script type="text/javascript">
 
-        // GUI controlled opts
+        // Renderers
+        var renderers = {
+            shapescape: shapescape,
+            waterline: waterline,
+            shapestack: shapestack
+        }
 
+        var rendererEl = document.querySelector('#rendererSelector');
+        Object.keys(renderers).forEach(function (rname) {
+            var option = document.createElement('option');
+            option.value = rname;
+            option.innerHTML = rname;
+            rendererEl.appendChild(option);
+        });
+
+        var rendererName;
+        var Renderer;
+
+        function setRenderer(rname, ctrl) {
+            rendererName = rname;
+            Renderer = renderers[rendererName];
+            if (ctrl) {
+                ctrl.blur();
+            }
+            loadOpts();
+        }
+
+
+        // GUI controlled opts
         var visualOpts = {
             container: document.querySelector('#example'),
             clear: true,
+            dust: true,
             skew: 1,
             noiseInput: noiseUtils.createNoiseCanvas(0.04, 200)
         };
@@ -31,16 +63,18 @@
 
         var exampleNode = document.getElementById('example');
 
-
+        // @fast skips re-rendering the canvas in place as an img,
+        // which makes for easy saving but slows down rendering
         function loadOpts(opts, fast) {
             var img = exampleNode.querySelector('img');
             img && img.remove();
             visualOpts = Object.assign(visualOpts, opts);
-            shapescape(visualOpts);
+            Renderer(visualOpts);
             if (!fast) {
-                saveCanvas(exampleNode.querySelector('canvas'), exampleNode);
+                //renderCanvasToImg(exampleNode.querySelector('canvas'), exampleNode);
             }
         }
+
 
         // Handlers for redraw, batching, and manual saving
 
@@ -54,12 +88,33 @@
             }
         });
 
-        function saveCanvas(canvas, container) {
+        function doDownload(anchor, pixels) {
+            anchor.href = pixels;
+            anchor.download = rendererName + "-" + new Date().toISOString().replace(/[-:]/g,'').replace('T','-').replace(/\.\w+/,'');
+            anchor.target = "_blank";
+            return false;
+        }
+
+        function renderCanvasToImg(canvas, container) {
             var pixels = canvas.toDataURL('image/png');
+
             var image = document.createElement('img');
             image.src = pixels;
-            container.appendChild(image);
+
+            var anchor = document.createElement('a');
+            anchor.innerHTML = '↓';
+            anchor.onclick = function(){doDownload(anchor, image.src);}
+
+            var wrapper = document.createElement('div');
+            wrapper.className = "downloader";
+
+            wrapper.appendChild(image);
+            wrapper.appendChild(anchor);
+
+            container.appendChild(wrapper);
         }
+
+
 
         function createBatch(opts, N) {
             N = N || 9;
@@ -69,7 +124,7 @@
             for (var i=0; i < N ; i++) {
                 requestAnimationFrame(function(){
                     loadOpts(opts, true);
-                    saveCanvas(canvas, container);
+                    renderCanvasToImg(canvas, container);
                 });
             }
         }
@@ -82,6 +137,7 @@
             high_contrast: ["#111111", "#444444",  "#dddddd", "#f9f9f9"],
             low_contrast: ["#111111", "#666666",  "#999999", "#cccccc", "#f9f9f9"],
             black_white_red: ["#111111", "#444444", "#dddddd", "#ffffff", '#880000', '#dd0000'],
+            lemon_beach: ['#d7d7d7', '#979797', '#cabd9d', '#11758e', '#89bed3', '#e4ca49'],
             magma: ['#000004','#3b0f70','#8c2981','#de4968','#fe9f6d','#fcfdbf'],
             inferno: ['#000004','#420a68','#932667','#dd513a','#fca50a','#fcffa4'],
             plasma: ['#0d0887','#6a00a8','#b12a90','#e16462','#fca636','#f0f921'],
@@ -119,7 +175,7 @@
             if(palette && palette.length) {
                 visualOpts.palette = palette;
                 selectEl.value = 'custom';
-                shapescape(visualOpts);
+                Renderer(visualOpts);
             }
         }
 
@@ -156,19 +212,18 @@
 
         document.querySelector('#saved').addEventListener('click', function(e) {
             if (e.target.nodeName === 'IMG') {
-                previewImage(e.target.cloneNode());
+                // HACK: this relies on .downloader > img DOM structure
+                previewImage(e.target.parentNode.cloneNode(true));
             }
         });
 
         exampleNode.addEventListener('click', function(e) {
-            saveCanvas(exampleNode.querySelector('canvas'), document.querySelector('#saved'));
+            renderCanvasToImg(exampleNode.querySelector('canvas'), document.querySelector('#saved'));
         });
 
         // draw one to start
-        loadOpts();
-
-        // focus image for rerender binding
-        document.querySelector('#example').focus();
+        setRenderer('shapescape');
+        //loadOpts();
 
 
     </script>
