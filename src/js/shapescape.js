@@ -1,13 +1,5 @@
     import noiseUtils from "./noiseutils";
-
-    // random Array member
-    function randItem(arr) {
-        return arr[Math.floor(arr.length * Math.random())];
-    }
-
-    function randomInRange(min, max) {
-        return (min + (max - min) * Math.random());
-    }
+    import {randItem, randomInRange, setAttrs} from './utils';
 
 
     /**
@@ -38,19 +30,6 @@
             return grad;
         }
     }
-
-
-    function setAttrs(el, attrs) {
-        var a;
-        if (el && el.setAttribute) {
-            for (a in attrs) {
-                if (attrs.hasOwnProperty(a)) {
-                    el.setAttribute(a, attrs[a]);
-                }
-            }
-        }
-    }
-
 
     function drawCircle(ctx, x, y, r, fill, stroke, alpha) {
         alpha = (alpha === undefined) ? 1 : alpha;

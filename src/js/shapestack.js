@@ -1,13 +1,6 @@
-    import nosieUtils from "./noiseutils";
+    import noiseUtils from "./noiseutils";
+    import {randItem, randomInRange, setAttrs} from './utils';
 
-    // random Array member
-    function randItem(arr) {
-        return arr[Math.floor(arr.length * Math.random())];
-    }
-
-    function randomInRange(min, max) {
-        return (min + (max - min) * Math.random());
-    }
 
     // Creates a function that returns a different random entry
     // from @palette each time it is called.
@@ -19,18 +12,6 @@
         return function() {
             if (!p.length) p = refresh();
             return p.pop();
-        }
-    }
-
-
-    function setAttrs(el, attrs) {
-        var a;
-        if (el && el.setAttribute) {
-            for (a in attrs) {
-                if (attrs.hasOwnProperty(a)) {
-                    el.setAttribute(a, attrs[a]);
-                }
-            }
         }
     }
 
@@ -197,23 +178,6 @@
         ctx.shadowOffsetY = 0;
         ctx.shadowBlur = 0;
         ctx.shadowColor = 'transparent';
-    }
-
-    // Draw a waterline shape, clip to it, execute renderFunc,
-    // then restore canvas to remove clipping
-    function clipInWaterline(ctx, y1, c1, c2, y2, w, h, renderFunc) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(0, y1);
-        ctx.bezierCurveTo(w / 3, c1, 2 * w / 3, c2, w, y2);
-        ctx.lineTo(w, h);
-        ctx.lineTo(0, h);
-        ctx.clip();
-
-        renderFunc(ctx, w, h, y1, y2);
-
-        ctx.closePath();
-        ctx.restore();
     }
 
     // rotate canvas around center point
