@@ -4,7 +4,7 @@ export function randItem(arr) {
 }
 
 export function randomInRange(min, max) {
-    return (min + (max - min) * Math.random());
+    return min + (max - min) * Math.random();
 }
 
 export function setAttrs(el, attrs) {

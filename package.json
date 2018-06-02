@@ -13,5 +13,10 @@
     "scripts": {
         "build": "webpack",
         "dev": "webpack-dev-server"
+    },
+    "prettier": {
+        "tabWidth": 4,
+        "singleQuote": true,
+        "printWidth": 100
     }
 }
