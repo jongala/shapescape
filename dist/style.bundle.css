@@ -1,0 +1,147 @@
+html {font-size: 13px;}
+body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    background: #f0f0f0;
+}
+h1 {
+    margin: 20px;
+    font-size: 20px;
+    line-height: 20px;
+    font-weight: 300;
+    color: #ccc;
+}
+h1 button {
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    text-decoration: none;
+    color: #808080;
+    background: none;
+}
+h1 button:hover {
+    color: #333;
+}
+button.activeRenderer {
+    color: #000;
+    border-bottom: 3px solid rgba(0, 0, 0, 0.2);
+}
+#example {
+    margin: 20px;
+    position: relative;
+    width: 800px;
+    height: 800px;
+    box-shadow: 0 1px 20px rgba(0, 0, 0, 0.2);
+}
+#example canvas,
+#example img,
+#example a {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+#example {}
+
+#preview {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.7);
+}
+
+#preview img {
+    max-height: 100vh;
+    max-width: 100vw;
+}
+
+#saved {
+    position: fixed;
+    top: 0;
+    left: auto;
+    right: 0;
+    bottom: 0;
+    width: 320px;
+
+    padding-left: 10px;
+    overflow: auto;
+}
+
+#saved > .downloader > img {
+    margin: 10px;
+    box-shadow: 0 1px 10px rgba(0, 0, 0, 0.2);
+    width: 300px;
+}
+
+.downloader {
+    position: relative;
+}
+
+.downloader > a {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+
+    display: inline-block;
+    width: 1.6em;
+    height: 1.5em;
+
+    text-align: center;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+
+    transition: all 150ms ease-out;
+
+    /* hide till hover */
+    display: none;
+}
+
+.downloader:hover > a {
+    display: inline-block;
+}
+
+.downloader > a:hover {
+    background-color: rgba(0, 0, 0, 1);
+}
+
+#instructions {
+    margin: 20px;
+    color: #999;
+}
+
+#controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    padding: 0.5em 20px;
+}
+
+#controls button,
+#controls select,
+#controls input,
+#controls a {
+    display: inline-block;
+    padding: 0 1em;
+    font-size: 1.0rem;
+    line-height: 3em;
+    height: 3em;
+    color: #000;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 0.2em;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
