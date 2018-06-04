@@ -22,6 +22,29 @@ function createFillFunc(palette) {
     };
 }
 
+let getGradFunction = (palette) => {
+    let p = [].concat(palette);
+    return function(ctx, w, h) {
+        let bias = Math.random() - 0.5;
+        let coords = [];
+        if (bias) {
+            coords = [
+                randomInRange(0, w/2), 0,
+                randomInRange(w/2, w), 0
+            ]
+        } else {
+            coords = [
+                0, randomInRange(0, h/2),
+                0, randomInRange(h/2, h)
+            ]
+        }
+        let grad =  ctx.createLinearGradient(...coords);
+        grad.addColorStop(0, randItem(p));
+        grad.addColorStop(1, randItem(p));
+        return grad;
+    }
+}
+
 
 function addShadow(ctx, w, h) {
     ctx.shadowOffsetX = 0;
@@ -59,11 +82,17 @@ function shapestack(options) {
         noiseInput: null,
         dust: false,
         skew: 1, // normalized skew
+        fancy: false,
         clear: true
     };
     var opts = {};
     opts = Object.assign(Object.assign(opts, defaults), options);
-    opts.getColor = createFillFunc(opts.palette);
+    if (opts.fancy) {
+        opts.getColor = getGradFunction(opts.palette);
+    } else {
+        opts.getColor = createFillFunc(opts.palette);
+    }
+
 
     var container = options.container;
 
@@ -181,7 +210,7 @@ function shapestack(options) {
                 gray = randomInRange(0.55, 0.85);
                 ctx.fillStyle = 'rgba(0, 0, 0,' + (i + 1) * gray / stackSize + ')';
             } else {
-                ctx.fillStyle = opts.getColor();
+                ctx.fillStyle = opts.getColor(ctx, w, h);
             }
 
             ctx.beginPath();
