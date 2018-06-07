@@ -160,6 +160,13 @@ function shapestack(options) {
     var shape = shapes[0];
     renderer = renderMap[shape];
 
+    // do it again for nestRenderer
+    shapes.sort(function(a, b) {
+        return randomInRange(-1, 1);
+    });
+    shape = shapes[0];
+    let nestRenderer = renderMap[shape];
+
     // pick centerpoint for shape
     var maskX = w / 2;
     var maskY = h * randomInRange(0.45, 0.55);
@@ -281,7 +288,7 @@ function shapestack(options) {
     resetCanvas(ctx);
 
     // draw Nest
-    drawNest(ctx, renderer, Object.assign({
+    drawNest(ctx, nestRenderer, Object.assign({
         palette: grays,
         alpha: 0.25,
         blendMode: 'normal'
@@ -308,7 +315,7 @@ function shapestack(options) {
     drawStack(stackB, w / 2, opts.palette);
 
     // draw color Nest in front of color stack
-    drawNest(ctx, renderer, Object.assign({
+    drawNest(ctx, nestRenderer, Object.assign({
         palette: opts.palette,
         alpha: 1,
         blendMode: 'normal'
