@@ -223,30 +223,52 @@ function shapestack(options) {
         });
     }
 
-    let drawNest = (ctx, shape, x, y, maxSize, minSize, steps=4, angle=0, palette) => {
-        let stepSize = (maxSize - minSize) / steps;
-        let i = steps;
+    let nestDefaults = {
+        x: 0,
+        y: 0,
+        minSize: 200,
+        maxSize: 400,
+        steps: 4,
+        angle: 0,
+        palette: ['#000','#333','#666','#999'],
+        alpha: 1,
+        blendMode: 'normal'
+    }
+    let drawNest = (ctx, shape, o) => {
+        o = Object.assign(nestDefaults, o);
+        let stepSize = (o.maxSize - o.minSize) / o.steps;
+        let i = o.steps;
         let j = 1;
+        let ctxBlend = ctx.globalCompositeOperation;
+        let ctxAlpha = ctx.globalAlpha;
+
+        resetCanvas(ctx);
+
+        ctx.globalCompositeOperation = o.blendMode;
+        ctx.globalAlpha = o.alpha;
         while (i--) {
-            shape(ctx, x, y, (maxSize - stepSize * j)/2,
+            shape(ctx, o.x, o.y, (o.maxSize - stepSize * j)/2,
                 {
-                    fill: randItem(palette),
-                    angle: angle
+                    fill: randItem(o.palette),
+                    angle: o.angle
                 }
             );
             j++;
         }
+        ctx.globalCompositeOperation = ctxBlend;
+        ctx.globalAlpha = ctxAlpha;
+
+        resetCanvas(ctx);
     }
 
-    let nestOpts = [
-        renderer,
-        randomInRange(w * 0.1, w * 0.9),
-        randomInRange(w * 0.1, w * 0.9),
-        scale * randomInRange(0.75, 2),
-        scale * randomInRange(0.2, 0.4),
-        Math.floor(randomInRange(3, 5)),
-        randomInRange(0, Math.PI/4)
-    ];
+    let nestOpts = {
+        x: randomInRange(w * 0.1, w * 0.9),
+        y: randomInRange(w * 0.1, w * 0.9),
+        maxSize: scale * randomInRange(0.75, 2),
+        minSize: scale * randomInRange(0.2, 0.4),
+        steps: Math.floor(randomInRange(3, 5)),
+        angle: randomInRange(0, Math.PI/4)
+    };
 
     // rotate the canvas before drawing stacks
     rotateCanvas(ctx, w, h, tilt);
@@ -255,18 +277,16 @@ function shapestack(options) {
     drawStack(stackA, -w / 4, 'gray');
     drawStack(stackB, w / 2, 'gray');
 
+    // un-rotate to draw main shape
     resetCanvas(ctx);
 
     // draw Nest
-    ctx.globalCompositeOperation = 'multiply';
-    ctx.globalAlpha = 0.25;
-    drawNest(ctx, ...nestOpts, grays);
-    resetCanvas(ctx);
-    ctx.globalCompositeOperation = 'normal';
-    ctx.globalAlpha = 1;
+    drawNest(ctx, renderer, { ...nestOpts,
+        palette: grays,
+        alpha: 0.25,
+        blendMode: 'normal'
+    });
 
-    // un-rotate to draw main shape
-    resetCanvas(ctx);
 
     // add a pin shadow if it's an open shape
     if (['box', 'ring'].indexOf(shape) >= 0) {
@@ -281,29 +301,18 @@ function shapestack(options) {
     // clip mask
     ctx.clip();
 
-    // draw Nest
-    ctx.globalAlpha = 0.5;
-    ctx.globalCompositeOperation = 'normal';
-    resetCanvas(ctx);
-    drawNest(ctx, ...nestOpts, opts.palette);
-    ctx.globalCompositeOperation = 'normal';
-    ctx.globalAlpha = 1;
-    resetCanvas(ctx);
-
     // rotate the canvas before drawing stacks
     rotateCanvas(ctx, w, h, tilt);
     // draw color stacks in mask
     drawStack(stackA, -w / 4, opts.palette);
     drawStack(stackB, w / 2, opts.palette);
 
-    // draw Nest
-    ctx.globalAlpha = 0.5;
-    ctx.globalCompositeOperation = 'normal';
-    resetCanvas(ctx);
-    drawNest(ctx, ...nestOpts, opts.palette);
-    ctx.globalCompositeOperation = 'normal';
-    ctx.globalAlpha = 1;
-    resetCanvas(ctx);
+    // draw color Nest in front of color stack
+    drawNest(ctx, renderer, {...nestOpts,
+        palette: opts.palette,
+        alpha: 1,
+        blendMode: 'normal'
+    });
 
     if (['box', 'ring'].indexOf(shape) === -1) {
         // vertical pin
