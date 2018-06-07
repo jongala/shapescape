@@ -187,7 +187,6 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.drawCircle = drawCircle;
 exports.drawRing = drawRing;
-exports.drawTriangle = drawTriangle;
 exports.drawSquare = drawSquare;
 exports.drawRect = drawRect;
 exports.drawBox = drawBox;
@@ -229,7 +228,7 @@ function drawRing(ctx, x, y, r, opts) {
     return ctx;
 }
 
-function drawTriangle(ctx, x, y, size, opts) {
+/*export function drawTriangle(ctx, x, y, size, opts) {
     var h = 2 * size * Math.cos(Math.PI / 6);
 
     ctx.save();
@@ -245,7 +244,7 @@ function drawTriangle(ctx, x, y, size, opts) {
     ctx.fill();
 
     return ctx;
-}
+}*/
 
 function drawSquare(ctx, x, y, d, opts) {
     ctx.save();
@@ -341,6 +340,7 @@ function _drawPolygon(SIDES, SCALE) {
     };
 }
 
+var drawTriangle = exports.drawTriangle = _drawPolygon(3, 1);
 var drawPentagon = exports.drawPentagon = _drawPolygon(5, 1.1);
 var drawHexagon = exports.drawHexagon = _drawPolygon(6, 1.05);
 
@@ -1133,6 +1133,9 @@ function shapestack(options) {
 
     var w = container.offsetWidth;
     var h = container.offsetHeight;
+    var scale = Math.min(w, h); // reference size, regardless of aspect ratio
+
+    console.log('scale', scale);
 
     // Find or create canvas child
     var el = container.querySelector('canvas');
@@ -1256,12 +1259,38 @@ function shapestack(options) {
         });
     }
 
+    var drawNest = function drawNest(ctx, shape, x, y, maxSize, minSize) {
+        var steps = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : 4;
+        var palette = arguments[7];
+
+        var stepSize = (maxSize - minSize) / steps;
+        var i = steps;
+        var j = 1;
+        console.log('draw ' + steps + ' shapes from ' + minSize + ' to ' + maxSize + ' at ' + x + ',' + y);
+        while (i--) {
+            shape(ctx, x, y, (maxSize - stepSize * j) / 2, { fill: (0, _utils.randItem)(palette) });
+            j++;
+        }
+    };
+
+    var nestOpts = [renderer, (0, _utils.randomInRange)(w * 0.1, w * 0.9), (0, _utils.randomInRange)(w * 0.1, w * 0.9), scale * (0, _utils.randomInRange)(0.75, 2), scale * (0, _utils.randomInRange)(0.2, 0.4), Math.floor((0, _utils.randomInRange)(3, 5))];
+    var nestAngle = (0, _utils.randomInRange)(0, Math.PI / 4);
+
     // rotate the canvas before drawing stacks
     rotateCanvas(ctx, w, h, tilt);
 
     // Draw stacks with gray
     drawStack(stackA, -w / 4, 'gray');
     drawStack(stackB, w / 2, 'gray');
+
+    // draw Nest
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.globalAlpha = 0.25;
+    rotateCanvas(ctx, w, h, nestAngle);
+    drawNest.apply(undefined, [ctx].concat(nestOpts, [grays]));
+    resetCanvas(ctx);
+    ctx.globalCompositeOperation = 'normal';
+    ctx.globalAlpha = 1;
 
     // un-rotate to draw main shape
     resetCanvas(ctx);
@@ -1281,10 +1310,15 @@ function shapestack(options) {
 
     // rotate the canvas before drawing stacks
     rotateCanvas(ctx, w, h, tilt);
-
     // draw color stacks in mask
     drawStack(stackA, -w / 4, opts.palette);
     drawStack(stackB, w / 2, opts.palette);
+
+    // draw Nest
+    ctx.globalCompositeOperation = 'normal';
+    rotateCanvas(ctx, w, h, nestAngle);
+    drawNest.apply(undefined, [ctx].concat(nestOpts, [opts.palette]));
+    ctx.globalCompositeOperation = 'normal';
 
     if (['box', 'ring'].indexOf(shape) === -1) {
         // vertical pin

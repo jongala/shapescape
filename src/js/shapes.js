@@ -36,7 +36,7 @@ export function drawRing(ctx, x, y, r, opts) {
     return ctx;
 }
 
-export function drawTriangle(ctx, x, y, size, opts) {
+/*export function drawTriangle(ctx, x, y, size, opts) {
     var h = 2 * size * Math.cos(Math.PI / 6);
 
     ctx.save();
@@ -52,7 +52,7 @@ export function drawTriangle(ctx, x, y, size, opts) {
     ctx.fill();
 
     return ctx;
-}
+}*/
 
 export function drawSquare(ctx, x, y, d, opts) {
     ctx.save();
@@ -148,5 +148,6 @@ function _drawPolygon(SIDES, SCALE) {
     };
 }
 
+export var drawTriangle = _drawPolygon(3, 1);
 export var drawPentagon = _drawPolygon(5, 1.1);
 export var drawHexagon = _drawPolygon(6, 1.05);
