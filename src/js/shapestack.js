@@ -100,8 +100,6 @@ function shapestack(options) {
     var h = container.offsetHeight;
     var scale = Math.min(w, h); // reference size, regardless of aspect ratio
 
-    console.log('scale', scale);
-
     // Find or create canvas child
     var el = container.querySelector('canvas');
     var newEl = false;
@@ -120,6 +118,7 @@ function shapestack(options) {
     var ctx; // canvas ctx or svg tag
 
     ctx = el.getContext('2d');
+    ctx.save();
 
     // optional clear
     if (opts.clear) {
@@ -224,13 +223,17 @@ function shapestack(options) {
         });
     }
 
-    let drawNest = (ctx, shape, x, y, maxSize, minSize, steps=4, palette) => {
+    let drawNest = (ctx, shape, x, y, maxSize, minSize, steps=4, angle=0, palette) => {
         let stepSize = (maxSize - minSize) / steps;
         let i = steps;
         let j = 1;
-        console.log(`draw ${steps} shapes from ${minSize} to ${maxSize} at ${x},${y}`);
         while (i--) {
-            shape(ctx, x, y, (maxSize - stepSize * j)/2, {fill: randItem(palette)});
+            shape(ctx, x, y, (maxSize - stepSize * j)/2,
+                {
+                    fill: randItem(palette),
+                    angle: angle
+                }
+            );
             j++;
         }
     }
@@ -241,9 +244,9 @@ function shapestack(options) {
         randomInRange(w * 0.1, w * 0.9),
         scale * randomInRange(0.75, 2),
         scale * randomInRange(0.2, 0.4),
-        Math.floor(randomInRange(3, 5))
+        Math.floor(randomInRange(3, 5)),
+        randomInRange(0, Math.PI/4)
     ];
-    let nestAngle = randomInRange(0, Math.PI/4);
 
     // rotate the canvas before drawing stacks
     rotateCanvas(ctx, w, h, tilt);
@@ -252,10 +255,11 @@ function shapestack(options) {
     drawStack(stackA, -w / 4, 'gray');
     drawStack(stackB, w / 2, 'gray');
 
+    resetCanvas(ctx);
+
     // draw Nest
     ctx.globalCompositeOperation = 'multiply';
     ctx.globalAlpha = 0.25;
-    rotateCanvas(ctx, w, h, nestAngle);
     drawNest(ctx, ...nestOpts, grays);
     resetCanvas(ctx);
     ctx.globalCompositeOperation = 'normal';
@@ -277,6 +281,15 @@ function shapestack(options) {
     // clip mask
     ctx.clip();
 
+    // draw Nest
+    ctx.globalAlpha = 0.5;
+    ctx.globalCompositeOperation = 'normal';
+    resetCanvas(ctx);
+    drawNest(ctx, ...nestOpts, opts.palette);
+    ctx.globalCompositeOperation = 'normal';
+    ctx.globalAlpha = 1;
+    resetCanvas(ctx);
+
     // rotate the canvas before drawing stacks
     rotateCanvas(ctx, w, h, tilt);
     // draw color stacks in mask
@@ -284,10 +297,13 @@ function shapestack(options) {
     drawStack(stackB, w / 2, opts.palette);
 
     // draw Nest
+    ctx.globalAlpha = 0.5;
     ctx.globalCompositeOperation = 'normal';
-    rotateCanvas(ctx, w, h, nestAngle);
+    resetCanvas(ctx);
     drawNest(ctx, ...nestOpts, opts.palette);
     ctx.globalCompositeOperation = 'normal';
+    ctx.globalAlpha = 1;
+    resetCanvas(ctx);
 
     if (['box', 'ring'].indexOf(shape) === -1) {
         // vertical pin
@@ -297,7 +313,6 @@ function shapestack(options) {
 
         ctx.beginPath();
         ctx.moveTo(w / 2 + nudge, 0);
-        //ctx.lineTo(w/2 + nudge, h - Math.max(heightA, heightB));
         ctx.lineTo(w / 2 + nudge, h);
         ctx.closePath();
         ctx.strokeStyle = '#000000';
