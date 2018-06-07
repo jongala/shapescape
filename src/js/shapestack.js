@@ -281,11 +281,11 @@ function shapestack(options) {
     resetCanvas(ctx);
 
     // draw Nest
-    drawNest(ctx, renderer, { ...nestOpts,
+    drawNest(ctx, renderer, Object.assign({
         palette: grays,
         alpha: 0.25,
         blendMode: 'normal'
-    });
+    }, nestOpts));
 
 
     // add a pin shadow if it's an open shape
@@ -308,11 +308,11 @@ function shapestack(options) {
     drawStack(stackB, w / 2, opts.palette);
 
     // draw color Nest in front of color stack
-    drawNest(ctx, renderer, {...nestOpts,
+    drawNest(ctx, renderer, Object.assign({
         palette: opts.palette,
         alpha: 1,
         blendMode: 'normal'
-    });
+    }, nestOpts));
 
     if (['box', 'ring'].indexOf(shape) === -1) {
         // vertical pin
