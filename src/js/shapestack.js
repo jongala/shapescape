@@ -84,7 +84,7 @@ function shapestack(options) {
         opts.getColor = createFillFunc(opts.palette);
     }
 
-    var container = options.container;
+    var container = opts.container;
 
     var w = container.offsetWidth;
     var h = container.offsetHeight;
@@ -154,8 +154,8 @@ function shapestack(options) {
     shapes.sort(function(a, b) {
         return randomInRange(-1, 1);
     });
-    shape = shapes[0];
-    let nestRenderer = renderMap[shape];
+    let nestShape = shapes[0];
+    let nestRenderer = renderMap[nestShape];
 
     // pick centerpoint for shape
     var maskX = w / 2;
@@ -267,30 +267,37 @@ function shapestack(options) {
         angle: randomInRange(0, Math.PI/4)
     };
 
-    // rotate the canvas before drawing stacks
-    rotateCanvas(ctx, w, h, tilt);
+    if (opts.stack) {
+        // rotate the canvas before drawing stacks
+        rotateCanvas(ctx, w, h, tilt);
 
-    // Draw stacks with gray
-    drawStack(stackA, -w / 4, 'gray');
-    drawStack(stackB, w / 2, 'gray');
+        // Draw stacks with gray
+        drawStack(stackA, -w / 4, 'gray');
+        drawStack(stackB, w / 2, 'gray');
 
-    // un-rotate to draw main shape
-    resetTransform(ctx);
+        // un-rotate to draw main shape
+        resetTransform(ctx);
+    }
 
-    // draw Nest
-    drawNest(ctx, nestRenderer, Object.assign({
-        palette: grays,
-        alpha: 0.25,
-        blendMode: 'normal'
-    }, nestOpts));
+    if (opts.nest) {
+        // draw Nest
+        drawNest(ctx, nestRenderer, Object.assign({
+            palette: grays,
+            alpha: 0.25,
+            blendMode: 'normal'
+        }, nestOpts));
+    }
 
+
+    // Draw main shape + mask
+    // --------------------------------------
 
     // add a pin shadow if it's an open shape
     if (['box', 'ring'].indexOf(shape) >= 0) {
         addShadow(ctx, w, h);
     }
 
-    // Draw main shape + mask
+
     renderer(ctx, w / 2, maskY, maskSize, { fill: '#ffffff' });
     // clear shadow
     removeShadow(ctx);
@@ -298,38 +305,42 @@ function shapestack(options) {
     // clip mask
     ctx.clip();
 
-    // rotate the canvas before drawing stacks
-    rotateCanvas(ctx, w, h, tilt);
-    // draw color stacks in mask
-    drawStack(stackA, -w / 4, opts.palette);
-    drawStack(stackB, w / 2, opts.palette);
+    if (opts.stack) {
+        // rotate the canvas before drawing stacks
+        rotateCanvas(ctx, w, h, tilt);
+        // draw color stacks in mask
+        drawStack(stackA, -w / 4, opts.palette);
+        drawStack(stackB, w / 2, opts.palette);
 
-    // draw color Nest in front of color stack
-    drawNest(ctx, nestRenderer, Object.assign({
-        palette: opts.palette,
-        alpha: 1,
-        blendMode: 'normal'
-    }, nestOpts));
+        if (['box', 'ring'].indexOf(shape) === -1) {
+            // vertical pin
+            var nudge = heightA > heightB ? -0.5 : 0.5;
+            ctx.globalAlpha = 0.3;
+            ctx.lineWidth = 1;
 
-    if (['box', 'ring'].indexOf(shape) === -1) {
-        // vertical pin
-        var nudge = heightA > heightB ? -0.5 : 0.5;
-        ctx.globalAlpha = 0.3;
-        ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(w / 2 + nudge, 0);
+            ctx.lineTo(w / 2 + nudge, h);
+            ctx.closePath();
+            ctx.strokeStyle = '#000000';
+            ctx.stroke();
 
-        ctx.beginPath();
-        ctx.moveTo(w / 2 + nudge, 0);
-        ctx.lineTo(w / 2 + nudge, h);
-        ctx.closePath();
-        ctx.strokeStyle = '#000000';
-        ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(w / 2 + nudge, maskY + maskSize);
+            ctx.lineTo(w / 2 + nudge, h);
+            ctx.closePath();
+            ctx.strokeStyle = '#ffffff';
+            ctx.stroke();
+        }
+    }
 
-        ctx.beginPath();
-        ctx.moveTo(w / 2 + nudge, maskY + maskSize);
-        ctx.lineTo(w / 2 + nudge, h);
-        ctx.closePath();
-        ctx.strokeStyle = '#ffffff';
-        ctx.stroke();
+    if (opts.nest) {
+        // draw color Nest in front of color stack
+        drawNest(ctx, nestRenderer, Object.assign({
+            palette: opts.palette,
+            alpha: 1,
+            blendMode: 'normal'
+        }, nestOpts));
     }
 
     // unclip
