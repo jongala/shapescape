@@ -1,5 +1,5 @@
 import noiseUtils from './noiseutils';
-import { randItem, randomInRange, setAttrs } from './utils';
+import { randItem, randomInRange, setAttrs, resetTransform, rotateCanvas } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
 // Creates a function that returns a different random entry
@@ -60,39 +60,29 @@ function removeShadow(ctx) {
     ctx.shadowColor = 'transparent';
 }
 
-// rotate canvas around center point
-function rotateCanvas(ctx, w, h, angle) {
-    ctx.translate(w / 2, h / 2);
-    ctx.rotate(angle);
-    ctx.translate(-w / 2, -h / 2);
+const DEFAULTS = {
+    container: 'body',
+    palette: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
+    drawShadows: false,
+    addNoise: 0.04,
+    noiseInput: null,
+    dust: false,
+    skew: 1, // normalized skew
+    fancy: false,
+    nest: false,
+    stack: true,
+    clear: true
 }
 
-// reset canvas transformations
-function resetCanvas(ctx) {
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-}
 
 // draw it!
 function shapestack(options) {
-    var defaults = {
-        container: 'body',
-        palette: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
-        drawShadows: false,
-        addNoise: 0.04,
-        noiseInput: null,
-        dust: false,
-        skew: 1, // normalized skew
-        fancy: false,
-        clear: true
-    };
-    var opts = {};
-    opts = Object.assign(Object.assign(opts, defaults), options);
+    let opts = Object.assign(DEFAULTS, options);
     if (opts.fancy) {
         opts.getColor = getGradFunction(opts.palette);
     } else {
         opts.getColor = createFillFunc(opts.palette);
     }
-
 
     var container = options.container;
 
@@ -249,7 +239,7 @@ function shapestack(options) {
         let ctxBlend = ctx.globalCompositeOperation;
         let ctxAlpha = ctx.globalAlpha;
 
-        resetCanvas(ctx);
+        resetTransform(ctx);
 
         ctx.globalCompositeOperation = o.blendMode;
         ctx.globalAlpha = o.alpha;
@@ -265,7 +255,7 @@ function shapestack(options) {
         ctx.globalCompositeOperation = ctxBlend;
         ctx.globalAlpha = ctxAlpha;
 
-        resetCanvas(ctx);
+        resetTransform(ctx);
     }
 
     let nestOpts = {
@@ -285,7 +275,7 @@ function shapestack(options) {
     drawStack(stackB, w / 2, 'gray');
 
     // un-rotate to draw main shape
-    resetCanvas(ctx);
+    resetTransform(ctx);
 
     // draw Nest
     drawNest(ctx, nestRenderer, Object.assign({
@@ -346,7 +336,7 @@ function shapestack(options) {
     ctx.restore();
 
     // reset transform
-    resetCanvas(ctx);
+    resetTransform(ctx);
 
 
     // Add effect elements

@@ -17,3 +17,15 @@ export function setAttrs(el, attrs) {
         }
     }
 }
+
+// reset canvas transformations
+export function resetTransform(ctx) {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+// rotate canvas around center point
+export function rotateCanvas(ctx, w, h, angle) {
+    ctx.translate(w / 2, h / 2);
+    ctx.rotate(angle);
+    ctx.translate(-w / 2, -h / 2);
+}
