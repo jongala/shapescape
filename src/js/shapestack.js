@@ -70,7 +70,7 @@ const DEFAULTS = {
     skew: 1, // normalized skew
     fancy: false,
     nest: false,
-    stack: true,
+    stack: false,
     clear: true
 }
 
@@ -117,6 +117,7 @@ function shapestack(options) {
         ctx.clearRect(0, 0, w, h);
     }
 
+    // Setup renderers and default palettes
     var renderer;
     var renderMap = {
         circle: drawCircle,
@@ -131,6 +132,14 @@ function shapestack(options) {
     var shapes = Object.keys(renderMap);
 
     var grays = ['#111111', '#666666', '#999999', '#cccccc', '#f9f9f9'];
+
+    // randomize render style if both styles are false (default)
+    let stack = opts.stack;
+    let nest = opts.nest;
+    if (!opts.stack && !opts.nest) {
+        stack = (Math.random() > 0.5);
+        nest = !stack;
+    }
 
     // BEGIN RENDERING
 
@@ -267,7 +276,7 @@ function shapestack(options) {
         angle: randomInRange(0, Math.PI/4)
     };
 
-    if (opts.stack) {
+    if (stack) {
         // rotate the canvas before drawing stacks
         rotateCanvas(ctx, w, h, tilt);
 
@@ -279,7 +288,7 @@ function shapestack(options) {
         resetTransform(ctx);
     }
 
-    if (opts.nest) {
+    if (nest) {
         // draw Nest
         drawNest(ctx, nestRenderer, Object.assign({
             palette: grays,
@@ -305,7 +314,7 @@ function shapestack(options) {
     // clip mask
     ctx.clip();
 
-    if (opts.stack) {
+    if (stack) {
         // rotate the canvas before drawing stacks
         rotateCanvas(ctx, w, h, tilt);
         // draw color stacks in mask
@@ -334,7 +343,7 @@ function shapestack(options) {
         }
     }
 
-    if (opts.nest) {
+    if (nest) {
         // draw color Nest in front of color stack
         drawNest(ctx, nestRenderer, Object.assign({
             palette: opts.palette,
