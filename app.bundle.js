@@ -155,6 +155,8 @@ Object.defineProperty(exports, "__esModule", {
 exports.randItem = randItem;
 exports.randomInRange = randomInRange;
 exports.setAttrs = setAttrs;
+exports.resetTransform = resetTransform;
+exports.rotateCanvas = rotateCanvas;
 // random Array member
 function randItem(arr) {
     return arr[Math.floor(arr.length * Math.random())];
@@ -173,6 +175,18 @@ function setAttrs(el, attrs) {
             }
         }
     }
+}
+
+// reset canvas transformations
+function resetTransform(ctx) {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+// rotate canvas around center point
+function rotateCanvas(ctx, w, h, angle) {
+    ctx.translate(w / 2, h / 2);
+    ctx.rotate(angle);
+    ctx.translate(-w / 2, -h / 2);
 }
 
 /***/ }),
@@ -335,6 +349,8 @@ function _drawPolygon(SIDES, SCALE) {
 
         ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, 0, 0 + d / 2, d);
         ctx.fill();
+        ctx.strokeStyle = opts.stroke;
+        opts.stroke && ctx.stroke();
 
         return ctx;
     };
@@ -1096,40 +1112,29 @@ function removeShadow(ctx) {
     ctx.shadowColor = 'transparent';
 }
 
-// rotate canvas around center point
-function rotateCanvas(ctx, w, h, angle) {
-    ctx.translate(w / 2, h / 2);
-    ctx.rotate(angle);
-    ctx.translate(-w / 2, -h / 2);
-}
+var DEFAULTS = {
+    container: 'body',
+    palette: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
+    drawShadows: false,
+    addNoise: 0.04,
+    noiseInput: null,
+    dust: false,
+    skew: 1, // normalized skew
+    fancy: false,
+    nest: false,
+    stack: false,
+    clear: true
 
-// reset canvas transformations
-function resetCanvas(ctx) {
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-}
-
-// draw it!
-function shapestack(options) {
-    var defaults = {
-        container: 'body',
-        palette: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
-        drawShadows: false,
-        addNoise: 0.04,
-        noiseInput: null,
-        dust: false,
-        skew: 1, // normalized skew
-        fancy: false,
-        clear: true
-    };
-    var opts = {};
-    opts = Object.assign(Object.assign(opts, defaults), options);
+    // draw it!
+};function shapestack(options) {
+    var opts = Object.assign(DEFAULTS, options);
     if (opts.fancy) {
         opts.getColor = getGradFunction(opts.palette);
     } else {
         opts.getColor = createFillFunc(opts.palette);
     }
 
-    var container = options.container;
+    var container = opts.container;
 
     var w = container.offsetWidth;
     var h = container.offsetHeight;
@@ -1162,6 +1167,7 @@ function shapestack(options) {
         ctx.clearRect(0, 0, w, h);
     }
 
+    // Setup renderers and default palettes
     var renderer;
     var renderMap = {
         circle: _shapes.drawCircle,
@@ -1176,6 +1182,14 @@ function shapestack(options) {
     var shapes = Object.keys(renderMap);
 
     var grays = ['#111111', '#666666', '#999999', '#cccccc', '#f9f9f9'];
+
+    // randomize render style if both styles are false (default)
+    var stack = opts.stack;
+    var nest = opts.nest;
+    if (!opts.stack && !opts.nest) {
+        stack = Math.random() > 0.5;
+        nest = !stack;
+    }
 
     // BEGIN RENDERING
 
@@ -1199,8 +1213,8 @@ function shapestack(options) {
     shapes.sort(function (a, b) {
         return (0, _utils.randomInRange)(-1, 1);
     });
-    shape = shapes[0];
-    var nestRenderer = renderMap[shape];
+    var nestShape = shapes[0];
+    var nestRenderer = renderMap[nestShape];
 
     // pick centerpoint for shape
     var maskX = w / 2;
@@ -1211,11 +1225,8 @@ function shapestack(options) {
     // only do it if skew option is truthy,
     // and then only some of the time
     var tilt = 0;
-    if (opts.skew && Math.random() > 0.5) {
-        // small angles look bad so avoid them
-        tilt = (0, _utils.randomInRange)(0.05, 0.5);
-        // random direction
-        tilt *= Math.round(Math.random()) * 2 - 1;
+    if (opts.skew && Math.random() > 0.25) {
+        tilt = (0, _utils.randomInRange)(0, 6.28);
     }
 
     // pick depth of stack
@@ -1284,7 +1295,7 @@ function shapestack(options) {
         var ctxBlend = ctx.globalCompositeOperation;
         var ctxAlpha = ctx.globalAlpha;
 
-        resetCanvas(ctx);
+        (0, _utils.resetTransform)(ctx);
 
         ctx.globalCompositeOperation = o.blendMode;
         ctx.globalAlpha = o.alpha;
@@ -1298,7 +1309,7 @@ function shapestack(options) {
         ctx.globalCompositeOperation = ctxBlend;
         ctx.globalAlpha = ctxAlpha;
 
-        resetCanvas(ctx);
+        (0, _utils.resetTransform)(ctx);
     };
 
     var nestOpts = {
@@ -1310,29 +1321,31 @@ function shapestack(options) {
         angle: (0, _utils.randomInRange)(0, Math.PI / 4)
     };
 
-    // rotate the canvas before drawing stacks
-    rotateCanvas(ctx, w, h, tilt);
+    if (stack) {
+        // rotate the canvas before drawing stacks
+        (0, _utils.rotateCanvas)(ctx, w, h, tilt);
 
-    // Draw stacks with gray
-    drawStack(stackA, -w / 4, 'gray');
-    drawStack(stackB, w / 2, 'gray');
+        // Draw stacks with gray
+        drawStack(stackA, -w / 4, 'gray');
+        drawStack(stackB, w / 2, 'gray');
 
-    // un-rotate to draw main shape
-    resetCanvas(ctx);
+        // un-rotate to draw main shape
+        (0, _utils.resetTransform)(ctx);
+    }
 
-    // draw Nest
-    drawNest(ctx, nestRenderer, Object.assign({
-        palette: grays,
-        alpha: 0.25,
-        blendMode: 'normal'
-    }, nestOpts));
-
-    // add a pin shadow if it's an open shape
-    if (['box', 'ring'].indexOf(shape) >= 0) {
-        addShadow(ctx, w, h);
+    if (nest) {
+        // draw Nest
+        drawNest(ctx, nestRenderer, Object.assign({
+            palette: grays,
+            alpha: 1,
+            blendMode: 'normal'
+        }, nestOpts));
     }
 
     // Draw main shape + mask
+    // --------------------------------------
+
+
     renderer(ctx, w / 2, maskY, maskSize, { fill: '#ffffff' });
     // clear shadow
     removeShadow(ctx);
@@ -1340,45 +1353,57 @@ function shapestack(options) {
     // clip mask
     ctx.clip();
 
-    // rotate the canvas before drawing stacks
-    rotateCanvas(ctx, w, h, tilt);
-    // draw color stacks in mask
-    drawStack(stackA, -w / 4, opts.palette);
-    drawStack(stackB, w / 2, opts.palette);
+    if (stack) {
+        // rotate the canvas before drawing stacks
+        (0, _utils.rotateCanvas)(ctx, w, h, tilt);
+        // draw color stacks in mask
+        drawStack(stackA, -w / 4, opts.palette);
+        drawStack(stackB, w / 2, opts.palette);
 
-    // draw color Nest in front of color stack
-    drawNest(ctx, nestRenderer, Object.assign({
-        palette: opts.palette,
-        alpha: 1,
-        blendMode: 'normal'
-    }, nestOpts));
+        if (['box', 'ring'].indexOf(shape) === -1) {
+            // vertical pin
+            var nudge = heightA > heightB ? -0.5 : 0.5;
+            ctx.globalAlpha = 0.3;
+            ctx.lineWidth = 1;
 
-    if (['box', 'ring'].indexOf(shape) === -1) {
-        // vertical pin
-        var nudge = heightA > heightB ? -0.5 : 0.5;
-        ctx.globalAlpha = 0.3;
-        ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(w / 2 + nudge, 0);
+            ctx.lineTo(w / 2 + nudge, h);
+            ctx.closePath();
+            ctx.strokeStyle = '#000000';
+            ctx.stroke();
 
-        ctx.beginPath();
-        ctx.moveTo(w / 2 + nudge, 0);
-        ctx.lineTo(w / 2 + nudge, h);
-        ctx.closePath();
-        ctx.strokeStyle = '#000000';
-        ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(w / 2 + nudge, maskY + maskSize);
+            ctx.lineTo(w / 2 + nudge, h);
+            ctx.closePath();
+            ctx.strokeStyle = '#ffffff';
+            ctx.stroke();
+        }
+    }
 
-        ctx.beginPath();
-        ctx.moveTo(w / 2 + nudge, maskY + maskSize);
-        ctx.lineTo(w / 2 + nudge, h);
-        ctx.closePath();
-        ctx.strokeStyle = '#ffffff';
-        ctx.stroke();
+    if (nest) {
+        // draw color Nest in front of color stack
+        drawNest(ctx, nestRenderer, Object.assign({
+            palette: opts.palette,
+            alpha: 1,
+            blendMode: 'normal'
+        }, nestOpts));
     }
 
     // unclip
     ctx.restore();
 
     // reset transform
-    resetCanvas(ctx);
+    (0, _utils.resetTransform)(ctx);
+
+    // add a pin shadow if it's an open shape
+    if (nest || ['box', 'ring'].indexOf(shape) >= 0) {
+        //addShadow(ctx, w, h);
+        ctx.globalCompositeOperation = 'multiply';
+        renderer(ctx, w / 2, maskY, maskSize, { fill: 'transparent', stroke: '#808080' });
+        ctx.globalCompositeOperation = 'normal';
+    }
 
     // Add effect elements
     // ...
