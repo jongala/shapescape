@@ -143,6 +143,8 @@ function _drawPolygon(SIDES, SCALE) {
 
         ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, 0, 0 + d / 2, d);
         ctx.fill();
+        ctx.strokeStyle = opts.stroke;
+        opts.stroke && ctx.stroke();
 
         return ctx;
     };

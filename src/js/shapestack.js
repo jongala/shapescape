@@ -289,7 +289,7 @@ function shapestack(options) {
         // draw Nest
         drawNest(ctx, nestRenderer, Object.assign({
             palette: grays,
-            alpha: 0.25,
+            alpha: 1,
             blendMode: 'normal'
         }, nestOpts));
     }
@@ -297,11 +297,6 @@ function shapestack(options) {
 
     // Draw main shape + mask
     // --------------------------------------
-
-    // add a pin shadow if it's an open shape
-    if (['box', 'ring'].indexOf(shape) >= 0) {
-        addShadow(ctx, w, h);
-    }
 
 
     renderer(ctx, w / 2, maskY, maskSize, { fill: '#ffffff' });
@@ -354,6 +349,17 @@ function shapestack(options) {
 
     // reset transform
     resetTransform(ctx);
+
+
+    // add a pin shadow if it's an open shape
+    if ( nest || ['box', 'ring'].indexOf(shape) >= 0 ){
+        //addShadow(ctx, w, h);
+        ctx.globalCompositeOperation = 'multiply';
+        renderer(ctx, w / 2, maskY, maskSize, { fill: 'transparent', stroke:'#808080' });
+        ctx.globalCompositeOperation = 'normal';
+    }
+
+
 
 
     // Add effect elements
