@@ -175,11 +175,8 @@ function shapestack(options) {
     // only do it if skew option is truthy,
     // and then only some of the time
     var tilt = 0;
-    if (opts.skew && Math.random() > 0.5) {
-        // small angles look bad so avoid them
-        tilt = randomInRange(0.05, 0.5);
-        // random direction
-        tilt *= Math.round(Math.random()) * 2 - 1;
+    if (opts.skew && Math.random() > 0.25) {
+        tilt = randomInRange(0, 6.28);
     }
 
     // pick depth of stack
