@@ -299,7 +299,7 @@ function shapestack(options) {
     // --------------------------------------
 
 
-    renderer(ctx, w / 2, maskY, maskSize, { fill: '#ffffff' });
+    renderer(ctx, maskX, maskY, maskSize, { fill: '#ffffff' });
     // clear shadow
     removeShadow(ctx);
 
@@ -342,6 +342,23 @@ function shapestack(options) {
             alpha: 1,
             blendMode: 'normal'
         }, nestOpts));
+
+        // draw a line from nest center thru the mask center and beyond
+        let m = (nestOpts.y - maskY) / (nestOpts.x - maskX);
+        let theta = Math.atan(m);
+        if (nestOpts.x > maskX) {
+            theta += Math.PI;
+        }
+        // oughtta be enough
+        let R = w + h;
+
+        ctx.beginPath();
+        ctx.moveTo(nestOpts.x, nestOpts.y);
+        ctx.lineTo(nestOpts.x + R * Math.cos(theta),
+            nestOpts.y + R * Math.sin(theta));
+        ctx.closePath();
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.33)';
+        ctx.stroke();
     }
 
     // unclip

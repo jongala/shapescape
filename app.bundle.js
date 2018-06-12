@@ -1346,7 +1346,7 @@ var DEFAULTS = {
     // --------------------------------------
 
 
-    renderer(ctx, w / 2, maskY, maskSize, { fill: '#ffffff' });
+    renderer(ctx, maskX, maskY, maskSize, { fill: '#ffffff' });
     // clear shadow
     removeShadow(ctx);
 
@@ -1389,6 +1389,22 @@ var DEFAULTS = {
             alpha: 1,
             blendMode: 'normal'
         }, nestOpts));
+
+        // draw a line from nest center thru the mask center and beyond
+        var m = (nestOpts.y - maskY) / (nestOpts.x - maskX);
+        var theta = Math.atan(m);
+        if (nestOpts.x > maskX) {
+            theta += Math.PI;
+        }
+        // oughtta be enough
+        var R = w + h;
+
+        ctx.beginPath();
+        ctx.moveTo(nestOpts.x, nestOpts.y);
+        ctx.lineTo(nestOpts.x + R * Math.cos(theta), nestOpts.y + R * Math.sin(theta));
+        ctx.closePath();
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.33)';
+        ctx.stroke();
     }
 
     // unclip
