@@ -4,7 +4,7 @@ import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, draw
 
 // Creates a function that returns a different random entry
 // from @palette each time it is called.
-function createFillFunc(palette) {
+function getSolidColorFunction(palette) {
     var refresh = function() {
         // clone palette before providing func to avoid
         // operating on the input array.
@@ -22,7 +22,7 @@ function createFillFunc(palette) {
     };
 }
 
-let getGradFunction = (palette) => {
+let getGradientFunction = (palette) => {
     let p = [].concat(palette);
     return function(ctx, w, h) {
         let bias = Math.random() - 0.5;
@@ -140,8 +140,8 @@ function shapestack(options) {
     let fillStyle = opts.fillStyle;
     // map of color function generators
     let colorFuncs = {
-        'gradient': getGradFunction,
-        'solid': createFillFunc
+        'gradient': getGradientFunction,
+        'solid': getSolidColorFunction
     }
     // if no valid fill style is passed, assign one randomly
     if (['gradient','solid'].indexOf(fillStyle) === -1 ) {
