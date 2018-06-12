@@ -68,7 +68,7 @@ const DEFAULTS = {
     noiseInput: null,
     dust: false,
     skew: 1, // normalized skew
-    fancy: false,
+    fillStyle: null, // ['solid', 'gradient']
     nest: false,
     stack: false,
     clear: true
@@ -78,11 +78,6 @@ const DEFAULTS = {
 // draw it!
 function shapestack(options) {
     let opts = Object.assign(DEFAULTS, options);
-    if (opts.fancy) {
-        opts.getColor = getGradFunction(opts.palette);
-    } else {
-        opts.getColor = createFillFunc(opts.palette);
-    }
 
     var container = opts.container;
 
@@ -140,6 +135,21 @@ function shapestack(options) {
         stack = (Math.random() > 0.5);
         nest = !stack;
     }
+
+    // Set up color fill style
+    if (opts.fillStyle === 'gradient') {
+        opts.getColor = getGradFunction(opts.palette);
+    } else if (opts.fillStyle === 'solid') {
+        opts.getColor = createFillFunc(opts.palette);
+    } else {
+        // fillStyle is unspecified or invalid; choose randomly
+        if (Math.random() > 0.5) {
+            opts.getColor = getGradFunction(opts.palette);
+        } else {
+            opts.getColor = createFillFunc(opts.palette);
+        }
+    }
+
 
     // BEGIN RENDERING
 
