@@ -131,7 +131,7 @@ function shapestack(options) {
     };
     var shapes = Object.keys(renderMap);
 
-    var grays = ['#111111', '#666666', '#999999', '#cccccc', '#f9f9f9'];
+    var grays = ['#111111', '#666666', '#808080', '#999999', '#b4b4b4', '#cccccc', '#e7e7e7', '#f9f9f9'];
 
     // randomize render style if both styles are false (default)
     let stack = opts.stack;
@@ -148,7 +148,7 @@ function shapestack(options) {
     }
 
     // draw background/sky
-    var sky = Math.round(randomInRange(204, 235)).toString(16);
+    var sky = Math.round(randomInRange(204, 245)).toString(16);
     ctx.fillStyle = '#' + sky + sky + sky;
     ctx.fillRect(0, 0, w, h);
 
@@ -267,8 +267,8 @@ function shapestack(options) {
     let nestOpts = {
         x: randomInRange(w * 0.1, w * 0.9),
         y: randomInRange(w * 0.1, w * 0.9),
-        maxSize: scale * randomInRange(0.75, 2),
-        minSize: scale * randomInRange(0.2, 0.4),
+        maxSize: scale * randomInRange(1, 2),
+        minSize: scale * randomInRange(0.5, 0.75),
         steps: Math.floor(randomInRange(3, 5)),
         angle: randomInRange(0, Math.PI/4)
     };
