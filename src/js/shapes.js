@@ -150,6 +150,6 @@ function _drawPolygon(SIDES, SCALE) {
     };
 }
 
-export var drawTriangle = _drawPolygon(3, 1);
+export var drawTriangle = _drawPolygon(3, 1.2);
 export var drawPentagon = _drawPolygon(5, 1.1);
 export var drawHexagon = _drawPolygon(6, 1.05);
