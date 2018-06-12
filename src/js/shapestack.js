@@ -137,18 +137,18 @@ function shapestack(options) {
     }
 
     // Set up color fill style
-    if (opts.fillStyle === 'gradient') {
-        opts.getColor = getGradFunction(opts.palette);
-    } else if (opts.fillStyle === 'solid') {
-        opts.getColor = createFillFunc(opts.palette);
-    } else {
-        // fillStyle is unspecified or invalid; choose randomly
-        if (Math.random() > 0.5) {
-            opts.getColor = getGradFunction(opts.palette);
-        } else {
-            opts.getColor = createFillFunc(opts.palette);
-        }
+    let fillStyle = opts.fillStyle;
+    // map of color function generators
+    let colorFuncs = {
+        'gradient': getGradFunction,
+        'solid': createFillFunc
     }
+    // if no valid fill style is passed, assign one randomly
+    if (['gradient','solid'].indexOf(fillStyle) === -1 ) {
+        fillStyle = (Math.random() > 0.5) ? 'gradient' : 'solid';
+    }
+    // generate the fill function based on the palette
+    opts.getColor = colorFuncs[fillStyle](opts.palette);
 
 
     // BEGIN RENDERING
@@ -254,6 +254,7 @@ function shapestack(options) {
         let j = 1;
         let ctxBlend = ctx.globalCompositeOperation;
         let ctxAlpha = ctx.globalAlpha;
+        let getColor = colorFuncs[fillStyle](o.palette);
 
         resetTransform(ctx);
 
@@ -262,7 +263,7 @@ function shapestack(options) {
         while (i--) {
             shape(ctx, o.x, o.y, (o.maxSize - stepSize * j)/2,
                 {
-                    fill: randItem(o.palette),
+                    fill: getColor(ctx, o.minSize, o.maxSize),
                     angle: o.angle
                 }
             );
