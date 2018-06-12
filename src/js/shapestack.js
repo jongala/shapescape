@@ -29,13 +29,13 @@ let getGradFunction = (palette) => {
         let coords = [];
         if (bias) {
             coords = [
-                randomInRange(0, w/2), 0,
-                randomInRange(w/2, w), 0
+                randomInRange(0, w * 0.25), 0,
+                randomInRange(w * 0.75, w), 0
             ]
         } else {
             coords = [
-                0, randomInRange(0, h/2),
-                0, randomInRange(h/2, h)
+                0, randomInRange(0, h * 0.5),
+                0, randomInRange(h * 0.75, h)
             ]
         }
         let grad =  ctx.createLinearGradient(...coords);
@@ -215,7 +215,7 @@ function shapestack(options) {
                 gray = randomInRange(0.55, 0.85);
                 ctx.fillStyle = 'rgba(0, 0, 0,' + (i + 1) * gray / stackSize + ')';
             } else {
-                ctx.fillStyle = opts.getColor(ctx, w, h);
+                ctx.fillStyle = opts.getColor(ctx, w, y[1] - y[0]);
             }
 
             ctx.beginPath();
