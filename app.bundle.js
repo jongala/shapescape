@@ -356,7 +356,7 @@ function _drawPolygon(SIDES, SCALE) {
     };
 }
 
-var drawTriangle = exports.drawTriangle = _drawPolygon(3, 1);
+var drawTriangle = exports.drawTriangle = _drawPolygon(3, 1.2);
 var drawPentagon = exports.drawPentagon = _drawPolygon(5, 1.1);
 var drawHexagon = exports.drawHexagon = _drawPolygon(6, 1.05);
 
@@ -1064,7 +1064,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
 // Creates a function that returns a different random entry
 // from @palette each time it is called.
-function createFillFunc(palette) {
+function getSolidColorFunction(palette) {
     var refresh = function refresh() {
         // clone palette before providing func to avoid
         // operating on the input array.
@@ -1081,15 +1081,15 @@ function createFillFunc(palette) {
     };
 }
 
-var getGradFunction = function getGradFunction(palette) {
+var getGradientFunction = function getGradientFunction(palette) {
     var p = [].concat(palette);
     return function (ctx, w, h) {
         var bias = Math.random() - 0.5;
         var coords = [];
         if (bias) {
-            coords = [(0, _utils.randomInRange)(0, w / 2), 0, (0, _utils.randomInRange)(w / 2, w), 0];
+            coords = [(0, _utils.randomInRange)(0, w * 0.25), 0, (0, _utils.randomInRange)(w * 0.75, w), 0];
         } else {
-            coords = [0, (0, _utils.randomInRange)(0, h / 2), 0, (0, _utils.randomInRange)(h / 2, h)];
+            coords = [0, (0, _utils.randomInRange)(0, h * 0.5), 0, (0, _utils.randomInRange)(h * 0.75, h)];
         }
         var grad = ctx.createLinearGradient.apply(ctx, _toConsumableArray(coords));
         grad.addColorStop(0, (0, _utils.randItem)(p));
@@ -1101,8 +1101,8 @@ var getGradFunction = function getGradFunction(palette) {
 function addShadow(ctx, w, h) {
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
-    ctx.shadowBlur = 0.5 * Math.min(w, h) / 800;
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+    ctx.shadowBlur = 25 * Math.min(w, h) / 800;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
 }
 
 function removeShadow(ctx) {
@@ -1120,19 +1120,15 @@ var DEFAULTS = {
     noiseInput: null,
     dust: false,
     skew: 1, // normalized skew
-    fancy: false,
+    fillStyle: null, // null for auto, ['solid', 'gradient']
     nest: false,
     stack: false,
+    fancy: null, // forces auto fanciness
     clear: true
 
     // draw it!
 };function shapestack(options) {
     var opts = Object.assign(DEFAULTS, options);
-    if (opts.fancy) {
-        opts.getColor = getGradFunction(opts.palette);
-    } else {
-        opts.getColor = createFillFunc(opts.palette);
-    }
 
     var container = opts.container;
 
@@ -1191,11 +1187,37 @@ var DEFAULTS = {
         nest = !stack;
     }
 
-    // BEGIN RENDERING
+    // rendering styles
+    var fancy = opts.fancy;
+    var fillStyle = opts.fillStyle;
+    var drawShadows = opts.drawShadows;
 
-    if (opts.drawShadows) {
-        addShadow(ctx, w, h);
+    // Fancy directive: forces fillStyle and drawShadows options
+    // Default behavior is to randomly choose fancy
+    if (fancy === null || fancy === undefined) {
+        fancy = Math.random() > 0.5;
+        if (fancy) {
+            drawShadows = true;
+            fillStyle = 'gradient';
+        } else {
+            drawShadows = false;
+            fillStyle = 'solid';
+        }
     }
+
+    // Set up color fill style
+    // map of color function generators
+    var colorFuncs = {
+        'gradient': getGradientFunction,
+        'solid': getSolidColorFunction
+        // if no valid fill style is passed, assign one randomly
+    };if (!['gradient', 'solid'].includes(fillStyle)) {
+        fillStyle = Math.random() > 0.5 ? 'gradient' : 'solid';
+    }
+    // generate the fill function based on the palette
+    opts.getColor = colorFuncs[fillStyle](opts.palette);
+
+    // BEGIN RENDERING
 
     // draw background/sky
     var sky = Math.round((0, _utils.randomInRange)(204, 245)).toString(16);
@@ -1265,7 +1287,7 @@ var DEFAULTS = {
                 gray = (0, _utils.randomInRange)(0.55, 0.85);
                 ctx.fillStyle = 'rgba(0, 0, 0,' + (i + 1) * gray / stackSize + ')';
             } else {
-                ctx.fillStyle = opts.getColor(ctx, w, h);
+                ctx.fillStyle = opts.getColor(ctx, w, y[1] - y[0]);
             }
 
             ctx.beginPath();
@@ -1294,6 +1316,7 @@ var DEFAULTS = {
         var j = 1;
         var ctxBlend = ctx.globalCompositeOperation;
         var ctxAlpha = ctx.globalAlpha;
+        var getColor = colorFuncs[fillStyle](o.palette);
 
         (0, _utils.resetTransform)(ctx);
 
@@ -1301,7 +1324,7 @@ var DEFAULTS = {
         ctx.globalAlpha = o.alpha;
         while (i--) {
             shape(ctx, o.x, o.y, (o.maxSize - stepSize * j) / 2, {
-                fill: (0, _utils.randItem)(o.palette),
+                fill: getColor(ctx, o.minSize, o.maxSize),
                 angle: o.angle
             });
             j++;
@@ -1345,6 +1368,9 @@ var DEFAULTS = {
     // Draw main shape + mask
     // --------------------------------------
 
+    if (drawShadows) {
+        addShadow(ctx, w, h);
+    }
 
     renderer(ctx, maskX, maskY, maskSize, { fill: '#ffffff' });
     // clear shadow
@@ -1413,9 +1439,8 @@ var DEFAULTS = {
     // reset transform
     (0, _utils.resetTransform)(ctx);
 
-    // add a pin shadow if it's an open shape
-    if (nest || ['box', 'ring'].indexOf(shape) >= 0) {
-        //addShadow(ctx, w, h);
+    // add a pin shadow if it's an open shape or nest
+    if (!drawShadows && (nest || ['box', 'ring'].indexOf(shape) >= 0)) {
         ctx.globalCompositeOperation = 'multiply';
         renderer(ctx, w / 2, maskY, maskSize, { fill: 'transparent', stroke: '#808080' });
         ctx.globalCompositeOperation = 'normal';
