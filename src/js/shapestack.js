@@ -68,9 +68,10 @@ const DEFAULTS = {
     noiseInput: null,
     dust: false,
     skew: 1, // normalized skew
-    fillStyle: null, // ['solid', 'gradient']
+    fillStyle: null, // null for auto, ['solid', 'gradient']
     nest: false,
     stack: false,
+    fancy: null, // forces auto fanciness
     clear: true
 }
 
@@ -136,15 +137,32 @@ function shapestack(options) {
         nest = !stack;
     }
 
-    // Set up color fill style
+    // rendering styles
+    let fancy = opts.fancy;
     let fillStyle = opts.fillStyle;
+    let drawShadows = opts.drawShadows;
+
+    // Fancy directive: forces fillStyle and drawShadows options
+    // Default behavior is to randomly choose fancy
+    if (fancy === null || fancy === undefined) {
+        fancy = (Math.random() > 0.5);
+        if (fancy) {
+            drawShadows = true;
+            fillStyle = 'gradient';
+        } else {
+            drawShadows = false;
+            fillStyle = 'solid';
+        }
+    }
+
+    // Set up color fill style
     // map of color function generators
     let colorFuncs = {
         'gradient': getGradientFunction,
         'solid': getSolidColorFunction
     }
     // if no valid fill style is passed, assign one randomly
-    if (['gradient','solid'].indexOf(fillStyle) === -1 ) {
+    if (!['gradient','solid'].includes(fillStyle)) {
         fillStyle = (Math.random() > 0.5) ? 'gradient' : 'solid';
     }
     // generate the fill function based on the palette
@@ -305,7 +323,7 @@ function shapestack(options) {
     // Draw main shape + mask
     // --------------------------------------
 
-    if (opts.drawShadows) {
+    if (drawShadows) {
         addShadow(ctx, w, h);
     }
 
@@ -379,7 +397,7 @@ function shapestack(options) {
 
 
     // add a pin shadow if it's an open shape or nest
-    if ( !opts.drawShadows &&
+    if ( !drawShadows &&
         ( nest || ['box', 'ring'].indexOf(shape) >= 0 ) ){
         ctx.globalCompositeOperation = 'multiply';
         renderer(ctx, w / 2, maskY, maskSize, { fill: 'transparent', stroke:'#808080' });
