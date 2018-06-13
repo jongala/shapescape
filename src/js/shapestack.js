@@ -49,8 +49,8 @@ let getGradientFunction = (palette) => {
 function addShadow(ctx, w, h) {
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
-    ctx.shadowBlur = 0.5 * Math.min(w, h) / 800;
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+    ctx.shadowBlur = 25 * Math.min(w, h) / 800;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
 }
 
 function removeShadow(ctx) {
@@ -152,10 +152,6 @@ function shapestack(options) {
 
 
     // BEGIN RENDERING
-
-    if (opts.drawShadows) {
-        addShadow(ctx, w, h);
-    }
 
     // draw background/sky
     var sky = Math.round(randomInRange(204, 245)).toString(16);
@@ -309,6 +305,9 @@ function shapestack(options) {
     // Draw main shape + mask
     // --------------------------------------
 
+    if (opts.drawShadows) {
+        addShadow(ctx, w, h);
+    }
 
     renderer(ctx, maskX, maskY, maskSize, { fill: '#ffffff' });
     // clear shadow
@@ -379,9 +378,9 @@ function shapestack(options) {
     resetTransform(ctx);
 
 
-    // add a pin shadow if it's an open shape
-    if ( nest || ['box', 'ring'].indexOf(shape) >= 0 ){
-        //addShadow(ctx, w, h);
+    // add a pin shadow if it's an open shape or nest
+    if ( !opts.drawShadows &&
+        ( nest || ['box', 'ring'].indexOf(shape) >= 0 ) ){
         ctx.globalCompositeOperation = 'multiply';
         renderer(ctx, w / 2, maskY, maskSize, { fill: 'transparent', stroke:'#808080' });
         ctx.globalCompositeOperation = 'normal';
