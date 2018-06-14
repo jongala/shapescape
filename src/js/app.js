@@ -179,16 +179,23 @@ custom.addEventListener('keypress', function(e) {
     useCustomPalette(palette);
 });
 
-function previewImage(image) {
+function previewImage(el) {
     var preview = document.createElement('div');
     preview.id = 'preview';
-    preview.appendChild(image);
+    preview.appendChild(el);
     preview.onclick = function(e) {
-        if (e.target.nodeName !== 'IMG') {
+        // on click, hide if we click outside the image
+        if (e.target.id === 'preview') {
             removePreview();
         }
     };
+    // append the elements to display
     document.querySelector('body').appendChild(preview);
+    // we must re-bind the click behavior of the download link,
+    // which does not come with the cloned element
+    let anchor = document.querySelector('#preview .downloader a');
+    let image =  document.querySelector('#preview .downloader img');
+    anchor.onclick = function(){doDownload(anchor, image.src)}
 }
 
 function removePreview() {
