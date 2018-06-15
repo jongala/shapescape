@@ -313,7 +313,7 @@ function shapestack(options) {
         x: randomInRange(w * 0.1, w * 0.9),
         y: randomInRange(w * 0.1, w * 0.9),
         maxSize: scale * randomInRange(1, 2),
-        minSize: scale * randomInRange(0.5, 0.75),
+        minSize: scale * randomInRange(0.25, 0.75),
         steps: Math.floor(randomInRange(3, 5)),
         angle: randomInRange(0, Math.PI/4)
     };
