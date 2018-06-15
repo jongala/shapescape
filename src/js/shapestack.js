@@ -30,12 +30,12 @@ let getGradientFunction = (palette) => {
         if (bias) {
             coords = [
                 randomInRange(0, w * 0.25), 0,
-                randomInRange(w * 0.75, w), 0
+                randomInRange(w * 0.75, w), h
             ]
         } else {
             coords = [
                 0, randomInRange(0, h * 0.5),
-                0, randomInRange(h * 0.75, h)
+                w, randomInRange(h * 0.75, h)
             ]
         }
         let grad =  ctx.createLinearGradient(...coords);
@@ -314,7 +314,7 @@ function shapestack(options) {
         y: randomInRange(w * 0.1, w * 0.9),
         maxSize: scale * randomInRange(1, 2),
         minSize: scale * randomInRange(0.25, 0.75),
-        steps: Math.floor(randomInRange(3, 5)),
+        steps: Math.floor(randomInRange(3, 7)),
         angle: randomInRange(0, Math.PI/4)
     };
 
