@@ -256,6 +256,7 @@ function shapestack(options) {
         minSize: 200,
         maxSize: 400,
         steps: 4,
+        jitter: 0.1,
         angle: 0
     }
     let nestRenderDefaults = {
@@ -269,12 +270,14 @@ function shapestack(options) {
         let i = o.steps;
         let j = 1;
         let nest = [];
+        let step; // the actual step size in px
 
         while (i--) {
+            step = stepSize * (1 + randomInRange(-o.jitter, + o.jitter));
             nest.push({
                 x: o.x,
                 y: o.y,
-                size: (o.maxSize - stepSize * j)/2,
+                size: (o.maxSize - j * step)/2,
                 angle: o.angle
             });
             j++;
