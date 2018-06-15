@@ -1096,9 +1096,9 @@ var getGradientFunction = function getGradientFunction(palette) {
         var bias = Math.random() - 0.5;
         var coords = [];
         if (bias) {
-            coords = [(0, _utils.randomInRange)(0, w * 0.25), 0, (0, _utils.randomInRange)(w * 0.75, w), 0];
+            coords = [(0, _utils.randomInRange)(0, w * 0.25), 0, (0, _utils.randomInRange)(w * 0.75, w), h];
         } else {
-            coords = [0, (0, _utils.randomInRange)(0, h * 0.5), 0, (0, _utils.randomInRange)(h * 0.75, h)];
+            coords = [0, (0, _utils.randomInRange)(0, h * 0.5), w, (0, _utils.randomInRange)(h * 0.75, h)];
         }
         var grad = ctx.createLinearGradient.apply(ctx, _toConsumableArray(coords));
         grad.addColorStop(0, (0, _utils.randItem)(p));
@@ -1189,11 +1189,11 @@ var DEFAULTS = {
     var grays = ['#111111', '#666666', '#808080', '#999999', '#b4b4b4', '#cccccc', '#e7e7e7', '#f9f9f9'];
 
     // randomize render style if both styles are false (default)
-    var stack = opts.stack;
-    var nest = opts.nest;
+    var willDrawStack = opts.stack;
+    var willDrawNest = opts.nest;
     if (!opts.stack && !opts.nest) {
-        stack = Math.random() > 0.5;
-        nest = !stack;
+        willDrawStack = Math.random() > 0.5;
+        willDrawNest = !willDrawStack;
     }
 
     // rendering styles
@@ -1313,31 +1313,51 @@ var DEFAULTS = {
         minSize: 200,
         maxSize: 400,
         steps: 4,
-        angle: 0,
+        jitter: 0.1,
+        angle: 0
+    };
+    var nestRenderDefaults = {
         palette: ['#000', '#333', '#666', '#999'],
         alpha: 1,
         blendMode: 'normal'
     };
-    var drawNest = function drawNest(ctx, shape, o) {
+    var defineNest = function defineNest(o) {
         o = Object.assign(nestDefaults, o);
         var stepSize = (o.maxSize - o.minSize) / o.steps;
         var i = o.steps;
         var j = 1;
-        var ctxBlend = ctx.globalCompositeOperation;
-        var ctxAlpha = ctx.globalAlpha;
-        var getColor = colorFuncs[fillStyle](o.palette);
+        var nest = [];
+        var step = void 0; // the actual step size in px
 
-        (0, _utils.resetTransform)(ctx);
-
-        ctx.globalCompositeOperation = o.blendMode;
-        ctx.globalAlpha = o.alpha;
         while (i--) {
-            shape(ctx, o.x, o.y, (o.maxSize - stepSize * j) / 2, {
-                fill: getColor(ctx, o.minSize, o.maxSize),
+            step = stepSize * (1 + (0, _utils.randomInRange)(-o.jitter, +o.jitter));
+            nest.push({
+                x: o.x,
+                y: o.y,
+                size: (o.maxSize - j * step) / 2,
                 angle: o.angle
             });
             j++;
         }
+        return nest;
+    };
+    var drawNest = function drawNest(ctx, nest, palette, o) {
+        o = Object.assign(nestRenderDefaults, o);
+        (0, _utils.resetTransform)(ctx);
+        var getColor = colorFuncs[fillStyle](palette);
+        var ctxBlend = ctx.globalCompositeOperation;
+        var ctxAlpha = ctx.globalAlpha;
+
+        ctx.globalCompositeOperation = o.blendMode;
+        ctx.globalAlpha = o.alpha;
+
+        nest.forEach(function (n) {
+            nestRenderer(ctx, n.x, n.y, n.size, {
+                fill: getColor(ctx, n.size, n.size),
+                angle: n.angle
+            });
+        });
+
         ctx.globalCompositeOperation = ctxBlend;
         ctx.globalAlpha = ctxAlpha;
 
@@ -1348,12 +1368,14 @@ var DEFAULTS = {
         x: (0, _utils.randomInRange)(w * 0.1, w * 0.9),
         y: (0, _utils.randomInRange)(w * 0.1, w * 0.9),
         maxSize: scale * (0, _utils.randomInRange)(1, 2),
-        minSize: scale * (0, _utils.randomInRange)(0.5, 0.75),
-        steps: Math.floor((0, _utils.randomInRange)(3, 5)),
+        minSize: scale * (0, _utils.randomInRange)(0.25, 0.75),
+        steps: Math.floor((0, _utils.randomInRange)(3, 7)),
         angle: (0, _utils.randomInRange)(0, Math.PI / 4)
     };
 
-    if (stack) {
+    var nest = defineNest(nestOpts);
+
+    if (willDrawStack) {
         // rotate the canvas before drawing stacks
         (0, _utils.rotateCanvas)(ctx, w, h, tilt);
 
@@ -1365,13 +1387,9 @@ var DEFAULTS = {
         (0, _utils.resetTransform)(ctx);
     }
 
-    if (nest) {
+    if (willDrawNest) {
         // draw Nest
-        drawNest(ctx, nestRenderer, Object.assign({
-            palette: grays,
-            alpha: 1,
-            blendMode: 'normal'
-        }, nestOpts));
+        drawNest(ctx, nest, grays, {});
     }
 
     // Draw main shape + mask
@@ -1388,7 +1406,7 @@ var DEFAULTS = {
     // clip mask
     ctx.clip();
 
-    if (stack) {
+    if (willDrawStack) {
         // rotate the canvas before drawing stacks
         (0, _utils.rotateCanvas)(ctx, w, h, tilt);
         // draw color stacks in mask
@@ -1417,13 +1435,9 @@ var DEFAULTS = {
         }
     }
 
-    if (nest) {
+    if (willDrawNest) {
         // draw color Nest in front of color stack
-        drawNest(ctx, nestRenderer, Object.assign({
-            palette: opts.palette,
-            alpha: 1,
-            blendMode: 'normal'
-        }, nestOpts));
+        drawNest(ctx, nest, opts.palette, {});
 
         // draw a line from nest center thru the mask center and beyond
         var m = (nestOpts.y - maskY) / (nestOpts.x - maskX);
