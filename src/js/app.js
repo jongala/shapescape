@@ -118,11 +118,11 @@ window.createBatch = createBatch;
 // Option sets:
 
 var palettes = {
-    standard: null,
+    default: null,
     high_contrast: ['#111111', '#444444', '#dddddd', '#f9f9f9'],
-    low_contrast: ['#111111', '#666666', '#999999', '#cccccc', '#f9f9f9'],
+    low_contrast: ['#333333', '#666666', '#999999', '#cccccc', '#f9f9f9'],
     black_white_red: ['#111111', '#444444', '#dddddd', '#ffffff', '#880000', '#dd0000'],
-    lemon_beach: ['#d7d7d7', '#979797', '#cabd9d', '#11758e', '#89bed3', '#e4ca49'],
+    lemon_beach: ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'],
     magma: ['#000004', '#3b0f70', '#8c2981', '#de4968', '#fe9f6d', '#fcfdbf'],
     inferno: ['#000004', '#420a68', '#932667', '#dd513a', '#fca50a', '#fcffa4'],
     plasma: ['#0d0887', '#6a00a8', '#b12a90', '#e16462', '#fca636', '#f0f921'],
