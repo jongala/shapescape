@@ -345,7 +345,21 @@ function shapestack(options) {
         addShadow(ctx, w, h);
     }
 
-    renderer(ctx, maskX, maskY, maskSize, { fill: '#ffffff' });
+    //renderer(ctx, maskX, maskY, maskSize, { fill: '#ffffff' });
+    let getShape = () => {
+        return renderMap[randItem(['circle','square','triangle','pentagon','hexagon'])];
+    }
+    ctx.beginPath();
+    getShape()(ctx, w/4, h/4, scale * randomInRange(0.2,0.25), { fill: '#ffffff', continue:true });
+    resetTransform(ctx);
+    getShape()(ctx, w/4 * 3, h/4, scale * randomInRange(0.2,0.25), { fill: '#ffffff', continue:true });
+    resetTransform(ctx);
+    getShape()(ctx, w/4, h/4 * 3, scale * randomInRange(0.2,0.25), { fill: '#ffffff', continue:true });
+    resetTransform(ctx);
+    getShape()(ctx, w/4 * 3, h/4 * 3, scale * randomInRange(0.2,0.25), { fill: '#ffffff', continue:true });
+    resetTransform(ctx);
+    ctx.closePath();
+
     // clear shadow
     removeShadow(ctx);
 

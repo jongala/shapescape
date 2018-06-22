@@ -1,11 +1,16 @@
 export function drawCircle(ctx, x, y, r, opts) {
-    ctx.save();
+    if (!opts.continue) {
+        ctx.save();
+        ctx.beginPath();
+    }
     ctx.translate(x, y);
-    ctx.beginPath();
     ctx.moveTo(r, 0);
     ctx.arc(0, 0, r, 0, 2 * Math.PI, false);
-    ctx.closePath();
-    ctx.restore();
+
+    if (!opts.continue) {
+        ctx.closePath();
+        ctx.restore();
+    }
 
     ctx.fillStyle = opts.fill;
     ctx.strokeStyle = opts.stroke;
@@ -55,12 +60,18 @@ export function drawRing(ctx, x, y, r, opts) {
 }*/
 
 export function drawSquare(ctx, x, y, d, opts) {
-    ctx.save();
+    if (!opts.continue) {
+        ctx.save();
+        ctx.beginPath();
+    }
+
     ctx.translate(x, y);
-    ctx.beginPath();
     ctx.rect(-d, -d, d * 2, d * 2);
-    ctx.closePath();
-    ctx.restore();
+
+    if (!opts.continue) {
+        ctx.closePath();
+        ctx.restore();
+    }
 
     ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, 0, 0 + d / 2, d);
     ctx.fill();
@@ -118,7 +129,12 @@ function _drawPolygon(SIDES, SCALE) {
     SCALE = SCALE || 1;
 
     return function(ctx, x, y, d, opts) {
-        ctx.save();
+
+        if (!opts.continue) {
+            ctx.save();
+            ctx.beginPath();
+        }
+
         ctx.translate(x, y);
         if (opts.angle) {
             ctx.rotate(opts.angle);
@@ -133,13 +149,15 @@ function _drawPolygon(SIDES, SCALE) {
             return r * Math.sin(theta - Math.PI / 2);
         }
 
-        ctx.beginPath();
         ctx.moveTo(_x(a * 0), _y(a * 0));
         for (var i = 1; i <= SIDES; i++) {
             ctx.lineTo(_x(a * i), _y(a * i));
         }
-        ctx.closePath();
-        ctx.restore();
+
+        if (!opts.continue) {
+            ctx.closePath();
+            ctx.restore();
+        }
 
         ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, 0, 0 + d / 2, d);
         ctx.fill();
