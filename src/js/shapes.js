@@ -41,24 +41,6 @@ export function drawRing(ctx, x, y, r, opts) {
     return ctx;
 }
 
-/*export function drawTriangle(ctx, x, y, size, opts) {
-    var h = 2 * size * Math.cos(Math.PI / 6);
-
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.beginPath();
-    ctx.moveTo(0, -h / 2);
-    ctx.lineTo(size, h / 2);
-    ctx.lineTo(-size, h / 2);
-    ctx.closePath();
-    ctx.restore();
-
-    ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, 0, 0 + size / 2, size, opts.skew);
-    ctx.fill();
-
-    return ctx;
-}*/
-
 export function drawSquare(ctx, x, y, d, opts) {
     if (!opts.continue) {
         ctx.save();
@@ -168,6 +150,12 @@ function _drawPolygon(SIDES, SCALE) {
     };
 }
 
-export var drawTriangle = _drawPolygon(3, 1.2);
+// Strict drawing from centerpoint and radial corner placement
+export var drawExactTriangle = _drawPolygon(3, 1.2);
+// Adjusting triangles downward a little fits them more naturally
+// near other shapes.
+export var drawTriangle = (ctx, x, y, d, opts) => {
+    drawExactTriangle(ctx, x, y + d * 0.2, d, opts);
+}
 export var drawPentagon = _drawPolygon(5, 1.1);
 export var drawHexagon = _drawPolygon(6, 1.05);
