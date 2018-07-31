@@ -72,6 +72,7 @@ const DEFAULTS = {
     nest: false,
     stack: false,
     fancy: null, // forces auto fanciness
+    multiMask: false, // draw multiple masks
     clear: true
 }
 
@@ -126,6 +127,9 @@ function shapestack(options) {
         hexagon: drawHexagon
     };
     var shapes = Object.keys(renderMap);
+    let getRandomRenderer = () => {
+        return renderMap[randItem(shapes)];
+    }
 
     var grays = ['#111111', '#666666', '#808080', '#999999', '#b4b4b4', '#cccccc', '#e7e7e7', '#f9f9f9'];
 
@@ -345,20 +349,21 @@ function shapestack(options) {
         addShadow(ctx, w, h);
     }
 
-    //renderer(ctx, maskX, maskY, maskSize, { fill: '#ffffff' });
-    let getShape = () => {
-        return renderMap[randItem(['circle','square','triangle','pentagon','hexagon'])];
+
+    if (opts.multiMask) {
+        ctx.beginPath();
+        getRandomRenderer()(ctx, w/4, h/4, scale * randomInRange(0.2,0.25), { fill: '#ffffff', continue:true });
+        resetTransform(ctx);
+        getRandomRenderer()(ctx, w/4 * 3, h/4, scale * randomInRange(0.2,0.25), { fill: '#ffffff', continue:true });
+        resetTransform(ctx);
+        getRandomRenderer()(ctx, w/4, h/4 * 3, scale * randomInRange(0.2,0.25), { fill: '#ffffff', continue:true });
+        resetTransform(ctx);
+        getRandomRenderer()(ctx, w/4 * 3, h/4 * 3, scale * randomInRange(0.2,0.25), { fill: '#ffffff', continue:true });
+        resetTransform(ctx);
+        ctx.closePath();
+    } else {
+        renderer(ctx, maskX, maskY, maskSize, { fill: '#ffffff' });
     }
-    ctx.beginPath();
-    getShape()(ctx, w/4, h/4, scale * randomInRange(0.2,0.25), { fill: '#ffffff', continue:true });
-    resetTransform(ctx);
-    getShape()(ctx, w/4 * 3, h/4, scale * randomInRange(0.2,0.25), { fill: '#ffffff', continue:true });
-    resetTransform(ctx);
-    getShape()(ctx, w/4, h/4 * 3, scale * randomInRange(0.2,0.25), { fill: '#ffffff', continue:true });
-    resetTransform(ctx);
-    getShape()(ctx, w/4 * 3, h/4 * 3, scale * randomInRange(0.2,0.25), { fill: '#ffffff', continue:true });
-    resetTransform(ctx);
-    ctx.closePath();
 
     // clear shadow
     removeShadow(ctx);
