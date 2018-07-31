@@ -1,109 +1,76 @@
-export function drawCircle(ctx, x, y, r, opts) {
-    if (!opts.continue) {
-        ctx.save();
-        ctx.beginPath();
+/*
+ * Scaffolding for a drawing function.
+ * Implements basic setup for placement, rotation, stroke, fill,
+ * and leaving the path open.
+ * All the drawing takes place in @renderFunc, which must have the standard
+ * signature used in the returned function.
+ * The renderFunc should not begin or close paths, or translate the canvas.
+ */
+function _makeRenderer(renderFunc) {
+    return function (ctx, x, y, size, opts) {
+        if (!opts.continue) {
+            ctx.save();
+            ctx.beginPath();
+        }
+
+        ctx.translate(x, y);
+        if (opts.angle) {
+            ctx.rotate(opts.angle);
+        }
+
+        // This is where all the drawing happens!
+        //
+        renderFunc(ctx, x, y, size, opts);
+        //
+        // Done defining path
+
+        if (!opts.continue) {
+            ctx.closePath();
+            ctx.restore();
+        }
+
+        // Paint pixels
+        ctx.fillStyle = opts.fill;
+        ctx.strokeStyle = opts.stroke;
+        opts.fill && ctx.fill();
+        opts.stroke && ctx.stroke();
+
+        return ctx;
     }
-    ctx.translate(x, y);
-    ctx.moveTo(r, 0);
-    ctx.arc(0, 0, r, 0, 2 * Math.PI, false);
-
-    if (!opts.continue) {
-        ctx.closePath();
-        ctx.restore();
-    }
-
-    ctx.fillStyle = opts.fill;
-    ctx.strokeStyle = opts.stroke;
-    ctx.fill();
-    opts.stroke && ctx.stroke();
-
-    return ctx;
 }
 
-export function drawRing(ctx, x, y, r, opts) {
+// Draw a closed circle
+export const drawCircle = _makeRenderer(function(ctx, x, y, r, opts) {
+    ctx.moveTo(r, 0);
+    ctx.arc(0, 0, r, 0, 2 * Math.PI, false);
+});
+
+// Draw a ring with 50% thickness
+export const drawRing = _makeRenderer(function(ctx, x, y, r, opts) {
     var inner = r * 0.5;
 
-    if (!opts.continue) {
-        ctx.save();
-        ctx.beginPath();
-    }
-
-    ctx.translate(x, y);
     ctx.moveTo(r, 0);
     ctx.arc(0, 0, r, 0, 2 * Math.PI, false);
     // cutout
     ctx.moveTo(inner, 0);
     ctx.arc(0, 0, inner, 0, 2 * Math.PI, true);
+});
 
-    if (!opts.continue) {
-        ctx.closePath();
-        ctx.restore();
-    }
-
-    ctx.fillStyle = opts.fill;
-    ctx.strokeStyle = opts.stroke;
-    ctx.fill();
-    opts.stroke && ctx.stroke();
-    return ctx;
-}
-
-export function drawSquare(ctx, x, y, d, opts) {
-    if (!opts.continue) {
-        ctx.save();
-        ctx.beginPath();
-    }
-
-    ctx.translate(x, y);
+// Draw a closed square
+export const drawSquare = _makeRenderer(function(ctx, x, y, d, opts) {
     ctx.rect(-d, -d, d * 2, d * 2);
+});
 
-    if (!opts.continue) {
-        ctx.closePath();
-        ctx.restore();
-    }
-
-    ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, 0, 0 + d / 2, d);
-    ctx.fill();
-
-    return ctx;
-}
-
-export function drawRect(ctx, x, y, d, opts) {
+// Draw a closed rectangle with golden ratio aspect ratio
+export const drawRect = _makeRenderer(function(ctx, x, y, d, opts) {
     var gl = 0.6180339;
 
-    if (!opts.continue) {
-        ctx.save();
-        ctx.beginPath();
-    }
-
-    ctx.translate(x, y);
-    if (opts.angle) {
-        ctx.rotate(opts.angle);
-    }
-
     ctx.rect(-d, -d * gl, d * 2, d * 2 * gl);
+});
 
-    if (!opts.continue) {
-        ctx.closePath();
-        ctx.restore();
-    }
-
-    ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, 0, 0 + d / 2, d);
-    ctx.fill();
-    return ctx;
-}
-
-export function drawBox(ctx, x, y, d, opts) {
+// Draw a square box, 60% thickness
+export const drawBox = _makeRenderer(function(ctx, x, y, d, opts) {
     var r = d * 0.4;
-
-    if (!opts.continue) {
-        ctx.save();
-        ctx.beginPath();
-    }
-
-    ctx.translate(x, y);
-    if (opts.angle) {
-        ctx.rotate(opts.angle);
-    }
 
     ctx.moveTo(-d, -d);
     ctx.lineTo(+d, -d);
@@ -114,17 +81,7 @@ export function drawBox(ctx, x, y, d, opts) {
     ctx.lineTo(-r, +r);
     ctx.lineTo(+r, +r);
     ctx.lineTo(+r, -r);
-
-    if (!opts.continue) {
-        ctx.closePath();
-        ctx.restore();
-    }
-
-    ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, 0, 0 + d / 2, d);
-    ctx.fill();
-
-    return ctx;
-}
+});
 
 function _drawPolygon(SIDES, SCALE) {
     SCALE = SCALE || 1;
