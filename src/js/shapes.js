@@ -23,16 +23,22 @@ export function drawCircle(ctx, x, y, r, opts) {
 export function drawRing(ctx, x, y, r, opts) {
     var inner = r * 0.5;
 
-    ctx.save();
+    if (!opts.continue) {
+        ctx.save();
+        ctx.beginPath();
+    }
+
     ctx.translate(x, y);
-    ctx.beginPath();
     ctx.moveTo(r, 0);
     ctx.arc(0, 0, r, 0, 2 * Math.PI, false);
     // cutout
     ctx.moveTo(inner, 0);
     ctx.arc(0, 0, inner, 0, 2 * Math.PI, true);
-    ctx.closePath();
-    ctx.restore();
+
+    if (!opts.continue) {
+        ctx.closePath();
+        ctx.restore();
+    }
 
     ctx.fillStyle = opts.fill;
     ctx.strokeStyle = opts.stroke;
@@ -63,16 +69,23 @@ export function drawSquare(ctx, x, y, d, opts) {
 
 export function drawRect(ctx, x, y, d, opts) {
     var gl = 0.6180339;
-    ctx.save();
+
+    if (!opts.continue) {
+        ctx.save();
+        ctx.beginPath();
+    }
+
     ctx.translate(x, y);
     if (opts.angle) {
         ctx.rotate(opts.angle);
     }
 
-    ctx.beginPath();
     ctx.rect(-d, -d * gl, d * 2, d * 2 * gl);
-    ctx.closePath();
-    ctx.restore();
+
+    if (!opts.continue) {
+        ctx.closePath();
+        ctx.restore();
+    }
 
     ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, 0, 0 + d / 2, d);
     ctx.fill();
@@ -82,12 +95,16 @@ export function drawRect(ctx, x, y, d, opts) {
 export function drawBox(ctx, x, y, d, opts) {
     var r = d * 0.4;
 
-    ctx.save();
+    if (!opts.continue) {
+        ctx.save();
+        ctx.beginPath();
+    }
+
     ctx.translate(x, y);
     if (opts.angle) {
         ctx.rotate(opts.angle);
     }
-    ctx.beginPath();
+
     ctx.moveTo(-d, -d);
     ctx.lineTo(+d, -d);
     ctx.lineTo(+d, +d);
@@ -98,8 +115,10 @@ export function drawBox(ctx, x, y, d, opts) {
     ctx.lineTo(+r, +r);
     ctx.lineTo(+r, -r);
 
-    ctx.closePath();
-    ctx.restore();
+    if (!opts.continue) {
+        ctx.closePath();
+        ctx.restore();
+    }
 
     ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, 0, 0 + d / 2, d);
     ctx.fill();
