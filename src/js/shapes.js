@@ -83,21 +83,11 @@ export const drawBox = _makeRenderer(function(ctx, x, y, d, opts) {
     ctx.lineTo(+r, -r);
 });
 
+// Generate drawing functions for polygons
 function _drawPolygon(SIDES, SCALE) {
     SCALE = SCALE || 1;
 
-    return function(ctx, x, y, d, opts) {
-
-        if (!opts.continue) {
-            ctx.save();
-            ctx.beginPath();
-        }
-
-        ctx.translate(x, y);
-        if (opts.angle) {
-            ctx.rotate(opts.angle);
-        }
-
+    return _makeRenderer(function(ctx, x, y, d, opts) {
         var r = d * SCALE;
         var a = Math.PI * 2 / SIDES;
         function _x(theta) {
@@ -111,19 +101,7 @@ function _drawPolygon(SIDES, SCALE) {
         for (var i = 1; i <= SIDES; i++) {
             ctx.lineTo(_x(a * i), _y(a * i));
         }
-
-        if (!opts.continue) {
-            ctx.closePath();
-            ctx.restore();
-        }
-
-        ctx.fillStyle = opts.fill || getFill(ctx, opts.palette, 0, 0 + d / 2, d);
-        ctx.fill();
-        ctx.strokeStyle = opts.stroke;
-        opts.stroke && ctx.stroke();
-
-        return ctx;
-    };
+    });
 }
 
 // Strict drawing from centerpoint and radial corner placement
