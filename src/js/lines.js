@@ -77,19 +77,40 @@ function lines(options) {
     let pts = [];
     // create array of zeroes
     for (let i = 0; i<=stops; i++) {
-        pts.push(0);
+        pts.push([i * stopInterval, 0]);
     }
+    let pt;
 
     ctx.lineWidth = lineInterval * 0.4;
     ctx.strokeStyle = randItem(opts.palette);
+
+    let yDrift = (pt, line, stop) => {
+        let scalar = 4;
+        return [
+            pt[0],
+            pt[1] + randomInRange(-lineInterval/scalar, lineInterval/scalar)
+        ];
+    };
+
+    let drift = (pt, line, stop) => {
+        let xScale = 0.2;
+        let yScale = 0.2;
+        return [
+            stop * stopInterval + randomInRange(-stopInterval * xScale, stopInterval * xScale),
+            pt[1] + randomInRange(-lineInterval * yScale, lineInterval * yScale)
+        ]
+    }
+
+    let ptTransform = drift;
 
     for (let l = 0 ; l <= lines ; l++) {
         ctx.translate(0, lineInterval)
         ctx.moveTo(0, 0);
         ctx.beginPath();
-        for (let i=0; i<=stops; i++) {
-            pts[i] += randomInRange(-lineInterval/4, lineInterval/4);
-            ctx.lineTo(i * stopInterval, pts[i])
+        for (let s=0; s<=stops; s++) {
+            pts[s] = ptTransform(pts[s], l, s);
+
+            ctx.lineTo(pts[s][0], pts[s][1]);
         }
         ctx.stroke();
     }
