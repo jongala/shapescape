@@ -112,6 +112,10 @@ function lines(options) {
     let widthSeed = Math.random();
     let widthFunc;
     let widthStyle = ''; // ['CONSTANT','INCREASING','DECREASING']
+    let minWidth;
+    let maxWidth;
+    let widthStep;
+
     if (widthSeed >= 0.66) {
         widthStyle = 'CONSTANT';
     } else if (widthSeed >= 0.33) {
@@ -126,13 +130,16 @@ function lines(options) {
             widthFunc = (l) => lineInterval * widthScale;
             break;
         case 'INCREASING':
-            let maxWidth = lineInterval * randomInRange(0.6, 1.1);
-            let minWidth = 1 + lineInterval * randomInRange(0, 0.2);
-            let widthStep = (maxWidth - minWidth)/(lines - 1);
+            maxWidth = lineInterval * randomInRange(0.6, 1.1);
+            minWidth = 1 + lineInterval * randomInRange(0, 0.15);
+            widthStep = (maxWidth - minWidth)/(lines - 1);
             widthFunc = (l) => minWidth + l * widthStep;
             break;
         case 'DECREASING':
-            widthFunc = (l) => 1 + lineInterval/1.4 - (l * (lineInterval/lines));
+            maxWidth = lineInterval * randomInRange(0.6, 1.1);
+            minWidth = 1 + lineInterval * randomInRange(0, 0.15);
+            widthStep = (maxWidth - minWidth)/(lines - 1);
+            widthFunc = (l) => maxWidth - l * widthStep;
             break;
     }
 
