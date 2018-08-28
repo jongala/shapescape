@@ -111,17 +111,31 @@ function lines(options) {
     // pick a line transform function
     let widthSeed = Math.random();
     let widthFunc;
+    let widthStyle = ''; // ['CONSTANT','INCREASING','DECREASING']
     if (widthSeed >= 0.66) {
-        // static width
-        let widthScale = randomInRange(0.4, 0.5);
-        widthFunc = (l) => lineInterval * widthScale;
+        widthStyle = 'CONSTANT';
     } else if (widthSeed >= 0.33) {
-        // increasing width
-        widthFunc = (l) => 1 + l * (lineInterval/lines);
+        widthStyle = 'INCREASING';
     } else {
-        // decreasing width
-        widthFunc = (l) => 1 + lineInterval/1.4 - (l * (lineInterval/lines));
+        widthStyle = 'DECREASING';
     }
+
+    switch (widthStyle) {
+        case 'CONSTANT':
+            let widthScale = randomInRange(0.4, 0.5);
+            widthFunc = (l) => lineInterval * widthScale;
+            break;
+        case 'INCREASING':
+            let maxWidth = lineInterval * randomInRange(0.6, 1.1);
+            let minWidth = 1 + lineInterval * randomInRange(0, 0.2);
+            let widthStep = (maxWidth - minWidth)/(lines - 1);
+            widthFunc = (l) => minWidth + l * widthStep;
+            break;
+        case 'DECREASING':
+            widthFunc = (l) => 1 + lineInterval/1.4 - (l * (lineInterval/lines));
+            break;
+    }
+
 
     for (let l = 0 ; l <= lines ; l++) {
         ctx.lineWidth = widthFunc(l);
