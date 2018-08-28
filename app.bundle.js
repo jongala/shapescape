@@ -1779,7 +1779,29 @@ var DEFAULTS = {
     // assign pt transform func
     var ptTransform = drift;
 
+    // pick a line transform function
+    var widthSeed = Math.random();
+    var widthFunc = void 0;
+    if (widthSeed >= 0.66) {
+        // static width
+        var widthScale = (0, _utils.randomInRange)(0.4, 0.5);
+        widthFunc = function widthFunc(l) {
+            return lineInterval * widthScale;
+        };
+    } else if (widthSeed >= 0.33) {
+        // increasing width
+        widthFunc = function widthFunc(l) {
+            return 1 + l * (lineInterval / lines);
+        };
+    } else {
+        // decreasing width
+        widthFunc = function widthFunc(l) {
+            return 1 + lineInterval / 1.4 - l * (lineInterval / lines);
+        };
+    }
+
     for (var l = 0; l <= lines; l++) {
+        ctx.lineWidth = widthFunc(l);
         ctx.translate(0, lineInterval);
         ctx.moveTo(0, 0);
         ctx.beginPath();
