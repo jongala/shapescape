@@ -4,7 +4,8 @@ import { randItem, randomInRange, setAttrs, resetTransform, rotateCanvas } from 
 
 const DEFAULTS = {
     container: 'body',
-    palette: ['#333333'],
+    palette: ['#222222'],
+    bg: '#fff',
     drawShadows: false,
     addNoise: 0.04,
     noiseInput: null,
@@ -51,8 +52,12 @@ function lines(options) {
         ctx.clearRect(0, 0, w, h);
     }
 
-    var grays = ['#111111', '#666666', '#808080', '#999999', '#b4b4b4', '#cccccc', '#e7e7e7', '#f9f9f9'];
-
+    if (opts.bg === 'auto') {
+        ctx.fillStyle = randItem(opts.palette);
+    } else {
+        ctx.fillStyle = opts.bg;
+    }
+    ctx.fillRect(0, 0, w, h);
 
     let stops = Math.round(randomInRange(10, 30));
     let lines = Math.round(randomInRange(20, 40));

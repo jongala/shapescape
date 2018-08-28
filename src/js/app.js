@@ -234,6 +234,9 @@ exampleNode.addEventListener('click', function(e) {
     renderCanvasToImg(exampleNode.querySelector('canvas'), document.querySelector('#saved'));
 });
 
+// expose for play
+window.visualOpts = visualOpts;
+
 // draw one to start, take renderer from hash if it is valid
 
 var h = window.location.hash.slice(1);
