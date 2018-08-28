@@ -84,23 +84,28 @@ function lines(options) {
     ctx.lineWidth = lineInterval * randomInRange(0.4, 0.5);
     ctx.strokeStyle = randItem(opts.palette);
 
-    let yDrift = (pt, line, stop) => {
-        let scalar = 4;
-        return [
-            pt[0],
-            pt[1] + randomInRange(-lineInterval/scalar, lineInterval/scalar)
-        ];
-    };
+    // component pt transform func
+    let yDrift = (y, line, stop) => {
+        let scalar = 0.2;
+        return y + randomInRange(-lineInterval * scalar, lineInterval * scalar);
+    }
+    // component pt transform func
+    let xDrift = (x, line, stop) => {
+        let scalar = stopInterval / 7500;
+        return x *= randomInRange(1 - scalar, 1 + scalar);
+    }
 
+
+    // sample pt transform func
     let drift = (pt, line, stop) => {
-        let xScale = stopInterval / 7500;
-        let yScale = 0.15;
         return [
-            pt[0] *= randomInRange(1 - xScale, 1 + xScale),
-            pt[1] + randomInRange(-lineInterval * yScale, lineInterval * yScale)
+            xDrift(pt[0], line, stop),
+            yDrift(pt[1], line, stop)
         ]
     }
 
+
+    // assign pt transform func
     let ptTransform = drift;
 
     for (let l = 0 ; l <= lines ; l++) {
@@ -114,18 +119,6 @@ function lines(options) {
         }
         ctx.stroke();
     }
-
-
-
-    // BEGIN RENDERING
-
-    // ...
-
-
-    // Draw main shape + mask
-    // --------------------------------------
-
-    // ...
 
 
     // Add effect elements
