@@ -59,7 +59,7 @@ function lines(options) {
     }
     ctx.fillRect(0, 0, w, h);
 
-    let stops = Math.ceil(randomInRange(3, 30));
+    let stops = Math.ceil(randomInRange(2, 30));
     let lines = Math.floor(randomInRange(10, 40));
 
     let stopInterval = w / (stops - 1);
@@ -85,15 +85,17 @@ function lines(options) {
     ctx.strokeStyle = randItem(opts.palette);
 
     // component pt transform func
-    let yDrift = (y, line, stop) => {
-        let scalar = 0.2;
-        return y + randomInRange(-lineInterval * scalar, lineInterval * scalar);
-    }
-    // component pt transform func
     let xDrift = (x, line, stop) => {
-        let scalar = stopInterval / 7500;
+        let scalar = 2 / (lines * stops); // a small number
         return x *= randomInRange(1 - scalar, 1 + scalar);
     }
+
+    // component pt transform func
+    let yDrift = (y, line, stop) => {
+        let scalar = 0.1 + (20 / (lines * stops))
+        return y + randomInRange(-scalar * lineInterval, scalar * lineInterval);
+    }
+
 
 
     // sample pt transform func
