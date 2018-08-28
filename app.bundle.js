@@ -344,22 +344,45 @@ var _shapescape = __webpack_require__(8);
 
 var _shapescape2 = _interopRequireDefault(_shapescape);
 
+var _lines = __webpack_require__(9);
+
+var _lines2 = _interopRequireDefault(_lines);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Renderers
-var renderers = {
-    waterline: _waterline2.default,
-    shapestack: _shapestack2.default,
-    shapescape: _shapescape2.default
+var RENDERERS = {
+    Waterline: _waterline2.default,
+    Shapestack: _shapestack2.default,
+    Shapescape: _shapescape2.default,
+    Lines: _lines2.default
 };
+var initRenderer = 'Waterline';
 
 var rendererName;
 var Renderer;
 var activeButton;
 
+function showRenderPicker(renderers, el) {
+    var button = void 0;
+    var makeHandler = function makeHandler(r, button) {
+        return function (e) {
+            setRenderer(r, button);
+        };
+    };
+    for (var r in renderers) {
+        button = document.createElement('button');
+        button.innerHTML = r;
+        button['data-renderer'] = r;
+        button.className = 'renderPicker';
+        button.onclick = makeHandler(r, button);
+        el.appendChild(button);
+    }
+}
+
 function setRenderer(rname, ctrl) {
     rendererName = rname;
-    Renderer = renderers[rendererName];
+    Renderer = RENDERERS[rendererName];
     window.location.hash = rendererName;
     if (ctrl) {
         ctrl.blur();
@@ -549,12 +572,16 @@ exampleNode.addEventListener('click', function (e) {
     renderCanvasToImg(exampleNode.querySelector('canvas'), document.querySelector('#saved'));
 });
 
+// expose for play
+window.visualOpts = visualOpts;
+
 // draw one to start, take renderer from hash if it is valid
-var initRenderer = 'waterline';
+
 var h = window.location.hash.slice(1);
-if (h && renderers.hasOwnProperty(h)) {
+if (h && RENDERERS.hasOwnProperty(h)) {
     initRenderer = h;
 }
+showRenderPicker(RENDERERS, document.getElementById('renderPickers'));
 setRenderer(initRenderer, document.querySelector("[data-renderer='" + initRenderer + "']"));
 
 /***/ }),
@@ -1633,6 +1660,159 @@ function shapescape(options) {
 // export
 //window.shapescape = shapescape;
 exports.default = shapescape;
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _noiseutils = __webpack_require__(0);
+
+var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _utils = __webpack_require__(1);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var DEFAULTS = {
+    container: 'body',
+    palette: ['#222222'],
+    bg: '#fff',
+    drawShadows: false,
+    addNoise: 0.04,
+    noiseInput: null,
+    dust: false,
+    skew: 1, // normalized skew
+    clear: true
+
+    // draw it!
+};function lines(options) {
+    var opts = Object.assign(DEFAULTS, options);
+
+    var container = opts.container;
+
+    var w = container.offsetWidth;
+    var h = container.offsetHeight;
+    var scale = Math.min(w, h); // reference size, regardless of aspect ratio
+
+    // Find or create canvas child
+    var el = container.querySelector('canvas');
+    var newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        (0, _utils.setAttrs)(el, {
+            width: container.offsetWidth,
+            height: container.offsetHeight
+        });
+    }
+
+    var ctx; // canvas ctx or svg tag
+
+    ctx = el.getContext('2d');
+    ctx.save();
+
+    // optional clear
+    if (opts.clear) {
+        el.width = container.offsetWidth;
+        el.height = container.offsetHeight;
+        ctx.clearRect(0, 0, w, h);
+    }
+
+    if (opts.bg === 'auto') {
+        ctx.fillStyle = (0, _utils.randItem)(opts.palette);
+    } else {
+        ctx.fillStyle = opts.bg;
+    }
+    ctx.fillRect(0, 0, w, h);
+
+    var stops = Math.ceil((0, _utils.randomInRange)(2, 30));
+    var lines = Math.floor((0, _utils.randomInRange)(10, 40));
+
+    var stopInterval = w / (stops - 1);
+    var lineInterval = h / lines;
+
+    ctx.translate(-stopInterval / 2, -lineInterval / 2);
+
+    console.log(lines + ' (' + lineInterval + 'px) X ' + stops + ' (' + stopInterval + 'px)');
+
+    // Create point transform (x, y) to create progressive transform from
+    // line to line
+    // Create color transform (x, y) to blend segments
+
+    var pts = [];
+    // create array of zeroes
+    for (var i = 0; i <= stops; i++) {
+        pts.push([i * stopInterval, 0]);
+    }
+    var pt = void 0;
+
+    ctx.lineWidth = lineInterval * (0, _utils.randomInRange)(0.4, 0.5);
+    ctx.strokeStyle = (0, _utils.randItem)(opts.palette);
+
+    // component pt transform func
+    var _xScale = (0, _utils.randomInRange)(1.8, 2.2) / (lines * stops); // a small number
+    var xDrift = function xDrift(x, line, stop) {
+        return x *= (0, _utils.randomInRange)(1 - _xScale, 1 + _xScale);
+    };
+
+    // component pt transform func
+    var _yScale = (0, _utils.randomInRange)(0.08, 0.12) + (0, _utils.randomInRange)(17, 23) / (lines * stops);
+    var yDrift = function yDrift(y, line, stop) {
+        return y + (0, _utils.randomInRange)(-_yScale * lineInterval, _yScale * lineInterval);
+    };
+
+    // sample pt transform func
+    var drift = function drift(pt, line, stop) {
+        return [xDrift(pt[0], line, stop), yDrift(pt[1], line, stop)];
+    };
+
+    // assign pt transform func
+    var ptTransform = drift;
+
+    for (var l = 0; l <= lines; l++) {
+        ctx.translate(0, lineInterval);
+        ctx.moveTo(0, 0);
+        ctx.beginPath();
+        for (var s = 0; s <= stops; s++) {
+            pts[s] = ptTransform(pts[s], l, s);
+
+            ctx.lineTo(pts[s][0], pts[s][1]);
+        }
+        ctx.stroke();
+    }
+
+    // Add effect elements
+    // ...
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, w / 3);
+        }
+    }
+
+    // END RENDERING
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
+}
+
+// export
+exports.default = lines;
 
 /***/ })
 /******/ ]);
