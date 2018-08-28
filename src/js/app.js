@@ -5,21 +5,41 @@ import colorbrewer from './colorbrewer';
 import waterline from './waterline';
 import shapestack from './shapestack';
 import shapescape from './shapescape';
+import lines from './lines';
 
 // Renderers
-var renderers = {
-    waterline: waterline,
-    shapestack: shapestack,
-    shapescape: shapescape
+const RENDERERS = {
+    Waterline: waterline,
+    Shapestack: shapestack,
+    Shapescape: shapescape,
+    Lines: lines
 };
+let initRenderer = 'Waterline';
 
 var rendererName;
 var Renderer;
 var activeButton;
 
+function showRenderPicker (renderers, el) {
+    let button;
+    let makeHandler = (r, button) => {
+        return (e) => {
+            setRenderer(r, button)
+        }
+    };
+    for (var r in renderers) {
+        button = document.createElement('button');
+        button.innerHTML = r;
+        button['data-renderer'] = r;
+        button.className = 'renderPicker';
+        button.onclick = makeHandler(r, button);
+        el.appendChild(button);
+    }
+}
+
 function setRenderer(rname, ctrl) {
     rendererName = rname;
-    Renderer = renderers[rendererName];
+    Renderer = RENDERERS[rendererName];
     window.location.hash = rendererName;
     if (ctrl) {
         ctrl.blur();
@@ -215,9 +235,10 @@ exampleNode.addEventListener('click', function(e) {
 });
 
 // draw one to start, take renderer from hash if it is valid
-var initRenderer = 'waterline';
+
 var h = window.location.hash.slice(1);
-if (h && renderers.hasOwnProperty(h)) {
+if (h && RENDERERS.hasOwnProperty(h)) {
     initRenderer = h;
 }
+showRenderPicker(RENDERERS, document.getElementById('renderPickers'));
 setRenderer(initRenderer, document.querySelector("[data-renderer='" + initRenderer + "']"));

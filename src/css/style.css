@@ -13,6 +13,7 @@ h1 {
     color: #ccc;
 }
 h1 button {
+    position: relative;
     border: none;
     padding: 0;
     margin: 0;
@@ -22,9 +23,26 @@ h1 button {
     text-decoration: none;
     color: #808080;
     background: none;
+    margin-right: 1.5em;
 }
 h1 button:hover {
     color: #333;
+}
+h1 button:after {
+    content: '|';
+    position: absolute;
+    top: 0;
+    right: -0.8em;
+    color: rgba(0, 0, 0, 0.2);
+    user-select: none;
+}
+h1 button:focus {
+    outline: none;
+    box-shadow: none;
+    border: none;
+}
+h1 button:last-child:after {
+    content: none;
 }
 button.activeRenderer {
     color: #000;
