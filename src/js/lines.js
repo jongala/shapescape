@@ -1,10 +1,10 @@
 import noiseUtils from './noiseutils';
 import { randItem, randomInRange, setAttrs, resetTransform, rotateCanvas } from './utils';
-
+import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
 const DEFAULTS = {
     container: 'body',
-    palette: ['#222222'],
+    palette: ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'],
     bg: '#fff',
     drawShadows: false,
     addNoise: 0.04,
@@ -160,6 +160,32 @@ function lines(options) {
 
     // Add effect elements
     // ...
+
+    // Overlay a shape
+    resetTransform(ctx);
+    let renderMap = {
+        circle: drawCircle,
+        //ring: drawRing,
+        triangle: drawTriangle,
+        square: drawSquare,
+        //box: drawBox,
+        rect: drawRect,
+        pentagon: drawPentagon,
+        hexagon: drawHexagon
+    };
+    let shapes = Object.keys(renderMap);
+    let getRandomRenderer = () => {
+        return renderMap[randItem(shapes)];
+    }
+    let renderer = getRandomRenderer();
+    ctx.globalCompositeOperation = 'color';
+    renderer(ctx,
+        w/2,
+        h/2,
+        Math.min(w, h) * randomInRange(0.3, 0.45),
+        {fill: randItem(opts.palette)}
+    );
+    ctx.globalCompositeOperation = 'normal';
 
     // add noise
     if (opts.addNoise) {

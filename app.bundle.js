@@ -1678,11 +1678,13 @@ var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
 var _utils = __webpack_require__(1);
 
+var _shapes = __webpack_require__(2);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var DEFAULTS = {
     container: 'body',
-    palette: ['#222222'],
+    palette: ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'],
     bg: '#fff',
     drawShadows: false,
     addNoise: 0.04,
@@ -1782,22 +1784,42 @@ var DEFAULTS = {
     // pick a line transform function
     var widthSeed = Math.random();
     var widthFunc = void 0;
+    var widthStyle = ''; // ['CONSTANT','INCREASING','DECREASING']
+    var minWidth = void 0;
+    var maxWidth = void 0;
+    var widthStep = void 0;
+
     if (widthSeed >= 0.66) {
-        // static width
-        var widthScale = (0, _utils.randomInRange)(0.4, 0.5);
-        widthFunc = function widthFunc(l) {
-            return lineInterval * widthScale;
-        };
+        widthStyle = 'CONSTANT';
     } else if (widthSeed >= 0.33) {
-        // increasing width
-        widthFunc = function widthFunc(l) {
-            return 1 + l * (lineInterval / lines);
-        };
+        widthStyle = 'INCREASING';
     } else {
-        // decreasing width
-        widthFunc = function widthFunc(l) {
-            return 1 + lineInterval / 1.4 - l * (lineInterval / lines);
-        };
+        widthStyle = 'DECREASING';
+    }
+
+    switch (widthStyle) {
+        case 'CONSTANT':
+            var widthScale = (0, _utils.randomInRange)(0.4, 0.5);
+            widthFunc = function widthFunc(l) {
+                return lineInterval * widthScale;
+            };
+            break;
+        case 'INCREASING':
+            maxWidth = lineInterval * (0, _utils.randomInRange)(0.6, 1.1);
+            minWidth = 1 + lineInterval * (0, _utils.randomInRange)(0, 0.15);
+            widthStep = (maxWidth - minWidth) / (lines - 1);
+            widthFunc = function widthFunc(l) {
+                return minWidth + l * widthStep;
+            };
+            break;
+        case 'DECREASING':
+            maxWidth = lineInterval * (0, _utils.randomInRange)(0.6, 1.1);
+            minWidth = 1 + lineInterval * (0, _utils.randomInRange)(0, 0.15);
+            widthStep = (maxWidth - minWidth) / (lines - 1);
+            widthFunc = function widthFunc(l) {
+                return maxWidth - l * widthStep;
+            };
+            break;
     }
 
     for (var l = 0; l <= lines; l++) {
@@ -1815,6 +1837,27 @@ var DEFAULTS = {
 
     // Add effect elements
     // ...
+
+    // Overlay a shape
+    (0, _utils.resetTransform)(ctx);
+    var renderMap = {
+        circle: _shapes.drawCircle,
+        //ring: drawRing,
+        triangle: _shapes.drawTriangle,
+        square: _shapes.drawSquare,
+        //box: drawBox,
+        rect: _shapes.drawRect,
+        pentagon: _shapes.drawPentagon,
+        hexagon: _shapes.drawHexagon
+    };
+    var shapes = Object.keys(renderMap);
+    var getRandomRenderer = function getRandomRenderer() {
+        return renderMap[(0, _utils.randItem)(shapes)];
+    };
+    var renderer = getRandomRenderer();
+    ctx.globalCompositeOperation = 'color';
+    renderer(ctx, w / 2, h / 2, Math.min(w, h) * (0, _utils.randomInRange)(0.3, 0.45), { fill: (0, _utils.randItem)(opts.palette) });
+    ctx.globalCompositeOperation = 'normal';
 
     // add noise
     if (opts.addNoise) {
