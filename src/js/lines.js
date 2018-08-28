@@ -76,7 +76,7 @@ function lines(options) {
 
     let pts = [];
     // create array of zeroes
-    for (let i = 0; i<=stops; i++) {
+    for (let i = 0; i <= stops; i++) {
         pts.push([i * stopInterval, 0]);
     }
     let pt;
@@ -85,18 +85,16 @@ function lines(options) {
     ctx.strokeStyle = randItem(opts.palette);
 
     // component pt transform func
+    let _xScale = randomInRange(1.8, 2.2) / (lines * stops); // a small number
     let xDrift = (x, line, stop) => {
-        let scalar = 2 / (lines * stops); // a small number
-        return x *= randomInRange(1 - scalar, 1 + scalar);
+        return x *= randomInRange(1 - _xScale, 1 + _xScale);
     }
 
     // component pt transform func
+    let _yScale = randomInRange(0.08, 0.12) + (randomInRange(17, 23) / (lines * stops));
     let yDrift = (y, line, stop) => {
-        let scalar = 0.1 + (20 / (lines * stops))
-        return y + randomInRange(-scalar * lineInterval, scalar * lineInterval);
+        return y + randomInRange(-_yScale * lineInterval, _yScale * lineInterval);
     }
-
-
 
     // sample pt transform func
     let drift = (pt, line, stop) => {
@@ -114,7 +112,7 @@ function lines(options) {
         ctx.translate(0, lineInterval)
         ctx.moveTo(0, 0);
         ctx.beginPath();
-        for (let s=0; s<=stops; s++) {
+        for (let s = 0; s <= stops; s++) {
             pts[s] = ptTransform(pts[s], l, s);
 
             ctx.lineTo(pts[s][0], pts[s][1]);
