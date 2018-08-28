@@ -59,13 +59,13 @@ function lines(options) {
     }
     ctx.fillRect(0, 0, w, h);
 
-    let stops = Math.round(randomInRange(10, 30));
-    let lines = Math.round(randomInRange(20, 40));
+    let stops = Math.ceil(randomInRange(3, 30));
+    let lines = Math.floor(randomInRange(10, 40));
 
-    let stopInterval = Math.ceil(w/stops);
-    let lineInterval = Math.floor(h/lines);
+    let stopInterval = w / (stops - 1);
+    let lineInterval = h / lines;
 
-    ctx.translate(0, -lineInterval/2);
+    ctx.translate(-stopInterval/2, -lineInterval/2);
 
     console.log(`${lines} (${lineInterval}px) X ${stops} (${stopInterval}px)`)
 
@@ -88,7 +88,7 @@ function lines(options) {
         ctx.moveTo(0, 0);
         ctx.beginPath();
         for (let i=0; i<=stops; i++) {
-            pts[i] += randomInRange(-lineInterval/3, lineInterval/3);
+            pts[i] += randomInRange(-lineInterval/4, lineInterval/4);
             ctx.lineTo(i * stopInterval, pts[i])
         }
         ctx.stroke();
