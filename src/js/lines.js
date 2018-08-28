@@ -81,7 +81,7 @@ function lines(options) {
     }
     let pt;
 
-    ctx.lineWidth = lineInterval * 0.4;
+    ctx.lineWidth = lineInterval * randomInRange(0.4, 0.5);
     ctx.strokeStyle = randItem(opts.palette);
 
     let yDrift = (pt, line, stop) => {
@@ -93,10 +93,10 @@ function lines(options) {
     };
 
     let drift = (pt, line, stop) => {
-        let xScale = 0.2;
-        let yScale = 0.2;
+        let xScale = stopInterval / 7500;
+        let yScale = 0.15;
         return [
-            stop * stopInterval + randomInRange(-stopInterval * xScale, stopInterval * xScale),
+            pt[0] *= randomInRange(1 - xScale, 1 + xScale),
             pt[1] + randomInRange(-lineInterval * yScale, lineInterval * yScale)
         ]
     }
