@@ -65,21 +65,28 @@ function lines(options) {
     console.log(`${lines} (${lineInterval}px) X ${stops} (${stopInterval}px)`)
 
 
+    // Create point transform (x, y) to create progressive transform from
+    // line to line
+    // Create color transform (x, y) to blend segments
 
-    let line = lines;
-    while (line) {
-        let y = line * lineInterval;
+    let pts = [];
+    // create array of zeroes
+    for (let i = 0; i<=stops; i++) {
+        pts.push(0);
+    }
 
-        ctx.strokeStyle = randItem(opts.palette);
-        
+    ctx.lineWidth = lineInterval * 0.4;
+    ctx.strokeStyle = randItem(opts.palette);
+
+    for (let l = 0 ; l <= lines ; l++) {
         ctx.translate(0, lineInterval)
         ctx.moveTo(0, 0);
         ctx.beginPath();
         for (let i=0; i<=stops; i++) {
-            ctx.lineTo(i * stopInterval, randomInRange(-lineInterval/2, lineInterval/2))
+            pts[i] += randomInRange(-lineInterval/3, lineInterval/3);
+            ctx.lineTo(i * stopInterval, pts[i])
         }
-        line--;
-        ctx.stroke();    
+        ctx.stroke();
     }
 
 
