@@ -108,7 +108,23 @@ function lines(options) {
     // assign pt transform func
     let ptTransform = drift;
 
+    // pick a line transform function
+    let widthSeed = Math.random();
+    let widthFunc;
+    if (widthSeed >= 0.66) {
+        // static width
+        let widthScale = randomInRange(0.4, 0.5);
+        widthFunc = (l) => lineInterval * widthScale;
+    } else if (widthSeed >= 0.33) {
+        // increasing width
+        widthFunc = (l) => 1 + l * (lineInterval/lines);
+    } else {
+        // decreasing width
+        widthFunc = (l) => 1 + lineInterval/1.4 - (l * (lineInterval/lines));
+    }
+
     for (let l = 0 ; l <= lines ; l++) {
+        ctx.lineWidth = widthFunc(l);
         ctx.translate(0, lineInterval)
         ctx.moveTo(0, 0);
         ctx.beginPath();
