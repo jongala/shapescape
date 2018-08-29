@@ -1,12 +1,12 @@
 import noiseUtils from './noiseutils';
-import { randItem, randomInRange, setAttrs, resetTransform, rotateCanvas } from './utils';
+import { randItem, randomInRange, setAttrs, resetTransform, rotateCanvas, getGradientFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
 const DEFAULTS = {
     container: 'body',
     palette: ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'],
     bg: '#fff',
-    overlay: null, // ['shape', 'area']
+    overlay: null, // ['shape', 'area', 'blend', 'auto']
     drawShadows: false,
     addNoise: 0.04,
     noiseInput: null,
@@ -153,6 +153,10 @@ function lines(options) {
     let ptTransform = drift;
 
 
+    // Color transform
+    // --------------------------------------
+    // ...
+
     // Draw the lines!
     // --------------------------------------
     // Step through the lines, modifying the pts array as you go.
@@ -194,6 +198,10 @@ function lines(options) {
 
     // …setup blending, and switch on overlay option…
     ctx.globalCompositeOperation = 'color';
+    if (opts.overlay === 'auto') {
+        // if auto blend, pick one
+        opts.overlay = randItem(['shape', 'area', 'blend', null]);
+    }
     switch (opts.overlay) {
         case 'shape':
             let renderer = getRandomRenderer();
@@ -207,6 +215,10 @@ function lines(options) {
         case 'area':
             ctx.fillStyle = randItem(opts.palette);
             ctx.fillRect(0, 0, w * randomInRange(0.25, 0.75), h);
+            break;
+        case 'blend':
+            ctx.fillStyle = getGradientFunction(opts.palette)(ctx, w, h);
+            ctx.fillRect(0, 0, w, h);
             break;
     }
     // …clean up blending and finish.
