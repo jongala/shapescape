@@ -6,6 +6,7 @@ const DEFAULTS = {
     container: 'body',
     palette: ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'],
     bg: '#fff',
+    overlay: null, // ['shape', 'area']
     drawShadows: false,
     addNoise: 0.04,
     noiseInput: null,
@@ -161,7 +162,8 @@ function lines(options) {
     // Add effect elements
     // ...
 
-    // Overlay a shape
+    // Overlay a shape or area, according to opts.overlay
+    // Prepare ctx and render tools:
     resetTransform(ctx);
     let renderMap = {
         circle: drawCircle,
@@ -177,14 +179,25 @@ function lines(options) {
     let getRandomRenderer = () => {
         return renderMap[randItem(shapes)];
     }
-    let renderer = getRandomRenderer();
+
+    // …setup blending, and switch on overlay option…
     ctx.globalCompositeOperation = 'color';
-    renderer(ctx,
-        w/2,
-        h/2,
-        Math.min(w, h) * randomInRange(0.3, 0.45),
-        {fill: randItem(opts.palette)}
-    );
+    switch (opts.overlay) {
+        case 'shape':
+            let renderer = getRandomRenderer();
+            renderer(ctx,
+                w/2,
+                h/2,
+                Math.min(w, h) * randomInRange(0.3, 0.45),
+                {fill: randItem(opts.palette)}
+            );
+            break;
+        case 'area':
+            ctx.fillStyle = randItem(opts.palette);
+            ctx.fillRect(0, 0, w * randomInRange(0.25, 0.75), h);
+            break;
+    }
+    // …clean up blending and finish.
     ctx.globalCompositeOperation = 'normal';
 
     // add noise
