@@ -60,7 +60,38 @@ function lines(options) {
     }
     ctx.fillRect(0, 0, w, h);
 
-    let stops = Math.ceil(randomInRange(2, 30));
+
+    // Pick a render style, which determines some of the values for
+    // the primitive params
+    // --------------------------------------
+
+    let minStops;
+    let maxStops;
+    let renderStyle = '';
+
+    if (Math.random() > 0.5) {
+        renderStyle = 'wave';
+    } else {
+        renderStyle = 'jagged';
+    }
+
+    switch (renderStyle) {
+        case 'wave':
+            minStops = 50;
+            maxStops = 200;
+            ctx.lineJoin = 'round';
+            break;
+        case 'jagged':
+            minStops = 2;
+            maxStops = 30;
+            ctx.lineJoin = 'miter';
+            break;
+    }
+
+    // Set up basic params
+    // --------------------------------------
+
+    let stops = Math.ceil(randomInRange(minStops, maxStops));
     let lines = Math.floor(randomInRange(10, 40));
 
     let stopInterval = w / (stops - 1);
@@ -165,8 +196,14 @@ function lines(options) {
         ]
     }
 
+    let styleTransformMap = {
+        'wave': wave,
+        'jagged': drift
+    }
+
+
     // assign pt transform func
-    let ptTransform = drift;
+    let ptTransform = styleTransformMap[renderStyle];
 
 
     // Color transform
