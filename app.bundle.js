@@ -1740,7 +1740,41 @@ var DEFAULTS = {
     }
     ctx.fillRect(0, 0, w, h);
 
-    var stops = Math.ceil((0, _utils.randomInRange)(2, 30));
+    // Pick a render style, which determines some of the values for
+    // the primitive params
+    // --------------------------------------
+
+    var minStops = void 0;
+    var maxStops = void 0;
+    var renderStyle = '';
+
+    if (Math.random() > 0.5) {
+        renderStyle = 'wave';
+    } else {
+        renderStyle = 'jagged';
+    }
+
+    // debug!
+    //renderStyle = 'jagged';
+    //renderStyle = 'wave';
+
+    switch (renderStyle) {
+        case 'wave':
+            minStops = 50;
+            maxStops = 200;
+            ctx.lineJoin = 'round';
+            break;
+        case 'jagged':
+            minStops = 2;
+            maxStops = 30;
+            ctx.lineJoin = 'miter';
+            break;
+    }
+
+    // Set up basic params
+    // --------------------------------------
+
+    var stops = Math.ceil((0, _utils.randomInRange)(minStops, maxStops));
     var lines = Math.floor((0, _utils.randomInRange)(10, 40));
 
     var stopInterval = w / (stops - 1);
@@ -1748,7 +1782,7 @@ var DEFAULTS = {
 
     ctx.translate(-stopInterval / 2, -lineInterval / 2);
 
-    console.log(lines + ' (' + lineInterval + 'px) X ' + stops + ' (' + stopInterval + 'px)');
+    console.log(lines + ' lines @' + lineInterval.toFixed(1) + 'px  X  ' + stops + ' stops @' + stopInterval.toFixed(1) + 'px');
 
     var pts = [];
     // create array of zeroes
@@ -1809,10 +1843,11 @@ var DEFAULTS = {
 
     // component pt transform func
     // left/right drift of the line points. Easy to collide, so keep small.
-    // More drift is possible with fewer stops or lines
-    var _xScale = (0, _utils.randomInRange)(1.8, 2.2) / (lines * stops); // a small number
+    // Drift looks better with more lines and stops to reveal
+    // the resulting patterns, so scale gently with those counts.
+    var _xScale = 1.3 * lines / 1000 + 1 * stops / 1000;
     var xDrift = function xDrift(x, line, stop) {
-        return x *= (0, _utils.randomInRange)(1 - _xScale, 1 + _xScale);
+        return x + stopInterval * (0, _utils.randomInRange)(-_xScale, _xScale);
     };
 
     // component pt transform func
@@ -1820,7 +1855,13 @@ var DEFAULTS = {
     // Baseline value plus some adjustment for line/stop density
     var _yScale = (0, _utils.randomInRange)(0.08, 0.12) + (0, _utils.randomInRange)(17, 23) / (lines * stops);
     var yDrift = function yDrift(y, line, stop) {
-        return y + (0, _utils.randomInRange)(-_yScale * lineInterval, _yScale * lineInterval);
+        return y + lineInterval * (0, _utils.randomInRange)(-_yScale, _yScale);
+    };
+
+    var TWOPI = Math.PI * 2;
+    var yWave = function yWave(y, line, stop) {
+        var factor = 0.2 * lineInterval * Math.sin(stop / stops * TWOPI + line / lines * TWOPI);
+        return y + factor;
     };
 
     // sample pt transform func
@@ -1829,8 +1870,17 @@ var DEFAULTS = {
         return [xDrift(pt[0], line, stop), yDrift(pt[1], line, stop)];
     };
 
-    // assign pt transform func
-    var ptTransform = drift;
+    // sample sin wave transform
+    var wave = function wave(pt, line, stop) {
+        return [pt[0], yWave(pt[1], line, stop)];
+    };
+
+    var styleTransformMap = {
+        'wave': wave,
+        'jagged': drift
+
+        // assign pt transform func
+    };var ptTransform = styleTransformMap[renderStyle];
 
     // Color transform
     // --------------------------------------
