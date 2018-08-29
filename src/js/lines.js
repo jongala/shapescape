@@ -71,10 +71,6 @@ function lines(options) {
     console.log(`${lines} (${lineInterval}px) X ${stops} (${stopInterval}px)`)
 
 
-    // Create point transform (x, y) to create progressive transform from
-    // line to line
-    // Create color transform (x, y) to blend segments
-
     let pts = [];
     // create array of zeroes
     for (let i = 0; i <= stops; i++) {
@@ -85,31 +81,10 @@ function lines(options) {
     ctx.lineWidth = lineInterval * randomInRange(0.4, 0.5);
     ctx.strokeStyle = randItem(opts.palette);
 
-    // component pt transform func
-    let _xScale = randomInRange(1.8, 2.2) / (lines * stops); // a small number
-    let xDrift = (x, line, stop) => {
-        return x *= randomInRange(1 - _xScale, 1 + _xScale);
-    }
 
-    // component pt transform func
-    let _yScale = randomInRange(0.08, 0.12) + (randomInRange(17, 23) / (lines * stops));
-    let yDrift = (y, line, stop) => {
-        return y + randomInRange(-_yScale * lineInterval, _yScale * lineInterval);
-    }
+    // Assign a line transform function
+    // --------------------------------------
 
-    // sample pt transform func
-    let drift = (pt, line, stop) => {
-        return [
-            xDrift(pt[0], line, stop),
-            yDrift(pt[1], line, stop)
-        ]
-    }
-
-
-    // assign pt transform func
-    let ptTransform = drift;
-
-    // pick a line transform function
     let widthSeed = Math.random();
     let widthFunc;
     let widthStyle = ''; // ['CONSTANT','INCREASING','DECREASING']
@@ -144,6 +119,43 @@ function lines(options) {
             break;
     }
 
+
+    // Assign a points transform function -- these functions deviate
+    // from straight lines.
+    // --------------------------------------
+
+    // component pt transform func
+    // left/right drift of the line points. Easy to collide, so keep small.
+    // More drift is possible with fewer stops or lines
+    let _xScale = randomInRange(1.8, 2.2) / (lines * stops); // a small number
+    let xDrift = (x, line, stop) => {
+        return x *= randomInRange(1 - _xScale, 1 + _xScale);
+    }
+
+    // component pt transform func
+    // Vertical drift of the line points
+    // Baseline value plus some adjustment for line/stop density
+    let _yScale = randomInRange(0.08, 0.12) + (randomInRange(17, 23) / (lines * stops));
+    let yDrift = (y, line, stop) => {
+        return y + randomInRange(-_yScale * lineInterval, _yScale * lineInterval);
+    }
+
+    // sample pt transform func
+    // Combines lateral and vertical drift functions.
+    let drift = (pt, line, stop) => {
+        return [
+            xDrift(pt[0], line, stop),
+            yDrift(pt[1], line, stop)
+        ]
+    }
+
+    // assign pt transform func
+    let ptTransform = drift;
+
+
+    // Draw the lines!
+    // --------------------------------------
+    // Step through the lines, modifying the pts array as you go.
 
     for (let l = 0 ; l <= lines ; l++) {
         ctx.lineWidth = widthFunc(l);
