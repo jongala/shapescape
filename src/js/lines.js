@@ -140,12 +140,28 @@ function lines(options) {
         return y + randomInRange(-_yScale * lineInterval, _yScale * lineInterval);
     }
 
+    let TWOPI = Math.PI * 2;
+    let yWave = (y, line, stop) => {
+        //return y *= (1 + 0.5 * Math.sin(stop/stops * TWOPI + line/lines * TWOPI) );
+        let factor = 0.2 * lineInterval * Math.sin(stop/stops * TWOPI + line/lines * TWOPI);
+        if (stop === Math.round(stops/2)) console.log(factor);
+        return y + factor;
+    }
+
     // sample pt transform func
     // Combines lateral and vertical drift functions.
     let drift = (pt, line, stop) => {
         return [
             xDrift(pt[0], line, stop),
             yDrift(pt[1], line, stop)
+        ]
+    }
+
+    // sample sin wave transform
+    let wave = (pt, line, stop) => {
+        return [
+            pt[0],
+            yWave(pt[1], line, stop)
         ]
     }
 
