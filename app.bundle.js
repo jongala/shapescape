@@ -157,6 +157,10 @@ exports.randomInRange = randomInRange;
 exports.setAttrs = setAttrs;
 exports.resetTransform = resetTransform;
 exports.rotateCanvas = rotateCanvas;
+exports.getGradientFunction = getGradientFunction;
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 // random Array member
 function randItem(arr) {
     return arr[Math.floor(arr.length * Math.random())];
@@ -187,6 +191,23 @@ function rotateCanvas(ctx, w, h, angle) {
     ctx.translate(w / 2, h / 2);
     ctx.rotate(angle);
     ctx.translate(-w / 2, -h / 2);
+}
+
+function getGradientFunction(palette) {
+    var p = [].concat(palette);
+    return function (ctx, w, h) {
+        var bias = Math.random() - 0.5;
+        var coords = [];
+        if (bias) {
+            coords = [randomInRange(0, w * 0.25), 0, randomInRange(w * 0.75, w), h];
+        } else {
+            coords = [0, randomInRange(0, h * 0.5), w, randomInRange(h * 0.75, h)];
+        }
+        var grad = ctx.createLinearGradient.apply(ctx, _toConsumableArray(coords));
+        grad.addColorStop(0, randItem(p));
+        grad.addColorStop(1, randItem(p));
+        return grad;
+    };
 }
 
 /***/ }),
@@ -1026,8 +1047,6 @@ var _shapes = __webpack_require__(2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
 // Creates a function that returns a different random entry
 // from @palette each time it is called.
 function getSolidColorFunction(palette) {
@@ -1046,23 +1065,6 @@ function getSolidColorFunction(palette) {
         return p.pop();
     };
 }
-
-var getGradientFunction = function getGradientFunction(palette) {
-    var p = [].concat(palette);
-    return function (ctx, w, h) {
-        var bias = Math.random() - 0.5;
-        var coords = [];
-        if (bias) {
-            coords = [(0, _utils.randomInRange)(0, w * 0.25), 0, (0, _utils.randomInRange)(w * 0.75, w), h];
-        } else {
-            coords = [0, (0, _utils.randomInRange)(0, h * 0.5), w, (0, _utils.randomInRange)(h * 0.75, h)];
-        }
-        var grad = ctx.createLinearGradient.apply(ctx, _toConsumableArray(coords));
-        grad.addColorStop(0, (0, _utils.randItem)(p));
-        grad.addColorStop(1, (0, _utils.randItem)(p));
-        return grad;
-    };
-};
 
 function addShadow(ctx, w, h) {
     ctx.shadowOffsetX = 0;
@@ -1178,7 +1180,7 @@ var DEFAULTS = {
     // Set up color fill style
     // map of color function generators
     var colorFuncs = {
-        'gradient': getGradientFunction,
+        'gradient': _utils.getGradientFunction,
         'solid': getSolidColorFunction
         // if no valid fill style is passed, assign one randomly
     };if (!['gradient', 'solid'].includes(fillStyle)) {
@@ -1686,6 +1688,7 @@ var DEFAULTS = {
     container: 'body',
     palette: ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'],
     bg: '#fff',
+    overlay: null, // ['shape', 'area', 'blend', 'auto']
     drawShadows: false,
     addNoise: 0.04,
     noiseInput: null,
@@ -1747,10 +1750,6 @@ var DEFAULTS = {
 
     console.log(lines + ' (' + lineInterval + 'px) X ' + stops + ' (' + stopInterval + 'px)');
 
-    // Create point transform (x, y) to create progressive transform from
-    // line to line
-    // Create color transform (x, y) to blend segments
-
     var pts = [];
     // create array of zeroes
     for (var i = 0; i <= stops; i++) {
@@ -1761,27 +1760,9 @@ var DEFAULTS = {
     ctx.lineWidth = lineInterval * (0, _utils.randomInRange)(0.4, 0.5);
     ctx.strokeStyle = (0, _utils.randItem)(opts.palette);
 
-    // component pt transform func
-    var _xScale = (0, _utils.randomInRange)(1.8, 2.2) / (lines * stops); // a small number
-    var xDrift = function xDrift(x, line, stop) {
-        return x *= (0, _utils.randomInRange)(1 - _xScale, 1 + _xScale);
-    };
+    // Assign a line transform function
+    // --------------------------------------
 
-    // component pt transform func
-    var _yScale = (0, _utils.randomInRange)(0.08, 0.12) + (0, _utils.randomInRange)(17, 23) / (lines * stops);
-    var yDrift = function yDrift(y, line, stop) {
-        return y + (0, _utils.randomInRange)(-_yScale * lineInterval, _yScale * lineInterval);
-    };
-
-    // sample pt transform func
-    var drift = function drift(pt, line, stop) {
-        return [xDrift(pt[0], line, stop), yDrift(pt[1], line, stop)];
-    };
-
-    // assign pt transform func
-    var ptTransform = drift;
-
-    // pick a line transform function
     var widthSeed = Math.random();
     var widthFunc = void 0;
     var widthStyle = ''; // ['CONSTANT','INCREASING','DECREASING']
@@ -1822,6 +1803,43 @@ var DEFAULTS = {
             break;
     }
 
+    // Assign a points transform function -- these functions deviate
+    // from straight lines.
+    // --------------------------------------
+
+    // component pt transform func
+    // left/right drift of the line points. Easy to collide, so keep small.
+    // More drift is possible with fewer stops or lines
+    var _xScale = (0, _utils.randomInRange)(1.8, 2.2) / (lines * stops); // a small number
+    var xDrift = function xDrift(x, line, stop) {
+        return x *= (0, _utils.randomInRange)(1 - _xScale, 1 + _xScale);
+    };
+
+    // component pt transform func
+    // Vertical drift of the line points
+    // Baseline value plus some adjustment for line/stop density
+    var _yScale = (0, _utils.randomInRange)(0.08, 0.12) + (0, _utils.randomInRange)(17, 23) / (lines * stops);
+    var yDrift = function yDrift(y, line, stop) {
+        return y + (0, _utils.randomInRange)(-_yScale * lineInterval, _yScale * lineInterval);
+    };
+
+    // sample pt transform func
+    // Combines lateral and vertical drift functions.
+    var drift = function drift(pt, line, stop) {
+        return [xDrift(pt[0], line, stop), yDrift(pt[1], line, stop)];
+    };
+
+    // assign pt transform func
+    var ptTransform = drift;
+
+    // Color transform
+    // --------------------------------------
+    // ...
+
+    // Draw the lines!
+    // --------------------------------------
+    // Step through the lines, modifying the pts array as you go.
+
     for (var l = 0; l <= lines; l++) {
         ctx.lineWidth = widthFunc(l);
         ctx.translate(0, lineInterval);
@@ -1838,7 +1856,8 @@ var DEFAULTS = {
     // Add effect elements
     // ...
 
-    // Overlay a shape
+    // Overlay a shape or area, according to opts.overlay
+    // Prepare ctx and render tools:
     (0, _utils.resetTransform)(ctx);
     var renderMap = {
         circle: _shapes.drawCircle,
@@ -1854,9 +1873,28 @@ var DEFAULTS = {
     var getRandomRenderer = function getRandomRenderer() {
         return renderMap[(0, _utils.randItem)(shapes)];
     };
-    var renderer = getRandomRenderer();
+
+    // …setup blending, and switch on overlay option…
     ctx.globalCompositeOperation = 'color';
-    renderer(ctx, w / 2, h / 2, Math.min(w, h) * (0, _utils.randomInRange)(0.3, 0.45), { fill: (0, _utils.randItem)(opts.palette) });
+    if (opts.overlay === 'auto') {
+        // if auto blend, pick one
+        opts.overlay = (0, _utils.randItem)(['shape', 'area', 'blend', null]);
+    }
+    switch (opts.overlay) {
+        case 'shape':
+            var renderer = getRandomRenderer();
+            renderer(ctx, w / 2, h / 2, Math.min(w, h) * (0, _utils.randomInRange)(0.3, 0.45), { fill: (0, _utils.randItem)(opts.palette) });
+            break;
+        case 'area':
+            ctx.fillStyle = (0, _utils.randItem)(opts.palette);
+            ctx.fillRect(0, 0, w * (0, _utils.randomInRange)(0.25, 0.75), h);
+            break;
+        case 'blend':
+            ctx.fillStyle = (0, _utils.getGradientFunction)(opts.palette)(ctx, w, h);
+            ctx.fillRect(0, 0, w, h);
+            break;
+    }
+    // …clean up blending and finish.
     ctx.globalCompositeOperation = 'normal';
 
     // add noise
