@@ -29,3 +29,26 @@ export function rotateCanvas(ctx, w, h, angle) {
     ctx.rotate(angle);
     ctx.translate(-w / 2, -h / 2);
 }
+
+export function getGradientFunction(palette) {
+    let p = [].concat(palette);
+    return function(ctx, w, h) {
+        let bias = Math.random() - 0.5;
+        let coords = [];
+        if (bias) {
+            coords = [
+                randomInRange(0, w * 0.25), 0,
+                randomInRange(w * 0.75, w), h
+            ]
+        } else {
+            coords = [
+                0, randomInRange(0, h * 0.5),
+                w, randomInRange(h * 0.75, h)
+            ]
+        }
+        let grad =  ctx.createLinearGradient(...coords);
+        grad.addColorStop(0, randItem(p));
+        grad.addColorStop(1, randItem(p));
+        return grad;
+    }
+}

@@ -1,5 +1,5 @@
 import noiseUtils from './noiseutils';
-import { randItem, randomInRange, setAttrs, resetTransform, rotateCanvas } from './utils';
+import { randItem, randomInRange, setAttrs, resetTransform, rotateCanvas, getGradientFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
 // Creates a function that returns a different random entry
@@ -22,28 +22,7 @@ function getSolidColorFunction(palette) {
     };
 }
 
-let getGradientFunction = (palette) => {
-    let p = [].concat(palette);
-    return function(ctx, w, h) {
-        let bias = Math.random() - 0.5;
-        let coords = [];
-        if (bias) {
-            coords = [
-                randomInRange(0, w * 0.25), 0,
-                randomInRange(w * 0.75, w), h
-            ]
-        } else {
-            coords = [
-                0, randomInRange(0, h * 0.5),
-                w, randomInRange(h * 0.75, h)
-            ]
-        }
-        let grad =  ctx.createLinearGradient(...coords);
-        grad.addColorStop(0, randItem(p));
-        grad.addColorStop(1, randItem(p));
-        return grad;
-    }
-}
+
 
 
 function addShadow(ctx, w, h) {
