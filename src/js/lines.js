@@ -75,6 +75,10 @@ function lines(options) {
         renderStyle = 'jagged';
     }
 
+    // debug!
+    //renderStyle = 'jagged';
+    //renderStyle = 'wave';
+
     switch (renderStyle) {
         case 'wave':
             minStops = 50;
@@ -99,7 +103,7 @@ function lines(options) {
 
     ctx.translate(-stopInterval/2, -lineInterval/2);
 
-    console.log(`${lines} (${lineInterval}px) X ${stops} (${stopInterval}px)`)
+    console.log(`${lines} lines @${lineInterval.toFixed(1)}px  X  ${stops} stops @${stopInterval.toFixed(1)}px`)
 
 
     let pts = [];
@@ -157,10 +161,13 @@ function lines(options) {
 
     // component pt transform func
     // left/right drift of the line points. Easy to collide, so keep small.
-    // More drift is possible with fewer stops or lines
-    let _xScale = randomInRange(1.8, 2.2) / (lines * stops); // a small number
+    // Drift looks better with more lines and stops to reveal
+    // the resulting patterns, so scale gently with those counts.
+    let _xScale =
+        1.3 * lines / 1000
+        + 1 * stops / 1000;
     let xDrift = (x, line, stop) => {
-        return x *= randomInRange(1 - _xScale, 1 + _xScale);
+        return x + stopInterval * randomInRange(-_xScale, _xScale);
     }
 
     // component pt transform func
@@ -168,14 +175,12 @@ function lines(options) {
     // Baseline value plus some adjustment for line/stop density
     let _yScale = randomInRange(0.08, 0.12) + (randomInRange(17, 23) / (lines * stops));
     let yDrift = (y, line, stop) => {
-        return y + randomInRange(-_yScale * lineInterval, _yScale * lineInterval);
+        return y + lineInterval * randomInRange(-_yScale, _yScale);
     }
 
     let TWOPI = Math.PI * 2;
     let yWave = (y, line, stop) => {
-        //return y *= (1 + 0.5 * Math.sin(stop/stops * TWOPI + line/lines * TWOPI) );
         let factor = 0.2 * lineInterval * Math.sin(stop/stops * TWOPI + line/lines * TWOPI);
-        if (stop === Math.round(stops/2)) console.log(factor);
         return y + factor;
     }
 
