@@ -10,12 +10,12 @@ import { setAttrs } from './utils';
 
 // Renderers
 const RENDERERS = {
-    Waterline: waterline,
-    Shapestack: shapestack,
-    Shapescape: shapescape,
-    Lines: lines
+    waterline: waterline,
+    shapestack: shapestack,
+    shapescape: shapescape,
+    lines: lines
 };
-let initRenderer = 'Waterline';
+let initRenderer = 'waterline';
 
 var rendererName;
 var Renderer;
@@ -34,7 +34,7 @@ function showRenderPicker (renderers, el) {
             'data-renderer': r,
             'class': 'renderPicker'
         })
-        button.innerHTML = r;
+        button.innerHTML = r.slice(0,1).toUpperCase() + r.slice(1);
         button.onclick = makeHandler(r, button);
         el.appendChild(button);
     }
