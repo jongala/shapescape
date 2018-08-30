@@ -1795,9 +1795,6 @@ var DEFAULTS = {
     }
     var pt = void 0;
 
-    ctx.lineWidth = lineInterval * (0, _utils.randomInRange)(0.4, 0.5);
-    ctx.strokeStyle = (0, _utils.randItem)(opts.palette);
-
     // Assign a line transform function
     // --------------------------------------
 
@@ -1901,6 +1898,14 @@ var DEFAULTS = {
     // --------------------------------------
     // Step through the lines, modifying the pts array as you go.
 
+    // For blend overlays, we need black lines so we can apply true palette
+    // colors using screen.
+    if (opts.overlay === 'blend') {
+        ctx.strokeStyle = 'black';
+    } else {
+        ctx.strokeStyle = (0, _utils.randItem)(opts.palette);
+    }
+
     for (var l = 0; l <= lines; l++) {
         ctx.lineWidth = widthFunc(l);
         ctx.translate(0, lineInterval);
@@ -1935,22 +1940,24 @@ var DEFAULTS = {
         return renderMap[(0, _utils.randItem)(shapes)];
     };
 
-    // …setup blending, and switch on overlay option…
-    ctx.globalCompositeOperation = 'color';
+    // switch on overlay option…
     if (opts.overlay === 'auto') {
-        // if auto blend, pick one
+        // if auto overlay, pick one
         opts.overlay = (0, _utils.randItem)(['shape', 'area', 'blend', null]);
     }
     switch (opts.overlay) {
         case 'shape':
+            ctx.globalCompositeOperation = 'color';
             var renderer = getRandomRenderer();
             renderer(ctx, w / 2, h / 2, Math.min(w, h) * (0, _utils.randomInRange)(0.3, 0.45), { fill: (0, _utils.randItem)(opts.palette) });
             break;
         case 'area':
+            ctx.globalCompositeOperation = 'color';
             ctx.fillStyle = (0, _utils.randItem)(opts.palette);
             ctx.fillRect(0, 0, w * (0, _utils.randomInRange)(0.25, 0.75), h);
             break;
         case 'blend':
+            ctx.globalCompositeOperation = 'screen';
             ctx.fillStyle = (0, _utils.getGradientFunction)(opts.palette)(ctx, w, h);
             ctx.fillRect(0, 0, w, h);
             break;
