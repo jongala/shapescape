@@ -1688,11 +1688,14 @@ var _shapes = __webpack_require__(2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+var BGLIST = ['white', 'solid', 'gradient'];
+var OVERLAYLIST = ['shape', 'area', 'blend', 'auto'];
+
 var DEFAULTS = {
     container: 'body',
     palette: ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'],
-    bg: '#fff',
-    overlay: null, // ['shape', 'area', 'blend', 'auto']
+    bg: 'white', // one of BGLIST or 'auto'
+    overlay: null, // one of OVERLAYLIST or 'auto'
     drawShadows: false,
     addNoise: 0.04,
     noiseInput: null,
@@ -1738,9 +1741,22 @@ var DEFAULTS = {
     }
 
     if (opts.bg === 'auto') {
-        ctx.fillStyle = (0, _utils.randItem)(opts.palette);
-    } else {
-        ctx.fillStyle = opts.bg;
+        opts.bg = (0, _utils.randItem)([].concat(BGLIST));
+    }
+    switch (opts.bg) {
+        case 'solid':
+            ctx.fillStyle = (0, _utils.randItem)(opts.palette);
+            break;
+        case 'gradient':
+            ctx.fillStyle = (0, _utils.getGradientFunction)(opts.palette)(ctx, w, h);
+            break;
+        case 'white':
+            ctx.fillStyle = 'white';
+            break;
+        default:
+            // set passed value of bg and hope it's a color!
+            ctx.fillStyle = opts.bg;
+
     }
     ctx.fillRect(0, 0, w, h);
 
@@ -1943,7 +1959,7 @@ var DEFAULTS = {
     // switch on overlay option…
     if (opts.overlay === 'auto') {
         // if auto overlay, pick one
-        opts.overlay = (0, _utils.randItem)(['shape', 'area', 'blend', null]);
+        opts.overlay = (0, _utils.randItem)([null].concat(OVERLAYLIST));
     }
     switch (opts.overlay) {
         case 'shape':
