@@ -6,6 +6,7 @@ import waterline from './waterline';
 import shapestack from './shapestack';
 import shapescape from './shapescape';
 import lines from './lines';
+import { setAttrs } from './utils';
 
 // Renderers
 const RENDERERS = {
@@ -29,9 +30,11 @@ function showRenderPicker (renderers, el) {
     };
     for (var r in renderers) {
         button = document.createElement('button');
+        setAttrs(button, {
+            'data-renderer': r,
+            'class': 'renderPicker'
+        })
         button.innerHTML = r;
-        button['data-renderer'] = r;
-        button.className = 'renderPicker';
         button.onclick = makeHandler(r, button);
         el.appendChild(button);
     }
