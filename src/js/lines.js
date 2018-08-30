@@ -2,11 +2,14 @@ import noiseUtils from './noiseutils';
 import { randItem, randomInRange, setAttrs, resetTransform, rotateCanvas, getGradientFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
+const BGLIST = ['white', 'solid', 'gradient'];
+const OVERLAYLIST = ['shape', 'area', 'blend', 'auto'];
+
 const DEFAULTS = {
     container: 'body',
     palette: ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'],
-    bg: '#fff',
-    overlay: null, // ['shape', 'area', 'blend', 'auto']
+    bg: 'white', // one of BGLIST or 'auto'
+    overlay: null, // one of OVERLAYLIST or 'auto'
     drawShadows: false,
     addNoise: 0.04,
     noiseInput: null,
@@ -54,9 +57,22 @@ function lines(options) {
     }
 
     if (opts.bg === 'auto') {
-        ctx.fillStyle = randItem(opts.palette);
-    } else {
-        ctx.fillStyle = opts.bg;
+        opts.bg = randItem([].concat(BGLIST));
+    }
+    switch (opts.bg) {
+        case 'solid':
+            ctx.fillStyle = randItem(opts.palette);
+            break;
+        case 'gradient':
+            ctx.fillStyle = getGradientFunction(opts.palette)(ctx, w, h);
+            break;
+        case 'white':
+            ctx.fillStyle = 'white';
+            break;
+        default:
+            // set passed value of bg and hope it's a color!
+            ctx.fillStyle = opts.bg;
+
     }
     ctx.fillRect(0, 0, w, h);
 
@@ -270,7 +286,7 @@ function lines(options) {
     // switch on overlay option…
     if (opts.overlay === 'auto') {
         // if auto overlay, pick one
-        opts.overlay = randItem(['shape', 'area', 'blend', null]);
+        opts.overlay = randItem([null].concat(OVERLAYLIST));
     }
     switch (opts.overlay) {
         case 'shape':
