@@ -375,12 +375,12 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 // Renderers
 var RENDERERS = {
-    Waterline: _waterline2.default,
-    Shapestack: _shapestack2.default,
-    Shapescape: _shapescape2.default,
-    Lines: _lines2.default
+    waterline: _waterline2.default,
+    shapestack: _shapestack2.default,
+    shapescape: _shapescape2.default,
+    lines: _lines2.default
 };
-var initRenderer = 'Waterline';
+var initRenderer = 'waterline';
 
 var rendererName;
 var Renderer;
@@ -399,7 +399,7 @@ function showRenderPicker(renderers, el) {
             'data-renderer': r,
             'class': 'renderPicker'
         });
-        button.innerHTML = r;
+        button.innerHTML = r.slice(0, 1).toUpperCase() + r.slice(1);
         button.onclick = makeHandler(r, button);
         el.appendChild(button);
     }
@@ -1712,6 +1712,7 @@ var DEFAULTS = {
     var w = container.offsetWidth;
     var h = container.offsetHeight;
     var scale = Math.min(w, h); // reference size, regardless of aspect ratio
+    var aspect = w / h;
 
     // Find or create canvas child
     var el = container.querySelector('canvas');
@@ -1794,8 +1795,8 @@ var DEFAULTS = {
     // Set up basic params
     // --------------------------------------
 
-    var stops = Math.ceil((0, _utils.randomInRange)(minStops, maxStops));
-    var lines = Math.floor((0, _utils.randomInRange)(10, 40));
+    var stops = Math.ceil((0, _utils.randomInRange)(minStops, maxStops)) * aspect;
+    var lines = Math.floor((0, _utils.randomInRange)(10, 40)) / aspect;
 
     var stopInterval = w / (stops - 1);
     var lineInterval = h / lines;
@@ -1878,7 +1879,7 @@ var DEFAULTS = {
     // component pt transform func
     // Waves with drifting phase, to make nice ripples
     var TWOPI = Math.PI * 2;
-    var waveCount = (0, _utils.randomInRange)(0.5, 2.5);
+    var waveCount = (0, _utils.randomInRange)(0.5, 2.5) * aspect;
     var wavePhase = (0, _utils.randomInRange)(lines / 10, lines / 1);
     var yWave = function yWave(y, line, stop) {
         var factor = 0.2 * lineInterval * // scale the wave
@@ -1965,7 +1966,7 @@ var DEFAULTS = {
         case 'shape':
             ctx.globalCompositeOperation = 'color';
             var renderer = getRandomRenderer();
-            renderer(ctx, w / 2, h / 2, Math.min(w, h) * (0, _utils.randomInRange)(0.3, 0.45), { fill: (0, _utils.randItem)(opts.palette) });
+            renderer(ctx, w / 2, h / 2, scale * (0, _utils.randomInRange)(0.3, 0.45), { fill: (0, _utils.randItem)(opts.palette) });
             break;
         case 'area':
             ctx.globalCompositeOperation = 'color';
