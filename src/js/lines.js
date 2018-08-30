@@ -113,9 +113,6 @@ function lines(options) {
     }
     let pt;
 
-    ctx.lineWidth = lineInterval * randomInRange(0.4, 0.5);
-    ctx.strokeStyle = randItem(opts.palette);
-
 
     // Assign a line transform function
     // --------------------------------------
@@ -227,6 +224,14 @@ function lines(options) {
     // --------------------------------------
     // Step through the lines, modifying the pts array as you go.
 
+    // For blend overlays, we need black lines so we can apply true palette
+    // colors using screen.
+    if (opts.overlay === 'blend') {
+        ctx.strokeStyle = 'black';
+    } else {
+        ctx.strokeStyle = randItem(opts.palette);
+    }
+
     for (let l = 0 ; l <= lines ; l++) {
         ctx.lineWidth = widthFunc(l);
         ctx.translate(0, lineInterval)
@@ -262,14 +267,14 @@ function lines(options) {
         return renderMap[randItem(shapes)];
     }
 
-    // …setup blending, and switch on overlay option…
-    ctx.globalCompositeOperation = 'color';
+    // switch on overlay option…
     if (opts.overlay === 'auto') {
-        // if auto blend, pick one
+        // if auto overlay, pick one
         opts.overlay = randItem(['shape', 'area', 'blend', null]);
     }
     switch (opts.overlay) {
         case 'shape':
+            ctx.globalCompositeOperation = 'color';
             let renderer = getRandomRenderer();
             renderer(ctx,
                 w/2,
@@ -279,10 +284,12 @@ function lines(options) {
             );
             break;
         case 'area':
+            ctx.globalCompositeOperation = 'color';
             ctx.fillStyle = randItem(opts.palette);
             ctx.fillRect(0, 0, w * randomInRange(0.25, 0.75), h);
             break;
         case 'blend':
+            ctx.globalCompositeOperation = 'screen';
             ctx.fillStyle = getGradientFunction(opts.palette)(ctx, w, h);
             ctx.fillRect(0, 0, w, h);
             break;
