@@ -369,6 +369,8 @@ var _lines = __webpack_require__(9);
 
 var _lines2 = _interopRequireDefault(_lines);
 
+var _utils = __webpack_require__(1);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Renderers
@@ -393,9 +395,11 @@ function showRenderPicker(renderers, el) {
     };
     for (var r in renderers) {
         button = document.createElement('button');
+        (0, _utils.setAttrs)(button, {
+            'data-renderer': r,
+            'class': 'renderPicker'
+        });
         button.innerHTML = r;
-        button['data-renderer'] = r;
-        button.className = 'renderPicker';
         button.onclick = makeHandler(r, button);
         el.appendChild(button);
     }
@@ -1858,9 +1862,16 @@ var DEFAULTS = {
         return y + lineInterval * (0, _utils.randomInRange)(-_yScale, _yScale);
     };
 
+    // component pt transform func
+    // Waves with drifting phase, to make nice ripples
     var TWOPI = Math.PI * 2;
+    var waveCount = (0, _utils.randomInRange)(0.5, 2.5);
+    var wavePhase = (0, _utils.randomInRange)(lines / 10, lines / 1);
     var yWave = function yWave(y, line, stop) {
-        var factor = 0.2 * lineInterval * Math.sin(stop / stops * TWOPI + line / lines * TWOPI);
+        var factor = 0.2 * lineInterval * // scale the wave
+        Math.sin(stop / stops * TWOPI * waveCount + // number of waves
+        line / wavePhase * TWOPI // move phase with each line
+        );
         return y + factor;
     };
 
