@@ -28,6 +28,7 @@ function lines(options) {
     var w = container.offsetWidth;
     var h = container.offsetHeight;
     var scale = Math.min(w, h); // reference size, regardless of aspect ratio
+    let aspect = w/h;
 
     // Find or create canvas child
     var el = container.querySelector('canvas');
@@ -111,8 +112,8 @@ function lines(options) {
     // Set up basic params
     // --------------------------------------
 
-    let stops = Math.ceil(randomInRange(minStops, maxStops));
-    let lines = Math.floor(randomInRange(10, 40));
+    let stops = Math.ceil(randomInRange(minStops, maxStops)) * aspect;
+    let lines = Math.floor(randomInRange(10, 40)) / aspect;
 
     let stopInterval = w / (stops - 1);
     let lineInterval = h / lines;
@@ -194,7 +195,7 @@ function lines(options) {
     // component pt transform func
     // Waves with drifting phase, to make nice ripples
     let TWOPI = Math.PI * 2;
-    let waveCount = randomInRange(0.5, 2.5);
+    let waveCount = randomInRange(0.5, 2.5) * aspect;
     let wavePhase = randomInRange(lines/10,lines/1);
     let yWave = (y, line, stop) => {
         let factor = 0.2 * lineInterval * // scale the wave
@@ -295,7 +296,7 @@ function lines(options) {
             renderer(ctx,
                 w/2,
                 h/2,
-                Math.min(w, h) * randomInRange(0.3, 0.45),
+                scale * randomInRange(0.3, 0.45),
                 {fill: randItem(opts.palette)}
             );
             break;
