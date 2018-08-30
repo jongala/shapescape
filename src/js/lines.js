@@ -178,9 +178,17 @@ function lines(options) {
         return y + lineInterval * randomInRange(-_yScale, _yScale);
     }
 
+    // component pt transform func
+    // Waves with drifting phase, to make nice ripples
     let TWOPI = Math.PI * 2;
+    let waveCount = randomInRange(0.5, 2.5);
+    let wavePhase = randomInRange(lines/10,lines/1);
     let yWave = (y, line, stop) => {
-        let factor = 0.2 * lineInterval * Math.sin(stop/stops * TWOPI + line/lines * TWOPI);
+        let factor = 0.2 * lineInterval * // scale the wave
+            Math.sin(
+                stop/stops * TWOPI * waveCount + // number of waves
+                line/wavePhase * TWOPI // move phase with each line
+            );
         return y + factor;
     }
 
