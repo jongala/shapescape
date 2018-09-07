@@ -18,17 +18,13 @@ const DEFAULTS = {
     clear: true
 }
 
-
-// draw it!
+// standard renderer, takes options
 function lines(options) {
     let opts = Object.assign(DEFAULTS, options);
 
     var container = opts.container;
 
-    var w = container.offsetWidth;
-    var h = container.offsetHeight;
-    var scale = Math.min(w, h); // reference size, regardless of aspect ratio
-    let aspect = w/h;
+
 
     // Find or create canvas child
     var el = container.querySelector('canvas');
@@ -48,12 +44,42 @@ function lines(options) {
     var ctx; // canvas ctx or svg tag
 
     ctx = el.getContext('2d');
+
+    drawLines(ctx,
+        [0,0],
+        [container.offsetWidth, container.offsetHeight],
+        opts
+    );
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            noiseUtils.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            noiseUtils.addNoiseFromPattern(el, opts.addNoise, w / 3);
+        }
+    }
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
+}
+
+// Renderer:
+// In context @ctx draw artwork in the rectangle between @p1 and @p2
+// with passed options @opts
+function drawLines(ctx, p1, p2, opts) {
+    var w = p2[0] - p1[0];
+    var h = p2[1] - p1[1];
+    var scale = Math.min(w, h); // reference size, regardless of aspect ratio
+    let aspect = w/h;
+
+    // mark it, dude
     ctx.save();
 
     // optional clear
     if (opts.clear) {
-        el.width = container.offsetWidth;
-        el.height = container.offsetHeight;
         ctx.clearRect(0, 0, w, h);
     }
 
@@ -314,21 +340,11 @@ function lines(options) {
     // …clean up blending and finish.
     ctx.globalCompositeOperation = 'normal';
 
-    // add noise
-    if (opts.addNoise) {
-        if (opts.noiseInput) {
-            noiseUtils.applyNoiseCanvas(el, opts.noiseInput);
-        } else {
-            noiseUtils.addNoiseFromPattern(el, opts.addNoise, w / 3);
-        }
-    }
+
 
     // END RENDERING
 
-    // if new canvas child was created, append it
-    if (newEl) {
-        container.appendChild(el);
-    }
+
 }
 
 // export
