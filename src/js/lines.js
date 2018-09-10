@@ -138,12 +138,13 @@ function drawLines(ctx, p1, p2, opts) {
     // Set up basic params
     // --------------------------------------
 
-    let stops = Math.ceil(randomInRange(minStops, maxStops)) * aspect;
-    let lines = Math.floor(randomInRange(10, 40)) / aspect;
+    let stops = Math.ceil(randomInRange(minStops, maxStops) * aspect);
+    let lines = Math.floor(randomInRange(10, 40) / aspect);
 
     let stopInterval = w / (stops - 1);
     let lineInterval = h / lines;
 
+    // move endpoints out of frame
     ctx.translate(-stopInterval/2, -lineInterval/2);
 
     console.log(`${lines} lines @${lineInterval.toFixed(1)}px  X  ${stops} stops @${stopInterval.toFixed(1)}px`)
@@ -204,9 +205,13 @@ function drawLines(ctx, p1, p2, opts) {
     // Drift looks better with more lines and stops to reveal
     // the resulting patterns, so scale gently with those counts.
     let _xScale =
-        1.3 * lines / 1000
-        + 1 * stops / 1000;
+        0.9 * lines / 1000
+        + 1.3 * stops / 1000;
     let xDrift = (x, line, stop) => {
+        if (stop === 0 || stop === stops) {
+            // do not drift the endpoints
+            return x;
+        }
         return x + stopInterval * randomInRange(-_xScale, _xScale);
     }
 
