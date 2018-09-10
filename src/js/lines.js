@@ -23,8 +23,8 @@ function lines(options) {
     let opts = Object.assign(DEFAULTS, options);
 
     var container = opts.container;
-
-
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
 
     // Find or create canvas child
     var el = container.querySelector('canvas');
@@ -36,8 +36,8 @@ function lines(options) {
     }
     if (newEl || opts.clear) {
         setAttrs(el, {
-            width: container.offsetWidth,
-            height: container.offsetHeight
+            width: cw,
+            height: ch
         });
     }
 
@@ -45,11 +45,70 @@ function lines(options) {
 
     ctx = el.getContext('2d');
 
-    drawLines(ctx,
-        [0,0],
-        [container.offsetWidth, container.offsetHeight],
-        opts
-    );
+    let splitPoint;
+    let splitSeed = Math.random();
+    if (splitSeed > 0.75) {
+        // four panels
+        splitPoint = [randomInRange(cw * 1/4, cw * 3/4), randomInRange(ch * 1/4, ch * 3/4)];
+
+        drawLines(ctx,
+            [0, 0],
+            splitPoint,
+            opts
+        );
+        drawLines(ctx,
+            [splitPoint[0],0],
+            [cw, splitPoint[1]],
+            opts
+        );
+        drawLines(ctx,
+            [0, splitPoint[1]],
+            [splitPoint[0], ch],
+            opts
+        );
+        drawLines(ctx,
+            splitPoint,
+            [cw, ch],
+            opts
+        );
+    } else if(splitSeed > 0.5) {
+        // left right
+        splitPoint = [randomInRange(cw * 1/4, cw * 3/4), 0];
+        drawLines(ctx,
+            [0, 0],
+            [splitPoint[0], ch],
+            opts
+        );
+        drawLines(ctx,
+            [splitPoint[0], 0],
+            [cw, ch],
+            opts
+        );
+    } else if(splitSeed > 0.25) {
+        // top bottom
+        splitPoint = [0, randomInRange(ch * 1/4, ch * 3/4)];
+
+        drawLines(ctx,
+            [0, 0],
+            [cw, splitPoint[1]],
+            opts
+        );
+        drawLines(ctx,
+            [0, splitPoint[1]],
+            [cw, ch],
+            opts
+        );
+    } else {
+        // single
+        drawLines(ctx,
+            [0,0],
+            [cw, ch],
+            opts
+        );
+    }
+
+
+
 
     // add noise
     if (opts.addNoise) {
@@ -75,8 +134,18 @@ function drawLines(ctx, p1, p2, opts) {
     var scale = Math.min(w, h); // reference size, regardless of aspect ratio
     let aspect = w/h;
 
+    // translate to the origin point
+    ctx.translate(p1[0], p1[1]);
+
     // mark it, dude
     ctx.save();
+
+    // clip within the region
+    ctx.beginPath();
+    ctx.rect(0, 0, w, h);
+    ctx.clip();
+    p1 = p1.map((v)=>v.toFixed(1));
+    p2 = p2.map((v)=>v.toFixed(1));
 
     // optional clear
     if (opts.clear) {
@@ -263,7 +332,6 @@ function drawLines(ctx, p1, p2, opts) {
     // assign pt transform func
     let ptTransform = styleTransformMap[renderStyle];
 
-
     // Color transform
     // --------------------------------------
     // ...
@@ -349,7 +417,9 @@ function drawLines(ctx, p1, p2, opts) {
 
     // END RENDERING
 
-
+    // unclip and remove translation
+    ctx.restore();
+    resetTransform(ctx);
 }
 
 // export
