@@ -18,6 +18,22 @@ const DEFAULTS = {
     clear: true
 }
 
+// util: random renderers
+let renderMap = {
+    circle: drawCircle,
+    //ring: drawRing,
+    triangle: drawTriangle,
+    square: drawSquare,
+    //box: drawBox,
+    rect: drawRect,
+    pentagon: drawPentagon,
+    hexagon: drawHexagon
+};
+let shapes = Object.keys(renderMap);
+let getRandomRenderer = () => {
+    return renderMap[randItem(shapes)];
+}
+
 // standard renderer, takes options
 function lines(options) {
     let opts = Object.assign(DEFAULTS, options);
@@ -45,35 +61,33 @@ function lines(options) {
 
     ctx = el.getContext('2d');
 
+    // rendering styles
+    let drawShapeMask = (Math.random() >= 0.3333); // should we draw a shape-masked line set?
+
+    let blendStyle = 'none'; // ['none', 'fg', 'bg']
+    let blendSeed = Math.random(); // should blend overlay apply to fg, bg, or neither?
+
+    // we set drawShapeMask and blendStyle now so we can apply the corresponding
+    // overlay options when doing multi-section rendering below.
+    if (drawShapeMask) {
+        if (blendSeed >= 0.75) {
+            blendStyle = 'fg';
+        } else if (blendSeed >= 0.25) {
+            blendStyle = 'bg';
+        }
+    }
+
+    // divide the canvas into multiple sections?
     let splitPoint;
     let splitSeed = Math.random();
-    if (splitSeed > 0.75) {
-        // four panels
-        splitPoint = [randomInRange(cw * 1/4, cw * 3/4), randomInRange(ch * 1/4, ch * 3/4)];
-
-        drawLines(ctx,
-            [0, 0],
-            splitPoint,
-            opts
-        );
-        drawLines(ctx,
-            [splitPoint[0],0],
-            [cw, splitPoint[1]],
-            opts
-        );
-        drawLines(ctx,
-            [0, splitPoint[1]],
-            [splitPoint[0], ch],
-            opts
-        );
-        drawLines(ctx,
-            splitPoint,
-            [cw, ch],
-            opts
-        );
-    } else if(splitSeed > 0.5) {
+    if (splitSeed > 0.5) {
         // left right
         splitPoint = [randomInRange(cw * 1/4, cw * 3/4), 0];
+
+        if (blendStyle === 'bg') {
+            Object.assign(opts, {overlay: 'blend'});
+        }
+
         drawLines(ctx,
             [0, 0],
             [splitPoint[0], ch],
@@ -84,22 +98,13 @@ function lines(options) {
             [cw, ch],
             opts
         );
-    } else if(splitSeed > 0.25) {
-        // top bottom
-        splitPoint = [0, randomInRange(ch * 1/4, ch * 3/4)];
-
-        drawLines(ctx,
-            [0, 0],
-            [cw, splitPoint[1]],
-            opts
-        );
-        drawLines(ctx,
-            [0, splitPoint[1]],
-            [cw, ch],
-            opts
-        );
     } else {
         // single
+
+        if (blendStyle === 'bg') {
+            Object.assign(opts, {overlay: 'blend'});
+        }
+
         drawLines(ctx,
             [0,0],
             [cw, ch],
@@ -107,7 +112,32 @@ function lines(options) {
         );
     }
 
+    // draw shapemask, if specified above
+    if (drawShapeMask) {
+        if (blendStyle === 'fg') {
+            Object.assign(opts, {overlay: 'blend'});
+        } else {
+            Object.assign(opts, {overlay: 'none'});
+        }
 
+        let maskScale = Math.min(cw, ch) * randomInRange(0.25, 0.4);
+        // Get and use random shape for masking. No fill required.
+        getRandomRenderer()(ctx,
+            cw/2,
+            ch/2,
+            maskScale,
+            {}
+        );
+        ctx.save()
+        ctx.clip();
+        drawLines(ctx,
+            [0,0],
+            [cw, ch],
+            opts
+        );
+        ctx.restore();
+        resetTransform(ctx);
+    }
 
 
     // add noise
@@ -368,20 +398,8 @@ function drawLines(ctx, p1, p2, opts) {
     // Overlay a shape or area, according to opts.overlay
     // Prepare ctx and render tools:
     resetTransform(ctx);
-    let renderMap = {
-        circle: drawCircle,
-        //ring: drawRing,
-        triangle: drawTriangle,
-        square: drawSquare,
-        //box: drawBox,
-        rect: drawRect,
-        pentagon: drawPentagon,
-        hexagon: drawHexagon
-    };
-    let shapes = Object.keys(renderMap);
-    let getRandomRenderer = () => {
-        return renderMap[randItem(shapes)];
-    }
+    ctx.translate(p1[0], p1[1]);
+
 
     // switch on overlay option…
     if (opts.overlay === 'auto') {
