@@ -1703,16 +1703,29 @@ var DEFAULTS = {
     skew: 1, // normalized skew
     clear: true
 
-    // draw it!
-};function lines(options) {
+    // util: random renderers
+};var renderMap = {
+    circle: _shapes.drawCircle,
+    //ring: drawRing,
+    triangle: _shapes.drawTriangle,
+    square: _shapes.drawSquare,
+    //box: drawBox,
+    rect: _shapes.drawRect,
+    pentagon: _shapes.drawPentagon,
+    hexagon: _shapes.drawHexagon
+};
+var shapes = Object.keys(renderMap);
+var getRandomRenderer = function getRandomRenderer() {
+    return renderMap[(0, _utils.randItem)(shapes)];
+};
+
+// standard renderer, takes options
+function lines(options) {
     var opts = Object.assign(DEFAULTS, options);
 
     var container = opts.container;
-
-    var w = container.offsetWidth;
-    var h = container.offsetHeight;
-    var scale = Math.min(w, h); // reference size, regardless of aspect ratio
-    var aspect = w / h;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
 
     // Find or create canvas child
     var el = container.querySelector('canvas');
@@ -1724,20 +1737,115 @@ var DEFAULTS = {
     }
     if (newEl || opts.clear) {
         (0, _utils.setAttrs)(el, {
-            width: container.offsetWidth,
-            height: container.offsetHeight
+            width: cw,
+            height: ch
         });
     }
 
     var ctx; // canvas ctx or svg tag
 
     ctx = el.getContext('2d');
+
+    // rendering styles
+    var drawShapeMask = Math.random() >= 0.3333; // should we draw a shape-masked line set?
+
+    var blendStyle = 'none'; // ['none', 'fg', 'bg']
+    var blendSeed = Math.random(); // should blend overlay apply to fg, bg, or neither?
+
+    // we set drawShapeMask and blendStyle now so we can apply the corresponding
+    // overlay options when doing multi-section rendering below.
+    if (drawShapeMask) {
+        if (blendSeed >= 0.75) {
+            blendStyle = 'fg';
+        } else if (blendSeed >= 0.25) {
+            blendStyle = 'bg';
+        }
+    }
+
+    // divide the canvas into multiple sections?
+    var splitPoint = void 0;
+    var splitSeed = Math.random();
+    if (splitSeed > 0.5) {
+        // left right
+        splitPoint = [(0, _utils.randomInRange)(cw * 1 / 4, cw * 3 / 4), 0];
+
+        if (blendStyle === 'bg') {
+            Object.assign(opts, { overlay: 'blend' });
+        }
+
+        drawLines(ctx, [0, 0], [splitPoint[0], ch], opts);
+        drawLines(ctx, [splitPoint[0], 0], [cw, ch], opts);
+    } else {
+        // single
+
+        if (blendStyle === 'bg') {
+            Object.assign(opts, { overlay: 'blend' });
+        }
+
+        drawLines(ctx, [0, 0], [cw, ch], opts);
+    }
+
+    // draw shapemask, if specified above
+    if (drawShapeMask) {
+        if (blendStyle === 'fg') {
+            Object.assign(opts, { overlay: 'blend' });
+        } else {
+            Object.assign(opts, { overlay: 'none' });
+        }
+
+        var maskScale = Math.min(cw, ch) * (0, _utils.randomInRange)(0.25, 0.4);
+        // Get and use random shape for masking. No fill required.
+        getRandomRenderer()(ctx, cw / 2, ch / 2, maskScale, {});
+        ctx.save();
+        ctx.clip();
+        drawLines(ctx, [0, 0], [cw, ch], opts);
+        ctx.restore();
+        (0, _utils.resetTransform)(ctx);
+    }
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, w / 3);
+        }
+    }
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
+}
+
+// Renderer:
+// In context @ctx draw artwork in the rectangle between @p1 and @p2
+// with passed options @opts
+function drawLines(ctx, p1, p2, opts) {
+    var w = p2[0] - p1[0];
+    var h = p2[1] - p1[1];
+    var scale = Math.min(w, h); // reference size, regardless of aspect ratio
+    var aspect = w / h;
+
+    // translate to the origin point
+    ctx.translate(p1[0], p1[1]);
+
+    // mark it, dude
     ctx.save();
+
+    // clip within the region
+    ctx.beginPath();
+    ctx.rect(0, 0, w, h);
+    ctx.clip();
+    p1 = p1.map(function (v) {
+        return v.toFixed(1);
+    });
+    p2 = p2.map(function (v) {
+        return v.toFixed(1);
+    });
 
     // optional clear
     if (opts.clear) {
-        el.width = container.offsetWidth;
-        el.height = container.offsetHeight;
         ctx.clearRect(0, 0, w, h);
     }
 
@@ -1795,12 +1903,13 @@ var DEFAULTS = {
     // Set up basic params
     // --------------------------------------
 
-    var stops = Math.ceil((0, _utils.randomInRange)(minStops, maxStops)) * aspect;
-    var lines = Math.floor((0, _utils.randomInRange)(10, 40)) / aspect;
+    var stops = Math.ceil((0, _utils.randomInRange)(minStops, maxStops) * aspect);
+    var lines = Math.floor((0, _utils.randomInRange)(10, 40) / aspect);
 
     var stopInterval = w / (stops - 1);
     var lineInterval = h / lines;
 
+    // move endpoints out of frame
     ctx.translate(-stopInterval / 2, -lineInterval / 2);
 
     console.log(lines + ' lines @' + lineInterval.toFixed(1) + 'px  X  ' + stops + ' stops @' + stopInterval.toFixed(1) + 'px');
@@ -1863,8 +1972,12 @@ var DEFAULTS = {
     // left/right drift of the line points. Easy to collide, so keep small.
     // Drift looks better with more lines and stops to reveal
     // the resulting patterns, so scale gently with those counts.
-    var _xScale = 1.3 * lines / 1000 + 1 * stops / 1000;
+    var _xScale = 0.9 * lines / 1000 + 1.3 * stops / 1000;
     var xDrift = function xDrift(x, line, stop) {
+        if (stop === 0 || stop === stops) {
+            // do not drift the endpoints
+            return x;
+        }
         return x + stopInterval * (0, _utils.randomInRange)(-_xScale, _xScale);
     };
 
@@ -1942,20 +2055,7 @@ var DEFAULTS = {
     // Overlay a shape or area, according to opts.overlay
     // Prepare ctx and render tools:
     (0, _utils.resetTransform)(ctx);
-    var renderMap = {
-        circle: _shapes.drawCircle,
-        //ring: drawRing,
-        triangle: _shapes.drawTriangle,
-        square: _shapes.drawSquare,
-        //box: drawBox,
-        rect: _shapes.drawRect,
-        pentagon: _shapes.drawPentagon,
-        hexagon: _shapes.drawHexagon
-    };
-    var shapes = Object.keys(renderMap);
-    var getRandomRenderer = function getRandomRenderer() {
-        return renderMap[(0, _utils.randItem)(shapes)];
-    };
+    ctx.translate(p1[0], p1[1]);
 
     // switch on overlay option…
     if (opts.overlay === 'auto') {
@@ -1982,21 +2082,11 @@ var DEFAULTS = {
     // …clean up blending and finish.
     ctx.globalCompositeOperation = 'normal';
 
-    // add noise
-    if (opts.addNoise) {
-        if (opts.noiseInput) {
-            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
-        } else {
-            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, w / 3);
-        }
-    }
-
     // END RENDERING
 
-    // if new canvas child was created, append it
-    if (newEl) {
-        container.appendChild(el);
-    }
+    // unclip and remove translation
+    ctx.restore();
+    (0, _utils.resetTransform)(ctx);
 }
 
 // export
