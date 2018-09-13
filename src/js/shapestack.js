@@ -51,8 +51,8 @@ const DEFAULTS = {
     skew: 1, // normalized skew
     fillStyle: null, // null for auto, ['solid', 'gradient']
     nest: false,
-    stack: true,
-    fancy: true, // forces auto fanciness
+    stack: false,
+    fancy: null, // forces auto fanciness
     multiMask: false, // draw multiple masks
     clear: true
 }
@@ -334,14 +334,13 @@ function shapestack(options) {
     resetTransform(ctx);
 
 
-    // add a pin shadow if it's an open shape or nest
+    // add a border if it's an open shape or nest
     if ( !drawShadows &&
-        ( nest || ['box', 'ring'].indexOf(shape) >= 0 ) ){
+        ( willDrawNest || ['box', 'ring'].indexOf(shape) >= 0 ) ){
         ctx.globalCompositeOperation = 'multiply';
         renderer(ctx, w / 2, maskY, maskSize, { fill: 'transparent', stroke:'#808080' });
         ctx.globalCompositeOperation = 'normal';
     }
-
 
 
 
