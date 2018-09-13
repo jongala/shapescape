@@ -73,6 +73,74 @@
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.randItem = randItem;
+exports.randomInRange = randomInRange;
+exports.setAttrs = setAttrs;
+exports.resetTransform = resetTransform;
+exports.rotateCanvas = rotateCanvas;
+exports.getGradientFunction = getGradientFunction;
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+// random Array member
+function randItem(arr) {
+    return arr[Math.floor(arr.length * Math.random())];
+}
+
+function randomInRange(min, max) {
+    return min + (max - min) * Math.random();
+}
+
+function setAttrs(el, attrs) {
+    var a;
+    if (el && el.setAttribute) {
+        for (a in attrs) {
+            if (attrs.hasOwnProperty(a)) {
+                el.setAttribute(a, attrs[a]);
+            }
+        }
+    }
+}
+
+// reset canvas transformations
+function resetTransform(ctx) {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+// rotate canvas around center point
+function rotateCanvas(ctx, w, h, angle) {
+    ctx.translate(w / 2, h / 2);
+    ctx.rotate(angle);
+    ctx.translate(-w / 2, -h / 2);
+}
+
+function getGradientFunction(palette) {
+    var p = [].concat(palette);
+    return function (ctx, w, h) {
+        var bias = Math.random() - 0.5;
+        var coords = [];
+        if (bias) {
+            coords = [randomInRange(0, w * 0.25), 0, randomInRange(w * 0.75, w), h];
+        } else {
+            coords = [0, randomInRange(0, h * 0.5), w, randomInRange(h * 0.75, h)];
+        }
+        var grad = ctx.createLinearGradient.apply(ctx, _toConsumableArray(coords));
+        grad.addColorStop(0, randItem(p));
+        grad.addColorStop(1, randItem(p));
+        return grad;
+    };
+}
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 function addNoiseToCanvas(canvas, opacity) {
     var ctx = canvas.getContext('2d'),
         x,
@@ -141,74 +209,6 @@ exports.default = {
     createNoiseCanvas: createNoiseCanvas,
     applyNoiseCanvas: applyNoiseCanvas
 };
-
-/***/ }),
-/* 1 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.randItem = randItem;
-exports.randomInRange = randomInRange;
-exports.setAttrs = setAttrs;
-exports.resetTransform = resetTransform;
-exports.rotateCanvas = rotateCanvas;
-exports.getGradientFunction = getGradientFunction;
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-// random Array member
-function randItem(arr) {
-    return arr[Math.floor(arr.length * Math.random())];
-}
-
-function randomInRange(min, max) {
-    return min + (max - min) * Math.random();
-}
-
-function setAttrs(el, attrs) {
-    var a;
-    if (el && el.setAttribute) {
-        for (a in attrs) {
-            if (attrs.hasOwnProperty(a)) {
-                el.setAttribute(a, attrs[a]);
-            }
-        }
-    }
-}
-
-// reset canvas transformations
-function resetTransform(ctx) {
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-}
-
-// rotate canvas around center point
-function rotateCanvas(ctx, w, h, angle) {
-    ctx.translate(w / 2, h / 2);
-    ctx.rotate(angle);
-    ctx.translate(-w / 2, -h / 2);
-}
-
-function getGradientFunction(palette) {
-    var p = [].concat(palette);
-    return function (ctx, w, h) {
-        var bias = Math.random() - 0.5;
-        var coords = [];
-        if (bias) {
-            coords = [randomInRange(0, w * 0.25), 0, randomInRange(w * 0.75, w), h];
-        } else {
-            coords = [0, randomInRange(0, h * 0.5), w, randomInRange(h * 0.75, h)];
-        }
-        var grad = ctx.createLinearGradient.apply(ctx, _toConsumableArray(coords));
-        grad.addColorStop(0, randItem(p));
-        grad.addColorStop(1, randItem(p));
-        return grad;
-    };
-}
 
 /***/ }),
 /* 2 */
@@ -345,7 +345,7 @@ var drawHexagon = exports.drawHexagon = _drawPolygon(6, 1.05);
 
 __webpack_require__(4);
 
-var _noiseutils = __webpack_require__(0);
+var _noiseutils = __webpack_require__(1);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
@@ -361,15 +361,15 @@ var _shapestack = __webpack_require__(7);
 
 var _shapestack2 = _interopRequireDefault(_shapestack);
 
-var _shapescape = __webpack_require__(8);
+var _shapescape = __webpack_require__(10);
 
 var _shapescape2 = _interopRequireDefault(_shapescape);
 
-var _lines = __webpack_require__(9);
+var _lines = __webpack_require__(11);
 
 var _lines2 = _interopRequireDefault(_lines);
 
-var _utils = __webpack_require__(1);
+var _utils = __webpack_require__(0);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -653,11 +653,11 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _noiseutils = __webpack_require__(0);
+var _noiseutils = __webpack_require__(1);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _utils = __webpack_require__(1);
+var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(2);
 
@@ -1041,13 +1041,17 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _noiseutils = __webpack_require__(0);
+var _noiseutils = __webpack_require__(1);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _utils = __webpack_require__(1);
+var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(2);
+
+var _stacks = __webpack_require__(8);
+
+var _nests = __webpack_require__(9);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1172,13 +1176,11 @@ var DEFAULTS = {
     // Default behavior is to randomly choose fancy
     if (fancy === null || fancy === undefined) {
         fancy = Math.random() > 0.5;
-        if (fancy) {
-            drawShadows = true;
-            fillStyle = 'gradient';
-        } else {
-            drawShadows = false;
-            fillStyle = 'solid';
-        }
+    }
+
+    if (fancy) {
+        drawShadows = true;
+        fillStyle = 'gradient';
     }
 
     // Set up color fill style
@@ -1194,6 +1196,7 @@ var DEFAULTS = {
     opts.getColor = colorFuncs[fillStyle](opts.palette);
 
     // BEGIN RENDERING
+    // ======================================
 
     // draw background/sky
     var sky = Math.round((0, _utils.randomInRange)(204, 245)).toString(16);
@@ -1224,131 +1227,34 @@ var DEFAULTS = {
     // and then only some of the time
     var tilt = 0;
     if (opts.skew && Math.random() > 0.25) {
-        tilt = (0, _utils.randomInRange)(0, 6.28);
+        tilt = (0, _utils.randomInRange)(0, Math.PI * 2);
     }
 
     // pick depth of stack
-    var stackSize = (0, _utils.randomInRange)(1, 4);
-    var heightA = h * (0, _utils.randomInRange)(0.4, 0.7);
+    var stackSize = Math.round((0, _utils.randomInRange)(1, 4));
+    var heightA = h * (0, _utils.randomInRange)(0.4, 0.6);
     var heightB = heightA * (0, _utils.randomInRange)(0.95, 1.05);
+    // define stacks
+    var stackA = (0, _stacks.createStack)(heightA, h, stackSize);
+    var stackB = (0, _stacks.createStack)(heightB, h, stackSize);
 
-    var stackA = [];
-    var stackB = [];
-
-    var levelA = h - heightA;
-    var levelB = h - heightB;
-
-    var block;
-
-    var i = 1;
-    var blockH;
-    while (i++ <= stackSize) {
-        blockH = heightA / stackSize;
-        block = [levelA, levelA + (0, _utils.randomInRange)(0.25 * blockH, blockH)];
-        levelA = block[1];
-        stackA.push(block);
-
-        blockH = heightB / stackSize;
-        block = [levelB, levelB + (0, _utils.randomInRange)(0.25 * blockH, blockH)];
-        levelB = block[1];
-        stackB.push(block);
-    }
-    stackA.push([levelA, h * 1.5]);
-    stackB.push([levelB, h * 1.5]);
-
-    var gray;
-    function drawStack(stack, x, palette) {
-        stack.forEach(function (y, i) {
-            if (palette === 'gray') {
-                gray = (0, _utils.randomInRange)(0.55, 0.85);
-                ctx.fillStyle = 'rgba(0, 0, 0,' + (i + 1) * gray / stackSize + ')';
-            } else {
-                ctx.fillStyle = opts.getColor(ctx, w, y[1] - y[0]);
-            }
-
-            ctx.beginPath();
-            ctx.rect(x, y[0], x + w, y[1] - y[0]);
-            ctx.closePath();
-
-            ctx.fill();
-        });
+    // pick nest count, and define nests
+    var nestCount = Math.round((0, _utils.randomInRange)(1, 3));
+    var nests = [];
+    for (var i = 0; i < nestCount; i++) {
+        nests.push((0, _nests.defineNest)((0, _nests.generateNestDef)(w, h, scale)));
     }
 
-    var nestDefaults = {
-        x: 0,
-        y: 0,
-        minSize: 200,
-        maxSize: 400,
-        steps: 4,
-        jitter: 0.1,
-        angle: 0
-    };
-    var nestRenderDefaults = {
-        palette: ['#000', '#333', '#666', '#999'],
-        alpha: 1,
-        blendMode: 'normal'
-    };
-    var defineNest = function defineNest(o) {
-        o = Object.assign(nestDefaults, o);
-        var stepSize = (o.maxSize - o.minSize) / o.steps;
-        var i = o.steps;
-        var j = 1;
-        var nest = [];
-        var step = void 0; // the actual step size in px
-
-        while (i--) {
-            step = stepSize * (1 + (0, _utils.randomInRange)(-o.jitter, +o.jitter));
-            nest.push({
-                x: o.x,
-                y: o.y,
-                size: (o.maxSize - j * step) / 2,
-                angle: o.angle
-            });
-            j++;
-        }
-        return nest;
-    };
-    var drawNest = function drawNest(ctx, nest, palette, o) {
-        o = Object.assign(nestRenderDefaults, o);
-        (0, _utils.resetTransform)(ctx);
-        var getColor = colorFuncs[fillStyle](palette);
-        var ctxBlend = ctx.globalCompositeOperation;
-        var ctxAlpha = ctx.globalAlpha;
-
-        ctx.globalCompositeOperation = o.blendMode;
-        ctx.globalAlpha = o.alpha;
-
-        nest.forEach(function (n) {
-            nestRenderer(ctx, n.x, n.y, n.size, {
-                fill: getColor(ctx, n.size, n.size),
-                angle: n.angle
-            });
-        });
-
-        ctx.globalCompositeOperation = ctxBlend;
-        ctx.globalAlpha = ctxAlpha;
-
-        (0, _utils.resetTransform)(ctx);
-    };
-
-    var nestOpts = {
-        x: (0, _utils.randomInRange)(w * 0.1, w * 0.9),
-        y: (0, _utils.randomInRange)(w * 0.1, w * 0.9),
-        maxSize: scale * (0, _utils.randomInRange)(1, 2),
-        minSize: scale * (0, _utils.randomInRange)(0.25, 0.75),
-        steps: Math.floor((0, _utils.randomInRange)(3, 7)),
-        angle: (0, _utils.randomInRange)(0, Math.PI / 4)
-    };
-
-    var nest = defineNest(nestOpts);
+    // now draw background according to style directives
+    // --------------------------------------
 
     if (willDrawStack) {
         // rotate the canvas before drawing stacks
         (0, _utils.rotateCanvas)(ctx, w, h, tilt);
 
         // Draw stacks with gray
-        drawStack(stackA, -w / 4, 'gray');
-        drawStack(stackB, w / 2, 'gray');
+        (0, _stacks.drawStack)(ctx, stackA, -w / 4, w, null);
+        (0, _stacks.drawStack)(ctx, stackB, w / 2, w, null);
 
         // un-rotate to draw main shape
         (0, _utils.resetTransform)(ctx);
@@ -1356,7 +1262,9 @@ var DEFAULTS = {
 
     if (willDrawNest) {
         // draw Nest
-        drawNest(ctx, nest, grays, {});
+        nests.forEach(function (n) {
+            (0, _nests.drawNest)(ctx, n, nestRenderer, colorFuncs[fillStyle](grays), {});
+        });
     }
 
     // Draw main shape + mask
@@ -1387,15 +1295,17 @@ var DEFAULTS = {
     // clip mask
     ctx.clip();
 
+    // Draw color stacks or nests inside the mask
+
     if (willDrawStack) {
         // rotate the canvas before drawing stacks
         (0, _utils.rotateCanvas)(ctx, w, h, tilt);
         // draw color stacks in mask
-        drawStack(stackA, -w / 4, opts.palette);
-        drawStack(stackB, w / 2, opts.palette);
+        (0, _stacks.drawStack)(ctx, stackA, -w / 4, w, opts.getColor);
+        (0, _stacks.drawStack)(ctx, stackB, w / 2, w, opts.getColor);
 
+        // draw vertical pin in solid shapes
         if (['box', 'ring'].indexOf(shape) === -1) {
-            // vertical pin
             var nudge = heightA > heightB ? -0.5 : 0.5;
             ctx.globalAlpha = 0.3;
             ctx.lineWidth = 1;
@@ -1418,20 +1328,35 @@ var DEFAULTS = {
 
     if (willDrawNest) {
         // draw color Nest in front of color stack
-        drawNest(ctx, nest, opts.palette, {});
+        nests.forEach(function (n) {
+            (0, _nests.drawNest)(ctx, n, nestRenderer, opts.getColor, {});
+        });
 
-        // draw a line from nest center thru the mask center and beyond
-        var m = (nestOpts.y - maskY) / (nestOpts.x - maskX);
+        // Draw connecting lines.
+        // With a single nest, connect nest center to mask center.
+        // With multiple nests, connect last nest to previous nest
+        var c1 = { x: 0, y: 0 };
+        var c2 = { x: 0, y: 0 };
+        if (nests.length === 1) {
+            c1 = { x: maskX, y: maskY };
+            c2 = nests[0][0];
+        } else {
+            c1 = nests[nests.length - 2][0];
+            c2 = nests[nests.length - 1][0];
+        }
+
+        // define the line
+        var m = (c2.y - c1.y) / (c2.x - c1.x);
         var theta = Math.atan(m);
-        if (nestOpts.x > maskX) {
+        if (c2.x > c1.x) {
             theta += Math.PI;
         }
-        // oughtta be enough
+        // extend it. This oughtta be enough.
         var R = w + h;
 
         ctx.beginPath();
-        ctx.moveTo(nestOpts.x, nestOpts.y);
-        ctx.lineTo(nestOpts.x + R * Math.cos(theta), nestOpts.y + R * Math.sin(theta));
+        ctx.moveTo(c2.x, c2.y);
+        ctx.lineTo(c2.x + R * Math.cos(theta), c2.y + R * Math.sin(theta));
         ctx.closePath();
         ctx.strokeStyle = 'rgba(0, 0, 0, 0.33)';
         ctx.stroke();
@@ -1443,8 +1368,8 @@ var DEFAULTS = {
     // reset transform
     (0, _utils.resetTransform)(ctx);
 
-    // add a pin shadow if it's an open shape or nest
-    if (!drawShadows && (nest || ['box', 'ring'].indexOf(shape) >= 0)) {
+    // add a border if it's an open shape or nest
+    if (!drawShadows && (willDrawNest || ['box', 'ring'].indexOf(shape) >= 0)) {
         ctx.globalCompositeOperation = 'multiply';
         renderer(ctx, w / 2, maskY, maskSize, { fill: 'transparent', stroke: '#808080' });
         ctx.globalCompositeOperation = 'normal';
@@ -1483,12 +1408,150 @@ exports.default = shapestack;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.createStack = createStack;
+exports.drawStack = drawStack;
 
-var _noiseutils = __webpack_require__(0);
+var _utils = __webpack_require__(0);
+
+function createStack(start, end) {
+    var steps = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 2;
+
+    var step = (end - start) / steps;
+    var stack = [];
+    var y = start;
+    var block = void 0;
+    while (steps) {
+        block = [y, y + step * (0, _utils.randomInRange)(0.25, 1)];
+        y = block[1];
+        stack.push(block);
+        steps--;
+    }
+    stack.push([y, end * 1.5]); // tack on an end block to bleed off canvas
+    return stack;
+}
+
+// stacks look like [[y1, y2], [y1, y2] ...]
+// colorFunc is optional; if null it draws increasingly dark gray bands
+function drawStack(ctx, stack, x, w, colorFunc) {
+    var gray = void 0;
+    stack.forEach(function (y, i) {
+        if (!colorFunc) {
+            gray = (0, _utils.randomInRange)(0.55, 0.85);
+            ctx.fillStyle = 'rgba(0, 0, 0,' + (i + 1) * gray / stack.length + ')';
+        } else {
+            ctx.fillStyle = colorFunc(ctx, w, y[1] - y[0]);
+        }
+
+        ctx.beginPath();
+        ctx.rect(x, y[0], x + w, y[1] - y[0]);
+        ctx.closePath();
+
+        ctx.fill();
+    });
+}
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.generateNestDef = generateNestDef;
+exports.defineNest = defineNest;
+exports.drawNest = drawNest;
+
+var _utils = __webpack_require__(0);
+
+function generateNestDef(w, h, scale) {
+    return {
+        x: (0, _utils.randomInRange)(w * 0.1, w * 0.9),
+        y: (0, _utils.randomInRange)(h * 0.1, h * 0.9),
+        maxSize: scale * (0, _utils.randomInRange)(0.6, 1.7),
+        minSize: scale * (0, _utils.randomInRange)(0.1, 0.6),
+        steps: Math.floor((0, _utils.randomInRange)(3, 7)),
+        angle: (0, _utils.randomInRange)(0, Math.PI / 4)
+    };
+}
+
+var nestDefaults = {
+    x: 0,
+    y: 0,
+    minSize: 200,
+    maxSize: 400,
+    steps: 4,
+    jitter: 0.1,
+    angle: 0
+};
+
+function defineNest(o) {
+    o = Object.assign(nestDefaults, o);
+    var stepSize = (o.maxSize - o.minSize) / o.steps;
+    var i = o.steps;
+    var j = 1;
+    var nest = [];
+    var step = void 0; // the actual step size in px
+
+    while (i--) {
+        step = stepSize * (1 + (0, _utils.randomInRange)(-o.jitter, +o.jitter));
+        nest.push({
+            x: o.x,
+            y: o.y,
+            size: (o.maxSize - j * step) / 2,
+            angle: o.angle
+        });
+        j++;
+    }
+    return nest;
+}
+
+var nestRenderDefaults = {
+    palette: ['#000', '#333', '#666', '#999'],
+    alpha: 1,
+    blendMode: 'normal'
+};
+
+function drawNest(ctx, nest, shapeFunction, colorFunction, o) {
+    o = Object.assign(nestRenderDefaults, o);
+    (0, _utils.resetTransform)(ctx);
+    var ctxBlend = ctx.globalCompositeOperation;
+    var ctxAlpha = ctx.globalAlpha;
+
+    ctx.globalCompositeOperation = o.blendMode;
+    ctx.globalAlpha = o.alpha;
+
+    nest.forEach(function (n) {
+        shapeFunction(ctx, n.x, n.y, n.size, {
+            fill: colorFunction(ctx, n.size, n.size),
+            angle: n.angle
+        });
+    });
+
+    ctx.globalCompositeOperation = ctxBlend;
+    ctx.globalAlpha = ctxAlpha;
+
+    (0, _utils.resetTransform)(ctx);
+}
+
+/***/ }),
+/* 10 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _noiseutils = __webpack_require__(1);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _utils = __webpack_require__(1);
+var _utils = __webpack_require__(0);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1668,7 +1731,7 @@ function shapescape(options) {
 exports.default = shapescape;
 
 /***/ }),
-/* 9 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1678,11 +1741,11 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _noiseutils = __webpack_require__(0);
+var _noiseutils = __webpack_require__(1);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _utils = __webpack_require__(1);
+var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(2);
 
