@@ -48,9 +48,9 @@ const DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     fillStyle: null, // null for auto, ['solid', 'gradient']
-    nest: false,
+    nest: true,
     stack: false,
-    fancy: null, // forces auto fanciness
+    fancy: true, // forces auto fanciness
     multiMask: false, // draw multiple masks
     clear: true
 }
@@ -290,16 +290,25 @@ function shapestack(options) {
         resetTransform(ctx);
     }
 
-    let nestOpts = {
-        x: randomInRange(w * 0.1, w * 0.9),
-        y: randomInRange(w * 0.1, w * 0.9),
-        maxSize: scale * randomInRange(1, 2),
-        minSize: scale * randomInRange(0.25, 0.75),
-        steps: Math.floor(randomInRange(3, 7)),
-        angle: randomInRange(0, Math.PI/4)
-    };
+    function generateNestDef(w, h, scale) {
+        return {
+            x: randomInRange(w * 0.1, w * 0.9),
+            y: randomInRange(h * 0.1, h * 0.9),
+            maxSize: scale * randomInRange(0.5, 1.5),
+            minSize: scale * randomInRange(0.1, 0.6),
+            steps: Math.floor(randomInRange(3, 7)),
+            angle: randomInRange(0, Math.PI/4)
+        };
+    }
 
+    let nestOpts = generateNestDef(w, h, scale);
     let nest = defineNest(nestOpts);
+
+    let nestCount = Math.round(randomInRange(1,3));
+    let nests = [];
+    for (let i=0; i<nestCount; i++) {
+        nests.push(defineNest(generateNestDef(w, h, scale)));
+    }
 
     if (willDrawStack) {
         // rotate the canvas before drawing stacks
@@ -315,7 +324,11 @@ function shapestack(options) {
 
     if (willDrawNest) {
         // draw Nest
-        drawNest(ctx, nest, grays, {});
+        //drawNest(ctx, nest, grays, {});
+        nests.forEach((n) => {
+            console.log('draw bg nest');
+            drawNest(ctx, n, grays, {});
+        })
     }
 
 
@@ -379,7 +392,11 @@ function shapestack(options) {
 
     if (willDrawNest) {
         // draw color Nest in front of color stack
-        drawNest(ctx, nest, opts.palette, {});
+        //drawNest(ctx, nest, opts.palette, {});
+        nests.forEach((n) => {
+            console.log('draw fg nest');
+            drawNest(ctx, n, opts.palette, {});
+        })
 
         // draw a line from nest center thru the mask center and beyond
         let m = (nestOpts.y - maskY) / (nestOpts.x - maskX);
