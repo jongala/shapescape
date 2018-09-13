@@ -1,6 +1,7 @@
 import noiseUtils from './noiseutils';
 import { randItem, randomInRange, setAttrs, resetTransform, rotateCanvas, getGradientFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
+import { drawStack } from './stacks';
 import { defineNest, generateNestDef, drawNest } from './nests';
 
 // Creates a function that returns a different random entry
@@ -49,8 +50,8 @@ const DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     fillStyle: null, // null for auto, ['solid', 'gradient']
-    nest: true,
-    stack: false,
+    nest: false,
+    stack: true,
     fancy: true, // forces auto fanciness
     multiMask: false, // draw multiple masks
     clear: true
@@ -214,24 +215,6 @@ function shapestack(options) {
     stackA.push([levelA, h * 1.5]);
     stackB.push([levelB, h * 1.5]);
 
-    var gray;
-    function drawStack(stack, x, palette) {
-        stack.forEach(function(y, i) {
-            if (palette === 'gray') {
-                gray = randomInRange(0.55, 0.85);
-                ctx.fillStyle = 'rgba(0, 0, 0,' + (i + 1) * gray / stackSize + ')';
-            } else {
-                ctx.fillStyle = opts.getColor(ctx, w, y[1] - y[0]);
-            }
-
-            ctx.beginPath();
-            ctx.rect(x, y[0], x + w, y[1] - y[0]);
-            ctx.closePath();
-
-            ctx.fill();
-        });
-    }
-
 
     let nestCount = Math.round(randomInRange(1,3));
     let nests = [];
@@ -244,8 +227,8 @@ function shapestack(options) {
         rotateCanvas(ctx, w, h, tilt);
 
         // Draw stacks with gray
-        drawStack(stackA, -w / 4, 'gray');
-        drawStack(stackB, w / 2, 'gray');
+        drawStack(ctx, stackA, -w / 4, w, null);
+        drawStack(ctx, stackB, w / 2, w, null);
 
         // un-rotate to draw main shape
         resetTransform(ctx);
@@ -297,8 +280,8 @@ function shapestack(options) {
         // rotate the canvas before drawing stacks
         rotateCanvas(ctx, w, h, tilt);
         // draw color stacks in mask
-        drawStack(stackA, -w / 4, opts.palette);
-        drawStack(stackB, w / 2, opts.palette);
+        drawStack(ctx, stackA, -w / 4, w, opts.getColor);
+        drawStack(ctx, stackB, w / 2, w, opts.getColor);
 
         if (['box', 'ring'].indexOf(shape) === -1) {
             // vertical pin
