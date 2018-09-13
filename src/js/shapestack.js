@@ -183,38 +183,31 @@ function shapestack(options) {
     // and then only some of the time
     var tilt = 0;
     if (opts.skew && Math.random() > 0.25) {
-        tilt = randomInRange(0, 6.28);
+        tilt = randomInRange(0, Math.PI * 2);
     }
 
     // pick depth of stack
-    var stackSize = randomInRange(1, 4);
-    var heightA = h * randomInRange(0.4, 0.7);
+    var stackSize = Math.round(randomInRange(1, 4));
+    var heightA = h * randomInRange(0.4, 0.6);
     var heightB = heightA * randomInRange(0.95, 1.05);
 
-    var stackA = [];
-    var stackB = [];
-
-    var levelA = h - heightA;
-    var levelB = h - heightB;
-
-    var block;
-
-    var i = 1;
-    var blockH;
-    while (i++ <= stackSize) {
-        blockH = heightA / stackSize;
-        block = [levelA, levelA + randomInRange(0.25 * blockH, blockH)];
-        levelA = block[1];
-        stackA.push(block);
-
-        blockH = heightB / stackSize;
-        block = [levelB, levelB + randomInRange(0.25 * blockH, blockH)];
-        levelB = block[1];
-        stackB.push(block);
+    function createStack (start, end , steps=2) {
+        let step = (end - start) / steps;
+        let stack = [];
+        let y = start;
+        let block;
+        while (steps) {
+            block = [y, y + step * randomInRange(0.25, 1)];
+            y = block[1];
+            stack.push(block);
+            steps--;
+        }
+        stack.push([y, end * 1.5]); // tack on an end block to bleed off canvas
+        return stack;
     }
-    stackA.push([levelA, h * 1.5]);
-    stackB.push([levelB, h * 1.5]);
 
+    let stackA = createStack(heightA, h, stackSize);
+    let stackB = createStack(heightB, h, stackSize);
 
     let nestCount = Math.round(randomInRange(1,3));
     let nests = [];
