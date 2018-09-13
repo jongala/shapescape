@@ -1,7 +1,7 @@
 import noiseUtils from './noiseutils';
 import { randItem, randomInRange, setAttrs, resetTransform, rotateCanvas, getGradientFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
-import { defineNest, generateNestDef } from './nests';
+import { defineNest, generateNestDef, drawNest } from './nests';
 
 // Creates a function that returns a different random entry
 // from @palette each time it is called.
@@ -233,44 +233,9 @@ function shapestack(options) {
     }
 
 
-    let nestRenderDefaults = {
-        palette: ['#000','#333','#666','#999'],
-        alpha: 1,
-        blendMode: 'normal'
-    }
-
-    let drawNest = (ctx, nest, palette, o) => {
-        o = Object.assign(nestRenderDefaults, o);
-        resetTransform(ctx);
-        let getColor = colorFuncs[fillStyle](palette);
-        let ctxBlend = ctx.globalCompositeOperation;
-        let ctxAlpha = ctx.globalAlpha;
-
-        ctx.globalCompositeOperation = o.blendMode;
-        ctx.globalAlpha = o.alpha;
-
-        nest.forEach((n) => {
-            nestRenderer(ctx, n.x, n.y, n.size,
-                {
-                    fill: getColor(ctx, n.size, n.size),
-                    angle: n.angle
-                }
-            );
-        });
-
-        ctx.globalCompositeOperation = ctxBlend;
-        ctx.globalAlpha = ctxAlpha;
-
-        resetTransform(ctx);
-    }
-
-
-    let nestOpts = generateNestDef(w, h, scale);
-    let nest = defineNest(nestOpts);
-
     let nestCount = Math.round(randomInRange(1,3));
     let nests = [];
-    for (let i=0; i<nestCount; i++) {
+    for (let i = 0; i < nestCount; i++) {
         nests.push(defineNest(generateNestDef(w, h, scale)));
     }
 
@@ -288,10 +253,13 @@ function shapestack(options) {
 
     if (willDrawNest) {
         // draw Nest
-        //drawNest(ctx, nest, grays, {});
         nests.forEach((n) => {
-            console.log('draw bg nest');
-            drawNest(ctx, n, grays, {});
+            drawNest(ctx,
+                n,
+                nestRenderer,
+                colorFuncs[fillStyle](grays),
+                {}
+            );
         })
     }
 
@@ -356,14 +324,13 @@ function shapestack(options) {
 
     if (willDrawNest) {
         // draw color Nest in front of color stack
-        //drawNest(ctx, nest, opts.palette, {});
         nests.forEach((n) => {
             console.log('draw fg nest');
-            drawNest(ctx, n, opts.palette, {});
+            drawNest(ctx, n, nestRenderer, opts.getColor, {});
         })
 
         // draw a line from nest center thru the mask center and beyond
-        let m = (nestOpts.y - maskY) / (nestOpts.x - maskX);
+        /*let m = (nestOpts.y - maskY) / (nestOpts.x - maskX);
         let theta = Math.atan(m);
         if (nestOpts.x > maskX) {
             theta += Math.PI;
@@ -377,7 +344,7 @@ function shapestack(options) {
             nestOpts.y + R * Math.sin(theta));
         ctx.closePath();
         ctx.strokeStyle = 'rgba(0, 0, 0, 0.33)';
-        ctx.stroke();
+        ctx.stroke();*/
     }
 
     // unclip
