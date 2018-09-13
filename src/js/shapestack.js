@@ -325,26 +325,39 @@ function shapestack(options) {
     if (willDrawNest) {
         // draw color Nest in front of color stack
         nests.forEach((n) => {
-            console.log('draw fg nest');
             drawNest(ctx, n, nestRenderer, opts.getColor, {});
         })
 
+        // draw connecting lines.
+        // With a single nest, connect nest center to mask center
+        // With multiple nests, connect nest 1 to nest 2
+        let c1 = {x:0, y:0};
+        let c2 = {x:0, y:0};
+        if (nests.length === 1) {
+            c1 = {x: maskX, y: maskY};
+            c2 = nests[0][0];
+        } else {
+            c1 = nests[nests.length - 2][0];
+            c2 = nests[nests.length - 1][0];
+        }
+
         // draw a line from nest center thru the mask center and beyond
-        /*let m = (nestOpts.y - maskY) / (nestOpts.x - maskX);
+        // nest is c2, mask is c1
+        let m = (c2.y - c1.y) / (c2.x - c1.x);
         let theta = Math.atan(m);
-        if (nestOpts.x > maskX) {
+        if (c2.x > c1.x) {
             theta += Math.PI;
         }
         // oughtta be enough
         let R = w + h;
 
         ctx.beginPath();
-        ctx.moveTo(nestOpts.x, nestOpts.y);
-        ctx.lineTo(nestOpts.x + R * Math.cos(theta),
-            nestOpts.y + R * Math.sin(theta));
+        ctx.moveTo(c2.x, c2.y);
+        ctx.lineTo(c2.x + R * Math.cos(theta),
+            c2.y + R * Math.sin(theta));
         ctx.closePath();
         ctx.strokeStyle = 'rgba(0, 0, 0, 0.33)';
-        ctx.stroke();*/
+        ctx.stroke();
     }
 
     // unclip
