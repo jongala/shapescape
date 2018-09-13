@@ -1,6 +1,8 @@
 import noiseUtils from './noiseutils';
 import { randItem, randomInRange, setAttrs, resetTransform, rotateCanvas, getGradientFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
+import { createStack, drawStack } from './stacks';
+import { defineNest, generateNestDef, drawNest } from './nests';
 
 // Creates a function that returns a different random entry
 // from @palette each time it is called.
@@ -129,13 +131,11 @@ function shapestack(options) {
     // Default behavior is to randomly choose fancy
     if (fancy === null || fancy === undefined) {
         fancy = (Math.random() > 0.5);
-        if (fancy) {
-            drawShadows = true;
-            fillStyle = 'gradient';
-        } else {
-            drawShadows = false;
-            fillStyle = 'solid';
-        }
+    }
+
+    if (fancy) {
+        drawShadows = true;
+        fillStyle = 'gradient';
     }
 
     // Set up color fill style
@@ -153,6 +153,7 @@ function shapestack(options) {
 
 
     // BEGIN RENDERING
+    // ======================================
 
     // draw background/sky
     var sky = Math.round(randomInRange(204, 245)).toString(16);
@@ -183,133 +184,34 @@ function shapestack(options) {
     // and then only some of the time
     var tilt = 0;
     if (opts.skew && Math.random() > 0.25) {
-        tilt = randomInRange(0, 6.28);
+        tilt = randomInRange(0, Math.PI * 2);
     }
 
     // pick depth of stack
-    var stackSize = randomInRange(1, 4);
-    var heightA = h * randomInRange(0.4, 0.7);
+    var stackSize = Math.round(randomInRange(1, 4));
+    var heightA = h * randomInRange(0.4, 0.6);
     var heightB = heightA * randomInRange(0.95, 1.05);
+    // define stacks
+    let stackA = createStack(heightA, h, stackSize);
+    let stackB = createStack(heightB, h, stackSize);
 
-    var stackA = [];
-    var stackB = [];
-
-    var levelA = h - heightA;
-    var levelB = h - heightB;
-
-    var block;
-
-    var i = 1;
-    var blockH;
-    while (i++ <= stackSize) {
-        blockH = heightA / stackSize;
-        block = [levelA, levelA + randomInRange(0.25 * blockH, blockH)];
-        levelA = block[1];
-        stackA.push(block);
-
-        blockH = heightB / stackSize;
-        block = [levelB, levelB + randomInRange(0.25 * blockH, blockH)];
-        levelB = block[1];
-        stackB.push(block);
-    }
-    stackA.push([levelA, h * 1.5]);
-    stackB.push([levelB, h * 1.5]);
-
-    var gray;
-    function drawStack(stack, x, palette) {
-        stack.forEach(function(y, i) {
-            if (palette === 'gray') {
-                gray = randomInRange(0.55, 0.85);
-                ctx.fillStyle = 'rgba(0, 0, 0,' + (i + 1) * gray / stackSize + ')';
-            } else {
-                ctx.fillStyle = opts.getColor(ctx, w, y[1] - y[0]);
-            }
-
-            ctx.beginPath();
-            ctx.rect(x, y[0], x + w, y[1] - y[0]);
-            ctx.closePath();
-
-            ctx.fill();
-        });
+    // pick nest count, and define nests
+    let nestCount = Math.round(randomInRange(1,3));
+    let nests = [];
+    for (let i = 0; i < nestCount; i++) {
+        nests.push(defineNest(generateNestDef(w, h, scale)));
     }
 
-    let nestDefaults = {
-        x: 0,
-        y: 0,
-        minSize: 200,
-        maxSize: 400,
-        steps: 4,
-        jitter: 0.1,
-        angle: 0
-    }
-    let nestRenderDefaults = {
-        palette: ['#000','#333','#666','#999'],
-        alpha: 1,
-        blendMode: 'normal'
-    }
-    let defineNest = (o) => {
-        o = Object.assign(nestDefaults, o);
-        let stepSize = (o.maxSize - o.minSize) / o.steps;
-        let i = o.steps;
-        let j = 1;
-        let nest = [];
-        let step; // the actual step size in px
-
-        while (i--) {
-            step = stepSize * (1 + randomInRange(-o.jitter, + o.jitter));
-            nest.push({
-                x: o.x,
-                y: o.y,
-                size: (o.maxSize - j * step)/2,
-                angle: o.angle
-            });
-            j++;
-        }
-        return nest;
-    }
-    let drawNest = (ctx, nest, palette, o) => {
-        o = Object.assign(nestRenderDefaults, o);
-        resetTransform(ctx);
-        let getColor = colorFuncs[fillStyle](palette);
-        let ctxBlend = ctx.globalCompositeOperation;
-        let ctxAlpha = ctx.globalAlpha;
-
-        ctx.globalCompositeOperation = o.blendMode;
-        ctx.globalAlpha = o.alpha;
-
-        nest.forEach((n) => {
-            nestRenderer(ctx, n.x, n.y, n.size,
-                {
-                    fill: getColor(ctx, n.size, n.size),
-                    angle: n.angle
-                }
-            );
-        });
-
-        ctx.globalCompositeOperation = ctxBlend;
-        ctx.globalAlpha = ctxAlpha;
-
-        resetTransform(ctx);
-    }
-
-    let nestOpts = {
-        x: randomInRange(w * 0.1, w * 0.9),
-        y: randomInRange(w * 0.1, w * 0.9),
-        maxSize: scale * randomInRange(1, 2),
-        minSize: scale * randomInRange(0.25, 0.75),
-        steps: Math.floor(randomInRange(3, 7)),
-        angle: randomInRange(0, Math.PI/4)
-    };
-
-    let nest = defineNest(nestOpts);
+    // now draw background according to style directives
+    // --------------------------------------
 
     if (willDrawStack) {
         // rotate the canvas before drawing stacks
         rotateCanvas(ctx, w, h, tilt);
 
         // Draw stacks with gray
-        drawStack(stackA, -w / 4, 'gray');
-        drawStack(stackB, w / 2, 'gray');
+        drawStack(ctx, stackA, -w / 4, w, null);
+        drawStack(ctx, stackB, w / 2, w, null);
 
         // un-rotate to draw main shape
         resetTransform(ctx);
@@ -317,7 +219,14 @@ function shapestack(options) {
 
     if (willDrawNest) {
         // draw Nest
-        drawNest(ctx, nest, grays, {});
+        nests.forEach((n) => {
+            drawNest(ctx,
+                n,
+                nestRenderer,
+                colorFuncs[fillStyle](grays),
+                {}
+            );
+        })
     }
 
 
@@ -350,16 +259,18 @@ function shapestack(options) {
     // clip mask
     ctx.clip();
 
+    // Draw color stacks or nests inside the mask
+
     if (willDrawStack) {
         // rotate the canvas before drawing stacks
         rotateCanvas(ctx, w, h, tilt);
         // draw color stacks in mask
-        drawStack(stackA, -w / 4, opts.palette);
-        drawStack(stackB, w / 2, opts.palette);
+        drawStack(ctx, stackA, -w / 4, w, opts.getColor);
+        drawStack(ctx, stackB, w / 2, w, opts.getColor);
 
+        // draw vertical pin in solid shapes
         if (['box', 'ring'].indexOf(shape) === -1) {
-            // vertical pin
-            var nudge = heightA > heightB ? -0.5 : 0.5;
+            let nudge = heightA > heightB ? -0.5 : 0.5;
             ctx.globalAlpha = 0.3;
             ctx.lineWidth = 1;
 
@@ -381,21 +292,36 @@ function shapestack(options) {
 
     if (willDrawNest) {
         // draw color Nest in front of color stack
-        drawNest(ctx, nest, opts.palette, {});
+        nests.forEach((n) => {
+            drawNest(ctx, n, nestRenderer, opts.getColor, {});
+        })
 
-        // draw a line from nest center thru the mask center and beyond
-        let m = (nestOpts.y - maskY) / (nestOpts.x - maskX);
+        // Draw connecting lines.
+        // With a single nest, connect nest center to mask center.
+        // With multiple nests, connect last nest to previous nest
+        let c1 = {x:0, y:0};
+        let c2 = {x:0, y:0};
+        if (nests.length === 1) {
+            c1 = {x: maskX, y: maskY};
+            c2 = nests[0][0];
+        } else {
+            c1 = nests[nests.length - 2][0];
+            c2 = nests[nests.length - 1][0];
+        }
+
+        // define the line
+        let m = (c2.y - c1.y) / (c2.x - c1.x);
         let theta = Math.atan(m);
-        if (nestOpts.x > maskX) {
+        if (c2.x > c1.x) {
             theta += Math.PI;
         }
-        // oughtta be enough
+        // extend it. This oughtta be enough.
         let R = w + h;
 
         ctx.beginPath();
-        ctx.moveTo(nestOpts.x, nestOpts.y);
-        ctx.lineTo(nestOpts.x + R * Math.cos(theta),
-            nestOpts.y + R * Math.sin(theta));
+        ctx.moveTo(c2.x, c2.y);
+        ctx.lineTo(c2.x + R * Math.cos(theta),
+            c2.y + R * Math.sin(theta));
         ctx.closePath();
         ctx.strokeStyle = 'rgba(0, 0, 0, 0.33)';
         ctx.stroke();
@@ -408,14 +334,13 @@ function shapestack(options) {
     resetTransform(ctx);
 
 
-    // add a pin shadow if it's an open shape or nest
+    // add a border if it's an open shape or nest
     if ( !drawShadows &&
-        ( nest || ['box', 'ring'].indexOf(shape) >= 0 ) ){
+        ( willDrawNest || ['box', 'ring'].indexOf(shape) >= 0 ) ){
         ctx.globalCompositeOperation = 'multiply';
         renderer(ctx, w / 2, maskY, maskSize, { fill: 'transparent', stroke:'#808080' });
         ctx.globalCompositeOperation = 'normal';
     }
-
 
 
 
