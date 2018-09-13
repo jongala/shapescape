@@ -129,13 +129,11 @@ function shapestack(options) {
     // Default behavior is to randomly choose fancy
     if (fancy === null || fancy === undefined) {
         fancy = (Math.random() > 0.5);
-        if (fancy) {
-            drawShadows = true;
-            fillStyle = 'gradient';
-        } else {
-            drawShadows = false;
-            fillStyle = 'solid';
-        }
+    }
+
+    if (fancy) {
+        drawShadows = true;
+        fillStyle = 'gradient';
     }
 
     // Set up color fill style
