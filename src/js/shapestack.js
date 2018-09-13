@@ -1,7 +1,7 @@
 import noiseUtils from './noiseutils';
 import { randItem, randomInRange, setAttrs, resetTransform, rotateCanvas, getGradientFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
-import { drawStack } from './stacks';
+import { createStack, drawStack } from './stacks';
 import { defineNest, generateNestDef, drawNest } from './nests';
 
 // Creates a function that returns a different random entry
@@ -153,6 +153,7 @@ function shapestack(options) {
 
 
     // BEGIN RENDERING
+    // ======================================
 
     // draw background/sky
     var sky = Math.round(randomInRange(204, 245)).toString(16);
@@ -190,30 +191,19 @@ function shapestack(options) {
     var stackSize = Math.round(randomInRange(1, 4));
     var heightA = h * randomInRange(0.4, 0.6);
     var heightB = heightA * randomInRange(0.95, 1.05);
-
-    function createStack (start, end , steps=2) {
-        let step = (end - start) / steps;
-        let stack = [];
-        let y = start;
-        let block;
-        while (steps) {
-            block = [y, y + step * randomInRange(0.25, 1)];
-            y = block[1];
-            stack.push(block);
-            steps--;
-        }
-        stack.push([y, end * 1.5]); // tack on an end block to bleed off canvas
-        return stack;
-    }
-
+    // define stacks
     let stackA = createStack(heightA, h, stackSize);
     let stackB = createStack(heightB, h, stackSize);
 
+    // pick nest count, and define nests
     let nestCount = Math.round(randomInRange(1,3));
     let nests = [];
     for (let i = 0; i < nestCount; i++) {
         nests.push(defineNest(generateNestDef(w, h, scale)));
     }
+
+    // now draw background according to style directives
+    // --------------------------------------
 
     if (willDrawStack) {
         // rotate the canvas before drawing stacks
@@ -269,6 +259,8 @@ function shapestack(options) {
     // clip mask
     ctx.clip();
 
+    // Draw color stacks or nests inside the mask
+
     if (willDrawStack) {
         // rotate the canvas before drawing stacks
         rotateCanvas(ctx, w, h, tilt);
@@ -276,9 +268,9 @@ function shapestack(options) {
         drawStack(ctx, stackA, -w / 4, w, opts.getColor);
         drawStack(ctx, stackB, w / 2, w, opts.getColor);
 
+        // draw vertical pin in solid shapes
         if (['box', 'ring'].indexOf(shape) === -1) {
-            // vertical pin
-            var nudge = heightA > heightB ? -0.5 : 0.5;
+            let nudge = heightA > heightB ? -0.5 : 0.5;
             ctx.globalAlpha = 0.3;
             ctx.lineWidth = 1;
 
@@ -304,9 +296,9 @@ function shapestack(options) {
             drawNest(ctx, n, nestRenderer, opts.getColor, {});
         })
 
-        // draw connecting lines.
-        // With a single nest, connect nest center to mask center
-        // With multiple nests, connect nest 1 to nest 2
+        // Draw connecting lines.
+        // With a single nest, connect nest center to mask center.
+        // With multiple nests, connect last nest to previous nest
         let c1 = {x:0, y:0};
         let c2 = {x:0, y:0};
         if (nests.length === 1) {
@@ -317,14 +309,13 @@ function shapestack(options) {
             c2 = nests[nests.length - 1][0];
         }
 
-        // draw a line from nest center thru the mask center and beyond
-        // nest is c2, mask is c1
+        // define the line
         let m = (c2.y - c1.y) / (c2.x - c1.x);
         let theta = Math.atan(m);
         if (c2.x > c1.x) {
             theta += Math.PI;
         }
-        // oughtta be enough
+        // extend it. This oughtta be enough.
         let R = w + h;
 
         ctx.beginPath();
