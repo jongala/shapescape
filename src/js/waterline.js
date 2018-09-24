@@ -112,8 +112,99 @@ function clipInWaterline(ctx, y1, c1, c2, y2, w, h, renderFunc) {
     ctx.restore();
 }
 
-// draw it!
-function waterline(options) {
+
+let renderMap = {
+    circle: drawCircle,
+    ring: drawRing,
+    triangle: drawTriangle,
+    square: drawSquare,
+    box: drawBox,
+    rect: drawRect,
+    pentagon: drawPentagon,
+    hexagon: drawHexagon
+};
+
+let SCHEMA = {
+        shapeName: '',
+        shapeY: 0,
+        shapeSize: 0,
+        shapeMagnified: 0,
+        shapeAngle: 0,
+        shapeFill: {},
+        underwaterShapeAlpha: 1,
+        backgroundOffset: 0,
+
+        surfaceLine: {
+            fill: {},
+            backAlpha: 1,
+            backOffset: 0,
+            backLine: [0, 0, 0, 0],
+            frontLine: [0, 0, 0, 0]
+        },
+        sunBeams: {
+            alpha: 1,
+            beams: [0, 0]
+        },
+
+        waveSet: [
+            {
+                gradient: {start: [0,0], end: [0,0]},
+                position: [0, 0, 0, 0],
+                alpha: 1
+            }
+        ],
+
+        edgeThickness: 0,
+        edgeAlpha: 1,
+
+        spots: [{
+            x: 0,
+            y: 0,
+            r: 1,
+            alpha: 1
+        }]
+
+};
+
+let checkDef = (def, schema) => {
+    let defKeys = Object.keys(def);
+    let schemaKeys = Object.keys(schema);
+    let missingKeys = [];
+    schemaKeys.map((k)=>{
+        if (!defKeys.includes(k)) missingKeys.push(k);
+    })
+    return missingKeys;
+}
+
+// Create a waterline definition from a set of input @options.
+// Eventually, this should be a JSON object that fully describes
+// a graphic's appearance, with some secondary randomness.
+export function defineWaterline(options) {
+
+    let shapes = Object.keys(renderMap);
+    // shuffle shape list and pick a shape
+    shapes.sort(function(a, b) {
+        return randomInRange(-1, 1);
+    });
+
+    // skeleton of a waterline def
+    let def = {
+        shapeName: shapes[0],
+    }
+
+    console.log('def', def);
+    console.log('missing:', checkDef(def, SCHEMA));
+
+    return def;
+}
+
+
+
+
+// Draw a waterline, given a @def and rendering @options.
+// Eventually, @options should contain only the target element, height, and
+// width, while @def determines what is drawn in that space
+export function drawWaterline(def, options) {
     var defaults = {
         container: 'body',
         palette: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
@@ -158,19 +249,6 @@ function waterline(options) {
         ctx.clearRect(0, 0, w, h);
     }
 
-    var renderer;
-    var renderMap = {
-        circle: drawCircle,
-        ring: drawRing,
-        triangle: drawTriangle,
-        square: drawSquare,
-        box: drawBox,
-        rect: drawRect,
-        pentagon: drawPentagon,
-        hexagon: drawHexagon
-    };
-    var shapes = Object.keys(renderMap);
-
     // BEGIN RENDERING
 
     if (opts.drawShadows) {
@@ -181,17 +259,14 @@ function waterline(options) {
     ctx.fillStyle = getFill(ctx, opts.palette, 0, 0, h, opts.skew);
     ctx.fillRect(0, 0, w, h);
 
-    // shuffle shape list and pick a shape
-    shapes.sort(function(a, b) {
-        return randomInRange(-1, 1);
-    });
-    renderer = renderMap[shapes[0]];
+
+    let renderer = renderMap[def.shapeName];
 
     // pick centerpoint for shape
     var shapeX = w / 2;
     var shapeY = h * randomInRange(0.4, 0.6);
     var shapeSize = Math.min(w, h) * randomInRange(0.25, 0.4);
-    if (shapes[0] === 'rect') {
+    if (def.shapeName === 'rect') {
         // bump up size of rectangles
         shapeSize *= 1.2;
     }
@@ -407,5 +482,8 @@ function waterline(options) {
     }
 }
 
-// export
-export default waterline;
+// This wrapper function replaces the old single-function rendering pipeline,
+// where you input rendering @options and get a surprise graphic.
+export function waterline(options) {
+    drawWaterline(defineWaterline(options), options)
+}

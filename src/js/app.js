@@ -2,7 +2,7 @@ import '../css/style.css';
 
 import noiseUtils from './noiseutils';
 import colorbrewer from './colorbrewer';
-import waterline from './waterline';
+import { waterline } from './waterline';
 import shapestack from './shapestack';
 import shapescape from './shapescape';
 import lines from './lines';
