@@ -112,7 +112,7 @@ function clipInWaterline(ctx, y1, c1, c2, y2, w, h, renderFunc) {
     ctx.restore();
 }
 
-
+// Map shape names to drawing functions
 let renderMap = {
     circle: drawCircle,
     ring: drawRing,
@@ -124,6 +124,9 @@ let renderMap = {
     hexagon: drawHexagon
 };
 
+// For dev use:
+// A descriptor of what we think a complete schema should look like.
+// Compare structure with the def object produced by defineWaterline().
 let SCHEMA = {
         shapeName: '',
         shapeY: 0,
@@ -187,9 +190,26 @@ export function defineWaterline(options) {
         return randomInRange(-1, 1);
     });
 
+    // Set up container values that determine sizes and coordinates
+    var container = options.container;
+    var w = container.offsetWidth;
+    var h = container.offsetHeight;
+
+    // temp vars which are used in multiple attributes
+    let _shapeSize = Math.min(w,h) * randomInRange(0.25, 0.4);
+
+
     // skeleton of a waterline def
     let def = {
         shapeName: shapes[0],
+        shapeX: w/2,
+        shapeY: h * randomInRange(0.4, 0.6),
+        shapeSize: _shapeSize,
+        shapeMagnified: _shapeSize + Math.min(w,h) / randomInRange(50, 80),
+        // Rotate shape. Not all renderers will use this.
+        shapeAngle: randomInRange(-Math.PI/12, Math.PI/12),
+        // (shapeFill)
+        underwaterShapeAlpha: randomInRange(0.2, 1)
     }
 
     console.log('def', def);
@@ -263,19 +283,15 @@ export function drawWaterline(def, options) {
     let renderer = renderMap[def.shapeName];
 
     // pick centerpoint for shape
-    var shapeX = w / 2;
-    var shapeY = h * randomInRange(0.4, 0.6);
-    var shapeSize = Math.min(w, h) * randomInRange(0.25, 0.4);
+
     if (def.shapeName === 'rect') {
         // bump up size of rectangles
-        shapeSize *= 1.2;
+        def.shapeSize *= 1.2;
+        def.shapeMagnified *= 1.2;
     }
-    var shapeMagnified = shapeSize + Math.min(w, h) / randomInRange(50, 80);
-    // Rotate shape. Not all renderers will use this.
-    var shapeAngle = randomInRange(-Math.PI / 12, Math.PI / 12);
 
     // Create a fill we will reuse for both renderings of the shape
-    var shapeFill = getFill(ctx, opts.palette, shapeX, shapeY, shapeSize, 0);
+    var shapeFill = getFill(ctx, opts.palette, def.shapeX, def.shapeY, def.shapeSize, 0);
 
     // Prepare main waterlines
     var wl; // left waterline
@@ -310,9 +326,9 @@ export function drawWaterline(def, options) {
     ctx.globalAlpha = 1;
 
     // Draw the shape above waterline
-    renderer(ctx, shapeX, shapeY, shapeSize, {
+    renderer(ctx, def.shapeX, def.shapeY, def.shapeSize, {
         fill: shapeFill,
-        angle: shapeAngle
+        angle: def.shapeAngle
     });
 
     // Draw main foreground waterline. We will reuse these params
@@ -363,11 +379,11 @@ export function drawWaterline(def, options) {
         // for the liquid magnification effect. Fade it out to get different
         // apparent depth and clarity in liquid.
         ctx.globalCompositeOperation = 'normal';
-        ctx.globalAlpha = randomInRange(0.2, 1);
+        ctx.globalAlpha = def.underwaterShapeAlpha;
         addShadow(ctx, w, h);
-        renderer(ctx, shapeX, shapeY, shapeMagnified, {
+        renderer(ctx, def.shapeX, def.shapeY, def.shapeMagnified, {
             fill: shapeFill,
-            angle: shapeAngle
+            angle: def.shapeAngle
         });
 
         // Function to batch create sets of wavy lines under the water
