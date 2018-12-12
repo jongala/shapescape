@@ -1,5 +1,6 @@
 import noiseUtils from './noiseutils';
 import { randItem, randomInRange, setAttrs } from './utils';
+import { defineFill, expandFill } from './colors';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
 /**
@@ -8,7 +9,8 @@ import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, draw
  * @param {array} palette an array of color values
  * @param  {num} x    center x of shape
  * @param  {num} y    center y of shape
- * @param  {num} size half the size of the shape (r for circle)
+ * @param  {num} size       half the size of the shape (r for circle)
+ * @param  {num} skew       scalar to offset endpoints left/right for angled gradient
  * @return {fillStyle}      a solid color or canvas gradient
  */
 function getFill(ctx, palette, x, y, size, skew) {
@@ -29,6 +31,26 @@ function getFill(ctx, palette, x, y, size, skew) {
         return grad;
     }
 }
+
+
+/**
+ * Define a fill, either in solid or gradients
+ * @param  {context} ctx  the canvas rendering context
+ * @param {array} palette an array of color values
+ * @param  {num} x    center x of shape
+ * @param  {num} y    center y of shape
+ * @param  {num} size       half the size of the shape (r for circle)
+ * @param  {num} skew       scalar to offset endpoints left/right for angled gradient
+ * @return {fillStyle}      a solid color or canvas gradient
+ */
+function getRandomFill(palette, x, y, size, skew = 0) {
+    let type = 'solid';
+    if (Math.random() < 0.9) {
+        type = 'linear';
+    }
+    return defineFill(type, palette, x, y, size, skew);
+}
+
 
 function drawWave(ctx, y1, c1, c2, y2, w, h, opts) {
     ctx.save();
@@ -124,6 +146,18 @@ let renderMap = {
     hexagon: drawHexagon
 };
 
+let DEFAULT_OPTIONS = {
+    container: 'body',
+    palette: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
+    drawShadows: true,
+    addNoise: 0.04,
+    noiseInput: null,
+    dust: false,
+    skew: 1, // normalized skew
+    clear: true
+};
+
+
 // For dev use:
 // A descriptor of what we think a complete schema should look like.
 // Compare structure with the def object produced by defineWaterline().
@@ -136,6 +170,7 @@ let SCHEMA = {
         shapeFill: {},
         underwaterShapeAlpha: 1,
         backgroundOffset: 0,
+        backgroundFill: {},
 
         surfaceLine: {
             fill: {},
@@ -183,7 +218,7 @@ let checkDef = (def, schema) => {
 // Eventually, this should be a JSON object that fully describes
 // a graphic's appearance, with some secondary randomness.
 export function defineWaterline(options) {
-
+    let opts = Object.assign({}, DEFAULT_OPTIONS, options);
     let shapes = Object.keys(renderMap);
     // shuffle shape list and pick a shape
     shapes.sort(function(a, b) {
@@ -191,25 +226,28 @@ export function defineWaterline(options) {
     });
 
     // Set up container values that determine sizes and coordinates
-    var container = options.container;
+    var container = opts.container;
     var w = container.offsetWidth;
     var h = container.offsetHeight;
 
     // temp vars which are used in multiple attributes
     let _shapeSize = Math.min(w,h) * randomInRange(0.25, 0.4);
-
+    let _shapeX = w/2;
+    let _shapeY = h * randomInRange(0.4, 0.6);
 
     // skeleton of a waterline def
     let def = {
         shapeName: shapes[0],
-        shapeX: w/2,
-        shapeY: h * randomInRange(0.4, 0.6),
+        shapeX: _shapeX,
+        shapeY: _shapeY,
         shapeSize: _shapeSize,
         shapeMagnified: _shapeSize + Math.min(w,h) / randomInRange(50, 80),
         // Rotate shape. Not all renderers will use this.
         shapeAngle: randomInRange(-Math.PI/12, Math.PI/12),
-        // (shapeFill)
-        underwaterShapeAlpha: randomInRange(0.2, 1)
+        shapeFill: getRandomFill(opts.palette, _shapeX, _shapeY, _shapeSize, opts.skew),
+        underwaterShapeAlpha: randomInRange(0.2, 1),
+
+        backgroundFill: getRandomFill(opts.palette, 0, 0, h, opts.skew)
     }
 
     console.log('def', def);
@@ -225,18 +263,7 @@ export function defineWaterline(options) {
 // Eventually, @options should contain only the target element, height, and
 // width, while @def determines what is drawn in that space
 export function drawWaterline(def, options) {
-    var defaults = {
-        container: 'body',
-        palette: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
-        drawShadows: true,
-        addNoise: 0.04,
-        noiseInput: null,
-        dust: false,
-        skew: 1, // normalized skew
-        clear: true
-    };
-    var opts = {};
-    opts = Object.assign(Object.assign(opts, defaults), options);
+    let opts = Object.assign({}, DEFAULT_OPTIONS, options);
 
     var container = options.container;
 
@@ -276,7 +303,7 @@ export function drawWaterline(def, options) {
     }
 
     // draw background/sky
-    ctx.fillStyle = getFill(ctx, opts.palette, 0, 0, h, opts.skew);
+    ctx.fillStyle = expandFill(ctx, def.backgroundFill);
     ctx.fillRect(0, 0, w, h);
 
 
@@ -291,7 +318,7 @@ export function drawWaterline(def, options) {
     }
 
     // Create a fill we will reuse for both renderings of the shape
-    var shapeFill = getFill(ctx, opts.palette, def.shapeX, def.shapeY, def.shapeSize, 0);
+    var shapeFill = expandFill(ctx, def.shapeFill);
 
     // Prepare main waterlines
     var wl; // left waterline
