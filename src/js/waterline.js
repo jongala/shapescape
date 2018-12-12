@@ -194,6 +194,7 @@ let SCHEMA = {
 
         edgeThickness: 0,
         edgeAlpha: 1,
+        edgeBlendStops: [0.25, 0.75], // left half, right half
 
         spots: [{
             x: 0,
@@ -249,7 +250,16 @@ export function defineWaterline(options) {
         shapeFill: getRandomFill(opts.palette, _shapeX, _shapeY, _shapeSize, opts.skew),
         underwaterShapeAlpha: randomInRange(0.2, 1),
 
-        backgroundFill: getRandomFill(opts.palette, 0, 0, h, opts.skew)
+        // sky fill
+        backgroundFill: getRandomFill(opts.palette, 0, 0, h, opts.skew),
+
+        // waves
+        backgroundOffset: h / randomInRange(40, 100), // offset between the two waterline waves
+
+        // edge
+        edgeThickness: h * 0.005 * Math.random() + 1.5,
+        edgeAlpha: randomInRange(0.1, 0.75),
+        edgeBlendStops: [randomInRange(0, 0.5), randomInRange(0.5, 1)],
     }
 
     console.log('def', def);
@@ -329,7 +339,6 @@ export function drawWaterline(def, options) {
     var wr; // right waterline
     var wtop; // the min of the waterline heights
     var wfill; // main waterline fill
-    var bgOffset; // offset of background waterline
 
     // Set waterline params for background renderin, and common fill
     wl = randomInRange(0.49, 0.51) * h;
@@ -341,13 +350,13 @@ export function drawWaterline(def, options) {
 
     // Draw background waterline at low opacity, slightly offset upward
     ctx.globalAlpha = randomInRange(0.2, 0.6);
-    bgOffset = h / randomInRange(40, 100);
+
     drawWave(
         ctx,
-        wr - bgOffset,
-        wc2 - bgOffset,
-        wc1 - bgOffset,
-        wl - bgOffset,
+        wr - def.backgroundOffset,
+        wc2 - def.backgroundOffset,
+        wc1 - def.backgroundOffset,
+        wl - def.backgroundOffset,
         w,
         h,
         Object.assign({ fill: wfill }, opts)
@@ -466,16 +475,16 @@ export function drawWaterline(def, options) {
         // At the top edge, use the main waterline points, then repeat the
         // curve going back to the left, slightly lower.  Fill with a light
         // gradient and blend over.
-        var edgeThickness = h * 0.005 * Math.random() + 1.5;
+        var edgeThickness = def.edgeThickness;
         var edgeFill = ctx.createLinearGradient(0, 0, w, 0);
         edgeFill.addColorStop(0, '#808080');
-        edgeFill.addColorStop(randomInRange(0, 0.5), '#fff');
-        edgeFill.addColorStop(randomInRange(0.5, 1), '#fff');
+        edgeFill.addColorStop(def.edgeBlendStops[0], '#fff');
+        edgeFill.addColorStop(def.edgeBlendStops[1], '#fff');
         edgeFill.addColorStop(1, '#808080');
 
         ctx.fillStyle = edgeFill;
         ctx.globalCompositeOperation = 'overlay';
-        ctx.globalAlpha = randomInRange(0.1, 0.75);
+        ctx.globalAlpha = def.edgeAlpha;
 
         ctx.beginPath();
         ctx.moveTo(0, wl);
