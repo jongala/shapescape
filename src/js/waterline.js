@@ -204,6 +204,8 @@ let SCHEMA = {
 
 };
 
+// Dev util: check a waterline def against the schema, and list any keys
+// not yet represented.  This doesn't check for correctness!!!
 let checkDef = (def, schema) => {
     let defKeys = Object.keys(def);
     let schemaKeys = Object.keys(schema);
