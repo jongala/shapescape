@@ -26,9 +26,25 @@ import { randItem, randomInRange } from './utils';
 //--------------------------------------
 
 let defineSolidFill = (palette) => {
-    return randItem(palette);
+    let f = {
+        type: 'solid',
+        params: {
+            color: randItem(palette)
+        }
+    }
+    return f;
 }
 
+/**
+ * Define a linear fill
+ * @param  {context} ctx  the canvas rendering context
+ * @param {array} palette an array of color values
+ * @param  {num} x    center x of shape
+ * @param  {num} y    center y of shape
+ * @param  {num} size       half the size of the shape (r for circle)
+ * @param  {num} skew       scalar to offset endpoints left/right for angled gradient
+ * @return {fillStyle}      a solid color or canvas gradient
+ */
 let defineLinearGradientFill = (palette, x, y, size, skew) => {
     let gradient = {
         type: 'linear',
@@ -48,6 +64,16 @@ let defineLinearGradientFill = (palette, x, y, size, skew) => {
 } 
 
 // generic fill definition function
+/**
+ * Get a fill, either in solid or gradients
+ * @param  {context} ctx  the canvas rendering context
+ * @param {array} palette an array of color values
+ * @param  {num} x    center x of shape
+ * @param  {num} y    center y of shape
+ * @param  {num} size       half the size of the shape (r for circle)
+ * @param  {num} skew       scalar to offset endpoints left/right for angled gradient
+ * @return {fillStyle}      a solid color or canvas gradient
+ */
 export function defineFill(type, palette, x, y, size, skew) {
     // create a fill object
     const fillGenerators = {
@@ -75,10 +101,15 @@ let gradientFromLinearDef = (ctx, gradientDef) => {
 export function expandFill (ctx, fill) {
     const fillFuncs = {
         'linear': gradientFromLinearDef,
-        'radial': (fill) => fill.params.color, // FIXME
-        'solid': (fill) => fill.params.color
+        'radial': (ctx, fill) => fill.params.color, // FIXME
+        'solid': (ctx, fill) => fill.params.color
     }
-    return fillFuncs[fill.type](ctx, fill);
+    if (fillFuncs[fill.type]) {
+        return fillFuncs[fill.type](ctx, fill);
+    } else {
+        console.error('Could not resolve fill', fill);
+        return '#808080';
+    }
 }
 
 
