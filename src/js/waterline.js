@@ -169,7 +169,6 @@ let SCHEMA = {
         shapeAngle: 0,
         shapeFill: {},
         underwaterShapeAlpha: 1,
-        backgroundOffset: 0,
         backgroundFill: {},
 
         surfaceLine: {
@@ -238,6 +237,22 @@ export function defineWaterline(options) {
     let _shapeX = w/2;
     let _shapeY = h * randomInRange(0.4, 0.6);
 
+    // waves
+    let _backLine = [
+        randomInRange(0.49, 0.51) * h,
+        randomInRange(0.48, 0.52) * h,
+        randomInRange(0.48, 0.52) * h,
+        randomInRange(0.49, 0.51) * h
+    ];
+    let _backTop = Math.min(_backLine[0], _backLine[3]);
+    let _frontLine = [
+        randomInRange(0.47, 0.52) * h,
+        randomInRange(0.45, 0.55) * h,
+        randomInRange(0.45, 0.55) * h,
+        randomInRange(0.47, 0.52) * h
+    ];
+    let _frontTop = Math.min(_frontLine[0], _frontLine[3]);
+
     // skeleton of a waterline def
     let def = {
         shapeName: shapes[0],
@@ -254,7 +269,13 @@ export function defineWaterline(options) {
         backgroundFill: getRandomFill(opts.palette, 0, 0, h, opts.skew),
 
         // waves
-        backgroundOffset: h / randomInRange(40, 100), // offset between the two waterline waves
+        surfaceLine: {
+            fill: getRandomFill(opts.palette, 0, _backTop, h - _backTop, 0),
+            backAlpha: randomInRange(0.2, 0.6),
+            backOffset: h / randomInRange(40, 100), // offset between the two waterline waves
+            backLine: _backLine,
+            frontLine: _frontLine
+        },
 
         // edge
         edgeThickness: h * 0.005 * Math.random() + 1.5,
@@ -333,30 +354,20 @@ export function drawWaterline(def, options) {
     var shapeFill = expandFill(ctx, def.shapeFill);
 
     // Prepare main waterlines
-    var wl; // left waterline
-    var wc1; // control point
-    var wc2; // control point
-    var wr; // right waterline
-    var wtop; // the min of the waterline heights
-    var wfill; // main waterline fill
 
     // Set waterline params for background renderin, and common fill
-    wl = randomInRange(0.49, 0.51) * h;
-    wc1 = randomInRange(0.48, 0.52) * h;
-    wc2 = randomInRange(0.48, 0.52) * h;
-    wr = randomInRange(0.49, 0.51) * h;
-    wtop = Math.min(wl, wr);
-    wfill = getFill(ctx, opts.palette, 0, wtop, h - wtop, 0);
+    let wfill = expandFill(ctx, def.surfaceLine.fill); // main waterline fill
 
     // Draw background waterline at low opacity, slightly offset upward
-    ctx.globalAlpha = randomInRange(0.2, 0.6);
+    ctx.globalAlpha = def.surfaceLine.backAlpha;
 
+    let backgroundOffset = def.surfaceLine.backOffset
     drawWave(
         ctx,
-        wr - def.backgroundOffset,
-        wc2 - def.backgroundOffset,
-        wc1 - def.backgroundOffset,
-        wl - def.backgroundOffset,
+        def.surfaceLine.backLine[0] - backgroundOffset,
+        def.surfaceLine.backLine[1] - backgroundOffset,
+        def.surfaceLine.backLine[2] - backgroundOffset,
+        def.surfaceLine.backLine[3] - backgroundOffset,
         w,
         h,
         Object.assign({ fill: wfill }, opts)
@@ -371,17 +382,12 @@ export function drawWaterline(def, options) {
 
     // Draw main foreground waterline. We will reuse these params
     // for clipping the underwater elements
-    wl = randomInRange(0.47, 0.52) * h;
-    wc1 = randomInRange(0.45, 0.55) * h;
-    wc2 = randomInRange(0.45, 0.55) * h;
-    wr = randomInRange(0.47, 0.52) * h;
-    wtop = Math.min(wl, wr);
     drawWave(
         ctx,
-        wl,
-        wc1,
-        wc2,
-        wr,
+        def.surfaceLine.frontLine[0],
+        def.surfaceLine.frontLine[1],
+        def.surfaceLine.frontLine[2],
+        def.surfaceLine.frontLine[3],
         w,
         h,
         Object.assign(
@@ -486,6 +492,8 @@ export function drawWaterline(def, options) {
         ctx.globalCompositeOperation = 'overlay';
         ctx.globalAlpha = def.edgeAlpha;
 
+        let [wl, wc1, wc2, wr] = def.surfaceLine.frontLine;
+
         ctx.beginPath();
         ctx.moveTo(0, wl);
         ctx.bezierCurveTo(w / 3, wc1 - 1, 2 * w / 3, wc2 - 1, w, wr);
@@ -511,7 +519,7 @@ export function drawWaterline(def, options) {
     }
 
     // Now render the above function inside the waterline clipping area
-    clipInWaterline(ctx, wl, wc1, wc2, wr, w, h, underwater);
+    clipInWaterline(ctx, ...def.surfaceLine.frontLine, w, h, underwater);
 
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'normal';
