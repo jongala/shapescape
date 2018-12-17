@@ -344,10 +344,13 @@ export function drawWaterline(def, options) {
 
     // pick centerpoint for shape
 
+    // since these may get modified, make local copies
+    let shapeSize = def.shapeSize;
+    let shapeMagnified = def.shapeMagnified;
     if (def.shapeName === 'rect') {
         // bump up size of rectangles
-        def.shapeSize *= 1.2;
-        def.shapeMagnified *= 1.2;
+        shapeSize *= 1.2;
+        shapeMagnified *= 1.2;
     }
 
     // Create a fill we will reuse for both renderings of the shape
@@ -375,7 +378,7 @@ export function drawWaterline(def, options) {
     ctx.globalAlpha = 1;
 
     // Draw the shape above waterline
-    renderer(ctx, def.shapeX, def.shapeY, def.shapeSize, {
+    renderer(ctx, def.shapeX, def.shapeY, shapeSize, {
         fill: shapeFill,
         angle: def.shapeAngle
     });
@@ -425,7 +428,7 @@ export function drawWaterline(def, options) {
         ctx.globalCompositeOperation = 'normal';
         ctx.globalAlpha = def.underwaterShapeAlpha;
         addShadow(ctx, w, h);
-        renderer(ctx, def.shapeX, def.shapeY, def.shapeMagnified, {
+        renderer(ctx, def.shapeX, def.shapeY, shapeMagnified, {
             fill: shapeFill,
             angle: def.shapeAngle
         });
