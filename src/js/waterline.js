@@ -286,6 +286,8 @@ export function defineWaterline(options) {
     console.log('def', def);
     console.log('missing:', checkDef(def, SCHEMA));
 
+    window.LASTDEF = def; // debug allow re-run
+
     return def;
 }
 

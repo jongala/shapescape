@@ -2,7 +2,7 @@ import '../css/style.css';
 
 import noiseUtils from './noiseutils';
 import colorbrewer from './colorbrewer';
-import { waterline } from './waterline';
+import { waterline, drawWaterline } from './waterline';
 import shapestack from './shapestack';
 import shapescape from './shapescape';
 import lines from './lines';
@@ -137,6 +137,12 @@ function createBatch(opts, N) {
     }
 }
 window.createBatch = createBatch;
+
+// HACK need universal store for def
+function rerun() {
+    drawWaterline(window.LASTDEF, visualOpts);
+}
+window.rerun = rerun;
 
 // Option sets:
 

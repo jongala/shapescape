@@ -12,6 +12,7 @@
         <select onchange="setPalette(this.value)" id="paletteSelector"></select>
         <button onclick="createBatch()" id="newBatchTrigger">New Batch</button>
         <input type="text" id="customColors" placeholder="paste colors" />
+        <button onclick="rerun()" id="rerunTrigger">ReRun</button>
         <a href="#" onclick="doDownload(this, document.querySelector('#example canvas').toDataURL());">↓</a>
     </div>
     <script type="text/javascript">
