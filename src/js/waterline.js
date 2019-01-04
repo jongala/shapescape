@@ -122,8 +122,8 @@ function removeShadow(ctx) {
 function clipInWaterline(ctx, y1, c1, c2, y2, w, h, renderFunc) {
     ctx.save();
     ctx.beginPath();
-    ctx.moveTo(0, y1);
-    ctx.bezierCurveTo(w / 3, c1, 2 * w / 3, c2, w, y2);
+    ctx.moveTo(0, y1 * h);
+    ctx.bezierCurveTo(w / 3, c1 * h, 2 * w / 3, c2 * h, w, y2 * h);
     ctx.lineTo(w, h);
     ctx.lineTo(0, h);
     ctx.clip();
@@ -231,6 +231,7 @@ export function defineWaterline(options) {
     var container = opts.container;
     var w = container.offsetWidth;
     var h = container.offsetHeight;
+    var SCALE = Math.min(w, h); // generalized size of the layout
 
     // temp vars which are used in multiple attributes
     let _shapeSize = Math.min(w,h) * randomInRange(0.25, 0.4);
@@ -239,27 +240,27 @@ export function defineWaterline(options) {
 
     // waves
     let _backLine = [
-        randomInRange(0.49, 0.51) * h,
-        randomInRange(0.48, 0.52) * h,
-        randomInRange(0.48, 0.52) * h,
-        randomInRange(0.49, 0.51) * h
+        randomInRange(0.49, 0.51),
+        randomInRange(0.48, 0.52),
+        randomInRange(0.48, 0.52),
+        randomInRange(0.49, 0.51)
     ];
     let _backTop = Math.min(_backLine[0], _backLine[3]);
     let _frontLine = [
-        randomInRange(0.47, 0.52) * h,
-        randomInRange(0.45, 0.55) * h,
-        randomInRange(0.45, 0.55) * h,
-        randomInRange(0.47, 0.52) * h
+        randomInRange(0.47, 0.52),
+        randomInRange(0.45, 0.55),
+        randomInRange(0.45, 0.55),
+        randomInRange(0.47, 0.52)
     ];
     let _frontTop = Math.min(_frontLine[0], _frontLine[3]);
 
     // skeleton of a waterline def
     let def = {
         shapeName: shapes[0],
-        shapeX: _shapeX,
-        shapeY: _shapeY,
-        shapeSize: _shapeSize,
-        shapeMagnified: _shapeSize + Math.min(w,h) / randomInRange(50, 80),
+        shapeX: _shapeX / w,
+        shapeY: _shapeY / h,
+        shapeSize: _shapeSize / SCALE,
+        shapeMagnified: (_shapeSize + SCALE / randomInRange(50, 80)) / SCALE,
         // Rotate shape. Not all renderers will use this.
         shapeAngle: randomInRange(-Math.PI/12, Math.PI/12),
         shapeFill: getRandomFill(opts.palette, _shapeX, _shapeY, _shapeSize, opts.skew),
@@ -304,6 +305,7 @@ export function drawWaterline(def, options) {
 
     var w = container.offsetWidth;
     var h = container.offsetHeight;
+    var SCALE = Math.min(w, h);
 
     // Find or create canvas child
     var el = container.querySelector('canvas');
@@ -369,10 +371,10 @@ export function drawWaterline(def, options) {
     let backgroundOffset = def.surfaceLine.backOffset
     drawWave(
         ctx,
-        def.surfaceLine.backLine[0] - backgroundOffset,
-        def.surfaceLine.backLine[1] - backgroundOffset,
-        def.surfaceLine.backLine[2] - backgroundOffset,
-        def.surfaceLine.backLine[3] - backgroundOffset,
+        h * def.surfaceLine.backLine[0] - backgroundOffset,
+        h * def.surfaceLine.backLine[1] - backgroundOffset,
+        h * def.surfaceLine.backLine[2] - backgroundOffset,
+        h * def.surfaceLine.backLine[3] - backgroundOffset,
         w,
         h,
         Object.assign({ fill: wfill }, opts)
@@ -380,7 +382,7 @@ export function drawWaterline(def, options) {
     ctx.globalAlpha = 1;
 
     // Draw the shape above waterline
-    renderer(ctx, def.shapeX, def.shapeY, shapeSize, {
+    renderer(ctx, def.shapeX * w, def.shapeY * h, shapeSize * SCALE, {
         fill: shapeFill,
         angle: def.shapeAngle
     });
@@ -389,10 +391,10 @@ export function drawWaterline(def, options) {
     // for clipping the underwater elements
     drawWave(
         ctx,
-        def.surfaceLine.frontLine[0],
-        def.surfaceLine.frontLine[1],
-        def.surfaceLine.frontLine[2],
-        def.surfaceLine.frontLine[3],
+        h* def.surfaceLine.frontLine[0],
+        h* def.surfaceLine.frontLine[1],
+        h* def.surfaceLine.frontLine[2],
+        h* def.surfaceLine.frontLine[3],
         w,
         h,
         Object.assign(
@@ -430,7 +432,7 @@ export function drawWaterline(def, options) {
         ctx.globalCompositeOperation = 'normal';
         ctx.globalAlpha = def.underwaterShapeAlpha;
         addShadow(ctx, w, h);
-        renderer(ctx, def.shapeX, def.shapeY, shapeMagnified, {
+        renderer(ctx, def.shapeX * w, def.shapeY * h, shapeMagnified * SCALE, {
             fill: shapeFill,
             angle: def.shapeAngle
         });
