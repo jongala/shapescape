@@ -6,7 +6,6 @@
 </head>
 <body>
     <h1 id="renderPickers"></h1>
-    <div id="example"></div>
     <div id="saved"><div id="instructions">[space] to redraw. Click image to add to tray. Click thumbnail to preview.</div></div>
     <div id="controls">
         <select onchange="setPalette(this.value)" id="paletteSelector"></select>
@@ -15,6 +14,9 @@
         <button onclick="rerun()" id="rerunTrigger">ReRun</button>
         <a href="#" onclick="doDownload(this, document.querySelector('#example canvas').toDataURL());">↓</a>
     </div>
+    <div id="example"></div>
+    <div id="re-tall" class="rerun"></div>
+    <div id="re-wide" class="rerun"></div>
     <script type="text/javascript">
     </script>
 </body>

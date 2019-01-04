@@ -82,6 +82,7 @@ document.addEventListener('keydown', function(e) {
         // space
         removePreview();
         requestAnimationFrame(loadOpts);
+        e.preventDefault();
         return false;
     } else if (kode === 27) {
         // ESC
@@ -141,6 +142,8 @@ window.createBatch = createBatch;
 // HACK need universal store for def
 function rerun() {
     drawWaterline(window.LASTDEF, visualOpts);
+    drawWaterline(window.LASTDEF, Object.assign({}, visualOpts, {container: document.querySelector('#re-tall')}) );
+    drawWaterline(window.LASTDEF, Object.assign({}, visualOpts, {container: document.querySelector('#re-wide')}) );
 }
 window.rerun = rerun;
 
