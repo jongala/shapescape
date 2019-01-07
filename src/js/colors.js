@@ -39,11 +39,11 @@ let defineSolidFill = (palette) => {
  * Define a linear fill
  * @param  {context} ctx  the canvas rendering context
  * @param {array} palette an array of color values
- * @param  {num} x    center x of shape
- * @param  {num} y    center y of shape
- * @param  {num} size       half the size of the shape (r for circle)
+ * @param  {num} x    center x of shape, normalized
+ * @param  {num} y    center y of shape, normalized
+ * @param  {num} size       half the size of the shape (r for circle), normalized
  * @param  {num} skew       scalar to offset endpoints left/right for angled gradient
- * @return {fillStyle}      a solid color or canvas gradient
+ * @return {fillStyle}      an object defining a linear gradient, to be processed by expandFill()
  */
 let defineLinearGradientFill = (palette, x, y, size, skew) => {
     let gradient = {
@@ -68,11 +68,11 @@ let defineLinearGradientFill = (palette, x, y, size, skew) => {
  * Get a fill, either in solid or gradients
  * @param  {context} ctx  the canvas rendering context
  * @param {array} palette an array of color values
- * @param  {num} x    center x of shape
- * @param  {num} y    center y of shape
- * @param  {num} size       half the size of the shape (r for circle)
+ * @param  {num} x    center x of shape, normalized
+ * @param  {num} y    center y of shape, normalized
+ * @param  {num} size       half the size of the shape (r for circle), normalized
  * @param  {num} skew       scalar to offset endpoints left/right for angled gradient
- * @return {fillStyle}      a solid color or canvas gradient
+ * @return {fillStyle}      a custom fill object to be processed by expandFill()
  */
 export function defineFill(type, palette, x, y, size, skew) {
     // create a fill object
@@ -90,24 +90,29 @@ export function defineFill(type, palette, x, y, size, skew) {
 //--------------------------------------
 
 
-let gradientFromLinearDef = (ctx, gradientDef) => {
-    let g = ctx.createLinearGradient(...gradientDef.params.coords);
+let gradientFromLinearDef = (ctx, gradientDef, w, h, scale) => {
+    let c = [...gradientDef.params.coords];
+    c[0] *= w;
+    c[1] *= h;
+    c[2] *= w;
+    c[3] *= h;
+    let g = ctx.createLinearGradient(...c);
     gradientDef.params.stops.forEach(s => g.addColorStop(...s));
     return g;
 }
 
 
 // outer expandFill converts a fill spec to a usable 2D context fill
-export function expandFill (ctx, fill) {
+export function expandFill (ctx, fill, w, h, scale) {
     const fillFuncs = {
         'linear': gradientFromLinearDef,
         'radial': (ctx, fill) => fill.params.color, // FIXME
         'solid': (ctx, fill) => fill.params.color
     }
     if (fillFuncs[fill.type]) {
-        return fillFuncs[fill.type](ctx, fill);
+        return fillFuncs[fill.type](ctx, fill, w, h, scale);
     } else {
-        console.error('Could not resolve fill', fill);
+        console.error('Could not resolve fill', fill, w, h, scale);
         return '#808080';
     }
 }

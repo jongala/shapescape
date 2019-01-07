@@ -3,35 +3,6 @@ import { randItem, randomInRange, setAttrs } from './utils';
 import { defineFill, expandFill } from './colors';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
-/**
- * Get a fill, either in solid or gradients
- * @param  {context} ctx  the canvas rendering context
- * @param {array} palette an array of color values
- * @param  {num} x    center x of shape
- * @param  {num} y    center y of shape
- * @param  {num} size       half the size of the shape (r for circle)
- * @param  {num} skew       scalar to offset endpoints left/right for angled gradient
- * @return {fillStyle}      a solid color or canvas gradient
- */
-function getFill(ctx, palette, x, y, size, skew) {
-    if (skew === undefined) {
-        skew = 0;
-    }
-    if (Math.random() > 0.9) {
-        // solid
-        return randItem(palette);
-    } else {
-        // gradient
-        // pick xoffset as fraction of size to get a shallow angle
-        var xoff = randomInRange(-skew / 2, skew / 2) * size;
-        // build gradient, add stops
-        var grad = ctx.createLinearGradient(x - xoff, y - size, x + xoff, y + size);
-        grad.addColorStop(0, randItem(palette));
-        grad.addColorStop(1, randItem(palette));
-        return grad;
-    }
-}
-
 
 /**
  * Define a fill, either in solid or gradients
@@ -45,7 +16,7 @@ function getFill(ctx, palette, x, y, size, skew) {
  */
 function getRandomFill(palette, x, y, size, skew = 0) {
     let type = 'solid';
-    if (Math.random() < 0.9) {
+    if (Math.random() < 0.999999) {
         type = 'linear';
     }
     return defineFill(type, palette, x, y, size, skew);
@@ -234,9 +205,9 @@ export function defineWaterline(options) {
     var SCALE = Math.min(w, h); // generalized size of the layout
 
     // temp vars which are used in multiple attributes
-    let _shapeSize = Math.min(w,h) * randomInRange(0.25, 0.4);
-    let _shapeX = w/2;
-    let _shapeY = h * randomInRange(0.4, 0.6);
+    let _shapeSize = randomInRange(0.25, 0.4);
+    let _shapeX = 1/2;
+    let _shapeY = randomInRange(0.4, 0.6);
 
     // waves
     let _backLine = [
@@ -257,29 +228,29 @@ export function defineWaterline(options) {
     // skeleton of a waterline def
     let def = {
         shapeName: shapes[0],
-        shapeX: _shapeX / w,
-        shapeY: _shapeY / h,
-        shapeSize: _shapeSize / SCALE,
-        shapeMagnified: (_shapeSize + SCALE / randomInRange(50, 80)) / SCALE,
+        shapeX: _shapeX,
+        shapeY: _shapeY,
+        shapeSize: _shapeSize,
+        shapeMagnified: _shapeSize * (1 + 1 / randomInRange(50, 80)),
         // Rotate shape. Not all renderers will use this.
         shapeAngle: randomInRange(-Math.PI/12, Math.PI/12),
         shapeFill: getRandomFill(opts.palette, _shapeX, _shapeY, _shapeSize, opts.skew),
         underwaterShapeAlpha: randomInRange(0.2, 1),
 
         // sky fill
-        backgroundFill: getRandomFill(opts.palette, 0, 0, h, opts.skew),
+        backgroundFill: getRandomFill(opts.palette, 0.5, 0.5, 0.5, opts.skew),
 
         // waves
         surfaceLine: {
-            fill: getRandomFill(opts.palette, 0, _backTop, h - _backTop, 0),
+            fill: getRandomFill(opts.palette, 0, _backTop, 1 - _backTop, 0),
             backAlpha: randomInRange(0.2, 0.6),
-            backOffset: h / randomInRange(40, 100), // offset between the two waterline waves
+            backOffset: 1 / randomInRange(40, 100), // offset between the two waterline waves
             backLine: _backLine,
             frontLine: _frontLine
         },
 
         // edge
-        edgeThickness: h * 0.005 * Math.random() + 1.5,
+        edgeThickness: 0.005 * Math.random(),
         edgeAlpha: randomInRange(0.1, 0.75),
         edgeBlendStops: [randomInRange(0, 0.5), randomInRange(0.5, 1)],
     }
@@ -340,7 +311,7 @@ export function drawWaterline(def, options) {
     }
 
     // draw background/sky
-    ctx.fillStyle = expandFill(ctx, def.backgroundFill);
+    ctx.fillStyle = expandFill(ctx, def.backgroundFill, w, h, SCALE);
     ctx.fillRect(0, 0, w, h);
 
 
@@ -358,17 +329,17 @@ export function drawWaterline(def, options) {
     }
 
     // Create a fill we will reuse for both renderings of the shape
-    var shapeFill = expandFill(ctx, def.shapeFill);
+    var shapeFill = expandFill(ctx, def.shapeFill, w, h, SCALE);
 
     // Prepare main waterlines
 
     // Set waterline params for background renderin, and common fill
-    let wfill = expandFill(ctx, def.surfaceLine.fill); // main waterline fill
+    let wfill = expandFill(ctx, def.surfaceLine.fill, w, h, SCALE); // main waterline fill
 
     // Draw background waterline at low opacity, slightly offset upward
     ctx.globalAlpha = def.surfaceLine.backAlpha;
 
-    let backgroundOffset = def.surfaceLine.backOffset
+    let backgroundOffset = def.surfaceLine.backOffset * h;
     drawWave(
         ctx,
         h * def.surfaceLine.backLine[0] - backgroundOffset,
@@ -488,7 +459,7 @@ export function drawWaterline(def, options) {
         // At the top edge, use the main waterline points, then repeat the
         // curve going back to the left, slightly lower.  Fill with a light
         // gradient and blend over.
-        var edgeThickness = def.edgeThickness;
+        var edgeThickness = def.edgeThickness * h + 1.5;
         var edgeFill = ctx.createLinearGradient(0, 0, w, 0);
         edgeFill.addColorStop(0, '#808080');
         edgeFill.addColorStop(def.edgeBlendStops[0], '#fff');
@@ -502,10 +473,9 @@ export function drawWaterline(def, options) {
         let [wl, wc1, wc2, wr] = def.surfaceLine.frontLine;
 
         ctx.beginPath();
-        ctx.moveTo(0, wl);
-        ctx.bezierCurveTo(w / 3, wc1 - 1, 2 * w / 3, wc2 - 1, w, wr);
-        ctx.lineTo(w, wr + 3);
-        ctx.bezierCurveTo(2 * w / 3, wc2 + edgeThickness, w / 3, wc1 + edgeThickness, 0, wl + 2);
+        ctx.moveTo(0, wl * h);
+        ctx.bezierCurveTo(w / 3, h * wc1 - 1, 2 * w / 3, h * wc2 - 1, w, h * wr);
+        ctx.bezierCurveTo(2 * w / 3, h * wc2 + edgeThickness, w / 3, h * wc1 + edgeThickness, 0, h * wl + 2);
         ctx.closePath();
         ctx.fill();
 
