@@ -90,6 +90,8 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
+// Click handler for <a><img/></a> structures,
+// Where @anchor is the <a>, and @pixels is url encoded image data
 function doDownload(anchor, pixels) {
     anchor.href = pixels;
     anchor.download =
@@ -104,6 +106,11 @@ function doDownload(anchor, pixels) {
     return false;
 }
 
+// Util:
+// Create an <img> element,
+// Fill it with PNG DataURL from @canvas,
+// Wrap it in an <a> with a download handler,
+// Append it to @container
 function renderCanvasToImg(canvas, container) {
     var pixels = canvas.toDataURL('image/png');
 
@@ -125,6 +132,9 @@ function renderCanvasToImg(canvas, container) {
     container.appendChild(wrapper);
 }
 
+// Create @N new renderings drawn with @opts inputs
+// Then render to images with click-to-download handlers
+// Append them to div#saved
 function createBatch(opts, N) {
     N = N || 9;
     var canvas = document.querySelector('#example canvas');
