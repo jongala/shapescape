@@ -71,7 +71,11 @@ function loadOpts(opts, fast) {
     var img = exampleNode.querySelector('img');
     img && img.remove();
     visualOpts = Object.assign(visualOpts, opts);
+    // render art
     Renderer(visualOpts);
+    // set up main download link
+    let a = document.getElementById('downloadExample');
+    a.onclick = doDownload(a, document.querySelector('#example canvas'));
 }
 
 // Handlers for redraw, batching, and manual saving
@@ -90,10 +94,18 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Click handler for <a><img/></a> structures,
-// Where @anchor is the <a>, and @pixels is url encoded image data
-function doDownload(anchor, pixels) {
-    anchor.href = pixels;
+// Click handler:
+// Where @anchor is the <a>, and @el is an image displaying element
+// URL encoded pixel data will be extracted from @el and downloaded
+// upon click.
+function doDownload(anchor, el) {
+    if (el.nodeName === 'IMG') {
+        anchor.href = el.src;
+    } else if (el.nodeName === 'CANVAS') {
+        anchor.href = el.toDataURL('image/png');
+    } else {
+        return;
+    }
     anchor.download =
         rendererName +
         '-' +
@@ -120,7 +132,7 @@ function renderCanvasToImg(canvas, container) {
     var anchor = document.createElement('a');
     anchor.innerHTML = '↓';
     anchor.onclick = function() {
-        doDownload(anchor, image.src);
+        doDownload(anchor, image);
     };
 
     var wrapper = document.createElement('div');
@@ -237,7 +249,7 @@ function previewImage(el) {
     // which does not come with the cloned element
     let anchor = document.querySelector('#preview .downloader a');
     let image =  document.querySelector('#preview .downloader img');
-    anchor.onclick = function(){doDownload(anchor, image.src)}
+    anchor.onclick = function(){doDownload(anchor, image)};
 }
 
 function removePreview() {
