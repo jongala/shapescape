@@ -162,12 +162,12 @@ function createBatch(opts, N) {
 window.createBatch = createBatch;
 
 // HACK need universal store for def
-function rerun() {
+/*function rerun() {
     drawWaterline(window.LASTDEF, visualOpts);
     drawWaterline(window.LASTDEF, Object.assign({}, visualOpts, {container: document.querySelector('#re-tall')}) );
     drawWaterline(window.LASTDEF, Object.assign({}, visualOpts, {container: document.querySelector('#re-wide')}) );
 }
-window.rerun = rerun;
+window.rerun = rerun;*/
 
 // Option sets:
 
