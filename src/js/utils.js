@@ -42,7 +42,7 @@ export function getGradientFunction(palette) {
             ]
         } else {
             coords = [
-                0, randomInRange(0, h * 0.5),
+                0, randomInRange(0, h * 0.25),
                 w, randomInRange(h * 0.75, h)
             ]
         }
