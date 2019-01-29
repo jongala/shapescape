@@ -3,9 +3,11 @@ import '../css/style.css';
 import noiseUtils from './noiseutils';
 import colorbrewer from './colorbrewer';
 import { waterline, drawWaterline } from './waterline';
-import shapestack from './shapestack';
-import shapescape from './shapescape';
-import lines from './lines';
+import { shapestack } from './shapestack';
+import { shapescape } from './shapescape';
+import { lines } from './lines';
+import { waves } from './waves';
+import { grid } from './grid';
 import { setAttrs } from './utils';
 
 // Renderers
@@ -13,7 +15,9 @@ const RENDERERS = {
     waterline: waterline,
     shapestack: shapestack,
     shapescape: shapescape,
-    lines: lines
+    lines: lines,
+    waves: waves,
+    grid: grid
 };
 let initRenderer = 'waterline';
 
