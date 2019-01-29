@@ -127,14 +127,20 @@ export function fragments(options) {
     // util: draw each fragment
     function drawFragments(ctx, frags, opts) {
         frags.forEach((f) => {
+            // skip some fragments
+            if (Math.random() > 0.25) {
+                return;
+            }
+
             let [p1,p2,p3] = f;
-            if (Math.random() > 0.5) {
+
+            /*if (Math.random() > 0.5) {
                 addShadow(ctx, cw, ch);
             } else {
                 removeShadow(ctx);
-            }
+            }*/
 
-            ctx.fillStyle = randItem(opts.palette);
+            ctx.fillStyle = getSolidFill();
             ctx.beginPath();
             ctx.moveTo(...pts[p1]);
             ctx.lineTo(...pts[p2]);
@@ -148,6 +154,12 @@ export function fragments(options) {
     // define masks
     let masks = [];
     let maskcount = Math.round(randomInRange(3, 5));
+    masks.push([
+        [0, 0],
+        [cw, 0],
+        [cw, ch],
+        [0, ch]
+    ]);
     while (maskcount--) {
         masks.push([
             [0, 0],
