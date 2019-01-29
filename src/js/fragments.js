@@ -86,7 +86,7 @@ export function fragments(options) {
         pts.push([w * (i % rows), h * Math.floor(i / cols)]);
     }
     //console.log(pts);
-    
+
 
     let x = 0;
     let y = 0;
@@ -114,11 +114,7 @@ export function fragments(options) {
     ctx.closePath();
     ctx.clip();
 
-
-    
-    
-
-    // draw triangles
+    // define triangles
     let frags = [];
     let fragcount = Math.round(randomInRange(10, 50));
     let p1, p2, p3;
@@ -127,22 +123,33 @@ export function fragments(options) {
         p2 = Math.round(randomInRange(p1, count-1));
         p3 = Math.round(randomInRange(p2, count-1));
 
-        if (Math.random() > 0.5) {
-            addShadow(ctx, cw, ch);
-        } else {
-            removeShadow(ctx);
-        }
-        
-        ctx.fillStyle = randItem(opts.palette);
-        ctx.beginPath();
-        ctx.moveTo(...pts[p1]);
-        ctx.lineTo(...pts[p2]);
-        ctx.lineTo(...pts[p3]);
-        ctx.closePath();
-        ctx.fill();
+        frags.push([p1, p2, p3]);
     }
 
-    removeShadow(ctx);
+    // draw each fragment
+    function drawFragments(ctx, frags, opts) {
+        frags.forEach((f) => {
+            let [p1,p2,p3] = f;
+            if (Math.random() > 0.5) {
+                addShadow(ctx, cw, ch);
+            } else {
+                removeShadow(ctx);
+            }
+
+            ctx.fillStyle = randItem(opts.palette);
+            ctx.beginPath();
+            ctx.moveTo(...pts[p1]);
+            ctx.lineTo(...pts[p2]);
+            ctx.lineTo(...pts[p3]);
+            ctx.closePath();
+            ctx.fill();
+        });
+        removeShadow(ctx);
+    }
+
+    drawFragments(ctx, frags, opts);
+
+
 
 
     // draw grid
