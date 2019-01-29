@@ -59,7 +59,7 @@ const DEFAULTS = {
 
 
 // draw it!
-function shapestack(options) {
+export function shapestack(options) {
     let opts = Object.assign(DEFAULTS, options);
 
     var container = opts.container;
@@ -363,6 +363,3 @@ function shapestack(options) {
         container.appendChild(el);
     }
 }
-
-// export
-export default shapestack;

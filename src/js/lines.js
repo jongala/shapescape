@@ -35,7 +35,7 @@ let getRandomRenderer = () => {
 }
 
 // standard renderer, takes options
-function lines(options) {
+export function lines(options) {
     let opts = Object.assign(DEFAULTS, options);
 
     var container = opts.container;
@@ -439,6 +439,3 @@ function drawLines(ctx, p1, p2, opts) {
     ctx.restore();
     resetTransform(ctx);
 }
-
-// export
-export default lines;

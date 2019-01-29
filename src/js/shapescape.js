@@ -72,7 +72,7 @@ function addSquare(ctx, w, h, opts) {
 }
 
 // Tile the container
-function shapescape(options) {
+export function shapescape(options) {
     var defaults = {
         container: 'body',
         palette: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
@@ -171,7 +171,3 @@ function shapescape(options) {
         container.appendChild(el);
     }
 }
-
-// export
-//window.shapescape = shapescape;
-export default shapescape;
