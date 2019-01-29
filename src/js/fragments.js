@@ -99,9 +99,10 @@ export function fragments(options) {
     c = Math.random();
 
     let getSolidFill = getSolidColorFunction(opts.palette);
+    let getGradientFill = getGradientFunction(opts.palette);
 
     let fg = getSolidFill();
-    let bg = getSolidFill();
+    let bg = getGradientFill(ctx, cw, ch);
 
     ctx.translate(w/2, h/2);
 
@@ -140,7 +141,7 @@ export function fragments(options) {
                 removeShadow(ctx);
             }*/
 
-            ctx.fillStyle = getSolidFill();
+            ctx.fillStyle = getGradientFill(ctx, cw, ch);
             ctx.beginPath();
             ctx.moveTo(...pts[p1]);
             ctx.lineTo(...pts[p2]);
