@@ -13,8 +13,6 @@ const DEFAULTS = {
 }
 
 
-
-
 export function fragments(options) {
     let opts = Object.assign({}, DEFAULTS, options);
 
@@ -116,7 +114,7 @@ export function fragments(options) {
 
     // define triangles
     let frags = [];
-    let fragcount = Math.round(randomInRange(10, 50));
+    let fragcount = Math.round(randomInRange(5, 15));
     let p1, p2, p3;
     while (fragcount--) {
         p1 = Math.round(randomInRange(0, count-1));
@@ -126,7 +124,7 @@ export function fragments(options) {
         frags.push([p1, p2, p3]);
     }
 
-    // draw each fragment
+    // util: draw each fragment
     function drawFragments(ctx, frags, opts) {
         frags.forEach((f) => {
             let [p1,p2,p3] = f;
@@ -146,11 +144,36 @@ export function fragments(options) {
         });
         removeShadow(ctx);
     }
+    
+    // define masks
+    let masks = [];
+    let maskcount = Math.round(randomInRange(3, 5));
+    while (maskcount--) {
+        masks.push([
+            [0, 0],
+            [cw, 0],
+            [cw, randomInRange(0, ch)],
+            [0, randomInRange(0, ch)]
+            //[cw, randomInRange(ch * .1 / maskcount, ch * .9 / maskcount)],
+            //[0, randomInRange(ch * .1 / maskcount, ch * .9 / maskcount)]
+        ]);
+    }
 
-    drawFragments(ctx, frags, opts);
-
-
-
+    // For each mask, draw the path, clip into it, and draw fragments inside
+    masks.forEach((m) => {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(...m[0]);
+        ctx.lineTo(...m[1]);
+        ctx.lineTo(...m[2]);
+        ctx.lineTo(...m[3]);
+        ctx.closePath();
+        ctx.fillStyle = 'black';
+        //ctx.fill();
+        ctx.clip();
+        drawFragments(ctx, frags, opts);
+        ctx.restore();
+    });
 
     // draw grid
     for (let i = 0; i < rows; i++) {
@@ -166,8 +189,6 @@ export function fragments(options) {
             renderer(ctx, x, y, ch/400, {fill: 'white'})
         }
     }
-
-
 
     // add noise
     if (opts.addNoise) {
