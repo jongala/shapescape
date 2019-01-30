@@ -44,6 +44,22 @@ function getFragmentsFromCanvas(count=10, cw, ch) {
     return frags;
 }
 
+function getFragments(count=10, cw, ch) {
+    let frags = [];
+    let l, r;
+    while (count--) {
+        l = randomInRange(0, ch);
+        r = randomInRange(0, ch);
+        frags.push([
+            [0, l],
+            [cw, r],
+            [cw, randomInRange(r, ch)],
+            [0, randomInRange(l, ch)]
+        ]);
+    }
+    return frags;
+}
+
 
 export function fragments(options) {
     let opts = Object.assign({}, DEFAULTS, options);
@@ -147,13 +163,14 @@ export function fragments(options) {
 
     // define triangles
     //let frags = getFragmentsFromGrid(Math.round(randomInRange(5, 15)), pts);
-    let frags = getFragmentsFromCanvas(Math.round(randomInRange(5, 10)), cw, ch);
+    //let frags = getFragmentsFromCanvas(Math.round(randomInRange(5, 10)), cw, ch);
+    let frags = getFragments(Math.round(randomInRange(5, 10)), cw, ch);
 
     // util: draw each fragment
     function drawFragments(ctx, frags, opts) {
         frags.forEach((f) => {
             // skip some fragments
-            if (Math.random() > 0.75) {
+            if (Math.random() > 0.5) {
                 return;
             }
 
@@ -164,13 +181,13 @@ export function fragments(options) {
                 removeShadow(ctx);
             }
 
-            let [p1,p2,p3] = f;
-
+            let frag = f.slice(0); // copy the points array since we will modify
             ctx.fillStyle = getGradientFill(ctx, cw, ch);
             ctx.beginPath();
-            ctx.moveTo(...p1);
-            ctx.lineTo(...p2);
-            ctx.lineTo(...p3);
+            ctx.moveTo(...frag.shift());
+            frag.forEach((p) => {
+                ctx.lineTo(...p);
+            })
             ctx.closePath();
             ctx.fill();
         });
