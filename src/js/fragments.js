@@ -209,14 +209,12 @@ export function fragments(options) {
             [cw, 0],
             [cw, randomInRange(0, ch)],
             [0, randomInRange(0, ch)]
-            //[cw, randomInRange(ch * .1 / maskcount, ch * .9 / maskcount)],
-            //[0, randomInRange(ch * .1 / maskcount, ch * .9 / maskcount)]
         ]);
     }
 
     // For each mask, draw the path, clip into it, and draw fragments inside
-    addShadow(ctx, cw, ch);
     masks.forEach((m) => {
+        addShadow(ctx, cw, ch);
         ctx.save();
         ctx.beginPath();
         ctx.moveTo(...m[0]);
