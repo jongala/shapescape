@@ -37,13 +37,13 @@ export function getGradientFunction(palette) {
         let coords = [];
         if (bias) {
             coords = [
-                randomInRange(0, w * 0.25), 0,
-                randomInRange(w * 0.75, w), h
+                randomInRange(0, w), 0,
+                randomInRange(0, w), h
             ]
         } else {
             coords = [
-                0, randomInRange(0, h * 0.25),
-                w, randomInRange(h * 0.75, h)
+                0, randomInRange(0, h),
+                w, randomInRange(0, h)
             ]
         }
         let grad =  ctx.createLinearGradient(...coords);

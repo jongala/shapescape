@@ -1,30 +1,8 @@
 import noiseUtils from './noiseutils';
-import { randItem, randomInRange, setAttrs, resetTransform, rotateCanvas, getGradientFunction } from './utils';
+import { randItem, randomInRange, setAttrs, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 import { createStack, drawStack } from './stacks';
 import { defineNest, generateNestDef, drawNest } from './nests';
-
-// Creates a function that returns a different random entry
-// from @palette each time it is called.
-function getSolidColorFunction(palette) {
-    var refresh = function() {
-        // clone palette before providing func to avoid
-        // operating on the input array.
-        return [].concat(palette)
-            .sort(function(a, b) {
-                return Math.random() - 0.5;
-            });
-    };
-    var p = refresh();
-    return function() {
-        // if we run out of colors, start with a new shuffled palette
-        if (!p.length) p = refresh();
-        // otherwise pop a color
-        return p.pop();
-    };
-}
-
-
 
 
 function addShadow(ctx, w, h) {
