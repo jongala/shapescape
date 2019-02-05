@@ -5,6 +5,7 @@ import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, draw
 const DEFAULTS = {
     container: 'body',
     palette: ['#F8ADAA', '#F8E3AC', '#111111', '#ffffff', '#94552C'],
+    drawGrid: 'auto', // [true, false, 'auto']
     addNoise: false,//0.04,
     noiseInput: null,
     dust: false,
@@ -88,8 +89,14 @@ export function fragments(options) {
 
     ctx = el.getContext('2d');
 
+    // auto opts
+    if (opts.drawGrid === 'auto') {
+        // draw grid usually
+        opts.drawGrid = !!(Math.random() > 0.25);
+    }
 
 
+    // set up renderers
     var renderMap = {
         circle: drawCircle,
         ring: drawRing,
@@ -105,8 +112,7 @@ export function fragments(options) {
         return renderMap[randItem(shapes)];
     }
 
-    let randomFill = () => "#" + Math.random().toString(16).slice(2,8);
-
+    // shadow utils
     function addShadow(ctx, offset=3, blur=10, opacity=0.2) {
         ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = offset * SCALE / 400;
@@ -121,7 +127,7 @@ export function fragments(options) {
         ctx.shadowColor = 'transparent';
     }
 
-
+    // set up grid
     let cols = Math.round(randomInRange(5, 9));
     let w = cw/cols;
     let h = w;
@@ -134,9 +140,9 @@ export function fragments(options) {
     for (var i = 0; i < count ; i++) {
         pts.push([w * (i % rows), h * Math.floor(i / cols)]);
     }
-    //console.log(pts);
 
 
+    // set up drawing variables
     let x = 0;
     let y = 0;
     let xnorm = 0;
@@ -149,9 +155,12 @@ export function fragments(options) {
     b = Math.random();
     c = Math.random();
 
+    // color funcs
     let getSolidFill = getSolidColorFunction(opts.palette);
     let getGradientFill = getGradientFunction(opts.palette);
+    let getrandomFill = () => "#" + Math.random().toString(16).slice(2,8);
 
+    // standard foreground and background colors
     let fg = getSolidFill();
     let bg = getGradientFill(ctx, cw, ch);
 
@@ -235,17 +244,19 @@ export function fragments(options) {
     removeShadow(ctx);
 
     // draw grid
-    for (let i = 0; i < rows; i++) {
-        //renderer = getRandomRenderer();
-        renderer = drawCircle;
-        for (let j = 0; j < cols; j++) {
-            // convenience vars
-            x = w * j;
-            y = h * i;
-            xnorm = x/cw;
-            ynorm = y/ch;
+    if (opts.drawGrid) {
+        for (let i = 0; i < rows; i++) {
+            //renderer = getRandomRenderer();
+            renderer = drawCircle;
+            for (let j = 0; j < cols; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * i;
+                xnorm = x/cw;
+                ynorm = y/ch;
 
-            renderer(ctx, x, y, ch/400, {fill: getSolidFill()})
+                renderer(ctx, x, y, ch/400, {fill: getSolidFill()})
+            }
         }
     }
 
