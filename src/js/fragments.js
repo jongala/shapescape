@@ -67,6 +67,7 @@ export function fragments(options) {
     var container = opts.container;
     var cw = container.offsetWidth;
     var ch = container.offsetHeight;
+    let SCALE = Math.min(cw, ch);
 
     // Find or create canvas child
     var el = container.querySelector('canvas');
@@ -106,11 +107,11 @@ export function fragments(options) {
 
     let randomFill = () => "#" + Math.random().toString(16).slice(2,8);
 
-    function addShadow(ctx, w, h) {
+    function addShadow(ctx, offset=3, blur=10, opacity=0.2) {
         ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 3 * Math.min(w, h) / 400;
-        ctx.shadowBlur = 10 * Math.min(w, h) / 400;
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+        ctx.shadowOffsetY = offset * SCALE / 400;
+        ctx.shadowBlur = blur * SCALE / 400;
+        ctx.shadowColor = `rgba(0, 0, 0, ${opacity})`;
     }
 
     function removeShadow(ctx) {
@@ -175,8 +176,11 @@ export function fragments(options) {
             }
 
             // add shadows, sometimes
-            if (Math.random() > 0.5) {
-                addShadow(ctx, cw, ch);
+            if (Math.random() > 0.25) {
+                addShadow(ctx,
+                    randomInRange(3,9),
+                    randomInRange(5,15),
+                    randomInRange(0.15,0.3));
             } else {
                 removeShadow(ctx);
             }
@@ -193,7 +197,7 @@ export function fragments(options) {
         });
         removeShadow(ctx);
     }
-    
+
     // define masks
     let masks = [];
     let maskcount = Math.round(randomInRange(3, 5));
@@ -241,7 +245,7 @@ export function fragments(options) {
             xnorm = x/cw;
             ynorm = y/ch;
 
-            renderer(ctx, x, y, ch/400, {fill: 'white'})
+            renderer(ctx, x, y, ch/400, {fill: getSolidFill()})
         }
     }
 
