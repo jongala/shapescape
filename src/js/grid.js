@@ -12,19 +12,18 @@ const DEFAULTS = {
     clear: true
 }
 
-
-
-
+// Main function
 export function grid(options) {
     let opts = Object.assign({}, DEFAULTS, options);
 
-    var container = opts.container;
-    var cw = container.offsetWidth;
-    var ch = container.offsetHeight;
+    let container = opts.container;
+    let cw = container.offsetWidth;
+    let ch = container.offsetHeight;
+    let SCALE = Math.min(cw, ch);
 
     // Find or create canvas child
-    var el = container.querySelector('canvas');
-    var newEl = false;
+    let el = container.querySelector('canvas');
+    let newEl = false;
     if (!el) {
         container.innerHTML = '';
         el = document.createElement('canvas');
@@ -37,15 +36,12 @@ export function grid(options) {
         });
     }
 
-    var ctx; // canvas ctx or svg tag
+    let ctx = el.getContext('2d');
 
-    ctx = el.getContext('2d');
-
-
-
-    var renderMap = {
-        circle: drawCircle,
-        ring: drawRing,
+    // available renderers
+    let renderMap = {
+        //circle: drawCircle,
+        //ring: drawRing,
         triangle: drawTriangle,
         square: drawSquare,
         box: drawBox,
@@ -53,16 +49,12 @@ export function grid(options) {
         pentagon: drawPentagon,
         hexagon: drawHexagon
     };
-    var shapes = Object.keys(renderMap);
+    let shapes = Object.keys(renderMap);
     let getRandomRenderer = () => {
         return renderMap[randItem(shapes)];
     }
 
-
-
-    ctx.strokeStyle = "white";
-
-
+    // util to draw a square and clip following rendering inside
     function clipSquare(ctx, w, h, color) {
         ctx.save();
         ctx.beginPath();
@@ -73,34 +65,38 @@ export function grid(options) {
         ctx.clip();
     }
 
+    // color funcs
+    let randomFill = () => "#" + Math.random().toString(16).slice(2,8);
+    let getSolidFill = getSolidColorFunction(opts.palette);
 
-    let count = Math.round(randomInRange(5, 9));
+    // define grid
+    let count = Math.round(randomInRange(4, 9));
     let w = cw/count;
     let h = w;
     let vcount = Math.ceil(ch/h);
 
-    let randomFill = () => "#" + Math.random().toString(16).slice(2,8);
-
+    // setup vars for each cell
     let x = 0;
     let y = 0;
     let xnorm = 0;
     let ynorm = 0;
     let renderer;
 
-    // play with these
+    // play with these random seeds
     let a,b,c;
     a = Math.random();
     b = Math.random();
     c = Math.random();
 
-    let getSolidFill = getSolidColorFunction(opts.palette);
-
+    // shared colors
     let fg = getSolidFill();
     let bg = getSolidFill();
 
+    // do the loop
+    renderer = getRandomRenderer();
     for (let i = 0; i < vcount; i++) {
-        renderer = getRandomRenderer();
-        //renderer = drawSquare;
+        // pick renderers by row here
+        // renderer = getRandomRenderer();
         for (let j = 0; j < count; j++) {
             // convenience vars
             x = w * j;
@@ -114,12 +110,12 @@ export function grid(options) {
 
             // draw
             renderer(ctx,
-                w * a,
-                h * b,//h * ynorm,
-                w/1.441,//w/2 + w/6 * xnorm + h/6 * ynorm,
+                w * a + xnorm * (1 - a), // start at a, march across
+                h * b + ynorm * (1 - b), // start at b, march down
+                w/(c + 1), // scale at c
                 {
-                    fill: fg,//randItem(opts.palette),
-                    angle: xnorm + ynorm
+                    fill: fg,
+                    angle: ((xnorm - a) - (ynorm - b)) // rotate with position
                 }
             );
 
