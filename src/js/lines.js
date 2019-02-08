@@ -120,13 +120,13 @@ export function lines(options) {
             Object.assign(opts, {overlay: 'none'});
         }
 
-        let maskScale = Math.min(cw, ch) * randomInRange(0.25, 0.4);
+        let maskScale = Math.min(cw, ch) * randomInRange(0.25, 0.6);
         // Get and use random shape for masking. No fill required.
         getRandomRenderer()(ctx,
-            cw/2,
-            ch/2,
+            cw * randomInRange(0.2, 0.8),
+            ch * randomInRange(0.2, 0.8),
             maskScale,
-            {}
+            {angle: randomInRange(0, Math.PI)}
         );
         ctx.save()
         ctx.clip();

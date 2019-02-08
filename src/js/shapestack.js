@@ -134,7 +134,7 @@ export function shapestack(options) {
     // ======================================
 
     // draw background/sky
-    var sky = Math.round(randomInRange(204, 245)).toString(16);
+    var sky = Math.round(randomInRange(104, 245)).toString(16);
     ctx.fillStyle = '#' + sky + sky + sky;
     ctx.fillRect(0, 0, w, h);
 
