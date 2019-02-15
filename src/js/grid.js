@@ -5,7 +5,7 @@ import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, draw
 const DEFAULTS = {
     container: 'body',
     palette: ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'],
-    addNoise: false,//0.04,
+    addNoise: 0.04,
     noiseInput: null,
     dust: false,
     skew: 1, // normalized skew
@@ -92,40 +92,143 @@ export function grid(options) {
     let fg = getSolidFill();
     let bg = getSolidFill();
 
-    // do the loop
-    renderer = getRandomRenderer();
-    for (let i = 0; i < vcount; i++) {
-        // pick renderers by row here
-        // renderer = getRandomRenderer();
-        for (let j = 0; j < count; j++) {
-            // convenience vars
-            x = w * j;
-            y = h * i;
-            xnorm = x/cw;
-            ynorm = y/ch;
+    // mode
+    function maskAndRotate () {
+        renderer = getRandomRenderer();
+        for (let i = 0; i < vcount; i++) {
+            // pick renderers by row here
+            // renderer = getRandomRenderer();
+            for (let j = 0; j < count; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * i;
+                xnorm = x/cw;
+                ynorm = y/ch;
 
-            // shift and clip
-            ctx.translate(x, y);
-            clipSquare(ctx, w, h, bg);
+                // shift and clip
+                ctx.translate(x, y);
+                clipSquare(ctx, w, h, bg);
 
-            // draw
-            renderer(ctx,
-                w * a + xnorm * (1 - a), // start at a, march across
-                h * b + ynorm * (1 - b), // start at b, march down
-                w/(c + 1), // scale at c
-                {
-                    fill: fg,
-                    angle: ((xnorm - a) - (ynorm - b)) // rotate with position
-                }
-            );
+                // draw
+                renderer(ctx,
+                    w * a + xnorm * (1 - a), // start at a, march across
+                    h * b + ynorm * (1 - b), // start at b, march down
+                    w/(c + 1), // scale at c
+                    {
+                        fill: fg,
+                        angle: ((xnorm - a) - (ynorm - b)) // rotate with position
+                    }
+                );
 
-            // unshift, unclip
-            ctx.restore();
-            resetTransform(ctx);
+                // unshift, unclip
+                ctx.restore();
+                resetTransform(ctx);
+            }
         }
     }
 
+    // mode
+    function circles () {
+        let px, py;
+        for (let i = 0; i < vcount; i++) {
+            for (let j = 0; j < count; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * i;
+                xnorm = x/cw;
+                ynorm = y/ch;
 
+                // shift and clip
+                ctx.translate(x, y);
+                clipSquare(ctx, w, h, bg);
+
+                switch (Math.round(randomInRange(1, 5))){
+                    case 1:
+                        renderer = drawSquare;
+                        break;
+                    case 2:
+                        renderer = drawCircle;
+                        px = 0;
+                        py = 0;
+                        break;
+                    case 3:
+                        renderer = drawCircle;
+                        px = w;
+                        py = 0;
+                        break;
+                    case 4:
+                        renderer = drawCircle;
+                        px = w;
+                        py = h;
+                        break;
+                    case 5:
+                        renderer = drawCircle;
+                        px = 0;
+                        py = h;
+                        break;
+                }
+
+                // draw
+                renderer(ctx,
+                    px,
+                    py,
+                    w,
+                    {
+                        fill: getSolidFill()
+                    }
+                );
+
+                // unshift, unclip
+                ctx.restore();
+                resetTransform(ctx);
+            }
+        }
+    }
+
+    // mode
+    function triangles () {
+        let px, py;
+        let corners = [[0, 0], [w, 0], [w, h], [0, h]];
+        let drawCorners = [];
+        let skip;
+        for (let i = 0; i < vcount; i++) {
+            for (let j = 0; j < count; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * i;
+                xnorm = x/cw;
+                ynorm = y/ch;
+
+                // shift and clip
+                ctx.translate(x, y);
+                clipSquare(ctx, w, h, bg);
+
+                // pick a corner and drop it
+                skip = Math.round(randomInRange(0,3));
+                drawCorners = [].concat(corners);
+                drawCorners.splice(skip, 1);
+
+                // draw a triangle with the remaining 3 points
+                ctx.beginPath();
+                ctx.moveTo(...drawCorners[0]);
+                ctx.lineTo(...drawCorners[1]);
+                ctx.lineTo(...drawCorners[2]);
+                ctx.closePath();
+                ctx.fillStyle = getSolidFill();
+                ctx.fill();
+
+                // unshift, unclip
+                ctx.restore();
+                resetTransform(ctx);
+            }
+        }
+    }
+
+    // gather our modes
+    let modes = [maskAndRotate, circles, triangles];
+
+    // do the loop with one of our modes
+    randItem(modes)();
 
     // add noise
     if (opts.addNoise) {
