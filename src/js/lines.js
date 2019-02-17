@@ -8,7 +8,7 @@ const OVERLAYLIST = ['shape', 'area', 'blend', 'auto'];
 const DEFAULTS = {
     container: 'body',
     palette: ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'],
-    bg: 'white', // one of BGLIST or 'auto'
+    bg: 'auto', // one of BGLIST or 'auto'
     overlay: null, // one of OVERLAYLIST or 'auto'
     drawShadows: false,
     addNoise: 0.04,
@@ -61,6 +61,15 @@ export function lines(options) {
 
     ctx = el.getContext('2d');
 
+    // bg styles
+    let BG;
+    if (opts.bg === 'auto') {
+        BG = randItem([].concat(BGLIST));
+        console.log('auto bg, picked', BG);
+    } else {
+        BG = opts.bg;
+    }
+
     // rendering styles
     let drawShapeMask = (Math.random() >= 0.3333); // should we draw a shape-masked line set?
 
@@ -108,7 +117,7 @@ export function lines(options) {
         drawLines(ctx,
             [0,0],
             [cw, ch],
-            opts
+            Object.assign({}, opts, {bg:BG})
         );
     }
 
@@ -133,7 +142,7 @@ export function lines(options) {
         drawLines(ctx,
             [0,0],
             [cw, ch],
-            opts
+            Object.assign({}, opts, {bg:BG})
         );
         ctx.restore();
         resetTransform(ctx);
@@ -158,7 +167,7 @@ export function lines(options) {
 // Renderer:
 // In context @ctx draw artwork in the rectangle between @p1 and @p2
 // with passed options @opts
-function drawLines(ctx, p1, p2, opts) {
+export function drawLines(ctx, p1, p2, opts) {
     var w = p2[0] - p1[0];
     var h = p2[1] - p1[1];
     var scale = Math.min(w, h); // reference size, regardless of aspect ratio
@@ -182,9 +191,6 @@ function drawLines(ctx, p1, p2, opts) {
         ctx.clearRect(0, 0, w, h);
     }
 
-    if (opts.bg === 'auto') {
-        opts.bg = randItem([].concat(BGLIST));
-    }
     switch (opts.bg) {
         case 'solid':
             ctx.fillStyle = randItem(opts.palette);
