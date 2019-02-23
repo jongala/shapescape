@@ -252,7 +252,7 @@ export function drawLines(ctx, p1, p2, opts) {
     // move endpoints out of frame
     ctx.translate(-stopInterval/2, -lineInterval/2);
 
-    console.log(`${lines} lines @${lineInterval.toFixed(1)}px  X  ${stops} stops @${stopInterval.toFixed(1)}px`)
+    //console.log(`${lines} lines @${lineInterval.toFixed(1)}px  X  ${stops} stops @${stopInterval.toFixed(1)}px`)
 
 
     let pts = [];
