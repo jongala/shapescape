@@ -92,9 +92,21 @@ export function grid(options) {
     let fg = getSolidFill();
     let bg = getSolidFill();
 
+    // get palette of non-bg colors
+    let contrastPalette = [].concat(opts.palette);
+    contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    let getContrastColor = getSolidColorFunction(contrastPalette);
+
     // mode
     function maskAndRotate () {
         renderer = getRandomRenderer();
+        let colorFunc;
+        // pick a color mode: random, or just fg
+        if (Math.random() < 0.33) {
+            colorFunc = getContrastColor;
+        } else {
+            colorFunc = () => fg;
+        }
         for (let i = 0; i < vcount; i++) {
             // pick renderers by row here
             // renderer = getRandomRenderer();
@@ -115,7 +127,7 @@ export function grid(options) {
                     h * b + ynorm * (1 - b), // start at b, march down
                     w/(c + 1.5), // scale at c
                     {
-                        fill: fg,
+                        fill: colorFunc(),
                         angle: ((xnorm - a) - (ynorm - b)) // rotate with position
                     }
                 );
