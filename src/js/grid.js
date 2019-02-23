@@ -71,7 +71,7 @@ export function grid(options) {
 
     // define grid
     let count = Math.round(randomInRange(4, 9));
-    let w = cw/count;
+    let w = Math.ceil(cw/count);
     let h = w;
     let vcount = Math.ceil(ch/h);
 
@@ -185,12 +185,27 @@ export function grid(options) {
         }
     }
 
-    // mode
-    function triangles () {
-        let px, py;
+    // draw a triangle in a random corner
+    function _triangle() {
         let corners = [[0, 0], [w, 0], [w, h], [0, h]];
         let drawCorners = [];
         let skip;
+        skip = Math.round(randomInRange(0,3));
+        drawCorners = [].concat(corners);
+        drawCorners.splice(skip, 1);
+
+        // draw a triangle with the remaining 3 points
+        ctx.beginPath();
+        ctx.moveTo(...drawCorners[0]);
+        ctx.lineTo(...drawCorners[1]);
+        ctx.lineTo(...drawCorners[2]);
+        ctx.closePath();
+        ctx.fillStyle = getSolidFill();
+        ctx.fill();
+    }
+
+    // mode
+    function triangles () {
         for (let i = 0; i < vcount; i++) {
             for (let j = 0; j < count; j++) {
                 // convenience vars
@@ -203,19 +218,95 @@ export function grid(options) {
                 ctx.translate(x, y);
                 clipSquare(ctx, w, h, bg);
 
-                // pick a corner and drop it
-                skip = Math.round(randomInRange(0,3));
-                drawCorners = [].concat(corners);
-                drawCorners.splice(skip, 1);
+                _triangle();
 
-                // draw a triangle with the remaining 3 points
-                ctx.beginPath();
-                ctx.moveTo(...drawCorners[0]);
-                ctx.lineTo(...drawCorners[1]);
-                ctx.lineTo(...drawCorners[2]);
-                ctx.closePath();
-                ctx.fillStyle = getSolidFill();
-                ctx.fill();
+                // unshift, unclip
+                ctx.restore();
+                resetTransform(ctx);
+            }
+        }
+    }
+
+    // mode
+    function mixed () {
+        let px, py, seed;
+        let styles = [
+            ()=>{
+                renderer = drawCircle;
+                px = 0;
+                py = 0;
+            }
+        ];
+
+        for (let i = 0; i < vcount; i++) {
+            for (let j = 0; j < count; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * i;
+                xnorm = x/cw;
+                ynorm = y/ch;
+
+                // shift and clip
+                ctx.translate(x, y);
+                clipSquare(ctx, w, h, bg);
+
+                switch (Math.round(randomInRange(1, 12))){
+                    case 1:
+                        renderer = drawCircle;
+                        px = 0;
+                        py = 0;
+                        break;
+                    case 2:
+                        renderer = drawCircle;
+                        px = w;
+                        py = 0;
+                        break;
+                    case 3:
+                        renderer = drawCircle;
+                        px = w;
+                        py = h;
+                        break;
+                    case 4:
+                        renderer = drawCircle;
+                        px = 0;
+                        py = h;
+                        break;
+                    /*case 1:
+                    case 2:
+                    case 3:
+                    case 4:
+                        renderer = ()=>{}
+                        break;*/
+                    case 5:
+                    case 6:
+                    case 7:
+                    case 8:
+                        renderer = drawSquare;
+                        break;
+                    case 9:
+                    case 10:
+                    case 11:
+                    case 12:
+                        _triangle();
+                        renderer = ()=>{}
+                        break;
+                    case 1:
+                    case 2:
+                    case 3:
+                    case 4:
+                        renderer = ()=>{}
+                        break;
+                }
+
+                // draw
+                renderer(ctx,
+                    px,
+                    py,
+                    w,
+                    {
+                        fill: getSolidFill()
+                    }
+                );
 
                 // unshift, unclip
                 ctx.restore();
@@ -225,7 +316,7 @@ export function grid(options) {
     }
 
     // gather our modes
-    let modes = [maskAndRotate, circles, triangles];
+    let modes = [maskAndRotate, circles, triangles, mixed];
 
     // do the loop with one of our modes
     randItem(modes)();
