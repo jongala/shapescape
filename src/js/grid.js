@@ -113,7 +113,7 @@ export function grid(options) {
                 renderer(ctx,
                     w * a + xnorm * (1 - a), // start at a, march across
                     h * b + ynorm * (1 - b), // start at b, march down
-                    w/(c + 1), // scale at c
+                    w/(c + 1.5), // scale at c
                     {
                         fill: fg,
                         angle: ((xnorm - a) - (ynorm - b)) // rotate with position
@@ -145,6 +145,8 @@ export function grid(options) {
                 switch (Math.round(randomInRange(1, 5))){
                     case 1:
                         renderer = drawSquare;
+                        px = 0;
+                        py = 0;
                         break;
                     case 2:
                         renderer = drawCircle;
@@ -271,29 +273,19 @@ export function grid(options) {
                         px = 0;
                         py = h;
                         break;
-                    /*case 1:
-                    case 2:
-                    case 3:
-                    case 4:
-                        renderer = ()=>{}
-                        break;*/
                     case 5:
                     case 6:
                     case 7:
                     case 8:
                         renderer = drawSquare;
+                        px = 0;
+                        py = 0;
                         break;
                     case 9:
                     case 10:
                     case 11:
                     case 12:
                         _triangle();
-                        renderer = ()=>{}
-                        break;
-                    case 1:
-                    case 2:
-                    case 3:
-                    case 4:
                         renderer = ()=>{}
                         break;
                 }
