@@ -65,7 +65,7 @@ export function lines(options) {
     let BG;
     if (opts.bg === 'auto') {
         BG = randItem([].concat(BGLIST));
-        console.log('auto bg, picked', BG);
+        //console.log('auto bg, picked', BG);
     } else {
         BG = opts.bg;
     }
@@ -86,6 +86,12 @@ export function lines(options) {
         }
     }
 
+    if (blendStyle === 'bg') {
+        Object.assign(opts, {overlay: 'blend'});
+    }
+
+    let drawOpts = Object.assign({}, opts, {bg: BG});
+
     // divide the canvas into multiple sections?
     let splitPoint;
     let splitSeed = Math.random();
@@ -93,31 +99,22 @@ export function lines(options) {
         // left right
         splitPoint = [randomInRange(cw * 1/4, cw * 3/4), 0];
 
-        if (blendStyle === 'bg') {
-            Object.assign(opts, {overlay: 'blend'});
-        }
-
         drawLines(ctx,
             [0, 0],
             [splitPoint[0], ch],
-            opts
+            drawOpts
         );
         drawLines(ctx,
             [splitPoint[0], 0],
             [cw, ch],
-            opts
+            drawOpts
         );
     } else {
         // single
-
-        if (blendStyle === 'bg') {
-            Object.assign(opts, {overlay: 'blend'});
-        }
-
         drawLines(ctx,
             [0,0],
             [cw, ch],
-            Object.assign({}, opts, {bg:BG})
+            drawOpts
         );
     }
 
@@ -142,7 +139,7 @@ export function lines(options) {
         drawLines(ctx,
             [0,0],
             [cw, ch],
-            Object.assign({}, opts, {bg:BG})
+            drawOpts
         );
         ctx.restore();
         resetTransform(ctx);
