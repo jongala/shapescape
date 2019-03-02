@@ -191,6 +191,9 @@ var palettes = {
     plum_sauce: ['#3C2E42', '#B4254B', '#FF804A', '#E8D1A1', '#A5C9C4'],
     fingerspitzen: ['#f4dda8','#eda87c','#c8907e','#9cacc3','#485e80','#3b465b'],
 
+    terra_cotta_cactus: ['#5d576b','#9bc1b8','#f4f1bb','#dcc48e','#ed6a5a'],
+    metroid_fusion: ['#DBEED6', '#47BDC2', '#0A7DB8', '#1A3649', '#B24432'],
+
     magma: ['#000004', '#3b0f70', '#8c2981', '#de4968', '#fe9f6d', '#fcfdbf'],
     inferno: ['#000004', '#420a68', '#932667', '#dd513a', '#fca50a', '#fcffa4'],
     plasma: ['#0d0887', '#6a00a8', '#b12a90', '#e16462', '#fca636', '#f0f921'],
