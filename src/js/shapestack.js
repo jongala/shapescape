@@ -235,6 +235,7 @@ export function shapestack(options) {
     removeShadow(ctx);
 
     // clip mask
+    ctx.save();
     ctx.clip();
 
     // Draw color stacks or nests inside the mask
@@ -319,7 +320,6 @@ export function shapestack(options) {
         renderer(ctx, w / 2, maskY, maskSize, { fill: 'transparent', stroke:'#808080' });
         ctx.globalCompositeOperation = 'normal';
     }
-
 
 
     // Add effect elements

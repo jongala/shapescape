@@ -66,6 +66,7 @@ var visualOpts = {
     clear: true,
     dust: true,
     skew: 1,
+    addNoise: 0.04,
     noiseInput: noiseUtils.createNoiseCanvas(0.04, 200)
 };
 
