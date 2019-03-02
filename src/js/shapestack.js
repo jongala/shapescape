@@ -100,6 +100,8 @@ export function shapestack(options) {
         willDrawNest = !willDrawStack;
     }
 
+    let willFillMask = (Math.random() > 0.5);
+
     // rendering styles
     let fancy = opts.fancy;
     let fillStyle = opts.fillStyle;
@@ -215,20 +217,25 @@ export function shapestack(options) {
         addShadow(ctx, w, h);
     }
 
+    let maskFill = '#ffffff';
+    if (willFillMask) {
+        maskFill = colorFuncs[fillStyle](['#ffffff'].concat(opts.palette))(ctx, w, h);
+    }
+
 
     if (opts.multiMask) {
         ctx.beginPath();
-        getRandomRenderer()(ctx, w/4, h/4, scale * randomInRange(0.2,0.25), { fill: '#ffffff', continue:true });
+        getRandomRenderer()(ctx, w/4, h/4, scale * randomInRange(0.2,0.25), { fill: maskFill, continue:true });
         resetTransform(ctx);
-        getRandomRenderer()(ctx, w/4 * 3, h/4, scale * randomInRange(0.2,0.25), { fill: '#ffffff', continue:true });
+        getRandomRenderer()(ctx, w/4 * 3, h/4, scale * randomInRange(0.2,0.25), { fill: maskFill, continue:true });
         resetTransform(ctx);
-        getRandomRenderer()(ctx, w/4, h/4 * 3, scale * randomInRange(0.2,0.25), { fill: '#ffffff', continue:true });
+        getRandomRenderer()(ctx, w/4, h/4 * 3, scale * randomInRange(0.2,0.25), { fill: maskFill, continue:true });
         resetTransform(ctx);
-        getRandomRenderer()(ctx, w/4 * 3, h/4 * 3, scale * randomInRange(0.2,0.25), { fill: '#ffffff', continue:true });
+        getRandomRenderer()(ctx, w/4 * 3, h/4 * 3, scale * randomInRange(0.2,0.25), { fill: maskFill, continue:true });
         resetTransform(ctx);
         ctx.closePath();
     } else {
-        renderer(ctx, maskX, maskY, maskSize, { fill: '#ffffff' });
+        renderer(ctx, maskX, maskY, maskSize, { fill: maskFill });
     }
 
     // clear shadow
