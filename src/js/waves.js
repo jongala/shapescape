@@ -19,9 +19,8 @@ const WAVELET_DEFAULTS = {
     skew: 0.5
 }
 
-function wavelet(ctx, x, y, opts) {
-    opts = Object.assign({}, WAVELET_DEFAULTS, opts);
-    let {width, rise, dip, skew} = opts;
+function wavelet(ctx, x, y, options) {
+    let {width, rise, dip, skew} = Object.assign({}, WAVELET_DEFAULTS, options);
 
     ctx.beginPath();
     ctx.moveTo(x, y);
@@ -60,8 +59,9 @@ const WAVES_DEFAULTS = {
 
 
 function waveset(ctx, x, y, width, height, opts) {
-    opts = Object.assign(WAVES_DEFAULTS, opts);
-    let cols = Math.ceil(width/opts.wl);
+    opts = Object.assign({}, WAVES_DEFAULTS, opts);
+    opts.dense = Math.max(opts.dense, 0.1);
+    let cols = Math.ceil(width/(opts.wl * opts.dense));
     let rows = Math.ceil(height/(opts.wh * opts.dense));
     console.log(`${rows} rows, ${cols} cols`);
     for (var row = 0 ; row < rows ; row++) {
@@ -114,7 +114,7 @@ export function waves(options) {
 
     //wavelet(ctx, 200, 400, 100, 100, {depth: 5, sign: 1})
 
-    waveset(ctx, 0, 0, 800, 800, {wl: 120, wh: 60, dense: 0.5, skew: 0.35});
+    waveset(ctx, 0, 0, 800, 800, {wl: 120, wh: 60, dense: 0.35, skew: 0.65});
 
     // if new canvas child was created, append it
     if (newEl) {
