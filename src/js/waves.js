@@ -11,6 +11,63 @@ const DEFAULTS = {
     clear: true
 }
 
+const WAVEBAND_DEFAULTS = {
+    fill: null,
+    stroke: '#900'
+}
+
+function jitter (val, amount) {
+    if (amount === 0) return val;
+    return randomInRange(val - val * amount, val + val * amount);
+}
+
+// x, y, width, height, (wave)length, amplitude, …
+function waveband(ctx, x, y, w, h, count, amp, options) {
+    let opts = Object.assign({}, WAVEBAND_DEFAULTS, options);
+    const wl = w/count;
+    const pts = Math.ceil(wl * 4);
+    let _y;
+
+    console.log(`${count} waves | ${pts} pts | ${wl} length`);
+
+    ctx.fillStyle = opts.fill;
+    ctx.strokeStyle = opts.stroke;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+
+    for (let i = 0; i < count; i++) {
+        for (let p = 0; p <= 4; p++) {
+            switch(p) {
+                case 0:
+                    _y = 0;
+                    break;
+                case 1:
+                    _y = jitter(-amp, 0);
+                    break;
+                case 2:
+                    _y = 0;
+                    break
+                case 3:
+                    _y = jitter(amp, 0);
+                    break;
+                case 4:
+                    _y = 0;
+                    break
+            }
+            ctx.lineTo(x + (wl* i) + (wl / 4 * p), _y + y);
+        }
+    }
+
+    ctx.stroke();
+    ctx.closePath();
+
+    // mark wave starts
+    for (let i = 0; i <= count; i++) {
+        drawCircle(ctx, x + wl * i, y, 3, {fill:'red'})
+    }
+
+}
+
 
 const WAVELET_DEFAULTS = {
     width: 200,
@@ -114,7 +171,8 @@ export function waves(options) {
 
     //wavelet(ctx, 200, 400, 100, 100, {depth: 5, sign: 1})
 
-    waveset(ctx, 0, 0, 800, 800, {wl: 120, wh: 60, dense: 0.35, skew: 0.65});
+    //waveset(ctx, 0, 0, 800, 800, {wl: 120, wh: 60, dense: 0.35, skew: 0.65});
+    waveband(ctx, 0, 100, cw/2, 200, 5, 75, {});
 
     // if new canvas child was created, append it
     if (newEl) {
