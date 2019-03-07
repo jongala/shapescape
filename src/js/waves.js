@@ -26,22 +26,24 @@ function jitter (val, amount) {
 function wavepath(ctx, x, y, w, h, count, amp, options) {
     let opts = Object.assign({}, WAVEPATH_DEFAULTS, options);
     const wl = w/count;
-    const pts = Math.ceil(wl * 4);
     let x1,y1,x2,y2,x3,y3;
 
-    console.log(`${count} waves | ${pts} pts | ${wl} length`);
+    //console.log(`${count} waves | ${wl} length`);
 
     ctx.fillStyle = opts.fill;
     ctx.strokeStyle = opts.stroke;
     ctx.beginPath();
     ctx.moveTo(x, y);
 
+    y1 = y3 = y;
+    y2 = y + amp;
+
     for (let i = 0; i < count; i++) {
         x1 = x + wl * i;
         x2 = x1 + wl/2;
         x3 = x2 + wl/2;
 
-        y1 = y + jitter(amp * opts.jitter, opts.jitter);
+        y1 = y3
         y2 = y + jitter(amp, opts.jitter);
         y3 = y + jitter(amp * opts.jitter, opts.jitter);
 
@@ -192,7 +194,7 @@ export function waves(options) {
     let count;
     let steps = 14;
     for(let i=0; i<steps; i++) {
-        amp = 10 + 5 * i;
+        amp = jitter(10 + 5 * i, 0.15);
         y += amp;
         h = amp * 3;
         count = Math.max(randomInRange(steps - 2 - i, steps + 2 -i), 0.5);
