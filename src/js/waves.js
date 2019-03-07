@@ -57,8 +57,8 @@ function wavepath(ctx, x, y, w, h, count, amp, options) {
             );
     }
 
-    ctx.lineTo(x + wl * count, y + 2 * amp);
-    ctx.lineTo(x, y + 2 * amp);
+    ctx.lineTo(x + wl * count, y + h);
+    ctx.lineTo(x, y + h);
 
     ctx.closePath();
     ctx.fill();
@@ -67,7 +67,7 @@ function wavepath(ctx, x, y, w, h, count, amp, options) {
 
 function waveband(ctx, x, y, w, h, count, amp, depth, options) {
     for (let i = 0; i < depth; i++) {
-        wavepath(ctx, x, y + i * h/depth, w, h, count, amp, options);
+        wavepath(ctx, x, y + i * amp/depth, w, h, count, amp, options);
     }
 }
 
@@ -184,13 +184,18 @@ export function waves(options) {
     //waveband(ctx, 0, 100, cw, 60, 4, 50, 5, {fill: getSolidFill(opts.palette)});
     //waveband(ctx, 0, 150, cw, 60, 3, 50, 5, {fill: getSolidFill(opts.palette)});
 
-    let y;
+    let y = 0;
     let amp;
-    for(let i=0; i<10; i++) {
-        amp = 20 * (i + 1);
-        y = amp;
+    let h;
+    let count;
+    let steps = 14;
+    for(let i=0; i<steps; i++) {
+        amp = 10 + 5 * i;
+        y += amp;
+        h = amp * 4;
+        count = Math.max(randomInRange(steps - 2 - i, steps + 2 -i), 0.5);
         // ctx, x, y, w, h, wavecount, amp, stackdepth, opts
-        waveband(ctx, 0, (i - 1) * 60, cw, 10 * (i+1), 10-i, 5 * (i + 1), 5, {fill: getSolidFill(opts.palette)});
+        waveband(ctx, 0, y, cw, h, count, amp, 5, {fill: getSolidFill(opts.palette)});
     }
 
 
