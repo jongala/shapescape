@@ -12,8 +12,9 @@ const DEFAULTS = {
 }
 
 const WAVEBAND_DEFAULTS = {
-    fill: null,
-    stroke: '#900'
+    fill: '#000',
+    stroke: '#fff',
+    jitter: 0.05
 }
 
 function jitter (val, amount) {
@@ -26,7 +27,7 @@ function waveband(ctx, x, y, w, h, count, amp, options) {
     let opts = Object.assign({}, WAVEBAND_DEFAULTS, options);
     const wl = w/count;
     const pts = Math.ceil(wl * 4);
-    let _y;
+    let x1,y1,x2,y2,x3,y3;
 
     console.log(`${count} waves | ${pts} pts | ${wl} length`);
 
@@ -36,36 +37,37 @@ function waveband(ctx, x, y, w, h, count, amp, options) {
     ctx.moveTo(x, y);
 
     for (let i = 0; i < count; i++) {
-        for (let p = 0; p <= 4; p++) {
-            switch(p) {
-                case 0:
-                    _y = 0;
-                    break;
-                case 1:
-                    _y = jitter(-amp, 0);
-                    break;
-                case 2:
-                    _y = 0;
-                    break
-                case 3:
-                    _y = jitter(amp, 0);
-                    break;
-                case 4:
-                    _y = 0;
-                    break
-            }
-            ctx.lineTo(x + (wl* i) + (wl / 4 * p), _y + y);
-        }
+        x1 = x + wl * i;
+        x2 = x1 + wl/2;
+        x3 = x2 + wl/2;
+
+        y1 = jitter(y, opts.jitter);
+        y2 = jitter(y + amp, opts.jitter);
+        y3 = jitter(y, opts.jitter);
+
+        ctx.bezierCurveTo(
+            x1 + wl/5, y1,
+            x2 - wl/5, y2,
+            x2, y2
+            );
+        ctx.bezierCurveTo(
+            x2 + wl/5, y2,
+            x3 - wl/5, y3,
+            x3, y3
+            );
     }
 
-    ctx.stroke();
+    ctx.lineTo(x + wl * count, y + 2 * amp);
+    ctx.lineTo(x, y + 2 * amp);
+
     ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
 
     // mark wave starts
-    for (let i = 0; i <= count; i++) {
+    /*for (let i = 0; i <= count; i++) {
         drawCircle(ctx, x + wl * i, y, 3, {fill:'red'})
-    }
-
+    }*/
 }
 
 
@@ -172,7 +174,7 @@ export function waves(options) {
     //wavelet(ctx, 200, 400, 100, 100, {depth: 5, sign: 1})
 
     //waveset(ctx, 0, 0, 800, 800, {wl: 120, wh: 60, dense: 0.35, skew: 0.65});
-    waveband(ctx, 0, 100, cw/2, 200, 5, 75, {});
+    waveband(ctx, 0, 100, cw, 200, 4, 50, {});
 
     // if new canvas child was created, append it
     if (newEl) {
