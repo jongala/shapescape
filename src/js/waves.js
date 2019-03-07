@@ -185,6 +185,8 @@ export function waves(options) {
     //waveband(ctx, 0, 150, cw, 60, 3, 50, 5, {fill: getSolidFill(opts.palette)});
 
     let y = 0;
+    let x = 0;
+    let h_shift = 0;
     let amp;
     let h;
     let count;
@@ -192,10 +194,14 @@ export function waves(options) {
     for(let i=0; i<steps; i++) {
         amp = 10 + 5 * i;
         y += amp;
-        h = amp * 4;
+        h = amp * 3;
         count = Math.max(randomInRange(steps - 2 - i, steps + 2 -i), 0.5);
+
+        h_shift = randomInRange(0, 0.1);
+        x = - h_shift * cw;
+        ctx.lineWidth = 0.5 + amp/50;
         // ctx, x, y, w, h, wavecount, amp, stackdepth, opts
-        waveband(ctx, 0, y, cw, h, count, amp, 5, {fill: getSolidFill(opts.palette)});
+        waveband(ctx, x, y, cw * (1+h_shift), h, count, amp, 5, {fill: getSolidFill(opts.palette)});
     }
 
 
