@@ -11,7 +11,7 @@ const DEFAULTS = {
     clear: true
 }
 
-const WAVEBAND_DEFAULTS = {
+const WAVEPATH_DEFAULTS = {
     fill: '#000',
     stroke: '#fff',
     jitter: 0.05
@@ -23,8 +23,8 @@ function jitter (val, amount) {
 }
 
 // x, y, width, height, (wave)length, amplitude, …
-function waveband(ctx, x, y, w, h, count, amp, options) {
-    let opts = Object.assign({}, WAVEBAND_DEFAULTS, options);
+function wavepath(ctx, x, y, w, h, count, amp, options) {
+    let opts = Object.assign({}, WAVEPATH_DEFAULTS, options);
     const wl = w/count;
     const pts = Math.ceil(wl * 4);
     let x1,y1,x2,y2,x3,y3;
@@ -68,6 +68,12 @@ function waveband(ctx, x, y, w, h, count, amp, options) {
     /*for (let i = 0; i <= count; i++) {
         drawCircle(ctx, x + wl * i, y, 3, {fill:'red'})
     }*/
+}
+
+function waveband(ctx, x, y, w, h, count, amp, depth, options) {
+    for (let i = 0; i < depth; i++) {
+        wavepath(ctx, x, y + i * h/depth, w, h, count, amp, options);
+    }
 }
 
 
@@ -174,7 +180,7 @@ export function waves(options) {
     //wavelet(ctx, 200, 400, 100, 100, {depth: 5, sign: 1})
 
     //waveset(ctx, 0, 0, 800, 800, {wl: 120, wh: 60, dense: 0.35, skew: 0.65});
-    waveband(ctx, 0, 100, cw, 200, 4, 50, {});
+    waveband(ctx, 0, 100, cw, 60, 4, 50, 5, {});
 
     // if new canvas child was created, append it
     if (newEl) {
