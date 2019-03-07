@@ -1,4 +1,4 @@
-import { randItem, randomInRange, setAttrs, resetTransform, rotateCanvas, getGradientFunction } from './utils';
+import { randItem, randomInRange, setAttrs, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
 const DEFAULTS = {
@@ -14,7 +14,7 @@ const DEFAULTS = {
 const WAVEPATH_DEFAULTS = {
     fill: '#000',
     stroke: '#fff',
-    jitter: 0.05
+    jitter: 0.25
 }
 
 function jitter (val, amount) {
@@ -41,9 +41,9 @@ function wavepath(ctx, x, y, w, h, count, amp, options) {
         x2 = x1 + wl/2;
         x3 = x2 + wl/2;
 
-        y1 = jitter(y, opts.jitter);
-        y2 = jitter(y + amp, opts.jitter);
-        y3 = jitter(y, opts.jitter);
+        y1 = y + jitter(amp * opts.jitter, opts.jitter);
+        y2 = y + jitter(amp, opts.jitter);
+        y3 = y + jitter(amp * opts.jitter, opts.jitter);
 
         ctx.bezierCurveTo(
             x1 + wl/5, y1,
@@ -63,11 +63,6 @@ function wavepath(ctx, x, y, w, h, count, amp, options) {
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-
-    // mark wave starts
-    /*for (let i = 0; i <= count; i++) {
-        drawCircle(ctx, x + wl * i, y, 3, {fill:'red'})
-    }*/
 }
 
 function waveband(ctx, x, y, w, h, count, amp, depth, options) {
@@ -175,12 +170,29 @@ export function waves(options) {
     ctx.strokeStyle = "white";
     ctx.fillStyle = "#" + Math.random().toString(16).slice(2,8);
 
+    // setup
+    let getSolidFill = getSolidColorFunction(opts.palette);
+
+
+
     //wavecurve(ctx, 200, 200, 100, 100, {depth: 5});
 
     //wavelet(ctx, 200, 400, 100, 100, {depth: 5, sign: 1})
 
     //waveset(ctx, 0, 0, 800, 800, {wl: 120, wh: 60, dense: 0.35, skew: 0.65});
-    waveband(ctx, 0, 100, cw, 60, 4, 50, 5, {});
+    
+    //waveband(ctx, 0, 100, cw, 60, 4, 50, 5, {fill: getSolidFill(opts.palette)});
+    //waveband(ctx, 0, 150, cw, 60, 3, 50, 5, {fill: getSolidFill(opts.palette)});
+
+    let y;
+    let amp;
+    for(let i=0; i<10; i++) {
+        amp = 20 * (i + 1);
+        y = amp;
+        // ctx, x, y, w, h, wavecount, amp, stackdepth, opts
+        waveband(ctx, 0, (i - 1) * 60, cw, 10 * (i+1), 10-i, 5 * (i + 1), 5, {fill: getSolidFill(opts.palette)});
+    }
+
 
     // if new canvas child was created, append it
     if (newEl) {
