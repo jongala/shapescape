@@ -6,14 +6,17 @@
 <link href="style.bundle.css" rel="stylesheet"></head>
 <body>
     <h1 id="renderPickers"></h1>
-    <div id="example"></div>
     <div id="saved"><div id="instructions">[space] to redraw. Click image to add to tray. Click thumbnail to preview.</div></div>
     <div id="controls">
         <select onchange="setPalette(this.value)" id="paletteSelector"></select>
         <button onclick="createBatch()" id="newBatchTrigger">New Batch</button>
         <input type="text" id="customColors" placeholder="paste colors" />
-        <a href="#" onclick="doDownload(this, document.querySelector('#example canvas').toDataURL());">↓</a>
+        <!--<button onclick="rerun()" id="rerunTrigger">ReRun</button>-->
+        <a href="#" id="downloadExample">↓</a>
     </div>
+    <div id="example"></div>
+    <!--<div id="re-tall" class="rerun"></div>
+    <div id="re-wide" class="rerun"></div>-->
     <script type="text/javascript">
     </script>
 <script type="text/javascript" src="app.bundle.js"></script></body>

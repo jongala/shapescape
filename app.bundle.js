@@ -79,6 +79,7 @@ exports.setAttrs = setAttrs;
 exports.resetTransform = resetTransform;
 exports.rotateCanvas = rotateCanvas;
 exports.getGradientFunction = getGradientFunction;
+exports.getSolidColorFunction = getSolidColorFunction;
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
@@ -120,14 +121,33 @@ function getGradientFunction(palette) {
         var bias = Math.random() - 0.5;
         var coords = [];
         if (bias) {
-            coords = [randomInRange(0, w * 0.25), 0, randomInRange(w * 0.75, w), h];
+            coords = [randomInRange(0, w), 0, randomInRange(0, w), h];
         } else {
-            coords = [0, randomInRange(0, h * 0.5), w, randomInRange(h * 0.75, h)];
+            coords = [0, randomInRange(0, h), w, randomInRange(0, h)];
         }
         var grad = ctx.createLinearGradient.apply(ctx, _toConsumableArray(coords));
         grad.addColorStop(0, randItem(p));
         grad.addColorStop(1, randItem(p));
         return grad;
+    };
+}
+
+// Creates a function that returns a different random entry
+// from @palette each time it is called.
+function getSolidColorFunction(palette) {
+    var refresh = function refresh() {
+        // clone palette before providing func to avoid
+        // operating on the input array.
+        return [].concat(palette).sort(function (a, b) {
+            return Math.random() - 0.5;
+        });
+    };
+    var p = refresh();
+    return function () {
+        // if we run out of colors, start with a new shuffled palette
+        if (!p.length) p = refresh();
+        // otherwise pop a color
+        return p.pop();
     };
 }
 
@@ -355,19 +375,17 @@ var _colorbrewer2 = _interopRequireDefault(_colorbrewer);
 
 var _waterline = __webpack_require__(6);
 
-var _waterline2 = _interopRequireDefault(_waterline);
+var _shapestack = __webpack_require__(9);
 
-var _shapestack = __webpack_require__(7);
+var _shapescape = __webpack_require__(12);
 
-var _shapestack2 = _interopRequireDefault(_shapestack);
+var _lines = __webpack_require__(13);
 
-var _shapescape = __webpack_require__(10);
+var _waves = __webpack_require__(14);
 
-var _shapescape2 = _interopRequireDefault(_shapescape);
+var _grid = __webpack_require__(15);
 
-var _lines = __webpack_require__(11);
-
-var _lines2 = _interopRequireDefault(_lines);
+var _fragments = __webpack_require__(16);
 
 var _utils = __webpack_require__(0);
 
@@ -375,10 +393,13 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 // Renderers
 var RENDERERS = {
-    waterline: _waterline2.default,
-    shapestack: _shapestack2.default,
-    shapescape: _shapescape2.default,
-    lines: _lines2.default
+    waterline: _waterline.waterline,
+    shapestack: _shapestack.shapestack,
+    shapescape: _shapescape.shapescape,
+    lines: _lines.lines,
+    waves: _waves.waves,
+    grid: _grid.grid,
+    fragments: _fragments.fragments
 };
 var initRenderer = 'waterline';
 
@@ -425,6 +446,7 @@ var visualOpts = {
     clear: true,
     dust: true,
     skew: 1,
+    addNoise: 0.04,
     noiseInput: _noiseutils2.default.createNoiseCanvas(0.04, 200)
 };
 
@@ -436,7 +458,11 @@ function loadOpts(opts, fast) {
     var img = exampleNode.querySelector('img');
     img && img.remove();
     visualOpts = Object.assign(visualOpts, opts);
+    // render art
     Renderer(visualOpts);
+    // set up main download link
+    var a = document.getElementById('downloadExample');
+    a.onclick = doDownload(a, document.querySelector('#example canvas'));
 }
 
 // Handlers for redraw, batching, and manual saving
@@ -447,6 +473,7 @@ document.addEventListener('keydown', function (e) {
         // space
         removePreview();
         requestAnimationFrame(loadOpts);
+        e.preventDefault();
         return false;
     } else if (kode === 27) {
         // ESC
@@ -454,13 +481,28 @@ document.addEventListener('keydown', function (e) {
     }
 });
 
-function doDownload(anchor, pixels) {
-    anchor.href = pixels;
+// Click handler:
+// Where @anchor is the <a>, and @el is an image displaying element
+// URL encoded pixel data will be extracted from @el and downloaded
+// upon click.
+function doDownload(anchor, el) {
+    if (el.nodeName === 'IMG') {
+        anchor.href = el.src;
+    } else if (el.nodeName === 'CANVAS') {
+        anchor.href = el.toDataURL('image/png');
+    } else {
+        return;
+    }
     anchor.download = rendererName + '-' + new Date().toISOString().replace(/[-:]/g, '').replace('T', '-').replace(/\.\w+/, '');
     anchor.target = '_blank';
     return false;
 }
 
+// Util:
+// Create an <img> element,
+// Fill it with PNG DataURL from @canvas,
+// Wrap it in an <a> with a download handler,
+// Append it to @container
 function renderCanvasToImg(canvas, container) {
     var pixels = canvas.toDataURL('image/png');
 
@@ -470,7 +512,7 @@ function renderCanvasToImg(canvas, container) {
     var anchor = document.createElement('a');
     anchor.innerHTML = '↓';
     anchor.onclick = function () {
-        doDownload(anchor, image.src);
+        doDownload(anchor, image);
     };
 
     var wrapper = document.createElement('div');
@@ -482,6 +524,9 @@ function renderCanvasToImg(canvas, container) {
     container.appendChild(wrapper);
 }
 
+// Create @N new renderings drawn with @opts inputs
+// Then render to images with click-to-download handlers
+// Append them to div#saved
 function createBatch(opts, N) {
     N = N || 9;
     var canvas = document.querySelector('#example canvas');
@@ -496,6 +541,14 @@ function createBatch(opts, N) {
 }
 window.createBatch = createBatch;
 
+// HACK need universal store for def
+/*function rerun() {
+    drawWaterline(window.LASTDEF, visualOpts);
+    drawWaterline(window.LASTDEF, Object.assign({}, visualOpts, {container: document.querySelector('#re-tall')}) );
+    drawWaterline(window.LASTDEF, Object.assign({}, visualOpts, {container: document.querySelector('#re-wide')}) );
+}
+window.rerun = rerun;*/
+
 // Option sets:
 
 var palettes = {
@@ -503,7 +556,17 @@ var palettes = {
     high_contrast: ['#111111', '#444444', '#dddddd', '#f9f9f9'],
     low_contrast: ['#333333', '#666666', '#999999', '#cccccc', '#f9f9f9'],
     black_white_red: ['#111111', '#444444', '#dddddd', '#ffffff', '#880000', '#dd0000'],
-    lemon_beach: ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'],
+
+    south_beach: ['#0c3646', '#11758e', '#89bed3', '#e4ca49', '#cabd9d', '#f2f0ea'],
+    north_beach: ['#1d282e', '#4b4f52', '#0089ad', '#6e92b4', '#b9a583', '#f1e1d1'],
+    twilight_beach: ['#030408', '#0c3646', '#4a828f', '#af8c70', '#aaadac', '#ffffff'],
+    admiral: ['#0a131c', '#072444', '#3b6185', '#361313', '#c47423', '#b88d40', '#f3efec'],
+    plum_sauce: ['#3C2E42', '#B4254B', '#FF804A', '#E8D1A1', '#A5C9C4'],
+    fingerspitzen: ['#f4dda8', '#eda87c', '#c8907e', '#9cacc3', '#485e80', '#3b465b'],
+
+    terra_cotta_cactus: ['#5d576b', '#9bc1b8', '#f4f1bb', '#dcc48e', '#ed6a5a'],
+    metroid_fusion: ['#DBEED6', '#47BDC2', '#0A7DB8', '#1A3649', '#B24432'],
+
     magma: ['#000004', '#3b0f70', '#8c2981', '#de4968', '#fe9f6d', '#fcfdbf'],
     inferno: ['#000004', '#420a68', '#932667', '#dd513a', '#fca50a', '#fcffa4'],
     plasma: ['#0d0887', '#6a00a8', '#b12a90', '#e16462', '#fca636', '#f0f921'],
@@ -577,7 +640,7 @@ function previewImage(el) {
     var anchor = document.querySelector('#preview .downloader a');
     var image = document.querySelector('#preview .downloader img');
     anchor.onclick = function () {
-        doDownload(anchor, image.src);
+        doDownload(anchor, image);
     };
 }
 
@@ -653,42 +716,46 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+exports.defineWaterline = defineWaterline;
+exports.drawWaterline = drawWaterline;
+exports.waterline = waterline;
+
+var _waterlineSchema = __webpack_require__(7);
+
 var _noiseutils = __webpack_require__(1);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
 var _utils = __webpack_require__(0);
 
+var _colors = __webpack_require__(8);
+
 var _shapes = __webpack_require__(2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 /**
- * Get a fill, either in solid or gradients
+ * Define a fill, either in solid or gradients
  * @param  {context} ctx  the canvas rendering context
  * @param {array} palette an array of color values
  * @param  {num} x    center x of shape
  * @param  {num} y    center y of shape
- * @param  {num} size half the size of the shape (r for circle)
+ * @param  {num} size       half the size of the shape (r for circle)
+ * @param  {num} skew       scalar to offset endpoints left/right for angled gradient
  * @return {fillStyle}      a solid color or canvas gradient
  */
-function getFill(ctx, palette, x, y, size, skew) {
-    if (skew === undefined) {
-        skew = 0;
+function getRandomFill(palette, x, y, size) {
+    var skew = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 0;
+
+    var type = 'solid';
+    if (Math.random() < 0.999999) {
+        type = 'linear';
     }
-    if (Math.random() > 0.9) {
-        // solid
-        return (0, _utils.randItem)(palette);
-    } else {
-        // gradient
-        // pick xoffset as fraction of size to get a shallow angle
-        var xoff = (0, _utils.randomInRange)(-skew / 2, skew / 2) * size;
-        // build gradient, add stops
-        var grad = ctx.createLinearGradient(x - xoff, y - size, x + xoff, y + size);
-        grad.addColorStop(0, (0, _utils.randItem)(palette));
-        grad.addColorStop(1, (0, _utils.randItem)(palette));
-        return grad;
-    }
+    return (0, _colors.defineFill)(type, palette, x, y, size, skew);
 }
 
 function drawWave(ctx, y1, c1, c2, y2, w, h, opts) {
@@ -761,8 +828,8 @@ function removeShadow(ctx) {
 function clipInWaterline(ctx, y1, c1, c2, y2, w, h, renderFunc) {
     ctx.save();
     ctx.beginPath();
-    ctx.moveTo(0, y1);
-    ctx.bezierCurveTo(w / 3, c1, 2 * w / 3, c2, w, y2);
+    ctx.moveTo(0, y1 * h);
+    ctx.bezierCurveTo(w / 3, c1 * h, 2 * w / 3, c2 * h, w, y2 * h);
     ctx.lineTo(w, h);
     ctx.lineTo(0, h);
     ctx.clip();
@@ -773,25 +840,123 @@ function clipInWaterline(ctx, y1, c1, c2, y2, w, h, renderFunc) {
     ctx.restore();
 }
 
-// draw it!
-function waterline(options) {
-    var defaults = {
-        container: 'body',
-        palette: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
-        drawShadows: true,
-        addNoise: 0.04,
-        noiseInput: null,
-        dust: false,
-        skew: 1, // normalized skew
-        clear: true
-    };
-    var opts = {};
-    opts = Object.assign(Object.assign(opts, defaults), options);
+// Map shape names to drawing functions
+var renderMap = {
+    circle: _shapes.drawCircle,
+    ring: _shapes.drawRing,
+    triangle: _shapes.drawTriangle,
+    square: _shapes.drawSquare,
+    box: _shapes.drawBox,
+    rect: _shapes.drawRect,
+    pentagon: _shapes.drawPentagon,
+    hexagon: _shapes.drawHexagon
+};
+
+var DEFAULT_OPTIONS = {
+    container: 'body',
+    palette: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
+    drawShadows: true,
+    addNoise: 0.04,
+    noiseInput: null,
+    dust: false,
+    skew: 1, // normalized skew
+    clear: true
+};
+
+// For dev use:
+// A descriptor of what we think a complete schema should look like.
+// Compare structure with the def object produced by defineWaterline().
+
+
+// Dev util: check a waterline def against the schema, and list any keys
+// not yet represented.  This doesn't check for correctness!!!
+var checkDef = function checkDef(def, schema) {
+    var defKeys = Object.keys(def);
+    var schemaKeys = Object.keys(schema);
+    var missingKeys = [];
+    schemaKeys.map(function (k) {
+        if (!defKeys.includes(k)) missingKeys.push(k);
+    });
+    return missingKeys;
+};
+
+// Create a waterline definition from a set of input @options.
+// Eventually, this should be a JSON object that fully describes
+// a graphic's appearance, with some secondary randomness.
+function defineWaterline(options) {
+    var opts = Object.assign({}, DEFAULT_OPTIONS, options);
+    var shapes = Object.keys(renderMap);
+    // shuffle shape list and pick a shape
+    shapes.sort(function (a, b) {
+        return (0, _utils.randomInRange)(-1, 1);
+    });
+
+    // Set up container values that determine sizes and coordinates
+    var container = opts.container;
+    var w = container.offsetWidth;
+    var h = container.offsetHeight;
+    var SCALE = Math.min(w, h); // generalized size of the layout
+
+    // temp vars which are used in multiple attributes
+    var _shapeSize = (0, _utils.randomInRange)(0.25, 0.4);
+    var _shapeX = 1 / 2;
+    var _shapeY = (0, _utils.randomInRange)(0.4, 0.6);
+
+    // waves
+    var _backLine = [(0, _utils.randomInRange)(0.49, 0.51), (0, _utils.randomInRange)(0.48, 0.52), (0, _utils.randomInRange)(0.48, 0.52), (0, _utils.randomInRange)(0.49, 0.51)];
+    var _backTop = Math.min(_backLine[0], _backLine[3]);
+    var _frontLine = [(0, _utils.randomInRange)(0.47, 0.52), (0, _utils.randomInRange)(0.45, 0.55), (0, _utils.randomInRange)(0.45, 0.55), (0, _utils.randomInRange)(0.47, 0.52)];
+    var _frontTop = Math.min(_frontLine[0], _frontLine[3]);
+
+    // skeleton of a waterline def
+    var def = {
+        shapeName: shapes[0],
+        shapeX: _shapeX,
+        shapeY: _shapeY,
+        shapeSize: _shapeSize,
+        shapeMagnified: _shapeSize * (1 + 1 / (0, _utils.randomInRange)(50, 80)),
+        // Rotate shape. Not all renderers will use this.
+        shapeAngle: (0, _utils.randomInRange)(-Math.PI / 12, Math.PI / 12),
+        shapeFill: getRandomFill(opts.palette, _shapeX, _shapeY, _shapeSize, opts.skew),
+        underwaterShapeAlpha: (0, _utils.randomInRange)(0.2, 1),
+
+        // sky fill
+        backgroundFill: getRandomFill(opts.palette, 0.5, 0.5, 0.5, opts.skew),
+
+        // waves
+        surfaceLine: {
+            fill: getRandomFill(opts.palette, 0, _backTop, 1 - _backTop, 0),
+            backAlpha: (0, _utils.randomInRange)(0.2, 0.6),
+            backOffset: 1 / (0, _utils.randomInRange)(40, 100), // offset between the two waterline waves
+            backLine: _backLine,
+            frontLine: _frontLine
+        },
+
+        // edge
+        edgeThickness: 0.005 * Math.random(),
+        edgeAlpha: (0, _utils.randomInRange)(0.1, 0.75),
+        edgeBlendStops: [(0, _utils.randomInRange)(0, 0.5), (0, _utils.randomInRange)(0.5, 1)]
+
+        // debug: show defs and missing properties
+        // console.log('def', def);
+        // console.log('missing:', checkDef(def, SCHEMA));
+
+    };window.LASTDEF = def; // debug allow re-run
+
+    return def;
+}
+
+// Draw a waterline, given a @def and rendering @options.
+// Eventually, @options should contain only the target element, height, and
+// width, while @def determines what is drawn in that space
+function drawWaterline(def, options) {
+    var opts = Object.assign({}, DEFAULT_OPTIONS, options);
 
     var container = options.container;
 
     var w = container.offsetWidth;
     var h = container.offsetHeight;
+    var SCALE = Math.min(w, h);
 
     // Find or create canvas child
     var el = container.querySelector('canvas');
@@ -819,19 +984,6 @@ function waterline(options) {
         ctx.clearRect(0, 0, w, h);
     }
 
-    var renderer;
-    var renderMap = {
-        circle: _shapes.drawCircle,
-        ring: _shapes.drawRing,
-        triangle: _shapes.drawTriangle,
-        square: _shapes.drawSquare,
-        box: _shapes.drawBox,
-        rect: _shapes.drawRect,
-        pentagon: _shapes.drawPentagon,
-        hexagon: _shapes.drawHexagon
-    };
-    var shapes = Object.keys(renderMap);
-
     // BEGIN RENDERING
 
     if (opts.drawShadows) {
@@ -839,67 +991,46 @@ function waterline(options) {
     }
 
     // draw background/sky
-    ctx.fillStyle = getFill(ctx, opts.palette, 0, 0, h, opts.skew);
+    ctx.fillStyle = (0, _colors.expandFill)(ctx, def.backgroundFill, w, h, SCALE);
     ctx.fillRect(0, 0, w, h);
 
-    // shuffle shape list and pick a shape
-    shapes.sort(function (a, b) {
-        return (0, _utils.randomInRange)(-1, 1);
-    });
-    renderer = renderMap[shapes[0]];
+    var renderer = renderMap[def.shapeName];
 
     // pick centerpoint for shape
-    var shapeX = w / 2;
-    var shapeY = h * (0, _utils.randomInRange)(0.4, 0.6);
-    var shapeSize = Math.min(w, h) * (0, _utils.randomInRange)(0.25, 0.4);
-    if (shapes[0] === 'rect') {
+
+    // since these may get modified, make local copies
+    var shapeSize = def.shapeSize;
+    var shapeMagnified = def.shapeMagnified;
+    if (def.shapeName === 'rect') {
         // bump up size of rectangles
         shapeSize *= 1.2;
+        shapeMagnified *= 1.2;
     }
-    var shapeMagnified = shapeSize + Math.min(w, h) / (0, _utils.randomInRange)(50, 80);
-    // Rotate shape. Not all renderers will use this.
-    var shapeAngle = (0, _utils.randomInRange)(-Math.PI / 12, Math.PI / 12);
 
     // Create a fill we will reuse for both renderings of the shape
-    var shapeFill = getFill(ctx, opts.palette, shapeX, shapeY, shapeSize, 0);
+    var shapeFill = (0, _colors.expandFill)(ctx, def.shapeFill, w, h, SCALE);
 
     // Prepare main waterlines
-    var wl; // left waterline
-    var wc1; // control point
-    var wc2; // control point
-    var wr; // right waterline
-    var wtop; // the min of the waterline heights
-    var wfill; // main waterline fill
-    var bgOffset; // offset of background waterline
 
     // Set waterline params for background renderin, and common fill
-    wl = (0, _utils.randomInRange)(0.49, 0.51) * h;
-    wc1 = (0, _utils.randomInRange)(0.48, 0.52) * h;
-    wc2 = (0, _utils.randomInRange)(0.48, 0.52) * h;
-    wr = (0, _utils.randomInRange)(0.49, 0.51) * h;
-    wtop = Math.min(wl, wr);
-    wfill = getFill(ctx, opts.palette, 0, wtop, h - wtop, 0);
+    var wfill = (0, _colors.expandFill)(ctx, def.surfaceLine.fill, w, h, SCALE); // main waterline fill
 
     // Draw background waterline at low opacity, slightly offset upward
-    ctx.globalAlpha = (0, _utils.randomInRange)(0.2, 0.6);
-    bgOffset = h / (0, _utils.randomInRange)(40, 100);
-    drawWave(ctx, wr - bgOffset, wc2 - bgOffset, wc1 - bgOffset, wl - bgOffset, w, h, Object.assign({ fill: wfill }, opts));
+    ctx.globalAlpha = def.surfaceLine.backAlpha;
+
+    var backgroundOffset = def.surfaceLine.backOffset * h;
+    drawWave(ctx, h * def.surfaceLine.backLine[0] - backgroundOffset, h * def.surfaceLine.backLine[1] - backgroundOffset, h * def.surfaceLine.backLine[2] - backgroundOffset, h * def.surfaceLine.backLine[3] - backgroundOffset, w, h, Object.assign({ fill: wfill }, opts));
     ctx.globalAlpha = 1;
 
     // Draw the shape above waterline
-    renderer(ctx, shapeX, shapeY, shapeSize, {
+    renderer(ctx, def.shapeX * w, def.shapeY * h, shapeSize * SCALE, {
         fill: shapeFill,
-        angle: shapeAngle
+        angle: def.shapeAngle
     });
 
     // Draw main foreground waterline. We will reuse these params
     // for clipping the underwater elements
-    wl = (0, _utils.randomInRange)(0.47, 0.52) * h;
-    wc1 = (0, _utils.randomInRange)(0.45, 0.55) * h;
-    wc2 = (0, _utils.randomInRange)(0.45, 0.55) * h;
-    wr = (0, _utils.randomInRange)(0.47, 0.52) * h;
-    wtop = Math.min(wl, wr);
-    drawWave(ctx, wl, wc1, wc2, wr, w, h, Object.assign({
+    drawWave(ctx, h * def.surfaceLine.frontLine[0], h * def.surfaceLine.frontLine[1], h * def.surfaceLine.frontLine[2], h * def.surfaceLine.frontLine[3], w, h, Object.assign({
         fill: wfill
     }, opts));
 
@@ -928,11 +1059,11 @@ function waterline(options) {
         // for the liquid magnification effect. Fade it out to get different
         // apparent depth and clarity in liquid.
         ctx.globalCompositeOperation = 'normal';
-        ctx.globalAlpha = (0, _utils.randomInRange)(0.2, 1);
+        ctx.globalAlpha = def.underwaterShapeAlpha;
         addShadow(ctx, w, h);
-        renderer(ctx, shapeX, shapeY, shapeMagnified, {
+        renderer(ctx, def.shapeX * w, def.shapeY * h, shapeMagnified * SCALE, {
             fill: shapeFill,
-            angle: shapeAngle
+            angle: def.shapeAngle
         });
 
         // Function to batch create sets of wavy lines under the water
@@ -972,22 +1103,27 @@ function waterline(options) {
         // At the top edge, use the main waterline points, then repeat the
         // curve going back to the left, slightly lower.  Fill with a light
         // gradient and blend over.
-        var edgeThickness = h * 0.005 * Math.random() + 1.5;
+        var edgeThickness = def.edgeThickness * h + 1.5;
         var edgeFill = ctx.createLinearGradient(0, 0, w, 0);
         edgeFill.addColorStop(0, '#808080');
-        edgeFill.addColorStop((0, _utils.randomInRange)(0, 0.5), '#fff');
-        edgeFill.addColorStop((0, _utils.randomInRange)(0.5, 1), '#fff');
+        edgeFill.addColorStop(def.edgeBlendStops[0], '#fff');
+        edgeFill.addColorStop(def.edgeBlendStops[1], '#fff');
         edgeFill.addColorStop(1, '#808080');
 
         ctx.fillStyle = edgeFill;
         ctx.globalCompositeOperation = 'overlay';
-        ctx.globalAlpha = (0, _utils.randomInRange)(0.1, 0.75);
+        ctx.globalAlpha = def.edgeAlpha;
+
+        var _def$surfaceLine$fron = _slicedToArray(def.surfaceLine.frontLine, 4),
+            wl = _def$surfaceLine$fron[0],
+            wc1 = _def$surfaceLine$fron[1],
+            wc2 = _def$surfaceLine$fron[2],
+            wr = _def$surfaceLine$fron[3];
 
         ctx.beginPath();
-        ctx.moveTo(0, wl);
-        ctx.bezierCurveTo(w / 3, wc1 - 1, 2 * w / 3, wc2 - 1, w, wr);
-        ctx.lineTo(w, wr + 3);
-        ctx.bezierCurveTo(2 * w / 3, wc2 + edgeThickness, w / 3, wc1 + edgeThickness, 0, wl + 2);
+        ctx.moveTo(0, wl * h);
+        ctx.bezierCurveTo(w / 3, h * wc1 - 1, 2 * w / 3, h * wc2 - 1, w, h * wr);
+        ctx.bezierCurveTo(2 * w / 3, h * wc2 + edgeThickness, w / 3, h * wc1 + edgeThickness, 0, h * wl + 2);
         ctx.closePath();
         ctx.fill();
 
@@ -1002,7 +1138,7 @@ function waterline(options) {
     }
 
     // Now render the above function inside the waterline clipping area
-    clipInWaterline(ctx, wl, wc1, wc2, wr, w, h, underwater);
+    clipInWaterline.apply(undefined, [ctx].concat(_toConsumableArray(def.surfaceLine.frontLine), [w, h, underwater]));
 
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'normal';
@@ -1027,8 +1163,11 @@ function waterline(options) {
     }
 }
 
-// export
-exports.default = waterline;
+// This wrapper function replaces the old single-function rendering pipeline,
+// where you input rendering @options and get a surprise graphic.
+function waterline(options) {
+    drawWaterline(defineWaterline(options), options);
+}
 
 /***/ }),
 /* 7 */
@@ -1040,6 +1179,196 @@ exports.default = waterline;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+// Waterline def schema
+var SCHEMA = exports.SCHEMA = {
+    shapeName: '',
+    shapeY: 0,
+    shapeSize: 0,
+    shapeMagnified: 0,
+    shapeAngle: 0,
+    shapeFill: {},
+    underwaterShapeAlpha: 1,
+    backgroundFill: {},
+
+    surfaceLine: {
+        fill: {},
+        backAlpha: 1,
+        backOffset: 0,
+        backLine: [0, 0, 0, 0],
+        frontLine: [0, 0, 0, 0]
+    },
+    sunBeams: {
+        alpha: 1,
+        beams: [0, 0]
+    },
+
+    waveSet: [{
+        gradient: { start: [0, 0], end: [0, 0] },
+        position: [0, 0, 0, 0],
+        alpha: 1
+    }],
+
+    edgeThickness: 0,
+    edgeAlpha: 1,
+    edgeBlendStops: [0.25, 0.75], // left half, right half
+
+    spots: [{
+        x: 0,
+        y: 0,
+        r: 1,
+        alpha: 1
+    }]
+
+};
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.defineFill = defineFill;
+exports.expandFill = expandFill;
+
+var _utils = __webpack_require__(0);
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+/*
+ * The general approach is to define fills in a generic object format,
+ * which can be considered the serialized form:
+ *
+ * myFill = {
+ *     type: ['solid', 'linear', 'radial'],
+ *     params: {
+ *         // whatever you need for the fill type
+ *     }
+ * }
+ *
+ * These are returned by defineFill()
+ *
+ * These can be deserialized by expandFill(), which dispatches to helper functions
+ * for each fill type. These return an expanded fill, which is anything that
+ * is valid for assignment to context.fillStyle = {}
+ * e.g. a string of a hex color, or a defined canvas gradient.
+ * 
+ */
+
+//--------------------------------------
+// SERIALIZE
+//--------------------------------------
+
+var defineSolidFill = function defineSolidFill(palette) {
+    var f = {
+        type: 'solid',
+        params: {
+            color: (0, _utils.randItem)(palette)
+        }
+    };
+    return f;
+};
+
+/**
+ * Define a linear fill
+ * @param  {context} ctx  the canvas rendering context
+ * @param {array} palette an array of color values
+ * @param  {num} x    center x of shape, normalized
+ * @param  {num} y    center y of shape, normalized
+ * @param  {num} size       half the size of the shape (r for circle), normalized
+ * @param  {num} skew       scalar to offset endpoints left/right for angled gradient
+ * @return {fillStyle}      an object defining a linear gradient, to be processed by expandFill()
+ */
+var defineLinearGradientFill = function defineLinearGradientFill(palette, x, y, size, skew) {
+    var gradient = {
+        type: 'linear',
+        params: {
+            coords: [],
+            stops: []
+        }
+    };
+    // 
+    // pick xoffset as fraction of size to get a shallow angle
+    var xoff = (0, _utils.randomInRange)(-skew / 2, skew / 2) * size;
+    // build gradient, add stops
+    gradient.params.coords = [x - xoff, y - size, x + xoff, y + size];
+    gradient.params.stops.push([0, (0, _utils.randItem)(palette)]);
+    gradient.params.stops.push([1, (0, _utils.randItem)(palette)]);
+    return gradient;
+};
+
+// generic fill definition function
+/**
+ * Get a fill, either in solid or gradients
+ * @param  {context} ctx  the canvas rendering context
+ * @param {array} palette an array of color values
+ * @param  {num} x    center x of shape, normalized
+ * @param  {num} y    center y of shape, normalized
+ * @param  {num} size       half the size of the shape (r for circle), normalized
+ * @param  {num} skew       scalar to offset endpoints left/right for angled gradient
+ * @return {fillStyle}      a custom fill object to be processed by expandFill()
+ */
+function defineFill(type, palette, x, y, size, skew) {
+    // create a fill object
+    var fillGenerators = {
+        'solid': defineSolidFill,
+        'linear': defineLinearGradientFill,
+        'radial': defineSolidFill // FIXME
+    };
+    return fillGenerators[type](palette, x, y, size, skew);
+}
+
+//--------------------------------------
+// DESERIALIZE
+//--------------------------------------
+
+
+var gradientFromLinearDef = function gradientFromLinearDef(ctx, gradientDef, w, h, scale) {
+    var c = [].concat(_toConsumableArray(gradientDef.params.coords));
+    c[0] *= w;
+    c[1] *= h;
+    c[2] *= w;
+    c[3] *= h;
+    var g = ctx.createLinearGradient.apply(ctx, _toConsumableArray(c));
+    gradientDef.params.stops.forEach(function (s) {
+        return g.addColorStop.apply(g, _toConsumableArray(s));
+    });
+    return g;
+};
+
+// outer expandFill converts a fill spec to a usable 2D context fill
+function expandFill(ctx, fill, w, h, scale) {
+    var fillFuncs = {
+        'linear': gradientFromLinearDef,
+        'radial': function radial(ctx, fill) {
+            return fill.params.color;
+        }, // FIXME
+        'solid': function solid(ctx, fill) {
+            return fill.params.color;
+        }
+    };
+    if (fillFuncs[fill.type]) {
+        return fillFuncs[fill.type](ctx, fill, w, h, scale);
+    } else {
+        console.error('Could not resolve fill', fill, w, h, scale);
+        return '#808080';
+    }
+}
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.shapestack = shapestack;
 
 var _noiseutils = __webpack_require__(1);
 
@@ -1049,30 +1378,11 @@ var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(2);
 
-var _stacks = __webpack_require__(8);
+var _stacks = __webpack_require__(10);
 
-var _nests = __webpack_require__(9);
+var _nests = __webpack_require__(11);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-// Creates a function that returns a different random entry
-// from @palette each time it is called.
-function getSolidColorFunction(palette) {
-    var refresh = function refresh() {
-        // clone palette before providing func to avoid
-        // operating on the input array.
-        return [].concat(palette).sort(function (a, b) {
-            return Math.random() - 0.5;
-        });
-    };
-    var p = refresh();
-    return function () {
-        // if we run out of colors, start with a new shuffled palette
-        if (!p.length) p = refresh();
-        // otherwise pop a color
-        return p.pop();
-    };
-}
 
 function addShadow(ctx, w, h) {
     ctx.shadowOffsetX = 0;
@@ -1090,7 +1400,7 @@ function removeShadow(ctx) {
 
 var DEFAULTS = {
     container: 'body',
-    palette: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
+    palette: ['#3C2E42', '#B4254B', '#FF804A', '#E8D1A1', '#A5C9C4'],
     drawShadows: false,
     addNoise: 0.04,
     noiseInput: null,
@@ -1167,6 +1477,8 @@ var DEFAULTS = {
         willDrawNest = !willDrawStack;
     }
 
+    var willFillMask = Math.random() > 0.5;
+
     // rendering styles
     var fancy = opts.fancy;
     var fillStyle = opts.fillStyle;
@@ -1187,7 +1499,7 @@ var DEFAULTS = {
     // map of color function generators
     var colorFuncs = {
         'gradient': _utils.getGradientFunction,
-        'solid': getSolidColorFunction
+        'solid': _utils.getSolidColorFunction
         // if no valid fill style is passed, assign one randomly
     };if (!['gradient', 'solid'].includes(fillStyle)) {
         fillStyle = Math.random() > 0.5 ? 'gradient' : 'solid';
@@ -1199,7 +1511,7 @@ var DEFAULTS = {
     // ======================================
 
     // draw background/sky
-    var sky = Math.round((0, _utils.randomInRange)(204, 245)).toString(16);
+    var sky = Math.round((0, _utils.randomInRange)(104, 245)).toString(16);
     ctx.fillStyle = '#' + sky + sky + sky;
     ctx.fillRect(0, 0, w, h);
 
@@ -1274,25 +1586,31 @@ var DEFAULTS = {
         addShadow(ctx, w, h);
     }
 
+    var maskFill = '#ffffff';
+    if (willFillMask) {
+        maskFill = colorFuncs[fillStyle](['#ffffff'].concat(opts.palette))(ctx, w, h);
+    }
+
     if (opts.multiMask) {
         ctx.beginPath();
-        getRandomRenderer()(ctx, w / 4, h / 4, scale * (0, _utils.randomInRange)(0.2, 0.25), { fill: '#ffffff', continue: true });
+        getRandomRenderer()(ctx, w / 4, h / 4, scale * (0, _utils.randomInRange)(0.2, 0.25), { fill: maskFill, continue: true });
         (0, _utils.resetTransform)(ctx);
-        getRandomRenderer()(ctx, w / 4 * 3, h / 4, scale * (0, _utils.randomInRange)(0.2, 0.25), { fill: '#ffffff', continue: true });
+        getRandomRenderer()(ctx, w / 4 * 3, h / 4, scale * (0, _utils.randomInRange)(0.2, 0.25), { fill: maskFill, continue: true });
         (0, _utils.resetTransform)(ctx);
-        getRandomRenderer()(ctx, w / 4, h / 4 * 3, scale * (0, _utils.randomInRange)(0.2, 0.25), { fill: '#ffffff', continue: true });
+        getRandomRenderer()(ctx, w / 4, h / 4 * 3, scale * (0, _utils.randomInRange)(0.2, 0.25), { fill: maskFill, continue: true });
         (0, _utils.resetTransform)(ctx);
-        getRandomRenderer()(ctx, w / 4 * 3, h / 4 * 3, scale * (0, _utils.randomInRange)(0.2, 0.25), { fill: '#ffffff', continue: true });
+        getRandomRenderer()(ctx, w / 4 * 3, h / 4 * 3, scale * (0, _utils.randomInRange)(0.2, 0.25), { fill: maskFill, continue: true });
         (0, _utils.resetTransform)(ctx);
         ctx.closePath();
     } else {
-        renderer(ctx, maskX, maskY, maskSize, { fill: '#ffffff' });
+        renderer(ctx, maskX, maskY, maskSize, { fill: maskFill });
     }
 
     // clear shadow
     removeShadow(ctx);
 
     // clip mask
+    ctx.save();
     ctx.clip();
 
     // Draw color stacks or nests inside the mask
@@ -1395,11 +1713,8 @@ var DEFAULTS = {
     }
 }
 
-// export
-exports.default = shapestack;
-
 /***/ }),
-/* 8 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1451,7 +1766,7 @@ function drawStack(ctx, stack, x, w, colorFunc) {
 }
 
 /***/ }),
-/* 9 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1537,7 +1852,7 @@ function drawNest(ctx, nest, shapeFunction, colorFunction, o) {
 }
 
 /***/ }),
-/* 10 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1546,6 +1861,7 @@ function drawNest(ctx, nest, shapeFunction, colorFunction, o) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.shapescape = shapescape;
 
 var _noiseutils = __webpack_require__(1);
 
@@ -1726,12 +2042,8 @@ function shapescape(options) {
     }
 }
 
-// export
-//window.shapescape = shapescape;
-exports.default = shapescape;
-
 /***/ }),
-/* 11 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1740,6 +2052,8 @@ exports.default = shapescape;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.lines = lines;
+exports.drawLines = drawLines;
 
 var _noiseutils = __webpack_require__(1);
 
@@ -1757,7 +2071,7 @@ var OVERLAYLIST = ['shape', 'area', 'blend', 'auto'];
 var DEFAULTS = {
     container: 'body',
     palette: ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'],
-    bg: 'white', // one of BGLIST or 'auto'
+    bg: 'auto', // one of BGLIST or 'auto'
     overlay: null, // one of OVERLAYLIST or 'auto'
     drawShadows: false,
     addNoise: 0.04,
@@ -1809,6 +2123,15 @@ function lines(options) {
 
     ctx = el.getContext('2d');
 
+    // bg styles
+    var BG = void 0;
+    if (opts.bg === 'auto') {
+        BG = (0, _utils.randItem)([].concat(BGLIST));
+        //console.log('auto bg, picked', BG);
+    } else {
+        BG = opts.bg;
+    }
+
     // rendering styles
     var drawShapeMask = Math.random() >= 0.3333; // should we draw a shape-masked line set?
 
@@ -1825,6 +2148,12 @@ function lines(options) {
         }
     }
 
+    if (blendStyle === 'bg') {
+        Object.assign(opts, { overlay: 'blend' });
+    }
+
+    var drawOpts = Object.assign({}, opts, { bg: BG });
+
     // divide the canvas into multiple sections?
     var splitPoint = void 0;
     var splitSeed = Math.random();
@@ -1832,20 +2161,11 @@ function lines(options) {
         // left right
         splitPoint = [(0, _utils.randomInRange)(cw * 1 / 4, cw * 3 / 4), 0];
 
-        if (blendStyle === 'bg') {
-            Object.assign(opts, { overlay: 'blend' });
-        }
-
-        drawLines(ctx, [0, 0], [splitPoint[0], ch], opts);
-        drawLines(ctx, [splitPoint[0], 0], [cw, ch], opts);
+        drawLines(ctx, [0, 0], [splitPoint[0], ch], drawOpts);
+        drawLines(ctx, [splitPoint[0], 0], [cw, ch], drawOpts);
     } else {
         // single
-
-        if (blendStyle === 'bg') {
-            Object.assign(opts, { overlay: 'blend' });
-        }
-
-        drawLines(ctx, [0, 0], [cw, ch], opts);
+        drawLines(ctx, [0, 0], [cw, ch], drawOpts);
     }
 
     // draw shapemask, if specified above
@@ -1856,12 +2176,12 @@ function lines(options) {
             Object.assign(opts, { overlay: 'none' });
         }
 
-        var maskScale = Math.min(cw, ch) * (0, _utils.randomInRange)(0.25, 0.4);
+        var maskScale = Math.min(cw, ch) * (0, _utils.randomInRange)(0.25, 0.6);
         // Get and use random shape for masking. No fill required.
-        getRandomRenderer()(ctx, cw / 2, ch / 2, maskScale, {});
+        getRandomRenderer()(ctx, cw * (0, _utils.randomInRange)(0.2, 0.8), ch * (0, _utils.randomInRange)(0.2, 0.8), maskScale, { angle: (0, _utils.randomInRange)(0, Math.PI) });
         ctx.save();
         ctx.clip();
-        drawLines(ctx, [0, 0], [cw, ch], opts);
+        drawLines(ctx, [0, 0], [cw, ch], drawOpts);
         ctx.restore();
         (0, _utils.resetTransform)(ctx);
     }
@@ -1912,9 +2232,6 @@ function drawLines(ctx, p1, p2, opts) {
         ctx.clearRect(0, 0, w, h);
     }
 
-    if (opts.bg === 'auto') {
-        opts.bg = (0, _utils.randItem)([].concat(BGLIST));
-    }
     switch (opts.bg) {
         case 'solid':
             ctx.fillStyle = (0, _utils.randItem)(opts.palette);
@@ -1975,7 +2292,8 @@ function drawLines(ctx, p1, p2, opts) {
     // move endpoints out of frame
     ctx.translate(-stopInterval / 2, -lineInterval / 2);
 
-    console.log(lines + ' lines @' + lineInterval.toFixed(1) + 'px  X  ' + stops + ' stops @' + stopInterval.toFixed(1) + 'px');
+    //console.log(`${lines} lines @${lineInterval.toFixed(1)}px  X  ${stops} stops @${stopInterval.toFixed(1)}px`)
+
 
     var pts = [];
     // create array of zeroes
@@ -2152,8 +2470,915 @@ function drawLines(ctx, p1, p2, opts) {
     (0, _utils.resetTransform)(ctx);
 }
 
-// export
-exports.default = lines;
+/***/ }),
+/* 14 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.waves = waves;
+
+var _utils = __webpack_require__(0);
+
+var _shapes = __webpack_require__(2);
+
+var DEFAULTS = {
+    container: 'body',
+    palette: ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'],
+    addNoise: 0.04,
+    noiseInput: null,
+    dust: false,
+    skew: 1, // normalized skew
+    clear: true
+};
+
+var WAVEPATH_DEFAULTS = {
+    fill: '#000',
+    stroke: '#fff',
+    jitter: 0.25
+};
+
+function jitter(val, amount) {
+    if (amount === 0) return val;
+    return (0, _utils.randomInRange)(val - val * amount, val + val * amount);
+}
+
+// x, y, width, height, (wave)length, amplitude, …
+function wavepath(ctx, x, y, w, h, count, amp, options) {
+    var opts = Object.assign({}, WAVEPATH_DEFAULTS, options);
+    var wl = w / count;
+    var x1 = void 0,
+        y1 = void 0,
+        x2 = void 0,
+        y2 = void 0,
+        x3 = void 0,
+        y3 = void 0;
+
+    //console.log(`${count} waves | ${wl} length`);
+
+    ctx.fillStyle = opts.fill;
+    ctx.strokeStyle = opts.stroke;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+
+    y1 = y3 = y;
+    y2 = y + amp;
+
+    for (var i = 0; i < count; i++) {
+        x1 = x + wl * i;
+        x2 = x1 + wl / 2;
+        x3 = x2 + wl / 2;
+
+        y1 = y3;
+        y2 = y + jitter(amp, opts.jitter); // jitter the midpoint based on amp
+        y3 = y + jitter(amp * opts.jitter, opts.jitter); // jitter endpoint less
+
+        ctx.bezierCurveTo(x1 + wl / 5, y1, x2 - wl / 5, y2, x2, y2);
+        ctx.bezierCurveTo(x2 + wl / 5, y2, x3 - wl / 5, y3, x3, y3);
+    }
+
+    ctx.lineTo(x + wl * count, y + h);
+    ctx.lineTo(x, y + h);
+
+    ctx.closePath();
+    opts.fill && ctx.fill();
+    ctx.stroke();
+}
+
+function waveband(ctx, x, y, w, h, count, amp, depth, options) {
+    var opts = Object.assign({}, options);
+    var _lineWidth = ctx.lineWidth;
+    ctx.lineWidth *= (0, _utils.randomInRange)(1.5, 2); // start thicc
+    for (var i = 0; i < depth; i++) {
+        wavepath(ctx, x, y + i * amp / depth, w, h, count, amp, opts);
+        opts.fill = null; // after the first pass, remove the fill, so lines overlap
+        ctx.lineWidth = _lineWidth; // reset linewidth
+    }
+}
+
+var WAVELET_DEFAULTS = {
+    width: 200,
+    rise: 60,
+    dip: 30,
+    skew: 0.5
+};
+
+function wavelet(ctx, x, y, options) {
+    var _Object$assign = Object.assign({}, WAVELET_DEFAULTS, options),
+        width = _Object$assign.width,
+        rise = _Object$assign.rise,
+        dip = _Object$assign.dip,
+        skew = _Object$assign.skew;
+
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.bezierCurveTo(x + width * skew * .333, y - rise / 2, x + width * skew * .666, y - rise / 2, x + width * skew, y - rise);
+    ctx.bezierCurveTo(x + width * skew * (1 + 0.333), y - rise / 2, x + width * skew * (1 + 0.666), y - rise / 2, x + width, y);
+    ctx.bezierCurveTo(x + width * skew * (1 + 0.666), y + dip * .5, x + width * skew * (1 + 0.333), y + dip * .75, x + width * skew, y + dip);
+    ctx.bezierCurveTo(x + width * skew * .666, y + dip * .75, x + width * skew * .333, y + dip * .5, x, y);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+}
+
+var WAVES_DEFAULTS = {
+    wl: 100,
+    wh: 50,
+    dense: 0.4,
+    skew: 0.5
+};
+
+function waveset(ctx, x, y, width, height, opts) {
+    opts = Object.assign({}, WAVES_DEFAULTS, opts);
+    opts.dense = Math.max(opts.dense, 0.1);
+    var cols = Math.ceil(width / (opts.wl * opts.dense));
+    var rows = Math.ceil(height / (opts.wh * opts.dense));
+    console.log(rows + ' rows, ' + cols + ' cols');
+    for (var row = 0; row < rows; row++) {
+        for (var col = 0; col < cols + 1 * (row % 2); col++) {
+            wavelet(ctx, x + opts.wl * col - opts.wl / 2 * (row % 2), y + opts.wh * row * opts.dense, {
+                width: opts.wl,
+                rise: opts.wh * 0.666,
+                dip: opts.wh * 0.333,
+                skew: opts.skew
+            });
+        }
+    }
+}
+
+function waves(options) {
+    var opts = Object.assign({}, DEFAULTS, options);
+
+    var container = opts.container;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
+
+    // Find or create canvas child
+    var el = container.querySelector('canvas');
+    var newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        (0, _utils.setAttrs)(el, {
+            width: cw,
+            height: ch
+        });
+    }
+
+    var ctx; // canvas ctx or svg tag
+
+    ctx = el.getContext('2d');
+
+    ctx.strokeStyle = "white";
+    ctx.fillStyle = "#" + Math.random().toString(16).slice(2, 8);
+
+    // setup
+    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
+
+    //wavecurve(ctx, 200, 200, 100, 100, {depth: 5});
+
+    //wavelet(ctx, 200, 400, 100, 100, {depth: 5, sign: 1})
+
+    //waveset(ctx, 0, 0, 800, 800, {wl: 120, wh: 60, dense: 0.35, skew: 0.65});
+
+    //waveband(ctx, 0, 100, cw, 60, 4, 50, 5, {fill: getSolidFill(opts.palette)});
+    //waveband(ctx, 0, 150, cw, 60, 3, 50, 5, {fill: getSolidFill(opts.palette)});
+
+
+    function simpleCover() {
+        var y = 0;
+        var x = 0;
+        var h_shift = 0;
+        var amp = void 0;
+        var h = void 0;
+        var count = void 0;
+        var steps = (0, _utils.randomInRange)(10, 40);
+        var interval = ch / steps;
+
+        var baseCount = (0, _utils.randomInRange)(20, 50); // low or high number of peaks
+
+        ctx.lineWidth = 0.5 + interval / 50;
+
+        y = -interval; // start above the top
+
+        for (var i = 0; i < steps; i++) {
+            amp = interval;
+            h = amp * 3;
+
+            // variation in wave count based on amplitude
+            count = baseCount * (0, _utils.randomInRange)(3, 5) / amp;
+
+            // horizontal offsets for natural appearance
+            h_shift = (0, _utils.randomInRange)(0, 0.1);
+            x = -h_shift * cw;
+
+            // ctx, x, y, w, h, wavecount, amp, stackdepth, opts
+            waveband(ctx, x, y, cw * (1 + h_shift), h, count, amp, 5, {
+                fill: getSolidFill(opts.palette),
+                jitter: 0.2
+            });
+
+            // step down
+            y += amp;
+        }
+    }
+
+    function nearFar() {
+        var y = 0;
+        var x = 0;
+        var h_shift = 0;
+        var amp = void 0;
+        var h = void 0;
+        var count = void 0;
+        var steps = 14;
+        var interval = ch / steps;
+
+        for (var i = 0; i < steps; i++) {
+            count = Math.max((0, _utils.randomInRange)(steps - 2 - i, steps + 2 - i), 0.5);
+            amp = 10 + 75 / count;
+            y += amp;
+            h = amp * 3;
+
+            // horizontal offsets for natural appearance
+            h_shift = (0, _utils.randomInRange)(0, 0.1);
+            x = -h_shift * cw;
+
+            // make near lines thicker
+            ctx.lineWidth = 0.5 + amp / 50;
+
+            // ctx, x, y, w, h, wavecount, amp, stackdepth, opts
+            waveband(ctx, x, y, cw * (1 + h_shift), h, count, amp, 5, { fill: getSolidFill(opts.palette) });
+        }
+    }
+
+    simpleCover();
+    //nearFar();
+
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
+}
+
+/***/ }),
+/* 15 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.grid = grid;
+
+var _noiseutils = __webpack_require__(1);
+
+var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _utils = __webpack_require__(0);
+
+var _shapes = __webpack_require__(2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+var DEFAULTS = {
+    container: 'body',
+    palette: ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'],
+    addNoise: 0.04,
+    noiseInput: null,
+    dust: false,
+    skew: 1, // normalized skew
+    clear: true
+
+    // Main function
+};function grid(options) {
+    var opts = Object.assign({}, DEFAULTS, options);
+
+    var container = opts.container;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
+    var SCALE = Math.min(cw, ch);
+
+    // Find or create canvas child
+    var el = container.querySelector('canvas');
+    var newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        (0, _utils.setAttrs)(el, {
+            width: cw,
+            height: ch
+        });
+    }
+
+    var ctx = el.getContext('2d');
+
+    // available renderers
+    var renderMap = {
+        //circle: drawCircle,
+        //ring: drawRing,
+        triangle: _shapes.drawTriangle,
+        square: _shapes.drawSquare,
+        box: _shapes.drawBox,
+        rect: _shapes.drawRect,
+        pentagon: _shapes.drawPentagon,
+        hexagon: _shapes.drawHexagon
+    };
+    var shapes = Object.keys(renderMap);
+    var getRandomRenderer = function getRandomRenderer() {
+        return renderMap[(0, _utils.randItem)(shapes)];
+    };
+
+    // util to draw a square and clip following rendering inside
+    function clipSquare(ctx, w, h, color) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, w, h);
+        ctx.fillStyle = color;
+        ctx.closePath();
+        ctx.fill();
+        ctx.clip();
+    }
+
+    // color funcs
+    var randomFill = function randomFill() {
+        return "#" + Math.random().toString(16).slice(2, 8);
+    };
+    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
+
+    // define grid
+    var count = Math.round((0, _utils.randomInRange)(4, 9));
+    var w = Math.ceil(cw / count);
+    var h = w;
+    var vcount = Math.ceil(ch / h);
+
+    // setup vars for each cell
+    var x = 0;
+    var y = 0;
+    var xnorm = 0;
+    var ynorm = 0;
+    var renderer = void 0;
+
+    // play with these random seeds
+    var a = void 0,
+        b = void 0,
+        c = void 0;
+    a = Math.random();
+    b = Math.random();
+    c = Math.random();
+
+    // shared colors
+    var fg = getSolidFill();
+    var bg = getSolidFill();
+
+    // get palette of non-bg colors
+    var contrastPalette = [].concat(opts.palette);
+    contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
+
+    // mode
+    function maskAndRotate() {
+        renderer = getRandomRenderer();
+        var colorFunc = void 0;
+        // pick a color mode: random, or just fg
+        if (Math.random() < 0.33) {
+            colorFunc = getContrastColor;
+        } else {
+            colorFunc = function colorFunc() {
+                return fg;
+            };
+        }
+        for (var i = 0; i < vcount; i++) {
+            // pick renderers by row here
+            // renderer = getRandomRenderer();
+            for (var j = 0; j < count; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * i;
+                xnorm = x / cw;
+                ynorm = y / ch;
+
+                // shift and clip
+                ctx.translate(x, y);
+                clipSquare(ctx, w, h, bg);
+
+                // draw
+                renderer(ctx, w * a + xnorm * (1 - a), // start at a, march across
+                h * b + ynorm * (1 - b), // start at b, march down
+                w / (c + 1.5), // scale at c
+                {
+                    fill: colorFunc(),
+                    angle: xnorm - a - (ynorm - b) // rotate with position
+                });
+
+                // unshift, unclip
+                ctx.restore();
+                (0, _utils.resetTransform)(ctx);
+            }
+        }
+    }
+
+    // mode
+    function circles() {
+        var px = void 0,
+            py = void 0;
+        for (var i = 0; i < vcount; i++) {
+            for (var j = 0; j < count; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * i;
+                xnorm = x / cw;
+                ynorm = y / ch;
+
+                // shift and clip
+                ctx.translate(x, y);
+                clipSquare(ctx, w, h, bg);
+
+                switch (Math.round((0, _utils.randomInRange)(1, 5))) {
+                    case 1:
+                        renderer = _shapes.drawSquare;
+                        px = 0;
+                        py = 0;
+                        break;
+                    case 2:
+                        renderer = _shapes.drawCircle;
+                        px = 0;
+                        py = 0;
+                        break;
+                    case 3:
+                        renderer = _shapes.drawCircle;
+                        px = w;
+                        py = 0;
+                        break;
+                    case 4:
+                        renderer = _shapes.drawCircle;
+                        px = w;
+                        py = h;
+                        break;
+                    case 5:
+                        renderer = _shapes.drawCircle;
+                        px = 0;
+                        py = h;
+                        break;
+                }
+
+                // draw
+                renderer(ctx, px, py, w, {
+                    fill: getSolidFill()
+                });
+
+                // unshift, unclip
+                ctx.restore();
+                (0, _utils.resetTransform)(ctx);
+            }
+        }
+    }
+
+    // draw a triangle in a random corner
+    function _triangle() {
+        var corners = [[0, 0], [w, 0], [w, h], [0, h]];
+        var drawCorners = [];
+        var skip = void 0;
+        skip = Math.round((0, _utils.randomInRange)(0, 3));
+        drawCorners = [].concat(corners);
+        drawCorners.splice(skip, 1);
+
+        // draw a triangle with the remaining 3 points
+        ctx.beginPath();
+        ctx.moveTo.apply(ctx, _toConsumableArray(drawCorners[0]));
+        ctx.lineTo.apply(ctx, _toConsumableArray(drawCorners[1]));
+        ctx.lineTo.apply(ctx, _toConsumableArray(drawCorners[2]));
+        ctx.closePath();
+        ctx.fillStyle = getSolidFill();
+        ctx.fill();
+    }
+
+    // mode
+    function triangles() {
+        for (var i = 0; i < vcount; i++) {
+            for (var j = 0; j < count; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * i;
+                xnorm = x / cw;
+                ynorm = y / ch;
+
+                // shift and clip
+                ctx.translate(x, y);
+                clipSquare(ctx, w, h, bg);
+
+                _triangle();
+
+                // unshift, unclip
+                ctx.restore();
+                (0, _utils.resetTransform)(ctx);
+            }
+        }
+    }
+
+    // mode
+    function mixed() {
+        var px = void 0,
+            py = void 0,
+            seed = void 0;
+        var styles = [function () {
+            renderer = _shapes.drawCircle;
+            px = 0;
+            py = 0;
+        }];
+
+        for (var i = 0; i < vcount; i++) {
+            for (var j = 0; j < count; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * i;
+                xnorm = x / cw;
+                ynorm = y / ch;
+
+                // shift and clip
+                ctx.translate(x, y);
+                clipSquare(ctx, w, h, bg);
+
+                switch (Math.round((0, _utils.randomInRange)(1, 12))) {
+                    case 1:
+                        renderer = _shapes.drawCircle;
+                        px = 0;
+                        py = 0;
+                        break;
+                    case 2:
+                        renderer = _shapes.drawCircle;
+                        px = w;
+                        py = 0;
+                        break;
+                    case 3:
+                        renderer = _shapes.drawCircle;
+                        px = w;
+                        py = h;
+                        break;
+                    case 4:
+                        renderer = _shapes.drawCircle;
+                        px = 0;
+                        py = h;
+                        break;
+                    case 5:
+                    case 6:
+                    case 7:
+                    case 8:
+                        renderer = _shapes.drawSquare;
+                        px = 0;
+                        py = 0;
+                        break;
+                    case 9:
+                    case 10:
+                    case 11:
+                    case 12:
+                        _triangle();
+                        renderer = function renderer() {};
+                        break;
+                }
+
+                // draw
+                renderer(ctx, px, py, w, {
+                    fill: getSolidFill()
+                });
+
+                // unshift, unclip
+                ctx.restore();
+                (0, _utils.resetTransform)(ctx);
+            }
+        }
+    }
+
+    // gather our modes
+    var modes = [maskAndRotate, circles, triangles, mixed];
+
+    // do the loop with one of our modes
+    (0, _utils.randItem)(modes)();
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, w / 3);
+        }
+    }
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
+}
+
+/***/ }),
+/* 16 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.fragments = fragments;
+
+var _noiseutils = __webpack_require__(1);
+
+var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _utils = __webpack_require__(0);
+
+var _shapes = __webpack_require__(2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+var DEFAULTS = {
+    container: 'body',
+    palette: ['#F8ADAA', '#F8E3AC', '#111111', '#ffffff', '#94552C'],
+    drawGrid: 'auto', // [true, false, 'auto']
+    addNoise: false, //0.04,
+    noiseInput: null,
+    dust: false,
+    skew: 1, // normalized skew
+    clear: true
+};
+
+function getFragmentsFromGrid() {
+    var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 10;
+    var pts = arguments[1];
+
+    var frags = [];
+    var p1 = void 0,
+        p2 = void 0,
+        p3 = void 0;
+    while (count--) {
+        p1 = Math.round((0, _utils.randomInRange)(0, pts.length - 1));
+        p2 = Math.round((0, _utils.randomInRange)(p1, pts.length - 1));
+        p3 = Math.round((0, _utils.randomInRange)(p2, pts.length - 1));
+
+        frags.push([pts[p1], pts[p2], pts[p3]]);
+    }
+    return frags;
+}
+
+function getFragmentsFromCanvas() {
+    var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 10;
+    var cw = arguments[1];
+    var ch = arguments[2];
+
+    var frags = [];
+    var getPoint = function getPoint(r) {
+        var a = (0, _utils.randomInRange)(0, 2 * Math.PI);
+        return [r * Math.sin(a) + cw / 2, r * Math.cos(a) + ch / 2];
+    };
+    var r = 0;
+    var scale = Math.min(cw, ch);
+    while (count--) {
+        r = (0, _utils.randomInRange)(scale * 0.5, scale * 1.5);
+        frags.push([getPoint(r), getPoint(r), getPoint(r)]);
+    }
+    return frags;
+}
+
+function getFragments() {
+    var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 10;
+    var cw = arguments[1];
+    var ch = arguments[2];
+
+    var frags = [];
+    var l = void 0,
+        r = void 0;
+    while (count--) {
+        l = (0, _utils.randomInRange)(0, ch);
+        r = (0, _utils.randomInRange)(0, ch);
+        frags.push([[0, l], [cw, r], [cw, (0, _utils.randomInRange)(r, ch)], [0, (0, _utils.randomInRange)(l, ch)]]);
+    }
+    return frags;
+}
+
+function fragments(options) {
+    var opts = Object.assign({}, DEFAULTS, options);
+
+    var container = opts.container;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
+    var SCALE = Math.min(cw, ch);
+
+    // Find or create canvas child
+    var el = container.querySelector('canvas');
+    var newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        (0, _utils.setAttrs)(el, {
+            width: cw,
+            height: ch
+        });
+    }
+
+    var ctx; // canvas ctx or svg tag
+
+    ctx = el.getContext('2d');
+
+    // auto opts
+    if (opts.drawGrid === 'auto') {
+        // draw grid usually
+        opts.drawGrid = !!(Math.random() > 0.25);
+    }
+
+    // set up renderers
+    var renderMap = {
+        circle: _shapes.drawCircle,
+        ring: _shapes.drawRing,
+        triangle: _shapes.drawTriangle,
+        square: _shapes.drawSquare,
+        box: _shapes.drawBox,
+        rect: _shapes.drawRect,
+        pentagon: _shapes.drawPentagon,
+        hexagon: _shapes.drawHexagon
+    };
+    var shapes = Object.keys(renderMap);
+    var getRandomRenderer = function getRandomRenderer() {
+        return renderMap[(0, _utils.randItem)(shapes)];
+    };
+
+    // shadow utils
+    function addShadow(ctx) {
+        var offset = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 3;
+        var blur = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 10;
+        var opacity = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0.2;
+
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = offset * SCALE / 400;
+        ctx.shadowBlur = blur * SCALE / 400;
+        ctx.shadowColor = 'rgba(0, 0, 0, ' + opacity + ')';
+    }
+
+    function removeShadow(ctx) {
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = 'transparent';
+    }
+
+    // set up grid
+    var cols = Math.round((0, _utils.randomInRange)(5, 9));
+    var w = cw / cols;
+    var h = w;
+    var rows = Math.ceil(ch / h);
+    rows++;
+    cols++;
+    var count = rows * cols;
+
+    var pts = [];
+    for (var i = 0; i < count; i++) {
+        pts.push([w * (i % rows), h * Math.floor(i / cols)]);
+    }
+
+    // set up drawing variables
+    var x = 0;
+    var y = 0;
+    var xnorm = 0;
+    var ynorm = 0;
+    var renderer = void 0;
+
+    // play with these
+    var a = void 0,
+        b = void 0,
+        c = void 0;
+    a = Math.random();
+    b = Math.random();
+    c = Math.random();
+
+    // color funcs
+    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
+    var getGradientFill = (0, _utils.getGradientFunction)(opts.palette);
+    var getrandomFill = function getrandomFill() {
+        return "#" + Math.random().toString(16).slice(2, 8);
+    };
+
+    // standard foreground and background colors
+    var fg = getSolidFill();
+    var bg = getGradientFill(ctx, cw, ch);
+
+    // paint the background
+    ctx.beginPath();
+    ctx.rect(0, 0, cw, ch);
+    ctx.fillStyle = bg;
+    ctx.fill();
+    ctx.closePath();
+
+    // define triangles
+    //let frags = getFragmentsFromGrid(Math.round(randomInRange(5, 15)), pts);
+    //let frags = getFragmentsFromCanvas(Math.round(randomInRange(5, 10)), cw, ch);
+    var frags = getFragments(Math.round((0, _utils.randomInRange)(5, 10)), cw, ch);
+
+    // util: draw each fragment
+    function drawFragments(ctx, frags, opts) {
+        frags.forEach(function (f) {
+            // skip some fragments
+            if (Math.random() > 0.5) {
+                return;
+            }
+
+            // add shadows, sometimes
+            if (Math.random() > 0.25) {
+                addShadow(ctx, (0, _utils.randomInRange)(3, 9), (0, _utils.randomInRange)(5, 15), (0, _utils.randomInRange)(0.15, 0.3));
+            } else {
+                removeShadow(ctx);
+            }
+
+            var frag = f.slice(0); // copy the points array since we will modify
+            ctx.fillStyle = getGradientFill(ctx, cw, ch);
+            ctx.beginPath();
+            ctx.moveTo.apply(ctx, _toConsumableArray(frag.shift()));
+            frag.forEach(function (p) {
+                ctx.lineTo.apply(ctx, _toConsumableArray(p));
+            });
+            ctx.closePath();
+            ctx.fill();
+        });
+        removeShadow(ctx);
+    }
+
+    // define masks
+    var masks = [];
+    var maskcount = Math.round((0, _utils.randomInRange)(3, 5));
+    masks.push([[0, 0], [cw, 0], [cw, ch], [0, ch]]);
+    while (maskcount--) {
+        masks.push([[0, 0], [cw, 0], [cw, (0, _utils.randomInRange)(0, ch)], [0, (0, _utils.randomInRange)(0, ch)]]);
+    }
+
+    // For each mask, draw the path, clip into it, and draw fragments inside
+    masks.forEach(function (m) {
+        var _ctx, _ctx2, _ctx3, _ctx4;
+
+        addShadow(ctx, cw, ch);
+        ctx.save();
+        ctx.beginPath();
+        (_ctx = ctx).moveTo.apply(_ctx, _toConsumableArray(m[0]));
+        (_ctx2 = ctx).lineTo.apply(_ctx2, _toConsumableArray(m[1]));
+        (_ctx3 = ctx).lineTo.apply(_ctx3, _toConsumableArray(m[2]));
+        (_ctx4 = ctx).lineTo.apply(_ctx4, _toConsumableArray(m[3]));
+        ctx.closePath();
+        ctx.fillStyle = 'black';
+        //ctx.fill();
+        ctx.clip();
+        drawFragments(ctx, frags, opts);
+        ctx.restore();
+    });
+    removeShadow(ctx);
+
+    // draw grid
+    if (opts.drawGrid) {
+        for (var _i = 0; _i < rows; _i++) {
+            //renderer = getRandomRenderer();
+            renderer = _shapes.drawCircle;
+            for (var j = 0; j < cols; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * _i;
+                xnorm = x / cw;
+                ynorm = y / ch;
+
+                renderer(ctx, x, y, ch / 400, { fill: getSolidFill() });
+            }
+        }
+    }
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, w / 3);
+        }
+    }
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
+}
 
 /***/ })
 /******/ ]);
