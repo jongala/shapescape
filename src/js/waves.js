@@ -44,8 +44,8 @@ function wavepath(ctx, x, y, w, h, count, amp, options) {
         x3 = x2 + wl/2;
 
         y1 = y3
-        y2 = y + jitter(amp, opts.jitter);
-        y3 = y + jitter(amp * opts.jitter, opts.jitter);
+        y2 = y + jitter(amp, opts.jitter); // jitter the midpoint based on amp
+        y3 = y + jitter(amp * opts.jitter, opts.jitter); // jitter endpoint less
 
         ctx.bezierCurveTo(
             x1 + wl/5, y1,
@@ -182,29 +182,82 @@ export function waves(options) {
     //wavelet(ctx, 200, 400, 100, 100, {depth: 5, sign: 1})
 
     //waveset(ctx, 0, 0, 800, 800, {wl: 120, wh: 60, dense: 0.35, skew: 0.65});
-    
+
     //waveband(ctx, 0, 100, cw, 60, 4, 50, 5, {fill: getSolidFill(opts.palette)});
     //waveband(ctx, 0, 150, cw, 60, 3, 50, 5, {fill: getSolidFill(opts.palette)});
 
-    let y = 0;
-    let x = 0;
-    let h_shift = 0;
-    let amp;
-    let h;
-    let count;
-    let steps = 14;
-    for(let i=0; i<steps; i++) {
-        amp = jitter(10 + 5 * i, 0.15);
-        y += amp;
-        h = amp * 3;
-        count = Math.max(randomInRange(steps - 2 - i, steps + 2 -i), 0.5);
 
-        h_shift = randomInRange(0, 0.1);
-        x = - h_shift * cw;
-        ctx.lineWidth = 0.5 + amp/50;
-        // ctx, x, y, w, h, wavecount, amp, stackdepth, opts
-        waveband(ctx, x, y, cw * (1+h_shift), h, count, amp, 5, {fill: getSolidFill(opts.palette)});
+    function simpleCover() {
+        let y = 0;
+        let x = 0;
+        let h_shift = 0;
+        let amp;
+        let h;
+        let count;
+        let steps = 14;
+        let interval = ch/steps;
+
+        let baseCount;
+
+        y = -interval; // start above the top
+
+        for(let i=0; i<steps; i++) {
+            amp = interval;
+            h = amp * 3;
+
+            // tie wave count to amp.  amp/8 or amp/9 is about the lower bound.
+            count = amp / randomInRange(9, 20);
+
+            // horizontal offsets for natural appearance
+            h_shift = randomInRange(0, 0.1);
+            x = - h_shift * cw;
+
+            // ctx, x, y, w, h, wavecount, amp, stackdepth, opts
+            waveband(ctx, x, y,
+                cw * (1+h_shift), h,
+                count, amp, 5,
+                {
+                    fill: getSolidFill(opts.palette),
+                    jitter: 0.2
+                }
+            );
+
+            // step down
+            y += amp;
+        }
     }
+
+    function nearFar() {
+        let y = 0;
+        let x = 0;
+        let h_shift = 0;
+        let amp;
+        let h;
+        let count;
+        let steps = 14;
+        let interval = ch/steps;
+
+        for(let i=0; i<steps; i++) {
+            count = Math.max(randomInRange(steps - 2 - i, steps + 2 -i), 0.5);
+            amp = 10 + 75/count;
+            y += amp;
+            h = amp * 3;
+
+            // horizontal offsets for natural appearance
+            h_shift = randomInRange(0, 0.1);
+            x = - h_shift * cw;
+
+            // make near lines thicker
+            ctx.lineWidth = 0.5 + amp/50;
+
+            // ctx, x, y, w, h, wavecount, amp, stackdepth, opts
+            waveband(ctx, x, y, cw * (1+h_shift), h, count, amp, 5, {fill: getSolidFill(opts.palette)});
+        }
+    }
+
+    simpleCover();
+    //nearFar();
+
 
 
     // if new canvas child was created, append it
