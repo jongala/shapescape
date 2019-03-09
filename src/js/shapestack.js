@@ -21,7 +21,7 @@ function removeShadow(ctx) {
 
 const DEFAULTS = {
     container: 'body',
-    palette: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
+    palette: ['#3C2E42', '#B4254B', '#FF804A', '#E8D1A1', '#A5C9C4'],
     drawShadows: false,
     addNoise: 0.04,
     noiseInput: null,
