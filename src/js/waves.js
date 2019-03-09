@@ -196,10 +196,12 @@ export function waves(options) {
         let amp;
         let h;
         let count;
-        let steps = 14;
+        let steps = randomInRange(10, 40);
         let interval = ch/steps;
 
-        let baseCount;
+        let baseCount = randomInRange(20, 50); // low or high number of peaks
+
+        ctx.lineWidth = 0.5 + interval/50;
 
         y = -interval; // start above the top
 
@@ -207,8 +209,8 @@ export function waves(options) {
             amp = interval;
             h = amp * 3;
 
-            // tie wave count to amp.  amp/8 or amp/9 is about the lower bound.
-            count = amp / randomInRange(9, 20);
+            // variation in wave count based on amplitude
+            count = baseCount * randomInRange(3, 5) / amp;
 
             // horizontal offsets for natural appearance
             h_shift = randomInRange(0, 0.1);
