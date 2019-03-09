@@ -63,13 +63,15 @@ function wavepath(ctx, x, y, w, h, count, amp, options) {
     ctx.lineTo(x, y + h);
 
     ctx.closePath();
-    ctx.fill();
+    opts.fill && ctx.fill();
     ctx.stroke();
 }
 
 function waveband(ctx, x, y, w, h, count, amp, depth, options) {
+    let opts = Object.assign({}, options);
     for (let i = 0; i < depth; i++) {
-        wavepath(ctx, x, y + i * amp/depth, w, h, count, amp, options);
+        wavepath(ctx, x, y + i * amp/depth, w, h, count, amp, opts);
+        opts.fill = null; // after the first pass, remove the fill, so lines overlap
     }
 }
 
