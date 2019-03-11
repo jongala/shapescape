@@ -174,7 +174,7 @@ export function waves(options) {
 
     ctx = el.getContext('2d');
 
-    ctx.strokeStyle = "white";
+    ctx.strokeStyle = "black";
     ctx.fillStyle = "#" + Math.random().toString(16).slice(2,8);
 
     // setup
@@ -206,6 +206,8 @@ export function waves(options) {
 
         ctx.lineWidth = 0.5 + interval/50;
 
+        let strokeColor = (Math.random() > 0.5) ? 'white' : 'black';
+
         y = -interval; // start above the top
 
         for(let i=0; i<steps; i++) {
@@ -225,6 +227,7 @@ export function waves(options) {
                 count, amp, 5,
                 {
                     fill: getSolidFill(opts.palette),
+                    stroke: strokeColor,
                     jitter: 0.2
                 }
             );
