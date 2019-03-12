@@ -101,13 +101,12 @@ function drawGrid(ctx, p1, p2, count = 2, recurse, mode, opts) {
                 ynorm = y/gh;
 
                 // shift and clip
-                ctx.translate(x, y);
-                clipSquare(ctx, w, h, bg);
+                clipSquare(ctx, [x, y], [x + w, y + h], bg);
 
                 // draw
                 renderer(ctx,
-                    w * a + xnorm * (1 - a), // start at a, march across
-                    h * b + ynorm * (1 - b), // start at b, march down
+                    x + w * a + xnorm * (1 - a), // start at a, march across
+                    y + h * b + ynorm * (1 - b), // start at b, march down
                     w/(c + 1.5), // scale at c
                     {
                         fill: colorFunc(),
@@ -117,7 +116,6 @@ function drawGrid(ctx, p1, p2, count = 2, recurse, mode, opts) {
 
                 // unshift, unclip
                 ctx.restore();
-                resetTransform(ctx);
             }
         }
     }
@@ -327,10 +325,9 @@ function drawGrid(ctx, p1, p2, count = 2, recurse, mode, opts) {
 
     // do the loop with one of our modes
     if (!mode) {
-        randItem(modes)();
-    } else {
-        modeMap[mode]();
+        mode = randItem(Object.keys(modeMap));
     }
+    modeMap[mode]();
 
 }
 
@@ -360,7 +357,7 @@ export function grid(options) {
 
     let ctx = el.getContext('2d');
 
-    drawGrid(ctx, [0, 0], [cw, ch], Math.round(randomInRange(4, 9)), 2, 'mixed', opts);
+    drawGrid(ctx, [0, 0], [cw, ch], Math.round(randomInRange(4, 9)), 2, null, opts);
 
     // add noise
     if (opts.addNoise) {
