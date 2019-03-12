@@ -79,8 +79,26 @@ export function mesh(options) {
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, cw, ch);
 
-    let r = randomInRange(3,7) * SCALE/800 ; // dot radius
+    let R = randomInRange(3,7) * SCALE/800 ; // dot radius
+    let r = R; // radius per node
     let dotFill = randItem([fg, fg, bg]);
+    // probability thresholds to draw connections
+    let drawDown = 0.25;
+    let drawLeft = 0.25;
+    let drawDL = 0.25;
+    let drawDR = 0.25;
+
+    let rTransform = randItem([
+        () => R, // no scaling
+        () => { // scale sin curve heavy center
+            return 0.5 +
+                (R * Math.sin(xnorm * Math.PI) +
+                R * Math.sin(ynorm * Math.PI)) / 2;
+        },
+        () => { // scale away from center linearly
+            return 1 + R/2 * Math.sqrt(Math.pow(xnorm - 0.5, 2) + Math.pow(ynorm - 0.5, 2));
+        },
+    ]);
 
     for (let i = 0; i < vcount; i++) {
         for (let j = 0; j < count; j++) {
@@ -90,22 +108,23 @@ export function mesh(options) {
             xnorm = x/cw;
             ynorm = y/ch;
 
+            r = rTransform();
             drawCircle(ctx, x, y, r, {fill: dotFill});
 
             ctx.beginPath();
-            if (i > 0 && Math.random() > 0.75) {
+            if (i > 0 && Math.random() < drawDown) {
                 ctx.moveTo(x, y);
                 ctx.lineTo(x, y - h);
             }
-            if (j > 0 && Math.random() > 0.75) {
+            if (j > 0 && Math.random() < drawLeft) {
                 ctx.moveTo(x, y);
                 ctx.lineTo(x - w, y);
             }
-            if (i > 0 && j > 0 && Math.random() > 0.75) {
+            if (i > 0 && j > 0 && Math.random() < drawDL) {
                 ctx.moveTo(x, y);
                 ctx.lineTo(x - w, y - h);
             }
-            if (i > 0 && j < (count - 1) && Math.random() > 0.75) {
+            if (i > 0 && j < (count - 1) && Math.random() < drawDR) {
                 ctx.moveTo(x, y);
                 ctx.lineTo(x + w, y - h);
             }
