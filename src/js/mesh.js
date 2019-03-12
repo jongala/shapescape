@@ -40,7 +40,7 @@ export function mesh(options) {
     // DRAW --------------------------------------
 
     // define grid
-    let count = Math.round(randomInRange(3, 19));
+    let count = Math.round(randomInRange(3, 30));
     let w = Math.ceil(cw/count);
     let h = w;
     let vcount = Math.ceil(ch/h);
@@ -87,6 +87,8 @@ export function mesh(options) {
     let drawLeft = 0.25;
     let drawDL = 0.25;
     let drawDR = 0.25;
+    let drawRing = 0.05;
+    let isConnected = 0;
 
     let rTransform = randItem([
         () => R, // no scaling
@@ -108,6 +110,8 @@ export function mesh(options) {
             xnorm = x/cw;
             ynorm = y/ch;
 
+            isConnected = 0;
+
             r = rTransform();
             drawCircle(ctx, x, y, r, {fill: dotFill});
 
@@ -115,21 +119,32 @@ export function mesh(options) {
             if (i > 0 && Math.random() < drawDown) {
                 ctx.moveTo(x, y);
                 ctx.lineTo(x, y - h);
+                isConnected++;
             }
             if (j > 0 && Math.random() < drawLeft) {
                 ctx.moveTo(x, y);
                 ctx.lineTo(x - w, y);
+                isConnected++;
             }
             if (i > 0 && j > 0 && Math.random() < drawDL) {
                 ctx.moveTo(x, y);
                 ctx.lineTo(x - w, y - h);
+                isConnected++;
             }
             if (i > 0 && j < (count - 1) && Math.random() < drawDR) {
                 ctx.moveTo(x, y);
                 ctx.lineTo(x + w, y - h);
+                isConnected++;
             }
             ctx.stroke();
             ctx.closePath();
+
+            if (isConnected && Math.random() < drawRing) {
+                ctx.lineWidth = ctx.lineWidth / 2;
+                drawCircle(ctx, x, y, w/3, {fill: null, stroke: fg});
+                ctx.lineWidth = ctx.lineWidth * 2;
+                ctx.strokeStyle = fg;
+            }
         }
     }
 
