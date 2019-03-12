@@ -12,31 +12,22 @@ const DEFAULTS = {
     clear: true
 }
 
-// Main function
-export function grid(options) {
-    let opts = Object.assign({}, DEFAULTS, options);
-
-    let container = opts.container;
-    let cw = container.offsetWidth;
-    let ch = container.offsetHeight;
-    let SCALE = Math.min(cw, ch);
-
-    // Find or create canvas child
-    let el = container.querySelector('canvas');
-    let newEl = false;
-    if (!el) {
-        container.innerHTML = '';
-        el = document.createElement('canvas');
-        newEl = true;
-    }
-    if (newEl || opts.clear) {
-        setAttrs(el, {
-            width: cw,
-            height: ch
-        });
+// actually draw a grid between points p1 and p2 with the passed options
+function drawGrid(ctx, p1, p2, count = 2, recurse, mode, opts) {
+    // util to draw a square and clip following rendering inside
+    function clipSquare(ctx, w, h, color) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0,0, w, h);
+        ctx.fillStyle = color;
+        ctx.closePath();
+        ctx.fill();
+        ctx.clip();
     }
 
-    let ctx = el.getContext('2d');
+    // area stuff
+    let gw = p2[0] - p1[0]; // grid width
+    let gh = p2[1] - p1[1]; // grid height
 
     // available renderers
     let renderMap = {
@@ -54,26 +45,16 @@ export function grid(options) {
         return renderMap[randItem(shapes)];
     }
 
-    // util to draw a square and clip following rendering inside
-    function clipSquare(ctx, w, h, color) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(0,0, w, h);
-        ctx.fillStyle = color;
-        ctx.closePath();
-        ctx.fill();
-        ctx.clip();
-    }
 
     // color funcs
     let randomFill = () => "#" + Math.random().toString(16).slice(2,8);
     let getSolidFill = getSolidColorFunction(opts.palette);
 
+
     // define grid
-    let count = Math.round(randomInRange(4, 9));
-    let w = Math.ceil(cw/count);
+    let w = Math.ceil(gw/count);
     let h = w;
-    let vcount = Math.ceil(ch/h);
+    let vcount = Math.ceil(gh/h);
 
     // setup vars for each cell
     let x = 0;
@@ -114,8 +95,8 @@ export function grid(options) {
                 // convenience vars
                 x = w * j;
                 y = h * i;
-                xnorm = x/cw;
-                ynorm = y/ch;
+                xnorm = x/gw;
+                ynorm = y/gh;
 
                 // shift and clip
                 ctx.translate(x, y);
@@ -147,8 +128,8 @@ export function grid(options) {
                 // convenience vars
                 x = w * j;
                 y = h * i;
-                xnorm = x/cw;
-                ynorm = y/ch;
+                xnorm = x/gw;
+                ynorm = y/gh;
 
                 // shift and clip
                 ctx.translate(x, y);
@@ -225,8 +206,8 @@ export function grid(options) {
                 // convenience vars
                 x = w * j;
                 y = h * i;
-                xnorm = x/cw;
-                ynorm = y/ch;
+                xnorm = x/gw;
+                ynorm = y/gh;
 
                 // shift and clip
                 ctx.translate(x, y);
@@ -257,8 +238,8 @@ export function grid(options) {
                 // convenience vars
                 x = w * j;
                 y = h * i;
-                xnorm = x/cw;
-                ynorm = y/ch;
+                xnorm = x/gw;
+                ynorm = y/gh;
 
                 // shift and clip
                 ctx.translate(x, y);
@@ -324,6 +305,36 @@ export function grid(options) {
 
     // do the loop with one of our modes
     randItem(modes)();
+}
+
+// Main function
+export function grid(options) {
+    let opts = Object.assign({}, DEFAULTS, options);
+
+    let container = opts.container;
+    let cw = container.offsetWidth;
+    let ch = container.offsetHeight;
+    let SCALE = Math.min(cw, ch);
+
+    // Find or create canvas child
+    let el = container.querySelector('canvas');
+    let newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        setAttrs(el, {
+            width: cw,
+            height: ch
+        });
+    }
+
+    let ctx = el.getContext('2d');
+
+
+    drawGrid(ctx, [0, 0], [cw, ch], Math.round(randomInRange(4, 9)), false, null, opts);
 
     // add noise
     if (opts.addNoise) {
