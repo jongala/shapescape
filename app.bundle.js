@@ -385,7 +385,9 @@ var _waves = __webpack_require__(14);
 
 var _grid = __webpack_require__(15);
 
-var _fragments = __webpack_require__(16);
+var _mesh = __webpack_require__(16);
+
+var _fragments = __webpack_require__(17);
 
 var _utils = __webpack_require__(0);
 
@@ -399,6 +401,7 @@ var RENDERERS = {
     lines: _lines.lines,
     waves: _waves.waves,
     grid: _grid.grid,
+    mesh: _mesh.mesh,
     fragments: _fragments.fragments
 };
 var initRenderer = 'waterline';
@@ -2636,7 +2639,7 @@ function waves(options) {
 
     ctx = el.getContext('2d');
 
-    ctx.strokeStyle = "white";
+    ctx.strokeStyle = "black";
     ctx.fillStyle = "#" + Math.random().toString(16).slice(2, 8);
 
     // setup
@@ -2666,6 +2669,8 @@ function waves(options) {
 
         ctx.lineWidth = 0.5 + interval / 50;
 
+        var strokeColor = Math.random() > 0.5 ? 'white' : 'black';
+
         y = -interval; // start above the top
 
         for (var i = 0; i < steps; i++) {
@@ -2682,6 +2687,7 @@ function waves(options) {
             // ctx, x, y, w, h, wavecount, amp, stackdepth, opts
             waveband(ctx, x, y, cw * (1 + h_shift), h, count, amp, 5, {
                 fill: getSolidFill(opts.palette),
+                stroke: strokeColor,
                 jitter: 0.2
             });
 
@@ -3086,6 +3092,191 @@ var DEFAULTS = {
 
 /***/ }),
 /* 16 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.mesh = mesh;
+
+var _noiseutils = __webpack_require__(1);
+
+var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _utils = __webpack_require__(0);
+
+var _shapes = __webpack_require__(2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var DEFAULTS = {
+    container: 'body',
+    palette: ['#222', '#666', '#bbb', '#f2f2f2'],
+    addNoise: 0.04,
+    noiseInput: null,
+    dust: false,
+    skew: 1, // normalized skew
+    clear: true
+};
+
+function mesh(options) {
+    var opts = Object.assign({}, DEFAULTS, options);
+
+    var container = opts.container;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
+    var SCALE = Math.min(cw, ch);
+
+    // Find or create canvas child
+    var el = container.querySelector('canvas');
+    var newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        (0, _utils.setAttrs)(el, {
+            width: cw,
+            height: ch
+        });
+    }
+
+    var ctx = el.getContext('2d');
+
+    // DRAW --------------------------------------
+
+    // define grid
+    var count = Math.round((0, _utils.randomInRange)(3, 30));
+    var w = Math.ceil(cw / count);
+    var h = w;
+    var vcount = Math.ceil(ch / h);
+
+    // setup vars for each cell
+    var x = 0;
+    var y = 0;
+    var xnorm = 0;
+    var ynorm = 0;
+    var renderer = void 0;
+
+    // play with these random seeds
+    var a = void 0,
+        b = void 0,
+        c = void 0;
+    a = Math.random();
+    b = Math.random();
+    c = Math.random();
+
+    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
+
+    // get palette of non-bg colors
+    var contrastPalette = [].concat(opts.palette);
+    contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
+
+    // shared colors
+    var fg = getContrastColor();
+    var bg = getContrastColor();
+
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.lineWidth = (0, _utils.randomInRange)(1, 4) * SCALE / 800;
+
+    ctx.strokeStyle = fg;
+
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, cw, ch);
+
+    var R = (0, _utils.randomInRange)(3, 7) * SCALE / 800; // dot radius
+    var r = R; // radius per node
+    var dotFill = (0, _utils.randItem)([fg, fg, bg]);
+    // probability thresholds to draw connections
+    var drawDown = 0.25;
+    var drawLeft = 0.25;
+    var drawDL = 0.25;
+    var drawDR = 0.25;
+    var drawRing = 0.05;
+    var isConnected = 0;
+
+    var rTransform = (0, _utils.randItem)([function () {
+        return R;
+    }, // no scaling
+    function () {
+        // scale sin curve heavy center
+        return 0.5 + (R * Math.sin(xnorm * Math.PI) + R * Math.sin(ynorm * Math.PI)) / 2;
+    }, function () {
+        // scale away from center linearly
+        return 1 + R / 2 * Math.sqrt(Math.pow(xnorm - 0.5, 2) + Math.pow(ynorm - 0.5, 2));
+    }]);
+
+    for (var i = 0; i < vcount; i++) {
+        for (var j = 0; j < count; j++) {
+            // convenience vars
+            x = w * j + w / 2;
+            y = h * i + h / 2;
+            xnorm = x / cw;
+            ynorm = y / ch;
+
+            isConnected = 0;
+
+            r = rTransform();
+            (0, _shapes.drawCircle)(ctx, x, y, r, { fill: dotFill });
+
+            ctx.beginPath();
+            if (i > 0 && Math.random() < drawDown) {
+                ctx.moveTo(x, y);
+                ctx.lineTo(x, y - h);
+                isConnected++;
+            }
+            if (j > 0 && Math.random() < drawLeft) {
+                ctx.moveTo(x, y);
+                ctx.lineTo(x - w, y);
+                isConnected++;
+            }
+            if (i > 0 && j > 0 && Math.random() < drawDL) {
+                ctx.moveTo(x, y);
+                ctx.lineTo(x - w, y - h);
+                isConnected++;
+            }
+            if (i > 0 && j < count - 1 && Math.random() < drawDR) {
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + w, y - h);
+                isConnected++;
+            }
+            ctx.stroke();
+            ctx.closePath();
+
+            if (isConnected && Math.random() < drawRing) {
+                ctx.lineWidth = ctx.lineWidth / 2;
+                (0, _shapes.drawCircle)(ctx, x, y, w / 3, { fill: null, stroke: fg });
+                ctx.lineWidth = ctx.lineWidth * 2;
+                ctx.strokeStyle = fg;
+            }
+        }
+    }
+
+    // END DRAW --------------------------------------
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, w / 3);
+        }
+    }
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
+}
+
+/***/ }),
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
