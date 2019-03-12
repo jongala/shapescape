@@ -8,6 +8,7 @@ import { shapescape } from './shapescape';
 import { lines } from './lines';
 import { waves } from './waves';
 import { grid } from './grid';
+import { mesh } from './mesh';
 import { fragments } from './fragments';
 import { setAttrs } from './utils';
 
@@ -19,6 +20,7 @@ const RENDERERS = {
     lines: lines,
     waves: waves,
     grid: grid,
+    mesh: mesh,
     fragments: fragments
 };
 let initRenderer = 'waterline';
