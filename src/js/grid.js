@@ -5,6 +5,8 @@ import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, draw
 const DEFAULTS = {
     container: 'body',
     palette: ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'],
+    recurse: 0,
+    mode: null,
     addNoise: 0.04,
     noiseInput: null,
     dust: false,
@@ -357,7 +359,7 @@ export function grid(options) {
 
     let ctx = el.getContext('2d');
 
-    drawGrid(ctx, [0, 0], [cw, ch], Math.round(randomInRange(4, 9)), 2, null, opts);
+    drawGrid(ctx, [0, 0], [cw, ch], Math.round(randomInRange(4, 9)), opts.recurse, opts.mode, opts);
 
     // add noise
     if (opts.addNoise) {
