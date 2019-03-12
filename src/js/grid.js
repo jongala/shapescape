@@ -138,7 +138,7 @@ function drawGrid(ctx, p1, p2, count = 2, recurse, mode, opts) {
 
                 if (recurse && Math.random() > 0.8) {
                     ctx.save();
-                    drawGrid(ctx, [px, py], [px + w, py + h], 2, false, mode, opts);
+                    drawGrid(ctx, [px, py], [px + w, py + h], 2, --recurse, mode, opts);
                     ctx.restore();
                 } else {
                     clipSquare(ctx, [px, py], [px + w, py + h], bg);
@@ -220,7 +220,7 @@ function drawGrid(ctx, p1, p2, count = 2, recurse, mode, opts) {
 
                 if (recurse && Math.random() > 0.8) {
                     ctx.save();
-                    drawGrid(ctx, [x, y], [x + w, y + h], 2, false, mode, opts);
+                    drawGrid(ctx, [x, y], [x + w, y + h], 2, --recurse, mode, opts);
                     ctx.restore();
                 } else {
                     clipSquare(ctx, [x, y], [x + w, y + h], bg);
@@ -249,8 +249,8 @@ function drawGrid(ctx, p1, p2, count = 2, recurse, mode, opts) {
         for (let i = 0; i < vcount; i++) {
             for (let j = 0; j < count; j++) {
                 // convenience vars
-                x = w * j;
-                y = h * i;
+                x = w * j + _x;
+                y = h * i + _y;
                 xnorm = x/gw;
                 ynorm = y/gh;
 
@@ -258,8 +258,8 @@ function drawGrid(ctx, p1, p2, count = 2, recurse, mode, opts) {
                 px = y;
 
                 // shift and clip
-                //ctx.translate(x, y);
-                clipSquare(ctx, w, h, bg);
+
+                clipSquare(ctx, [x, y], [x + w, y + h], bg);
 
                 switch (Math.round(randomInRange(1, 12))){
                     case 1:
@@ -360,7 +360,7 @@ export function grid(options) {
 
     let ctx = el.getContext('2d');
 
-    drawGrid(ctx, [0, 0], [cw, ch], Math.round(randomInRange(4, 9)), true, 'triangles', opts);
+    drawGrid(ctx, [0, 0], [cw, ch], Math.round(randomInRange(4, 9)), 2, 'mixed', opts);
 
     // add noise
     if (opts.addNoise) {
