@@ -15,10 +15,10 @@ const DEFAULTS = {
 // actually draw a grid between points p1 and p2 with the passed options
 function drawGrid(ctx, p1, p2, count = 2, recurse, mode, opts) {
     // util to draw a square and clip following rendering inside
-    function clipSquare(ctx, w, h, color) {
+    function clipSquare(ctx, p1, p2, color) {
         ctx.save();
         ctx.beginPath();
-        ctx.rect(0,0, w, h);
+        ctx.rect(...p1, ...p2);
         ctx.fillStyle = color;
         ctx.closePath();
         ctx.fill();
@@ -28,6 +28,8 @@ function drawGrid(ctx, p1, p2, count = 2, recurse, mode, opts) {
     // area stuff
     let gw = p2[0] - p1[0]; // grid width
     let gh = p2[1] - p1[1]; // grid height
+    let _x = p1[0];
+    let _y = p1[1];
 
     // available renderers
     let renderMap = {
@@ -126,55 +128,62 @@ function drawGrid(ctx, p1, p2, count = 2, recurse, mode, opts) {
         for (let i = 0; i < vcount; i++) {
             for (let j = 0; j < count; j++) {
                 // convenience vars
-                x = w * j;
-                y = h * i;
+                x = w * j + _x;
+                y = h * i + _y;
                 xnorm = x/gw;
                 ynorm = y/gh;
 
-                // shift and clip
-                ctx.translate(x, y);
-                clipSquare(ctx, w, h, bg);
+                px = x;
+                py = y;
 
-                switch (Math.round(randomInRange(1, 5))){
-                    case 1:
-                        renderer = drawSquare;
-                        px = 0;
-                        py = 0;
-                        break;
-                    case 2:
-                        renderer = drawCircle;
-                        px = 0;
-                        py = 0;
-                        break;
-                    case 3:
-                        renderer = drawCircle;
-                        px = w;
-                        py = 0;
-                        break;
-                    case 4:
-                        renderer = drawCircle;
-                        px = w;
-                        py = h;
-                        break;
-                    case 5:
-                        renderer = drawCircle;
-                        px = 0;
-                        py = h;
-                        break;
+                if (recurse && Math.random() > 0.8) {
+                    ctx.save();
+                    drawGrid(ctx, [px, py], [px + w, py + h], 2, false, mode, opts);
+                    ctx.restore();
+                } else {
+                    clipSquare(ctx, [px, py], [px + w, py + h], bg);
+                    switch (Math.round(randomInRange(1, 5))){
+                        case 1:
+                            renderer = drawSquare;
+                            px += 0;
+                            py += 0;
+                            break;
+                        case 2:
+                            renderer = drawCircle;
+                            px += 0;
+                            py += 0;
+                            break;
+                        case 3:
+                            renderer = drawCircle;
+                            px += w;
+                            py += 0;
+                            break;
+                        case 4:
+                            renderer = drawCircle;
+                            px += w;
+                            py += h;
+                            break;
+                        case 5:
+                            renderer = drawCircle;
+                            px += 0;
+                            py += h;
+                            break;
+                    }
+
+                    // draw
+                    renderer(ctx,
+                        px,
+                        py,
+                        w,
+                        {
+                            fill: getSolidFill()
+                        }
+                    );
+                    // unclip
+                    ctx.restore();
                 }
 
-                // draw
-                renderer(ctx,
-                    px,
-                    py,
-                    w,
-                    {
-                        fill: getSolidFill()
-                    }
-                );
-
-                // unshift, unclip
-                ctx.restore();
+                // unshift
                 resetTransform(ctx);
             }
         }
@@ -182,7 +191,7 @@ function drawGrid(ctx, p1, p2, count = 2, recurse, mode, opts) {
 
     // draw a triangle in a random corner
     function _triangle() {
-        let corners = [[0, 0], [w, 0], [w, h], [0, h]];
+        let corners = [[x, y], [x + w, y], [x + w, y + h], [x, y + h]];
         let drawCorners = [];
         let skip;
         skip = Math.round(randomInRange(0,3));
@@ -204,19 +213,23 @@ function drawGrid(ctx, p1, p2, count = 2, recurse, mode, opts) {
         for (let i = 0; i < vcount; i++) {
             for (let j = 0; j < count; j++) {
                 // convenience vars
-                x = w * j;
-                y = h * i;
+                x = w * j + _x;
+                y = h * i + _y;
                 xnorm = x/gw;
                 ynorm = y/gh;
 
-                // shift and clip
-                ctx.translate(x, y);
-                clipSquare(ctx, w, h, bg);
+                if (recurse && Math.random() > 0.8) {
+                    ctx.save();
+                    drawGrid(ctx, [x, y], [x + w, y + h], 2, false, mode, opts);
+                    ctx.restore();
+                } else {
+                    clipSquare(ctx, [x, y], [x + w, y + h], bg);
 
-                _triangle();
+                    _triangle(x, y);
 
-                // unshift, unclip
-                ctx.restore();
+                    // unshift, unclip
+                    ctx.restore();
+                }
                 resetTransform(ctx);
             }
         }
@@ -241,30 +254,33 @@ function drawGrid(ctx, p1, p2, count = 2, recurse, mode, opts) {
                 xnorm = x/gw;
                 ynorm = y/gh;
 
+                px = x;
+                px = y;
+
                 // shift and clip
-                ctx.translate(x, y);
+                //ctx.translate(x, y);
                 clipSquare(ctx, w, h, bg);
 
                 switch (Math.round(randomInRange(1, 12))){
                     case 1:
                         renderer = drawCircle;
-                        px = 0;
-                        py = 0;
+                        px += 0;
+                        py += 0;
                         break;
                     case 2:
                         renderer = drawCircle;
-                        px = w;
-                        py = 0;
+                        px += w;
+                        py += 0;
                         break;
                     case 3:
                         renderer = drawCircle;
-                        px = w;
-                        py = h;
+                        px += w;
+                        py += h;
                         break;
                     case 4:
                         renderer = drawCircle;
-                        px = 0;
-                        py = h;
+                        px += 0;
+                        py += h;
                         break;
                     case 5:
                     case 6:
@@ -302,9 +318,20 @@ function drawGrid(ctx, p1, p2, count = 2, recurse, mode, opts) {
 
     // gather our modes
     let modes = [maskAndRotate, circles, triangles, mixed];
+    let modeMap = {
+        maskAndRotate,
+        circles,
+        triangles,
+        mixed
+    };
 
     // do the loop with one of our modes
-    randItem(modes)();
+    if (!mode) {
+        randItem(modes)();
+    } else {
+        modeMap[mode]();
+    }
+
 }
 
 // Main function
@@ -333,8 +360,7 @@ export function grid(options) {
 
     let ctx = el.getContext('2d');
 
-
-    drawGrid(ctx, [0, 0], [cw, ch], Math.round(randomInRange(4, 9)), false, null, opts);
+    drawGrid(ctx, [0, 0], [cw, ch], Math.round(randomInRange(4, 9)), true, 'triangles', opts);
 
     // add noise
     if (opts.addNoise) {
