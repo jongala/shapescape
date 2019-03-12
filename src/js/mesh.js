@@ -72,12 +72,15 @@ export function mesh(options) {
 
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = randomInRange(1, 4) * SCALE/800;
 
     ctx.strokeStyle = fg;
 
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, cw, ch);
+
+    let r = randomInRange(3,7) * SCALE/800 ; // dot radius
+    let dotFill = randItem([fg, fg, bg]);
 
     for (let i = 0; i < vcount; i++) {
         for (let j = 0; j < count; j++) {
@@ -87,7 +90,7 @@ export function mesh(options) {
             xnorm = x/cw;
             ynorm = y/ch;
 
-            drawCircle(ctx, x, y, 6, {fill: fg});
+            drawCircle(ctx, x, y, r, {fill: dotFill});
 
             ctx.beginPath();
             if (i > 0 && Math.random() > 0.75) {
