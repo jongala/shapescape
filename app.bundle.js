@@ -3236,8 +3236,11 @@ function mesh(options) {
 
     var pr = void 0; // radius from center
 
-    var connectionModes = [function () {}, // normal
-    function () {}, // normal
+    // choose a connection mode, which determines frequency
+    // of the connection types
+    var connectionMode = (0, _utils.randItem)([function () {}, // normal/uniform
+    function () {}, // normal/uniform
+    function () {}, // normal/uniform
     function () {
         // sweep up: bias diagonals on the left/right edge.
         // bias verticals toward the middle
@@ -3257,7 +3260,7 @@ function mesh(options) {
         drawUp = 0.3;
         drawDR = 0.2;
         drawRing = 0.2;
-    }];
+    }]);
 
     // Pick the item from @palette by converting the normalized @factor
     // to its nearest index
@@ -3299,9 +3302,8 @@ function mesh(options) {
             r = rTransform();
             (0, _shapes.drawCircle)(ctx, x, y, r, { fill: dotFill });
 
-            // choose a connection mode, which determines frequency
-            // of the connection types
-            (0, _utils.randItem)(connectionModes)();
+            // adjust connection weights, chosen above
+            connectionMode();
 
             // start drawing connections
             ctx.globalCompositeOperation = 'destination-over';
