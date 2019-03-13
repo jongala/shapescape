@@ -41,7 +41,7 @@ export function mesh(options) {
 
     // define grid
     let count = Math.round(randomInRange(3, 30));
-    let w = Math.ceil(cw/count);
+    let w = cw/count;
     let h = w;
     let vcount = Math.ceil(ch/h);
 
@@ -79,7 +79,7 @@ export function mesh(options) {
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, cw, ch);
 
-    let R = randomInRange(3,7) * SCALE/800 ; // dot radius
+    let R = randomInRange(2,5) * SCALE/800 ; // dot radius
     let r = R; // radius per node
     let dotFill = randItem([fg, fg, bg]);
     // probability thresholds to draw connections
