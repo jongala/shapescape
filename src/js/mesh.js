@@ -83,7 +83,7 @@ export function mesh(options) {
     let r = R; // radius per node
     let dotFill = randItem([fg, fg, bg]);
     // probability thresholds to draw connections
-    let drawDown = 0.25;
+    let drawUp = 0.25;
     let drawLeft = 0.25;
     let drawDL = 0.25;
     let drawDR = 0.25;
@@ -102,6 +102,36 @@ export function mesh(options) {
         },
     ]);
 
+    let pr; // radius from center
+
+    let connectionModes = [
+        () => {}, // normal
+        () => {}, // normal
+        () => {
+            // sweep up: bias diagonals on the left/right edge.
+            // bias verticals toward the middle
+            drawUp = 0.5 * Math.sin(xnorm * Math.PI);
+            drawLeft = 0.05;
+            drawDL = 0.75 * xnorm;
+            drawDR = 0.75 * (1 - xnorm);
+        },
+        () => {
+            // sidways and diagonals
+            drawUp = drawDR = 0;
+            drawLeft = 0.3;
+            drawDL = 0.2;
+            drawRing = 0.1
+        },
+        () => {
+            // vert and other diagonal
+            drawLeft = drawDL = 0;
+            drawUp = 0.3;
+            drawDR = 0.2;
+            drawRing = 0.2;
+        }
+    ];
+
+
     for (let i = 0; i < vcount; i++) {
         for (let j = 0; j < count; j++) {
             // convenience vars
@@ -115,8 +145,14 @@ export function mesh(options) {
             r = rTransform();
             drawCircle(ctx, x, y, r, {fill: dotFill});
 
+            pr = Math.sqrt(Math.pow(xnorm - 0.5, 2) + Math.pow(ynorm - 0.5, 2));
+
+            randItem(connectionModes)();
+            //connectionModes[2]();
+
+
             ctx.beginPath();
-            if (i > 0 && Math.random() < drawDown) {
+            if (i > 0 && Math.random() < drawUp) {
                 ctx.moveTo(x, y);
                 ctx.lineTo(x, y - h);
                 isConnected++;
@@ -126,14 +162,14 @@ export function mesh(options) {
                 ctx.lineTo(x - w, y);
                 isConnected++;
             }
-            if (i > 0 && j > 0 && Math.random() < drawDL) {
-                ctx.moveTo(x, y);
-                ctx.lineTo(x - w, y - h);
-                isConnected++;
-            }
-            if (i > 0 && j < (count - 1) && Math.random() < drawDR) {
+            if (i > 0 && j < (count - 1) && Math.random() < drawDL) {
                 ctx.moveTo(x, y);
                 ctx.lineTo(x + w, y - h);
+                isConnected++;
+            }
+            if (i > 0 && j > 0 && Math.random() < drawDR) {
+                ctx.moveTo(x, y);
+                ctx.lineTo(x - w, y - h);
                 isConnected++;
             }
             ctx.stroke();
