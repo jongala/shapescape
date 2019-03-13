@@ -75,6 +75,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.randItem = randItem;
 exports.randomInRange = randomInRange;
+exports.shuffle = shuffle;
 exports.setAttrs = setAttrs;
 exports.resetTransform = resetTransform;
 exports.rotateCanvas = rotateCanvas;
@@ -90,6 +91,27 @@ function randItem(arr) {
 
 function randomInRange(min, max) {
     return min + (max - min) * Math.random();
+}
+
+// fisher-yates, from https://bost.ocks.org/mike/shuffle/
+function shuffle(array) {
+    var m = array.length,
+        t,
+        i;
+
+    // While there remain elements to shuffle…
+    while (m) {
+
+        // Pick a remaining element…
+        i = Math.floor(Math.random() * m--);
+
+        // And swap it with the current element.
+        t = array[m];
+        array[m] = array[i];
+        array[i] = t;
+    }
+
+    return array;
 }
 
 function setAttrs(el, attrs) {
@@ -3151,7 +3173,7 @@ function mesh(options) {
 
     // define grid
     var count = Math.round((0, _utils.randomInRange)(3, 30));
-    var w = Math.ceil(cw / count);
+    var w = cw / count;
     var h = w;
     var vcount = Math.ceil(ch / h);
 
@@ -3172,14 +3194,17 @@ function mesh(options) {
 
     var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
 
+    // shared colors
+    var fg = void 0; // hold on…
+    var bg = getSolidFill(); // pick a bg
+
     // get palette of non-bg colors
-    var contrastPalette = [].concat(opts.palette);
-    contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    var contrastPalette = (0, _utils.shuffle)([].concat(opts.palette));
+    contrastPalette.splice(contrastPalette.indexOf(bg), 1);
     var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
 
-    // shared colors
-    var fg = getContrastColor();
-    var bg = getContrastColor();
+    fg = getContrastColor(); // fg is another color
+
 
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
@@ -3187,14 +3212,11 @@ function mesh(options) {
 
     ctx.strokeStyle = fg;
 
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, cw, ch);
-
-    var R = (0, _utils.randomInRange)(3, 7) * SCALE / 800; // dot radius
+    var R = (0, _utils.randomInRange)(2, 5) * SCALE / 800; // dot radius
     var r = R; // radius per node
-    var dotFill = (0, _utils.randItem)([fg, fg, bg]);
+    var dotFill = (0, _utils.randItem)([fg, fg, 'transparent']);
     // probability thresholds to draw connections
-    var drawDown = 0.25;
+    var drawUp = 0.25;
     var drawLeft = 0.25;
     var drawDL = 0.25;
     var drawDR = 0.25;
@@ -3209,9 +3231,52 @@ function mesh(options) {
         return 0.5 + (R * Math.sin(xnorm * Math.PI) + R * Math.sin(ynorm * Math.PI)) / 2;
     }, function () {
         // scale away from center linearly
-        return 1 + R / 2 * Math.sqrt(Math.pow(xnorm - 0.5, 2) + Math.pow(ynorm - 0.5, 2));
+        return 1 + R / 2 * pr;
     }]);
 
+    var pr = void 0; // radius from center
+
+    var connectionModes = [function () {}, // normal
+    function () {}, // normal
+    function () {
+        // sweep up: bias diagonals on the left/right edge.
+        // bias verticals toward the middle
+        drawUp = 0.5 * Math.sin(xnorm * Math.PI);
+        drawLeft = 0.05;
+        drawDL = 0.75 * xnorm;
+        drawDR = 0.75 * (1 - xnorm);
+    }, function () {
+        // sidways and diagonals
+        drawUp = drawDR = 0;
+        drawLeft = 0.3;
+        drawDL = 0.2;
+        drawRing = 0.1;
+    }, function () {
+        // vert and other diagonal
+        drawLeft = drawDL = 0;
+        drawUp = 0.3;
+        drawDR = 0.2;
+        drawRing = 0.2;
+    }];
+
+    // Pick the item from @palette by converting the normalized @factor
+    // to its nearest index
+    var mapToPalette = function mapToPalette(palette, factor) {
+        factor = factor % 1; // loop
+        return palette[Math.round(factor * (palette.length - 1))];
+    };
+
+    // reference point is center by default
+    var refPoint = [0.5, 0.5];
+    if (Math.random() < 0.5) {
+        // unless we randomize the refernce point!
+        refPoint = [Math.random(), Math.random()];
+    }
+
+    // choose stroke color scheme
+    var multiColorStrokes = Math.random() < 0.25;
+
+    // work through the points
     for (var i = 0; i < vcount; i++) {
         for (var j = 0; j < count; j++) {
             // convenience vars
@@ -3222,11 +3287,26 @@ function mesh(options) {
 
             isConnected = 0;
 
+            // get distance to reference point
+            pr = Math.sqrt(Math.pow(xnorm - refPoint[0], 2) + Math.pow(ynorm - refPoint[1], 2));
+
+            // stroke styles
+            if (multiColorStrokes) {
+                ctx.strokeStyle = mapToPalette(contrastPalette, pr);
+            }
+
+            // set dot radius, and draw it
             r = rTransform();
             (0, _shapes.drawCircle)(ctx, x, y, r, { fill: dotFill });
 
+            // choose a connection mode, which determines frequency
+            // of the connection types
+            (0, _utils.randItem)(connectionModes)();
+
+            // start drawing connections
+            ctx.globalCompositeOperation = 'destination-over';
             ctx.beginPath();
-            if (i > 0 && Math.random() < drawDown) {
+            if (i > 0 && Math.random() < drawUp) {
                 ctx.moveTo(x, y);
                 ctx.lineTo(x, y - h);
                 isConnected++;
@@ -3236,19 +3316,21 @@ function mesh(options) {
                 ctx.lineTo(x - w, y);
                 isConnected++;
             }
-            if (i > 0 && j > 0 && Math.random() < drawDL) {
-                ctx.moveTo(x, y);
-                ctx.lineTo(x - w, y - h);
-                isConnected++;
-            }
-            if (i > 0 && j < count - 1 && Math.random() < drawDR) {
+            if (i > 0 && j < count - 1 && Math.random() < drawDL) {
                 ctx.moveTo(x, y);
                 ctx.lineTo(x + w, y - h);
                 isConnected++;
             }
+            if (i > 0 && j > 0 && Math.random() < drawDR) {
+                ctx.moveTo(x, y);
+                ctx.lineTo(x - w, y - h);
+                isConnected++;
+            }
             ctx.stroke();
             ctx.closePath();
+            ctx.globalCompositeOperation = 'normal';
 
+            // occasionally add rings
             if (isConnected && Math.random() < drawRing) {
                 ctx.lineWidth = ctx.lineWidth / 2;
                 (0, _shapes.drawCircle)(ctx, x, y, w / 3, { fill: null, stroke: fg });
@@ -3257,6 +3339,11 @@ function mesh(options) {
             }
         }
     }
+
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, cw, ch);
+    ctx.globalCompositeOperation = 'normal';
 
     // END DRAW --------------------------------------
 
