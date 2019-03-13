@@ -79,9 +79,6 @@ export function mesh(options) {
 
     ctx.strokeStyle = fg;
 
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, cw, ch);
-
     let R = randomInRange(2,5) * SCALE/800 ; // dot radius
     let r = R; // radius per node
     let dotFill = randItem([fg, fg, 'transparent']);
@@ -181,6 +178,7 @@ export function mesh(options) {
 
 
             // start drawing connections
+            ctx.globalCompositeOperation = 'destination-over';
             ctx.beginPath();
             if (i > 0 && Math.random() < drawUp) {
                 ctx.moveTo(x, y);
@@ -204,6 +202,7 @@ export function mesh(options) {
             }
             ctx.stroke();
             ctx.closePath();
+            ctx.globalCompositeOperation = 'normal';
 
             // occasionally add rings
             if (isConnected && Math.random() < drawRing) {
@@ -214,6 +213,11 @@ export function mesh(options) {
             }
         }
     }
+
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, cw, ch);
+    ctx.globalCompositeOperation = 'normal';
 
 
     // END DRAW --------------------------------------
