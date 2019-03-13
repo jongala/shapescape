@@ -7,6 +7,25 @@ export function randomInRange(min, max) {
     return min + (max - min) * Math.random();
 }
 
+// fisher-yates, from https://bost.ocks.org/mike/shuffle/
+export function shuffle(array) {
+  var m = array.length, t, i;
+
+  // While there remain elements to shuffle…
+  while (m) {
+
+    // Pick a remaining element…
+    i = Math.floor(Math.random() * m--);
+
+    // And swap it with the current element.
+    t = array[m];
+    array[m] = array[i];
+    array[i] = t;
+  }
+
+  return array;
+}
+
 export function setAttrs(el, attrs) {
     var a;
     if (el && el.setAttribute) {

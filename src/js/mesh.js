@@ -1,5 +1,5 @@
 import noiseUtils from './noiseutils';
-import { randItem, randomInRange, setAttrs, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
+import { randItem, randomInRange, setAttrs, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, shuffle } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
 const DEFAULTS = {
@@ -61,14 +61,17 @@ export function mesh(options) {
 
     let getSolidFill = getSolidColorFunction(opts.palette);
 
+    // shared colors
+    let fg; // hold on…
+    let bg = getSolidFill(); // pick a bg
+
     // get palette of non-bg colors
-    let contrastPalette = [].concat(opts.palette);
-    contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    let contrastPalette = shuffle([].concat(opts.palette));
+    contrastPalette.splice(contrastPalette.indexOf(bg), 1);
     let getContrastColor = getSolidColorFunction(contrastPalette);
 
-    // shared colors
-    let fg = getContrastColor();
-    let bg = getContrastColor();
+    fg = getContrastColor(); // fg is another color
+
 
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
@@ -131,6 +134,13 @@ export function mesh(options) {
         }
     ];
 
+    // Pick the item from @palette by converting the normalized @factor
+    // to its nearest index
+    let cyclePalette = (palette, factor) => {
+        factor = factor % 1; // loop
+        return palette[Math.round(factor * (palette.length -1))];
+    }
+
 
     for (let i = 0; i < vcount; i++) {
         for (let j = 0; j < count; j++) {
@@ -148,8 +158,10 @@ export function mesh(options) {
             pr = Math.sqrt(Math.pow(xnorm - 0.5, 2) + Math.pow(ynorm - 0.5, 2));
 
             randItem(connectionModes)();
-            //connectionModes[2]();
 
+            ctx.strokeStyle = cyclePalette(contrastPalette, xnorm);
+            ctx.strokeStyle = cyclePalette(contrastPalette, ynorm);
+            ctx.strokeStyle = cyclePalette(contrastPalette, pr);
 
             ctx.beginPath();
             if (i > 0 && Math.random() < drawUp) {
