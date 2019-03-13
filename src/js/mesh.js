@@ -133,7 +133,7 @@ export function mesh(options) {
 
     // Pick the item from @palette by converting the normalized @factor
     // to its nearest index
-    let cyclePalette = (palette, factor) => {
+    let mapToPalette = (palette, factor) => {
         factor = factor % 1; // loop
         return palette[Math.round(factor * (palette.length -1))];
     }
@@ -164,9 +164,8 @@ export function mesh(options) {
 
             // stroke styles
             if (multiColorStrokes) {
-                ctx.strokeStyle = cyclePalette(contrastPalette, pr);
+                ctx.strokeStyle = mapToPalette(contrastPalette, pr);
             }
-
 
             // set dot radius, and draw it
             r = rTransform();
@@ -175,7 +174,6 @@ export function mesh(options) {
             // choose a connection mode, which determines frequency
             // of the connection types
             randItem(connectionModes)();
-
 
             // start drawing connections
             ctx.globalCompositeOperation = 'destination-over';
