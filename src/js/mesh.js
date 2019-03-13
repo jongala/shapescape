@@ -84,7 +84,7 @@ export function mesh(options) {
 
     let R = randomInRange(2,5) * SCALE/800 ; // dot radius
     let r = R; // radius per node
-    let dotFill = randItem([fg, fg, bg]);
+    let dotFill = randItem([fg, fg, 'transparent']);
     // probability thresholds to draw connections
     let drawUp = 0.25;
     let drawLeft = 0.25;
@@ -101,7 +101,7 @@ export function mesh(options) {
                 R * Math.sin(ynorm * Math.PI)) / 2;
         },
         () => { // scale away from center linearly
-            return 1 + R/2 * Math.sqrt(Math.pow(xnorm - 0.5, 2) + Math.pow(ynorm - 0.5, 2));
+            return 1 + R/2 * pr;
         },
     ]);
 
@@ -141,7 +141,17 @@ export function mesh(options) {
         return palette[Math.round(factor * (palette.length -1))];
     }
 
+    // reference point is center by default
+    let refPoint = [0.5, 0.5];
+    if (Math.random() < 0.5) {
+        // unless we randomize the refernce point!
+        refPoint = [Math.random(), Math.random()];
+    }
 
+    // choose stroke color scheme
+    let multiColorStrokes = (Math.random() < 0.25);
+
+    // work through the points
     for (let i = 0; i < vcount; i++) {
         for (let j = 0; j < count; j++) {
             // convenience vars
@@ -152,17 +162,25 @@ export function mesh(options) {
 
             isConnected = 0;
 
+            // get distance to reference point
+            pr = Math.sqrt(Math.pow(xnorm - refPoint[0], 2) + Math.pow(ynorm - refPoint[1], 2));
+
+            // stroke styles
+            if (multiColorStrokes) {
+                ctx.strokeStyle = cyclePalette(contrastPalette, pr);
+            }
+
+
+            // set dot radius, and draw it
             r = rTransform();
             drawCircle(ctx, x, y, r, {fill: dotFill});
 
-            pr = Math.sqrt(Math.pow(xnorm - 0.5, 2) + Math.pow(ynorm - 0.5, 2));
-
+            // choose a connection mode, which determines frequency
+            // of the connection types
             randItem(connectionModes)();
 
-            ctx.strokeStyle = cyclePalette(contrastPalette, xnorm);
-            ctx.strokeStyle = cyclePalette(contrastPalette, ynorm);
-            ctx.strokeStyle = cyclePalette(contrastPalette, pr);
 
+            // start drawing connections
             ctx.beginPath();
             if (i > 0 && Math.random() < drawUp) {
                 ctx.moveTo(x, y);
@@ -187,6 +205,7 @@ export function mesh(options) {
             ctx.stroke();
             ctx.closePath();
 
+            // occasionally add rings
             if (isConnected && Math.random() < drawRing) {
                 ctx.lineWidth = ctx.lineWidth / 2;
                 drawCircle(ctx, x, y, w/3, {fill: null, stroke: fg});
