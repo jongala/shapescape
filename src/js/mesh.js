@@ -104,9 +104,12 @@ export function mesh(options) {
 
     let pr; // radius from center
 
-    let connectionModes = [
-        () => {}, // normal
-        () => {}, // normal
+    // choose a connection mode, which determines frequency
+    // of the connection types
+    let connectionMode = randItem([
+        () => {}, // normal/uniform
+        () => {}, // normal/uniform
+        () => {}, // normal/uniform
         () => {
             // sweep up: bias diagonals on the left/right edge.
             // bias verticals toward the middle
@@ -129,7 +132,7 @@ export function mesh(options) {
             drawDR = 0.2;
             drawRing = 0.2;
         }
-    ];
+    ]);
 
     // Pick the item from @palette by converting the normalized @factor
     // to its nearest index
@@ -171,9 +174,8 @@ export function mesh(options) {
             r = rTransform();
             drawCircle(ctx, x, y, r, {fill: dotFill});
 
-            // choose a connection mode, which determines frequency
-            // of the connection types
-            randItem(connectionModes)();
+            // adjust connection weights, chosen above
+            connectionMode();
 
             // start drawing connections
             ctx.globalCompositeOperation = 'destination-over';
