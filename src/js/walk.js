@@ -121,7 +121,7 @@ export function walk(options) {
     // arrays to save the places where we chose right or down
     let rightDots = [];
     let downDots = [];
-    
+
     let doWalk = (walker, i) => {
         ctx.beginPath();
         ctx.moveTo(walker.x * w, walker.y * h);
@@ -155,8 +155,6 @@ export function walk(options) {
         }
     }*/
 
-    walkers.forEach(doWalk);
-
     let rightColor = getContrastColor();
     let downColor = getContrastColor();
 
@@ -165,24 +163,50 @@ export function walk(options) {
             {
                 rightDeco: (d, i) => {
                     let [x, y] = [...d];
-                    drawCircle(ctx, x * w - w/2, y * h - h/2, r, {fill: rightColor})
+                    drawCircle(ctx, x * w - w/2, y * h - h/2, r, {fill: rightColor});
                 },
                 downDeco: (d, i) => {
                     let [x, y] = [...d];
-                    drawCircle(ctx, x * w - w/2, y * h + h/2, r, {fill: downColor})
+                    drawCircle(ctx, x * w - w/2, y * h - h/2, r, {fill: downColor});
                 }
             },
             {
                 rightDeco: (d, i) => {
                     let [x, y] = [...d];
-                    drawSquare(ctx, x * w - w/2, y * h - h/2, w/4, {fill: rightColor})
+                    drawSquare(ctx, x * w - w/2, y * h - h/2, w/4, {fill: rightColor});
                 },
                 downDeco: (d, i) => {
                     let [x, y] = [...d];
-                    drawCircle(ctx, x * w - w/2, y * h + h/2, w/6, {fill: downColor})
+                    drawCircle(ctx, x * w - w/2, y * h - h/2, w/6, {fill: downColor});
+                }
+            },
+            {
+                rightDeco: (d, i) => {
+                    let [x, y] = [...d];
+                    ctx.beginPath();
+                    ctx.moveTo(x * w - w * .25, y * h);
+                    ctx.lineTo(x * w - w * .5, y * h - h * .25);
+                    ctx.lineTo(x * w - w * .5, y * h + h * .25);
+                    ctx.closePath();
+                    ctx.fillStyle = rightColor;
+                    ctx.fill();
+
+                },
+                downDeco: (d, i) => {
+                    let [x, y] = [...d];
+                    ctx.beginPath();
+                    ctx.moveTo(x * w, y * h - h * .25);
+                    ctx.lineTo(x * w - w * .25, y * h - h * .5);
+                    ctx.lineTo(x * w + w * .25, y * h - h * .5);
+                    ctx.closePath();
+                    ctx.fillStyle = downColor;
+                    ctx.fill();
                 }
             }
         ]);
+
+    // run the walkers to draw the main lines
+    walkers.forEach(doWalk);
 
     // execute the decoration functions on each junction dot
     rightDots.forEach(decoration.rightDeco);
