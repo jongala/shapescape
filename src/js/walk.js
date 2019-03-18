@@ -4,7 +4,7 @@ import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, draw
 
 const DEFAULTS = {
     container: 'body',
-    palette: ['#222', '#666', '#bbb', '#f2f2f2' ],
+    palette: ['#3C2E42', '#B4254B', '#FF804A', '#E8D1A1', '#A5C9C4'],
     addNoise: 0.04,
     noiseInput: null,
     dust: false,
@@ -40,7 +40,7 @@ export function walk(options) {
     // DRAW --------------------------------------
 
     // define grid
-    let count = Math.round(randomInRange(3, 30));
+    let count = Math.round(randomInRange(10, 30));
     let w = cw/count;
     let h = w;
     let vcount = Math.ceil(ch/h);
@@ -120,7 +120,7 @@ export function walk(options) {
 
 
     let rightDots = [];
-    let leftDots = [];
+    let downDots = [];
     
     let doWalk = (walker, i) => {
         ctx.beginPath();
@@ -128,8 +128,10 @@ export function walk(options) {
         while (walker.x < count && walker.y < vcount) {
             if (Math.random() < goH) {
                 walker.x += 1;
+                rightDots.push([walker.x, walker.y]);
             } else {
                 walker.y += 1;
+                downDots.push([walker.x, walker.y])
             }
             ctx.lineTo(walker.x * w, walker.y * h);
         }
@@ -138,7 +140,7 @@ export function walk(options) {
     }
 
     // work through the points
-    for (let i = 0; i < vcount; i++) {
+    /*for (let i = 0; i < vcount; i++) {
         for (let j = 0; j < count; j++) {
             // convenience vars
             x = w * j + w/2;
@@ -151,9 +153,21 @@ export function walk(options) {
             // set dot radius, and draw it
             drawCircle(ctx, x, y, r, {fill: dotFill});
         }
-    }
+    }*/
 
     walkers.forEach(doWalk);
+
+    let rightColor = getContrastColor();
+    let downColor = getContrastColor();
+
+    rightDots.forEach((d) => {
+        let [x, y] = [...d];
+        drawCircle(ctx, x * w - w/2, y * h - h/2, r, {fill: rightColor});
+    });
+    downDots.forEach((d) => {
+        let [x, y] = [...d];
+        drawCircle(ctx, x * w - w/2, y * h + h/2, r, {fill: downColor});
+    });
 
 
     ctx.globalCompositeOperation = 'destination-over';
