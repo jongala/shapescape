@@ -160,13 +160,34 @@ export function walk(options) {
     let rightColor = getContrastColor();
     let downColor = getContrastColor();
 
-    rightDots.forEach((d) => {
-        let [x, y] = [...d];
-        drawCircle(ctx, x * w - w/2, y * h - h/2, r, {fill: rightColor});
+    let decoration = randItem([
+            {
+                rightDeco: (d, i) => {
+                    let [x, y] = [...d];
+                    drawCircle(ctx, x * w - w/2, y * h - h/2, r, {fill: rightColor})
+                },
+                downDeco: (d, i) => {
+                    let [x, y] = [...d];
+                    drawCircle(ctx, x * w - w/2, y * h + h/2, r, {fill: downColor})
+                }
+            },
+            {
+                rightDeco: (d, i) => {
+                    let [x, y] = [...d];
+                    drawSquare(ctx, x * w - w/2, y * h - h/2, w/4, {fill: rightColor})
+                },
+                downDeco: (d, i) => {
+                    let [x, y] = [...d];
+                    drawCircle(ctx, x * w - w/2, y * h + h/2, w/6, {fill: downColor})
+                }
+            }
+        ]);
+
+    rightDots.forEach((d, i) => {
+        decoration.rightDeco(d, i);
     });
-    downDots.forEach((d) => {
-        let [x, y] = [...d];
-        drawCircle(ctx, x * w - w/2, y * h + h/2, r, {fill: downColor});
+    downDots.forEach((d, i) => {
+        decoration.downDeco(d, i);
     });
 
 
