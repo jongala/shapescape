@@ -9,6 +9,7 @@ import { lines } from './lines';
 import { waves } from './waves';
 import { grid } from './grid';
 import { mesh } from './mesh';
+import { walk } from './walk';
 import { fragments } from './fragments';
 import { setAttrs } from './utils';
 
@@ -21,6 +22,7 @@ const RENDERERS = {
     waves: waves,
     grid: grid,
     mesh: mesh,
+    walk: walk,
     fragments: fragments
 };
 let initRenderer = 'waterline';
