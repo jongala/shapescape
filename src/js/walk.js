@@ -184,9 +184,9 @@ export function walk(options) {
                 rightDeco: (d, i) => {
                     let [x, y] = [...d];
                     ctx.beginPath();
-                    ctx.moveTo(x * w - w * .25, y * h);
-                    ctx.lineTo(x * w - w * .5, y * h - h * .25);
-                    ctx.lineTo(x * w - w * .5, y * h + h * .25);
+                    ctx.moveTo(x * w - w * .25, y * h - h/2);
+                    ctx.lineTo(x * w - w * .5, y * h - h * .25 - h/2);
+                    ctx.lineTo(x * w - w * .5, y * h + h * .25 - h/2);
                     ctx.closePath();
                     ctx.fillStyle = rightColor;
                     ctx.fill();
@@ -195,9 +195,9 @@ export function walk(options) {
                 downDeco: (d, i) => {
                     let [x, y] = [...d];
                     ctx.beginPath();
-                    ctx.moveTo(x * w, y * h - h * .25);
-                    ctx.lineTo(x * w - w * .25, y * h - h * .5);
-                    ctx.lineTo(x * w + w * .25, y * h - h * .5);
+                    ctx.moveTo(x * w - w/2, y * h - h * .25);
+                    ctx.lineTo(x * w - w * .25 - w/2, y * h - h * .5);
+                    ctx.lineTo(x * w + w * .25 - w/2, y * h - h * .5);
                     ctx.closePath();
                     ctx.fillStyle = downColor;
                     ctx.fill();
