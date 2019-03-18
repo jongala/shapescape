@@ -118,7 +118,7 @@ export function walk(options) {
     // choose stroke color scheme
     let multiColorStrokes = (Math.random() < 0.25);
 
-
+    // arrays to save the places where we chose right or down
     let rightDots = [];
     let downDots = [];
     
@@ -139,7 +139,7 @@ export function walk(options) {
         ctx.closePath();
     }
 
-    // work through the points
+    // draw dots for all the grid
     /*for (let i = 0; i < vcount; i++) {
         for (let j = 0; j < count; j++) {
             // convenience vars
@@ -160,6 +160,7 @@ export function walk(options) {
     let rightColor = getContrastColor();
     let downColor = getContrastColor();
 
+    // pick a decoration scheme, each with a right and down decorator function
     let decoration = randItem([
             {
                 rightDeco: (d, i) => {
@@ -183,12 +184,9 @@ export function walk(options) {
             }
         ]);
 
-    rightDots.forEach((d, i) => {
-        decoration.rightDeco(d, i);
-    });
-    downDots.forEach((d, i) => {
-        decoration.downDeco(d, i);
-    });
+    // execute the decoration functions on each junction dot
+    rightDots.forEach(decoration.rightDeco);
+    downDots.forEach(decoration.downDeco);
 
 
     ctx.globalCompositeOperation = 'destination-over';
