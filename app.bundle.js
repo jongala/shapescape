@@ -3399,9 +3399,16 @@ var DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     clear: true
-};
 
-function walk(options) {
+    /*
+     * Draw survival curves. Pick a bunch of walkers, step along
+     * a grid. At each point, choose to go right or down.
+     * Save the points according to type (down/right).
+     * Decorate the line segments and the grid points.
+     * Pick the rightmost and downmost points in each row/column, and 
+     * decorate those by extending lines to the edges.
+     */
+};function walk(options) {
     var opts = Object.assign({}, DEFAULTS, options);
 
     var container = opts.container;
@@ -3484,8 +3491,7 @@ function walk(options) {
         });
     }
 
-    var goLeft = 0.5;
-    var goRight = 0.5;
+    // threshold to go right vs down
     var goH = 0.5;
 
     var pr = void 0; // radius from center
@@ -3511,7 +3517,12 @@ function walk(options) {
     var rightDots = [];
     var downDots = [];
 
+    // Walking function
     var doWalk = function doWalk(walker, i) {
+        // For each walker, step till you hit the edges.
+        // At each point, choose to go right or down.
+        // Save the point into the appropriate dot array after choosing.
+        // Draw the line segment.
         ctx.beginPath();
         ctx.moveTo(walker.x * w, walker.y * h);
         while (walker.x < count && walker.y < vcount) {
@@ -3528,26 +3539,13 @@ function walk(options) {
         ctx.closePath();
     };
 
-    // draw dots for all the grid
-    /*for (let i = 0; i < vcount; i++) {
-        for (let j = 0; j < count; j++) {
-            // convenience vars
-            x = w * j + w/2;
-            y = h * i + h/2;
-            xnorm = x/cw;
-            ynorm = y/ch;
-            // get distance to reference point
-            pr = Math.sqrt(Math.pow(xnorm - refPoint[0], 2) + Math.pow(ynorm - refPoint[1], 2));
-             // set dot radius, and draw it
-            drawCircle(ctx, x, y, r, {fill: dotFill});
-        }
-    }*/
-
     var rightColor = getContrastColor();
     var downColor = getContrastColor();
 
     // pick a decoration scheme, each with a right and down decorator function
-    var decoration = (0, _utils.randItem)([{
+    var decoration = (0, _utils.randItem)([
+    // dots
+    {
         rightDeco: function rightDeco(d, i) {
             var _ref = [].concat(_toConsumableArray(d)),
                 x = _ref[0],
@@ -3562,7 +3560,9 @@ function walk(options) {
 
             (0, _shapes.drawCircle)(ctx, x * w - w / 2, y * h - h / 2, r, { fill: downColor });
         }
-    }, {
+    },
+    // squares right, dots down. sized to fit inside each other
+    {
         rightDeco: function rightDeco(d, i) {
             var _ref3 = [].concat(_toConsumableArray(d)),
                 x = _ref3[0],
@@ -3577,7 +3577,9 @@ function walk(options) {
 
             (0, _shapes.drawCircle)(ctx, x * w - w / 2, y * h - h / 2, w / 6, { fill: downColor });
         }
-    }, {
+    },
+    // half-square triangles pointing right or down
+    {
         rightDeco: function rightDeco(d, i) {
             var _ref5 = [].concat(_toConsumableArray(d)),
                 x = _ref5[0],
@@ -3631,7 +3633,8 @@ function walk(options) {
         }
     });
 
-    ctx.lineWidth = Math.max(ctx.lineWidth / 2, 1); // use a narrow line
+    // use a narrow line for the grid extensions
+    ctx.lineWidth = Math.max(ctx.lineWidth / 2, 1);
 
     // draw lines from rightmost and downmost dots to boundaries
     rightMax.forEach(function (d, i) {
@@ -3650,6 +3653,7 @@ function walk(options) {
         ctx.stroke();
     });
 
+    // composite in the background
     ctx.globalCompositeOperation = 'destination-over';
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, cw, ch);
