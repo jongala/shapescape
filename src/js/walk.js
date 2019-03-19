@@ -212,6 +212,38 @@ export function walk(options) {
     rightDots.forEach(decoration.rightDeco);
     downDots.forEach(decoration.downDeco);
 
+    let rightMax = [];
+    rightDots.forEach((d) => {
+        let [x, y] = [...d];
+        if (!rightMax[y] || x > rightMax[y]) {
+            rightMax[y] = x;
+        }
+    });
+    let downMax = [];
+    downDots.forEach((d) => {
+        let [x, y] = [...d];
+        if (!downMax[x] || y > downMax[x]) {
+            downMax[x] = y;
+        }
+    });
+
+    // draw lines from rightmost and downmost dots to boundaries
+    rightMax.forEach((d, i) => {
+        ctx.beginPath();
+        ctx.moveTo(d * w + w/2, i * h + h/2);
+        ctx.lineTo(cw, i * h + h/2);
+        ctx.strokeStyle = rightColor;
+        ctx.stroke();
+    });
+
+    downMax.forEach((d, i) => {
+        ctx.beginPath();
+        ctx.moveTo(i * w + w/2, d * h + h/2);
+        ctx.lineTo(i * w + w/2, ch);
+        ctx.strokeStyle = downColor;
+        ctx.stroke();
+    });
+
 
     ctx.globalCompositeOperation = 'destination-over';
     ctx.fillStyle = bg;
