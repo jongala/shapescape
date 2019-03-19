@@ -212,20 +212,22 @@ export function walk(options) {
     rightDots.forEach(decoration.rightDeco);
     downDots.forEach(decoration.downDeco);
 
+    // will contain the rightmost and downmost dots in each row and column
     let rightMax = [];
-    rightDots.forEach((d) => {
+    let downMax = [];
+
+    // run through the points and assign the rightmost and downmost points
+    [].concat(rightDots).concat(downDots).forEach((d) => {
         let [x, y] = [...d];
         if (!rightMax[y] || x > rightMax[y]) {
             rightMax[y] = x;
         }
-    });
-    let downMax = [];
-    downDots.forEach((d) => {
-        let [x, y] = [...d];
         if (!downMax[x] || y > downMax[x]) {
             downMax[x] = y;
         }
     });
+
+    ctx.lineWidth = Math.max(ctx.lineWidth/2, 1); // use a narrow line
 
     // draw lines from rightmost and downmost dots to boundaries
     rightMax.forEach((d, i) => {
