@@ -1,6 +1,6 @@
 import noiseUtils from './noiseutils';
 import { randItem, randomInRange, setAttrs, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, shuffle } from './utils';
-import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
+import { drawCircle, drawSquare } from './shapes';
 
 const DEFAULTS = {
     container: 'body',
@@ -12,6 +12,14 @@ const DEFAULTS = {
     clear: true
 }
 
+/*
+ * Draw survival curves. Pick a bunch of walkers, step along
+ * a grid. At each point, choose to go right or down.
+ * Save the points according to type (down/right).
+ * Decorate the line segments and the grid points.
+ * Pick the rightmost and downmost points in each row/column, and 
+ * decorate those by extending lines to the edges.
+ */
 export function walk(options) {
     let opts = Object.assign({}, DEFAULTS, options);
 
@@ -94,10 +102,8 @@ export function walk(options) {
         })
     }
 
-    let goLeft = 0.5;
-    let goRight = 0.5;
+    // threshold to go right vs down
     let goH = 0.5;
-
 
     let pr; // radius from center
 
@@ -122,7 +128,12 @@ export function walk(options) {
     let rightDots = [];
     let downDots = [];
 
+    // Walking function
     let doWalk = (walker, i) => {
+        // For each walker, step till you hit the edges.
+        // At each point, choose to go right or down.
+        // Save the point into the appropriate dot array after choosing.
+        // Draw the line segment.
         ctx.beginPath();
         ctx.moveTo(walker.x * w, walker.y * h);
         while (walker.x < count && walker.y < vcount) {
@@ -139,27 +150,12 @@ export function walk(options) {
         ctx.closePath();
     }
 
-    // draw dots for all the grid
-    /*for (let i = 0; i < vcount; i++) {
-        for (let j = 0; j < count; j++) {
-            // convenience vars
-            x = w * j + w/2;
-            y = h * i + h/2;
-            xnorm = x/cw;
-            ynorm = y/ch;
-            // get distance to reference point
-            pr = Math.sqrt(Math.pow(xnorm - refPoint[0], 2) + Math.pow(ynorm - refPoint[1], 2));
-
-            // set dot radius, and draw it
-            drawCircle(ctx, x, y, r, {fill: dotFill});
-        }
-    }*/
-
     let rightColor = getContrastColor();
     let downColor = getContrastColor();
 
     // pick a decoration scheme, each with a right and down decorator function
     let decoration = randItem([
+            // dots
             {
                 rightDeco: (d, i) => {
                     let [x, y] = [...d];
@@ -170,6 +166,7 @@ export function walk(options) {
                     drawCircle(ctx, x * w - w/2, y * h - h/2, r, {fill: downColor});
                 }
             },
+            // squares right, dots down. sized to fit inside each other
             {
                 rightDeco: (d, i) => {
                     let [x, y] = [...d];
@@ -180,6 +177,7 @@ export function walk(options) {
                     drawCircle(ctx, x * w - w/2, y * h - h/2, w/6, {fill: downColor});
                 }
             },
+            // half-square triangles pointing right or down
             {
                 rightDeco: (d, i) => {
                     let [x, y] = [...d];
@@ -227,7 +225,8 @@ export function walk(options) {
         }
     });
 
-    ctx.lineWidth = Math.max(ctx.lineWidth/2, 1); // use a narrow line
+    // use a narrow line for the grid extensions
+    ctx.lineWidth = Math.max(ctx.lineWidth/2, 1);
 
     // draw lines from rightmost and downmost dots to boundaries
     rightMax.forEach((d, i) => {
@@ -246,7 +245,7 @@ export function walk(options) {
         ctx.stroke();
     });
 
-
+    // composite in the background
     ctx.globalCompositeOperation = 'destination-over';
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, cw, ch);
