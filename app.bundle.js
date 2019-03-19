@@ -409,7 +409,9 @@ var _grid = __webpack_require__(15);
 
 var _mesh = __webpack_require__(16);
 
-var _fragments = __webpack_require__(17);
+var _walk = __webpack_require__(17);
+
+var _fragments = __webpack_require__(18);
 
 var _utils = __webpack_require__(0);
 
@@ -424,6 +426,7 @@ var RENDERERS = {
     waves: _waves.waves,
     grid: _grid.grid,
     mesh: _mesh.mesh,
+    walk: _walk.walk,
     fragments: _fragments.fragments
 };
 var initRenderer = 'waterline';
@@ -3366,6 +3369,311 @@ function mesh(options) {
 
 /***/ }),
 /* 17 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.walk = walk;
+
+var _noiseutils = __webpack_require__(1);
+
+var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _utils = __webpack_require__(0);
+
+var _shapes = __webpack_require__(2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+var DEFAULTS = {
+    container: 'body',
+    palette: ['#3C2E42', '#B4254B', '#FF804A', '#E8D1A1', '#A5C9C4'],
+    addNoise: 0.04,
+    noiseInput: null,
+    dust: false,
+    skew: 1, // normalized skew
+    clear: true
+};
+
+function walk(options) {
+    var opts = Object.assign({}, DEFAULTS, options);
+
+    var container = opts.container;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
+    var SCALE = Math.min(cw, ch);
+
+    // Find or create canvas child
+    var el = container.querySelector('canvas');
+    var newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        (0, _utils.setAttrs)(el, {
+            width: cw,
+            height: ch
+        });
+    }
+
+    var ctx = el.getContext('2d');
+
+    // DRAW --------------------------------------
+
+    // define grid
+    var count = Math.round((0, _utils.randomInRange)(10, 30));
+    var w = cw / count;
+    var h = w;
+    var vcount = Math.ceil(ch / h);
+
+    // setup vars for each cell
+    var x = 0;
+    var y = 0;
+    var xnorm = 0;
+    var ynorm = 0;
+    var renderer = void 0;
+
+    // play with these random seeds
+    var a = void 0,
+        b = void 0,
+        c = void 0;
+    a = Math.random();
+    b = Math.random();
+    c = Math.random();
+
+    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
+
+    // shared colors
+    var fg = void 0; // hold on…
+    var bg = getSolidFill(); // pick a bg
+
+    // get palette of non-bg colors
+    var contrastPalette = (0, _utils.shuffle)([].concat(opts.palette));
+    contrastPalette.splice(contrastPalette.indexOf(bg), 1);
+    var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
+
+    fg = getContrastColor(); // fg is another color
+
+
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.lineWidth = (0, _utils.randomInRange)(1, 4) * SCALE / 800;
+
+    ctx.strokeStyle = fg;
+
+    var R = (0, _utils.randomInRange)(1, 4) * SCALE / 800; // dot radius
+    var r = R; // radius per node
+    var dotFill = fg; // randItem([fg, fg, 'transparent']);
+    // probability thresholds to draw connections
+
+    var walkers = [];
+
+    var walkerCount = Math.round((0, _utils.randomInRange)(2, 20));
+    while (walkerCount--) {
+        walkers.push({
+            x: 0,
+            y: 0
+        });
+    }
+
+    var goLeft = 0.5;
+    var goRight = 0.5;
+    var goH = 0.5;
+
+    var pr = void 0; // radius from center
+
+    // Pick the item from @palette by converting the normalized @factor
+    // to its nearest index
+    var mapToPalette = function mapToPalette(palette, factor) {
+        factor = factor % 1; // loop
+        return palette[Math.round(factor * (palette.length - 1))];
+    };
+
+    // reference point is center by default
+    var refPoint = [0.5, 0.5];
+    if (Math.random() < 0.5) {
+        // unless we randomize the refernce point!
+        refPoint = [Math.random(), Math.random()];
+    }
+
+    // choose stroke color scheme
+    var multiColorStrokes = Math.random() < 0.25;
+
+    // arrays to save the places where we chose right or down
+    var rightDots = [];
+    var downDots = [];
+
+    var doWalk = function doWalk(walker, i) {
+        ctx.beginPath();
+        ctx.moveTo(walker.x * w, walker.y * h);
+        while (walker.x < count && walker.y < vcount) {
+            if (Math.random() < goH) {
+                walker.x += 1;
+                rightDots.push([walker.x, walker.y]);
+            } else {
+                walker.y += 1;
+                downDots.push([walker.x, walker.y]);
+            }
+            ctx.lineTo(walker.x * w, walker.y * h);
+        }
+        ctx.stroke();
+        ctx.closePath();
+    };
+
+    // draw dots for all the grid
+    /*for (let i = 0; i < vcount; i++) {
+        for (let j = 0; j < count; j++) {
+            // convenience vars
+            x = w * j + w/2;
+            y = h * i + h/2;
+            xnorm = x/cw;
+            ynorm = y/ch;
+            // get distance to reference point
+            pr = Math.sqrt(Math.pow(xnorm - refPoint[0], 2) + Math.pow(ynorm - refPoint[1], 2));
+             // set dot radius, and draw it
+            drawCircle(ctx, x, y, r, {fill: dotFill});
+        }
+    }*/
+
+    var rightColor = getContrastColor();
+    var downColor = getContrastColor();
+
+    // pick a decoration scheme, each with a right and down decorator function
+    var decoration = (0, _utils.randItem)([{
+        rightDeco: function rightDeco(d, i) {
+            var _ref = [].concat(_toConsumableArray(d)),
+                x = _ref[0],
+                y = _ref[1];
+
+            (0, _shapes.drawCircle)(ctx, x * w - w / 2, y * h - h / 2, r, { fill: rightColor });
+        },
+        downDeco: function downDeco(d, i) {
+            var _ref2 = [].concat(_toConsumableArray(d)),
+                x = _ref2[0],
+                y = _ref2[1];
+
+            (0, _shapes.drawCircle)(ctx, x * w - w / 2, y * h - h / 2, r, { fill: downColor });
+        }
+    }, {
+        rightDeco: function rightDeco(d, i) {
+            var _ref3 = [].concat(_toConsumableArray(d)),
+                x = _ref3[0],
+                y = _ref3[1];
+
+            (0, _shapes.drawSquare)(ctx, x * w - w / 2, y * h - h / 2, w / 4, { fill: rightColor });
+        },
+        downDeco: function downDeco(d, i) {
+            var _ref4 = [].concat(_toConsumableArray(d)),
+                x = _ref4[0],
+                y = _ref4[1];
+
+            (0, _shapes.drawCircle)(ctx, x * w - w / 2, y * h - h / 2, w / 6, { fill: downColor });
+        }
+    }, {
+        rightDeco: function rightDeco(d, i) {
+            var _ref5 = [].concat(_toConsumableArray(d)),
+                x = _ref5[0],
+                y = _ref5[1];
+
+            ctx.beginPath();
+            ctx.moveTo(x * w - w * .25, y * h - h / 2);
+            ctx.lineTo(x * w - w * .5, y * h - h * .25 - h / 2);
+            ctx.lineTo(x * w - w * .5, y * h + h * .25 - h / 2);
+            ctx.closePath();
+            ctx.fillStyle = rightColor;
+            ctx.fill();
+        },
+        downDeco: function downDeco(d, i) {
+            var _ref6 = [].concat(_toConsumableArray(d)),
+                x = _ref6[0],
+                y = _ref6[1];
+
+            ctx.beginPath();
+            ctx.moveTo(x * w - w / 2, y * h - h * .25);
+            ctx.lineTo(x * w - w * .25 - w / 2, y * h - h * .5);
+            ctx.lineTo(x * w + w * .25 - w / 2, y * h - h * .5);
+            ctx.closePath();
+            ctx.fillStyle = downColor;
+            ctx.fill();
+        }
+    }]);
+
+    // run the walkers to draw the main lines
+    walkers.forEach(doWalk);
+
+    // execute the decoration functions on each junction dot
+    rightDots.forEach(decoration.rightDeco);
+    downDots.forEach(decoration.downDeco);
+
+    // will contain the rightmost and downmost dots in each row and column
+    var rightMax = [];
+    var downMax = [];
+
+    // run through the points and assign the rightmost and downmost points
+    [].concat(rightDots).concat(downDots).forEach(function (d) {
+        var _ref7 = [].concat(_toConsumableArray(d)),
+            x = _ref7[0],
+            y = _ref7[1];
+
+        if (!rightMax[y] || x > rightMax[y]) {
+            rightMax[y] = x;
+        }
+        if (!downMax[x] || y > downMax[x]) {
+            downMax[x] = y;
+        }
+    });
+
+    ctx.lineWidth = Math.max(ctx.lineWidth / 2, 1); // use a narrow line
+
+    // draw lines from rightmost and downmost dots to boundaries
+    rightMax.forEach(function (d, i) {
+        ctx.beginPath();
+        ctx.moveTo(d * w + w / 2, i * h + h / 2);
+        ctx.lineTo(cw, i * h + h / 2);
+        ctx.strokeStyle = rightColor;
+        ctx.stroke();
+    });
+
+    downMax.forEach(function (d, i) {
+        ctx.beginPath();
+        ctx.moveTo(i * w + w / 2, d * h + h / 2);
+        ctx.lineTo(i * w + w / 2, ch);
+        ctx.strokeStyle = downColor;
+        ctx.stroke();
+    });
+
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, cw, ch);
+    ctx.globalCompositeOperation = 'normal';
+
+    // END DRAW --------------------------------------
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, w / 3);
+        }
+    }
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
+}
+
+/***/ }),
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
