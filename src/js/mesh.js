@@ -4,7 +4,7 @@ import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, draw
 
 const DEFAULTS = {
     container: 'body',
-    palette: ['#222', '#666', '#bbb', '#f2f2f2' ],
+    palette: ['#f9f9f9', '#D9AC32', '#ED5045', '#1F3E9C', '#000142'],
     addNoise: 0.04,
     noiseInput: null,
     dust: false,
