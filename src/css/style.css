@@ -53,6 +53,10 @@ button.activeRenderer {
     position: relative;
     width: 800px;
     height: 800px;
+    /*width: 1600px;
+    height: 1600px;
+    transform: scale(0.5);
+    transform-origin: 0 0;*/
     box-shadow: 0 1px 20px rgba(0, 0, 0, 0.2);
 }
 #example canvas,
