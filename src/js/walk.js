@@ -4,7 +4,7 @@ import { drawCircle, drawSquare } from './shapes';
 
 const DEFAULTS = {
     container: 'body',
-    palette: ['#3C2E42', '#B4254B', '#FF804A', '#E8D1A1', '#A5C9C4'],
+    palette: ['#f9f9f9', '#D9AC32', '#ED5045', '#1F3E9C', '#000142'], // de_stijl
     addNoise: 0.04,
     noiseInput: null,
     dust: false,

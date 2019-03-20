@@ -194,6 +194,7 @@ var palettes = {
     admiral: ['#0a131c', '#072444', '#3b6185', '#361313', '#c47423', '#b88d40', '#f3efec'],
     plum_sauce: ['#3C2E42', '#B4254B', '#FF804A', '#E8D1A1', '#A5C9C4'],
     fingerspitzen: ['#f4dda8','#eda87c','#c8907e','#9cacc3','#485e80','#3b465b'],
+    de_stijl: ['#f9f9f9', '#D9AC32', '#ED5045', '#1F3E9C', '#000142'],
 
     terra_cotta_cactus: ['#5d576b','#9bc1b8','#f4f1bb','#dcc48e','#ed6a5a'],
     metroid_fusion: ['#DBEED6', '#47BDC2', '#0A7DB8', '#1A3649', '#B24432'],
