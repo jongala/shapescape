@@ -1,5 +1,5 @@
 import noiseUtils from './noiseutils';
-import { randItem, randomInRange, setAttrs, resetTransform, rotateCanvas, getGradientFunction } from './utils';
+import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
 const BGLIST = ['white', 'solid', 'gradient'];
@@ -51,10 +51,8 @@ export function lines(options) {
         newEl = true;
     }
     if (newEl || opts.clear) {
-        setAttrs(el, {
-            width: cw,
-            height: ch
-        });
+        el.width = cw;
+        el.height = ch;
     }
 
     var ctx; // canvas ctx or svg tag

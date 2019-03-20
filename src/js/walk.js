@@ -1,5 +1,5 @@
 import noiseUtils from './noiseutils';
-import { randItem, randomInRange, setAttrs, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, shuffle } from './utils';
+import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, shuffle } from './utils';
 import { drawCircle, drawSquare } from './shapes';
 
 const DEFAULTS = {
@@ -37,10 +37,8 @@ export function walk(options) {
         newEl = true;
     }
     if (newEl || opts.clear) {
-        setAttrs(el, {
-            width: cw,
-            height: ch
-        });
+        el.width = cw;
+        el.height = ch;
     }
 
     let ctx = el.getContext('2d');

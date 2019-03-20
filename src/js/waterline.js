@@ -1,6 +1,6 @@
 import { SCHEMA } from './schemas/waterline-schema';
 import noiseUtils from './noiseutils';
-import { randItem, randomInRange, setAttrs } from './utils';
+import { randItem, randomInRange } from './utils';
 import { defineFill, expandFill } from './colors';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
@@ -248,10 +248,8 @@ export function drawWaterline(def, options) {
         newEl = true;
     }
     if (newEl || opts.clear) {
-        setAttrs(el, {
-            width: container.offsetWidth,
-            height: container.offsetHeight
-        });
+        el.width = w;
+        el.height = h;
     }
 
     var ctx; // canvas ctx or svg tag

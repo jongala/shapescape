@@ -1,5 +1,5 @@
 import noiseUtils from './noiseutils';
-import { randItem, randomInRange, setAttrs, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
+import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 import { createStack, drawStack } from './stacks';
 import { defineNest, generateNestDef, drawNest } from './nests';
@@ -55,21 +55,16 @@ export function shapestack(options) {
         newEl = true;
     }
     if (newEl || opts.clear) {
-        setAttrs(el, {
-            width: container.offsetWidth,
-            height: container.offsetHeight
-        });
+        el.width = container.offsetWidth;
+        el.height = container.offsetHeight;
     }
 
-    var ctx; // canvas ctx or svg tag
+    let ctx = el.getContext('2d');
 
-    ctx = el.getContext('2d');
     ctx.save();
 
     // optional clear
     if (opts.clear) {
-        el.width = container.offsetWidth;
-        el.height = container.offsetHeight;
         ctx.clearRect(0, 0, w, h);
     }
 

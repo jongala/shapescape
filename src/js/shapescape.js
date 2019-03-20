@@ -1,5 +1,5 @@
 import noiseUtils from './noiseutils';
-import { randItem, randomInRange, setAttrs } from './utils';
+import { randItem, randomInRange } from './utils';
 
 /**
  * Get a fill, either in solid or gradients
@@ -99,10 +99,8 @@ export function shapescape(options) {
         newEl = true;
     }
     if (newEl || opts.clear) {
-        setAttrs(el, {
-            width: container.offsetWidth,
-            height: container.offsetHeight
-        });
+        el.width = w;
+        el.height = h;
     }
 
     var ctx; // canvas ctx or svg tag
