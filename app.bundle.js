@@ -995,10 +995,8 @@ function drawWaterline(def, options) {
         newEl = true;
     }
     if (newEl || opts.clear) {
-        (0, _utils.setAttrs)(el, {
-            width: container.offsetWidth,
-            height: container.offsetHeight
-        });
+        el.width = w;
+        el.height = h;
     }
 
     var ctx; // canvas ctx or svg tag
@@ -1460,21 +1458,16 @@ var DEFAULTS = {
         newEl = true;
     }
     if (newEl || opts.clear) {
-        (0, _utils.setAttrs)(el, {
-            width: container.offsetWidth,
-            height: container.offsetHeight
-        });
+        el.width = container.offsetWidth;
+        el.height = container.offsetHeight;
     }
 
-    var ctx; // canvas ctx or svg tag
+    var ctx = el.getContext('2d');
 
-    ctx = el.getContext('2d');
     ctx.save();
 
     // optional clear
     if (opts.clear) {
-        el.width = container.offsetWidth;
-        el.height = container.offsetHeight;
         ctx.clearRect(0, 0, w, h);
     }
 
@@ -1997,10 +1990,8 @@ function shapescape(options) {
         newEl = true;
     }
     if (newEl || opts.clear) {
-        (0, _utils.setAttrs)(el, {
-            width: container.offsetWidth,
-            height: container.offsetHeight
-        });
+        el.width = w;
+        el.height = h;
     }
 
     var ctx; // canvas ctx or svg tag
@@ -2141,10 +2132,8 @@ function lines(options) {
         newEl = true;
     }
     if (newEl || opts.clear) {
-        (0, _utils.setAttrs)(el, {
-            width: cw,
-            height: ch
-        });
+        el.width = cw;
+        el.height = ch;
     }
 
     var ctx; // canvas ctx or svg tag
@@ -2654,10 +2643,8 @@ function waves(options) {
         newEl = true;
     }
     if (newEl || opts.clear) {
-        (0, _utils.setAttrs)(el, {
-            width: cw,
-            height: ch
-        });
+        el.width = cw;
+        el.height = ch;
     }
 
     var ctx; // canvas ctx or svg tag
@@ -2810,10 +2797,8 @@ var DEFAULTS = {
         newEl = true;
     }
     if (newEl || opts.clear) {
-        (0, _utils.setAttrs)(el, {
-            width: cw,
-            height: ch
-        });
+        el.width = cw;
+        el.height = ch;
     }
 
     var ctx = el.getContext('2d');
@@ -3164,10 +3149,8 @@ function mesh(options) {
         newEl = true;
     }
     if (newEl || opts.clear) {
-        (0, _utils.setAttrs)(el, {
-            width: cw,
-            height: ch
-        });
+        el.width = cw;
+        el.height = ch;
     }
 
     var ctx = el.getContext('2d');
@@ -3425,10 +3408,8 @@ var DEFAULTS = {
         newEl = true;
     }
     if (newEl || opts.clear) {
-        (0, _utils.setAttrs)(el, {
-            width: cw,
-            height: ch
-        });
+        el.width = cw;
+        el.height = ch;
     }
 
     var ctx = el.getContext('2d');
@@ -3781,10 +3762,8 @@ function fragments(options) {
         newEl = true;
     }
     if (newEl || opts.clear) {
-        (0, _utils.setAttrs)(el, {
-            width: cw,
-            height: ch
-        });
+        el.width = cw;
+        el.height = ch;
     }
 
     var ctx; // canvas ctx or svg tag
