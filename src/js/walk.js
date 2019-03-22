@@ -17,7 +17,7 @@ const DEFAULTS = {
  * a grid. At each point, choose to go right or down.
  * Save the points according to type (down/right).
  * Decorate the line segments and the grid points.
- * Pick the rightmost and downmost points in each row/column, and 
+ * Pick the rightmost and downmost points in each row/column, and
  * decorate those by extending lines to the edges.
  */
 export function walk(options) {
@@ -90,13 +90,17 @@ export function walk(options) {
     let dotFill =fg;// randItem([fg, fg, 'transparent']);
     // probability thresholds to draw connections
 
+    let modes = ['descend', 'survival'];
+    let MODENAME = randItem(modes);
+
     let walkers = [];
 
     let walkerCount = Math.round(randomInRange(2,20));
     while (walkerCount--) {
         walkers.push({
-            x: 0,
-            y: 0
+            x: (MODENAME === 'survival') ? 0 : Math.round(randomInRange(0, count)),
+            y: 0,
+            dir: 1 // right or left
         })
     }
 
@@ -125,9 +129,10 @@ export function walk(options) {
     // arrays to save the places where we chose right or down
     let rightDots = [];
     let downDots = [];
+    let leftDots = [];
 
     // Walking function
-    let doWalk = (walker, i) => {
+    let survival = (walker, i) => {
         // For each walker, step till you hit the edges.
         // At each point, choose to go right or down.
         // Save the point into the appropriate dot array after choosing.
@@ -148,7 +153,35 @@ export function walk(options) {
         ctx.closePath();
     }
 
+    // Walking function
+    let descend = (walker, i) => {
+        // For each walker, step till you hit the edges.
+        // At each point, choose to go right or down.
+        // Save the point into the appropriate dot array after choosing.
+        // Draw the line segment.
+        ctx.beginPath();
+        ctx.moveTo(walker.x * w, walker.y * h);
+        while (walker.x < count && walker.y < vcount) {
+            if (Math.random() < goH) {
+                walker.x += 1 * walker.dir;
+                if (walker.dir > 0) {
+                    rightDots.push([walker.x, walker.y]);
+                } else {
+                    leftDots.push([walker.x, walker.y]);
+                }
+            } else {
+                walker.y += 1;
+                downDots.push([walker.x, walker.y])
+                walker.dir *= -1;
+            }
+            ctx.lineTo(walker.x * w, walker.y * h);
+        }
+        ctx.stroke();
+        ctx.closePath();
+    }
+
     let rightColor = getContrastColor();
+    let leftColor = getContrastColor();
     let downColor = getContrastColor();
 
     // pick a decoration scheme, each with a right and down decorator function
@@ -158,6 +191,10 @@ export function walk(options) {
                 rightDeco: (d, i) => {
                     let [x, y] = [...d];
                     drawCircle(ctx, x * w - w/2, y * h - h/2, r, {fill: rightColor});
+                },
+                leftDeco: (d, i) => {
+                    let [x, y] = [...d];
+                    drawCircle(ctx, x * w + w/2, y * h - h/2, r, {fill: leftColor});
                 },
                 downDeco: (d, i) => {
                     let [x, y] = [...d];
@@ -169,6 +206,10 @@ export function walk(options) {
                 rightDeco: (d, i) => {
                     let [x, y] = [...d];
                     drawSquare(ctx, x * w - w/2, y * h - h/2, w/4, {fill: rightColor});
+                },
+                leftDeco: (d, i) => {
+                    let [x, y] = [...d];
+                    drawSquare(ctx, x * w + w/2, y * h - h/2, w/4, {fill: leftColor});
                 },
                 downDeco: (d, i) => {
                     let [x, y] = [...d];
@@ -188,6 +229,17 @@ export function walk(options) {
                     ctx.fill();
 
                 },
+                leftDeco: (d, i) => {
+                    let [x, y] = [...d];
+                    ctx.beginPath();
+                    ctx.moveTo(x * w + w * .25, y * h - h/2);
+                    ctx.lineTo(x * w + w * .5, y * h - h * .25 - h/2);
+                    ctx.lineTo(x * w + w * .5, y * h + h * .25 - h/2);
+                    ctx.closePath();
+                    ctx.fillStyle = leftColor;
+                    ctx.fill();
+
+                },
                 downDeco: (d, i) => {
                     let [x, y] = [...d];
                     ctx.beginPath();
@@ -202,10 +254,12 @@ export function walk(options) {
         ]);
 
     // run the walkers to draw the main lines
-    walkers.forEach(doWalk);
+    let walkFunc = (MODENAME === 'survival')? survival : descend;
+    walkers.forEach(walkFunc);
 
     // execute the decoration functions on each junction dot
     rightDots.forEach(decoration.rightDeco);
+    leftDots.forEach(decoration.leftDeco);
     downDots.forEach(decoration.downDeco);
 
     // will contain the rightmost and downmost dots in each row and column
