@@ -160,9 +160,12 @@ export function walk(options) {
         // Save the point into the appropriate dot array after choosing.
 
         let track = tracks[i];
+        let start = true; // first step should always go down, so set a flag
+
+        track.push([walker.x, walker.y]);
 
         while (walker.x < count && walker.y < vcount) {
-            if (Math.random() < goH) {
+            if (!start && Math.random() < goH) {
                 walker.x += 1 * walker.dir;
                 if (walker.dir > 0) {
                     rightDots.push([walker.x, walker.y]);
@@ -174,6 +177,7 @@ export function walk(options) {
                 downDots.push([walker.x, walker.y])
                 walker.dir *= -1;
             }
+            start = false;
             track.push([walker.x, walker.y]);
         }
     }
