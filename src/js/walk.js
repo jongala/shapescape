@@ -101,7 +101,7 @@ export function walk(options) {
     let walkerCount = Math.round(randomInRange(2,20));
     while (walkerCount--) {
         walkers.push({
-            x: (MODENAME === 'survival') ? 0 : Math.round(randomInRange(1, count - 1)),
+            x: (MODENAME === 'survival') ? 0 : Math.round(randomInRange(2, count - 2)),
             y: 0,
             dir: 1 // right or left
         })
@@ -278,45 +278,69 @@ export function walk(options) {
     });
 
 
-    // execute the decoration functions on each junction dot
-    rightDots.forEach(decoration.rightDeco);
-    leftDots.forEach(decoration.leftDeco);
-    downDots.forEach(decoration.downDeco);
-
     // will contain the rightmost and downmost dots in each row and column
     let rightMax = [];
+    let leftMax = [];
     let downMax = [];
 
     // run through the points and assign the rightmost and downmost points
-    [].concat(rightDots).concat(downDots).forEach((d) => {
-        let [x, y] = [...d];
-        if (!rightMax[y] || x > rightMax[y]) {
-            rightMax[y] = x;
-        }
-        if (!downMax[x] || y > downMax[x]) {
-            downMax[x] = y;
-        }
+    tracks.forEach((t) => {
+        t.forEach((d) => {
+            let [x, y] = [...d];
+            if (!rightMax[y] || x > rightMax[y]) {
+                rightMax[y] = x;
+            }
+            if (!leftMax[y] || x < leftMax[y]) {
+                leftMax[y] = x;
+            }
+            if (!downMax[x] || y > downMax[x]) {
+                downMax[x] = y;
+            }
+        });
     });
 
     // use a narrow line for the grid extensions
     ctx.lineWidth = Math.max(ctx.lineWidth/2, 1);
 
-    // draw lines from rightmost and downmost dots to boundaries
-    rightMax.forEach((d, i) => {
+
+    let rightLine = (d, i) => {
         ctx.beginPath();
         ctx.moveTo(d * w + w/2, i * h + h/2);
         ctx.lineTo(cw, i * h + h/2);
         ctx.strokeStyle = rightColor;
         ctx.stroke();
-    });
+    }
 
-    downMax.forEach((d, i) => {
+    let leftLine = (d, i) => {
+        ctx.beginPath();
+        ctx.moveTo(d * w - w/2, i * h + h/2);
+        ctx.lineTo(0, i * h + h/2);
+        ctx.strokeStyle = leftColor;
+        ctx.stroke();
+    }
+
+    let downLine = (d, i) => {
         ctx.beginPath();
         ctx.moveTo(i * w + w/2, d * h + h/2);
         ctx.lineTo(i * w + w/2, ch);
         ctx.strokeStyle = downColor;
         ctx.stroke();
-    });
+    }
+
+    // draw lines from rightmost and downmost dots to boundaries
+    rightMax.forEach(rightLine);
+
+    if (MODENAME === 'descend') {
+        leftMax.forEach(leftLine);
+    } else if (MODENAME === 'survival') {
+        downMax.forEach(downLine);
+    }
+
+    // execute the decoration functions on each junction dot
+    rightDots.forEach(decoration.rightDeco);
+    leftDots.forEach(decoration.leftDeco);
+    downDots.forEach(decoration.downDeco);
+
 
     // composite in the background
     ctx.globalCompositeOperation = 'destination-over';
