@@ -91,7 +91,9 @@ export function walk(options) {
     // probability thresholds to draw connections
 
     let modes = ['descend', 'survival'];
-    let MODENAME = 'descend';//randItem(modes);
+    let MODENAME = randItem(modes);
+
+    let drawOverlap = (MODENAME !== 'survival');
 
     let walkers = [];
     let tracks = [];
@@ -99,7 +101,7 @@ export function walk(options) {
     let walkerCount = Math.round(randomInRange(2,20));
     while (walkerCount--) {
         walkers.push({
-            x: (MODENAME === 'survival') ? 0 : Math.round(randomInRange(0, count)),
+            x: (MODENAME === 'survival') ? 0 : Math.round(randomInRange(1, count - 1)),
             y: 0,
             dir: 1 // right or left
         })
@@ -138,9 +140,7 @@ export function walk(options) {
         // For each walker, step till you hit the edges.
         // At each point, choose to go right or down.
         // Save the point into the appropriate dot array after choosing.
-        // Draw the line segment.
-        ctx.beginPath();
-        ctx.moveTo(walker.x * w, walker.y * h);
+        let track = tracks[i];
         while (walker.x < count && walker.y < vcount) {
             if (Math.random() < goH) {
                 walker.x += 1;
@@ -149,10 +149,8 @@ export function walk(options) {
                 walker.y += 1;
                 downDots.push([walker.x, walker.y])
             }
-            ctx.lineTo(walker.x * w, walker.y * h);
+            track.push([walker.x, walker.y]);
         }
-        ctx.stroke();
-        ctx.closePath();
     }
 
     // Walking function
@@ -160,7 +158,6 @@ export function walk(options) {
         // For each walker, step till you hit the edges.
         // At each point, choose to go right or down.
         // Save the point into the appropriate dot array after choosing.
-        // Draw the line segment.
 
         let track = tracks[i];
 
@@ -258,6 +255,7 @@ export function walk(options) {
     let walkFunc = (MODENAME === 'survival')? survival : descend;
     walkers.forEach(walkFunc);
 
+    // util to draw the path of a track
     let drawTrack = (track, width, color) => {
         ctx.lineWidth = width;
         ctx.strokeStyle = color;
@@ -269,12 +267,12 @@ export function walk(options) {
         ctx.stroke();
     }
 
-    if (MODENAME === 'descend') {
-        tracks.forEach((track) => {
-            drawTrack(track, baseWidth * 3, bg);
-            drawTrack(track, baseWidth, fg);
-        });
-    }
+    // draw the lines
+    tracks.forEach((track) => {
+        drawOverlap && drawTrack(track, baseWidth * 3, bg);
+        drawTrack(track, baseWidth, fg);
+    });
+
 
     // execute the decoration functions on each junction dot
     rightDots.forEach(decoration.rightDeco);
