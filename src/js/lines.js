@@ -2,7 +2,7 @@ import noiseUtils from './noiseutils';
 import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
-const BGLIST = ['white', 'solid', 'gradient'];
+const BGLIST = ['white', 'white', 'white', 'solid', 'gradient'];
 const OVERLAYLIST = ['shape', 'area', 'blend', 'auto'];
 
 const DEFAULTS = {
