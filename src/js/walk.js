@@ -78,22 +78,23 @@ export function walk(options) {
 
     fg = getContrastColor(); // fg is another color
 
+    let baseWidth = randomInRange(1, 4) * SCALE/800;
 
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
-    ctx.lineWidth = randomInRange(1, 4) * SCALE/800;
-
+    ctx.lineWidth = baseWidth;
     ctx.strokeStyle = fg;
 
     let R = randomInRange(1,4) * SCALE/800 ; // dot radius
     let r = R; // radius per node
-    let dotFill =fg;// randItem([fg, fg, 'transparent']);
+    let dotFill = fg;// randItem([fg, fg, 'transparent']);
     // probability thresholds to draw connections
 
     let modes = ['descend', 'survival'];
-    let MODENAME = randItem(modes);
+    let MODENAME = 'descend';//randItem(modes);
 
     let walkers = [];
+    let tracks = [];
 
     let walkerCount = Math.round(randomInRange(2,20));
     while (walkerCount--) {
@@ -103,6 +104,7 @@ export function walk(options) {
             dir: 1 // right or left
         })
     }
+    tracks = walkers.map((w) => []);
 
     // threshold to go right vs down
     let goH = 0.5;
@@ -159,8 +161,9 @@ export function walk(options) {
         // At each point, choose to go right or down.
         // Save the point into the appropriate dot array after choosing.
         // Draw the line segment.
-        ctx.beginPath();
-        ctx.moveTo(walker.x * w, walker.y * h);
+
+        let track = tracks[i];
+
         while (walker.x < count && walker.y < vcount) {
             if (Math.random() < goH) {
                 walker.x += 1 * walker.dir;
@@ -174,10 +177,8 @@ export function walk(options) {
                 downDots.push([walker.x, walker.y])
                 walker.dir *= -1;
             }
-            ctx.lineTo(walker.x * w, walker.y * h);
+            track.push([walker.x, walker.y]);
         }
-        ctx.stroke();
-        ctx.closePath();
     }
 
     let rightColor = getContrastColor();
@@ -256,6 +257,24 @@ export function walk(options) {
     // run the walkers to draw the main lines
     let walkFunc = (MODENAME === 'survival')? survival : descend;
     walkers.forEach(walkFunc);
+
+    let drawTrack = (track, width, color) => {
+        ctx.lineWidth = width;
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(track[0][0] * w, track[0][1] * h);
+        track.forEach((p, i)=>{
+            ctx.lineTo(p[0] * w, p[1] * h);
+        })
+        ctx.stroke();
+    }
+
+    if (MODENAME === 'descend') {
+        tracks.forEach((track) => {
+            drawTrack(track, baseWidth * 3, bg);
+            drawTrack(track, baseWidth, fg);
+        });
+    }
 
     // execute the decoration functions on each junction dot
     rightDots.forEach(decoration.rightDeco);
