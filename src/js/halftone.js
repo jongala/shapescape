@@ -1,6 +1,6 @@
 // adapted from rcnv: https://gist.github.com/ucnv/249486
 
-function halftoneCanvas(sourceCanvas, dotSize, palette) {
+export default function halftoneCanvas(sourceCanvas, dotSize, palette) {
     var interval = dotSize || 8;
     var dotOpacity = 1;//0.66;
     var colors = [
@@ -46,10 +46,10 @@ function halftoneCanvas(sourceCanvas, dotSize, palette) {
         var scratchCanvas = document.createElement('canvas');
         scratchCanvas.width = ow + interval;
         scratchCanvas.height = oh + interval;
-        scratch = scratchCanvas.getContext('2d');
+        let scratch = scratchCanvas.getContext('2d');
         scratch.translate(0, w * sinr);
         scratch.rotate(-rad);
-        scratch.drawImage(img, 0, 0);
+        scratch.drawImage(sourceCanvas, 0, 0);
         // positioning
         display.translate(w * sinr * sinr, -w * sinr * cosr);
         display.rotate(rad);

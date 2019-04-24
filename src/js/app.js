@@ -12,6 +12,7 @@ import { mesh } from './mesh';
 import { walk } from './walk';
 import { fragments } from './fragments';
 import { setAttrs } from './utils';
+import halftoneCanvas from './halftone';
 
 // Renderers
 const RENDERERS = {
@@ -278,6 +279,17 @@ function removePreview() {
     var p = document.querySelector('#preview');
     p && p.remove();
 }
+
+function halftoneMain() {
+    var c = visualOpts.container.querySelector('canvas');
+    let halftoned = halftoneCanvas(c, 8);
+    let ctx = c.getContext('2d');
+    ctx.clearRect(0, 0, c.width, c.height);
+    ctx.drawImage(halftoned, 0, 0);
+    //halftoneCanvas(c, 16, {displayCanvas: c});
+}
+window.halftoneMain = halftoneMain;
+
 
 document.querySelector('#saved').addEventListener('click', function(e) {
     if (e.target.nodeName === 'IMG') {
