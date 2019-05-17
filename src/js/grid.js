@@ -251,6 +251,70 @@ export function grid(options) {
         ctx.strokeStyle = stroke;
         ctx.fillStyle = bg;
         ctx.fillRect(0, 0, cw, ch);
+
+        let tl = () => {
+            ctx.beginPath();
+            ctx.moveTo(w/2, 0);
+            ctx.arc(0, 0, w/2, 0, PI/2, false);
+            ctx.stroke();
+        }
+
+        let tr = () => {
+            ctx.beginPath();
+            ctx.moveTo(w, h/2);
+            ctx.arc(w, 0, w/2, PI/2, PI, false);
+            ctx.stroke();
+        }
+
+        let br = () => {
+            ctx.beginPath();
+            ctx.moveTo(w/2, h);
+            ctx.arc(w, h, w/2, PI, 3*PI/2, false);
+            ctx.stroke();
+        }
+
+        let bl = () => {
+            ctx.beginPath();
+            ctx.moveTo(0, h/2);
+            ctx.arc(0, h, w/2, -PI/2, 0, false);
+            ctx.stroke();
+        }
+
+        let horiz = () => {
+            ctx.beginPath();
+            ctx.moveTo(0, h/2);
+            ctx.lineTo(w, h/2);
+            ctx.stroke();
+        }
+
+        let vert = () => {
+            ctx.beginPath();
+            ctx.moveTo(w/2, 0);
+            ctx.lineTo(w/2, h);
+            ctx.stroke();
+        }
+
+        // bitmasks for drawing modes
+        let cellModes = [
+            0x000001, // horiz
+            0x000010, // vert
+            0x000100, // tl
+            0x001000, // tr
+            0x010000, // br
+            0x100000, // bl
+            0x101000,
+            0x010100,
+            0x011000,
+            0x100100,
+            0x011100,
+            0x101100,
+            0x110100,
+            0x111000,
+            0x111100
+        ];
+
+
+        // hit each cell
         for (let i = 0; i < vcount; i++) {
             for (let j = 0; j < count; j++) {
                 // convenience vars
@@ -262,51 +326,16 @@ export function grid(options) {
                 // shift and clip
                 ctx.translate(x, y);
                 //clipSquare(ctx, w, h, bg);
+                //
 
-                switch (Math.round(randomInRange(1, 6))){
-                    case 1:
-                        // top left
-                        ctx.beginPath();
-                        ctx.moveTo(w/2, 0);
-                        ctx.arc(0, 0, w/2, 0, PI/2, false);
-                        ctx.stroke();
-                        break;
-                    case 2:
-                        // top right
-                        ctx.beginPath();
-                        ctx.moveTo(w, h/2);
-                        ctx.arc(w, 0, w/2, PI/2, PI, false);
-                        ctx.stroke();
-                        break;
-                    case 3:
-                        // bottom right
-                        ctx.beginPath();
-                        ctx.moveTo(w/2, h);
-                        ctx.arc(w, h, w/2, PI, 3*PI/2, false);
-                        ctx.stroke();
-                        break;
-                    case 4:
-                        // bottom left
-                        ctx.beginPath();
-                        ctx.moveTo(0, h/2);
-                        ctx.arc(0, h, w/2, -PI/2, 0, false);
-                        ctx.stroke();
-                        break;
-                    case 5:
-                        //renderer = ()=>{};
-                        ctx.beginPath();
-                        ctx.moveTo(w/2, 0);
-                        ctx.lineTo(w/2, h);
-                        ctx.stroke();
-                        break;
-                    case 6:
-                        //renderer = ()=>{};
-                        ctx.beginPath();
-                        ctx.moveTo(0, h/2);
-                        ctx.lineTo(w, h/2);
-                        ctx.stroke();
-                        break;
-                }
+                // get a mode for each cell, mask for function
+                let m = randItem(cellModes);
+                (m & 0x000001) && horiz(); // horiz
+                (m & 0x000010) && vert(); // vert
+                (m & 0x000100) && tl(); // tl
+                (m & 0x001000) && tr(); // tr
+                (m & 0x010000) && br(); // br
+                (m & 0x100000) && bl(); // bl
 
                 // unshift, unclip
                 //ctx.restore();
