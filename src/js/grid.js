@@ -456,11 +456,10 @@ export function grid(options) {
     }
 
     // gather our modes
-    let modes = [maskAndRotate, circles, triangles, mixed];
+    let modes = [maskAndRotate, circles, triangles, mixed, snakes];
 
     // do the loop with one of our modes
-    //randItem(modes)();
-    snakes();
+    randItem(modes)();
 
     // add noise
     if (opts.addNoise) {
