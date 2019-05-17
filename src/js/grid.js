@@ -243,12 +243,26 @@ export function grid(options) {
 
     // mode
     function snakes () {
-        let px, py;
-        let weight = Math.max(cw/50, 1);
-        ctx.lineWidth = weight;
+        // bitmasks for drawing modes
+        let cellModes = [
+            0x000001, // horiz
+            0x000010, // vert
+            0x000100, // tl
+            0x001000, // tr
+            0x010000, // br
+            0x100000, // bl
+            0x101000,
+            0x010100,
+            /*0x011000,
+            0x100100,
+            0x011100,
+            0x101100,
+            0x110100,
+            0x111000,
+            0x111100*/
+        ];
+
         ctx.lineCap = 'round';
-        let stroke = getSolidFill();
-        ctx.strokeStyle = stroke;
         ctx.fillStyle = bg;
         ctx.fillRect(0, 0, cw, ch);
 
@@ -294,25 +308,20 @@ export function grid(options) {
             ctx.stroke();
         }
 
-        // bitmasks for drawing modes
-        let cellModes = [
-            0x000001, // horiz
-            0x000010, // vert
-            0x000100, // tl
-            0x001000, // tr
-            0x010000, // br
-            0x100000, // bl
-            0x101000,
-            0x010100,
-            0x011000,
-            0x100100,
-            0x011100,
-            0x101100,
-            0x110100,
-            0x111000,
-            0x111100
-        ];
+        let px, py;
 
+        let weight = randomInRange(1, w/6);
+        let fg1 = getContrastColor();
+        let fg2 = getContrastColor();
+
+        let drawModes = (modes) => {
+            (modes & 0x000001) && horiz(); // horiz
+            (modes & 0x000010) && vert(); // vert
+            (modes & 0x000100) && tl(); // tl
+            (modes & 0x001000) && tr(); // tr
+            (modes & 0x010000) && br(); // br
+            (modes & 0x100000) && bl(); // bl
+        }
 
         // hit each cell
         for (let i = 0; i < vcount; i++) {
@@ -326,16 +335,28 @@ export function grid(options) {
                 // shift and clip
                 ctx.translate(x, y);
                 //clipSquare(ctx, w, h, bg);
-                //
+
+                // randomize stacking of two colors
+                let c1, c2;
+                if (Math.random() < 0.5) {
+                    c1 = fg1;
+                    c2 = fg2;
+                } else {
+                    c1 = fg2;
+                    c2 = fg1;
+                }
 
                 // get a mode for each cell, mask for function
                 let m = randItem(cellModes);
-                (m & 0x000001) && horiz(); // horiz
-                (m & 0x000010) && vert(); // vert
-                (m & 0x000100) && tl(); // tl
-                (m & 0x001000) && tr(); // tr
-                (m & 0x010000) && br(); // br
-                (m & 0x100000) && bl(); // bl
+                ctx.lineWidth = weight;
+                ctx.strokeStyle = c1;
+                drawModes(m);
+
+                // second set of modes
+                m = randItem(cellModes);
+                ctx.lineWidth = weight;
+                ctx.strokeStyle = c2;
+                drawModes(m)
 
                 // unshift, unclip
                 //ctx.restore();
