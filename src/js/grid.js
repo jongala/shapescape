@@ -336,6 +336,18 @@ export function grid(options) {
                 ctx.translate(x, y);
                 //clipSquare(ctx, w, h, bg);
 
+                if(Math.random() < .25) {
+                    drawCircle(
+                        ctx,
+                        w,
+                        h,
+                        w/randomInRange(5, 20),
+                        {
+                            fill: randItem([fg1, fg2])
+                        }
+                    );
+                }
+
                 // randomize stacking of two colors
                 let c1, c2;
                 if (Math.random() < 0.5) {
