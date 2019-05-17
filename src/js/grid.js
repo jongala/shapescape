@@ -12,6 +12,8 @@ const DEFAULTS = {
     clear: true
 }
 
+const PI = Math.PI;
+
 // Main function
 export function grid(options) {
     let opts = Object.assign({}, DEFAULTS, options);
@@ -240,6 +242,80 @@ export function grid(options) {
     }
 
     // mode
+    function snakes () {
+        let px, py;
+        let weight = Math.max(cw/50, 1);
+        ctx.lineWidth = weight;
+        ctx.lineCap = 'round';
+        let stroke = getSolidFill();
+        ctx.strokeStyle = stroke;
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, cw, ch);
+        for (let i = 0; i < vcount; i++) {
+            for (let j = 0; j < count; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * i;
+                xnorm = x/cw;
+                ynorm = y/ch;
+
+                // shift and clip
+                ctx.translate(x, y);
+                //clipSquare(ctx, w, h, bg);
+
+                switch (Math.round(randomInRange(1, 6))){
+                    case 1:
+                        // top left
+                        ctx.beginPath();
+                        ctx.moveTo(w/2, 0);
+                        ctx.arc(0, 0, w/2, 0, PI/2, false);
+                        ctx.stroke();
+                        break;
+                    case 2:
+                        // top right
+                        ctx.beginPath();
+                        ctx.moveTo(w, h/2);
+                        ctx.arc(w, 0, w/2, PI/2, PI, false);
+                        ctx.stroke();
+                        break;
+                    case 3:
+                        // bottom right
+                        ctx.beginPath();
+                        ctx.moveTo(w/2, h);
+                        ctx.arc(w, h, w/2, PI, 3*PI/2, false);
+                        ctx.stroke();
+                        break;
+                    case 4:
+                        // bottom left
+                        ctx.beginPath();
+                        ctx.moveTo(0, h/2);
+                        ctx.arc(0, h, w/2, -PI/2, 0, false);
+                        ctx.stroke();
+                        break;
+                    case 5:
+                        //renderer = ()=>{};
+                        ctx.beginPath();
+                        ctx.moveTo(w/2, 0);
+                        ctx.lineTo(w/2, h);
+                        ctx.stroke();
+                        break;
+                    case 6:
+                        //renderer = ()=>{};
+                        ctx.beginPath();
+                        ctx.moveTo(0, h/2);
+                        ctx.lineTo(w, h/2);
+                        ctx.stroke();
+                        break;
+                }
+
+                // unshift, unclip
+                //ctx.restore();
+                resetTransform(ctx);
+            }
+        }
+    }
+
+    // mode
     function mixed () {
         let px, py, seed;
         let styles = [
@@ -321,7 +397,8 @@ export function grid(options) {
     let modes = [maskAndRotate, circles, triangles, mixed];
 
     // do the loop with one of our modes
-    randItem(modes)();
+    //randItem(modes)();
+    snakes();
 
     // add noise
     if (opts.addNoise) {
