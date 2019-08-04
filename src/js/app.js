@@ -91,12 +91,17 @@ function loadOpts(opts, fast) {
 
 // Handlers for redraw, batching, and manual saving
 
+function drawNew() {
+    removePreview();
+    requestAnimationFrame(loadOpts);
+}
+window.drawNew = drawNew;
+
 document.addEventListener('keydown', function(e) {
     var kode = e.which || e.keyCode;
     if (kode === 32) {
         // space
-        removePreview();
-        requestAnimationFrame(loadOpts);
+        drawNew();
         e.preventDefault();
         return false;
     } else if (kode === 27) {
