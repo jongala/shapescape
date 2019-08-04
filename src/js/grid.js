@@ -377,6 +377,87 @@ export function grid(options) {
         }
     }
 
+    function triPoints(ctx, p1, p2, p3, color) {
+        ctx.beginPath;
+        ctx.moveTo(...p1);
+        ctx.lineTo(...p2);
+        ctx.lineTo(...p3);
+        ctx.closePath();
+        ctx.strokeStyle = color;
+        ctx.stroke();
+    }
+
+    function rings () {
+        ctx.lineCap = 'round';
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, cw, ch);
+
+        let px, py;
+
+        let weight = randomInRange(1, w/10);
+        let fg1 = getContrastColor();
+        let fg2 = getContrastColor();
+
+        console.log(`${count} by ${vcount} cells`);
+
+        fg = getContrastColor();
+        let c1 = getContrastColor();
+        let c2 = getContrastColor();
+        let dotColor = c1;
+
+        let centers = [];
+
+        // hit each cell
+        for (let i = 0; i < vcount; i++) {
+            for (let j = 0; j < count; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * i;
+                xnorm = x/cw;
+                ynorm = y/ch;
+                
+                let start = Math.round(randomInRange(0,4));
+                let segments = Math.round(randomInRange(2,4));
+
+                ctx.strokeStyle = fg;
+                ctx.lineWidth = weight;
+
+                if(Math.random() < 0.25){
+                    centers.push([x + w/2, y + h/2]);
+                    ctx.beginPath();
+                    ctx.arc(
+                        x + w/2,
+                        y + w/2,
+                        w/2 * Math.round(randomInRange(1,5)),
+                        PI/2 * start,
+                        PI/2 * (start + segments),
+                        false
+                    );
+                    ctx.stroke();
+                    dotColor = fg;
+                } else {
+                    dotColor = c1;
+                }
+                drawCircle(ctx, x + w/2, y + w/2, ctx.lineWidth, {fill: dotColor});
+                
+
+                // unshift, unclip
+                //ctx.restore();
+                resetTransform(ctx);
+            }
+        }
+
+        ctx.strokeStyle = c2;
+        ctx.lineWidth = Math.max(1, ctx.lineWidth/3);
+        while(centers.length >= 2) {
+            ctx.beginPath();
+            ctx.moveTo(...centers.pop());
+            ctx.lineTo(...centers.shift());
+            ctx.stroke();
+        }
+
+    }
+
     // mode
     function mixed () {
         let px, py, seed;
@@ -457,6 +538,7 @@ export function grid(options) {
 
     // gather our modes
     let modes = [maskAndRotate, circles, triangles, mixed, snakes];
+    modes = [rings];
 
     // do the loop with one of our modes
     randItem(modes)();
