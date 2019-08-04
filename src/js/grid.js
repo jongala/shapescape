@@ -405,6 +405,7 @@ export function grid(options) {
         let c2 = getContrastColor();
         let dotColor = c1;
 
+        let ringdefs = [];
         let centers = [];
 
         // hit each cell
@@ -415,31 +416,26 @@ export function grid(options) {
                 y = h * i;
                 xnorm = x/cw;
                 ynorm = y/ch;
-                
+
                 let start = Math.round(randomInRange(0,4));
                 let segments = Math.round(randomInRange(2,4));
 
-                ctx.strokeStyle = fg;
-                ctx.lineWidth = weight;
-
                 if(Math.random() < 0.25){
                     centers.push([x + w/2, y + h/2]);
-                    ctx.beginPath();
-                    ctx.arc(
+                    ringdefs.push([
                         x + w/2,
                         y + w/2,
                         w/2 * Math.round(randomInRange(1,5)),
                         PI/2 * start,
                         PI/2 * (start + segments),
                         false
-                    );
-                    ctx.stroke();
+                    ])
                     dotColor = fg;
                 } else {
                     dotColor = c1;
                 }
                 drawCircle(ctx, x + w/2, y + w/2, ctx.lineWidth, {fill: dotColor});
-                
+
 
                 // unshift, unclip
                 //ctx.restore();
@@ -447,6 +443,8 @@ export function grid(options) {
             }
         }
 
+
+        // draw connecting lines between dots
         ctx.strokeStyle = c2;
         ctx.lineWidth = Math.max(1, ctx.lineWidth/3);
         while(centers.length >= 2) {
@@ -455,6 +453,15 @@ export function grid(options) {
             ctx.lineTo(...centers.shift());
             ctx.stroke();
         }
+
+        // draw rings
+        ctx.strokeStyle = fg;
+        ctx.lineWidth = weight;
+        ringdefs.forEach((def) => {
+            ctx.beginPath();
+            ctx.arc(...def);
+            ctx.stroke();
+        });
 
     }
 
