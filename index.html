@@ -9,8 +9,9 @@
     <div id="saved"><div id="instructions">[space] to redraw. Click image to add to tray. Click thumbnail to preview.</div></div>
     <div id="controls">
         <select onchange="setPalette(this.value)" id="paletteSelector"></select>
-        <button onclick="createBatch()" id="newBatchTrigger">New Batch</button>
         <input type="text" id="customColors" placeholder="paste colors" />
+        <button onclick="drawNew()" id="newImageTrigger">New Image</button>
+        <button onclick="createBatch()" id="newBatchTrigger">New Batch</button>
         <!--<button onclick="rerun()" id="rerunTrigger">ReRun</button>-->
         <a href="#" id="downloadExample">↓</a>
     </div>

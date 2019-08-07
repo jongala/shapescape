@@ -495,12 +495,17 @@ function loadOpts(opts, fast) {
 
 // Handlers for redraw, batching, and manual saving
 
+function drawNew() {
+    removePreview();
+    requestAnimationFrame(loadOpts);
+}
+window.drawNew = drawNew;
+
 document.addEventListener('keydown', function (e) {
     var kode = e.which || e.keyCode;
     if (kode === 32) {
         // space
-        removePreview();
-        requestAnimationFrame(loadOpts);
+        drawNew();
         e.preventDefault();
         return false;
     } else if (kode === 27) {
@@ -2085,7 +2090,7 @@ var _shapes = __webpack_require__(2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var BGLIST = ['white', 'solid', 'gradient'];
+var BGLIST = ['white', 'white', 'white', 'solid', 'gradient'];
 var OVERLAYLIST = ['shape', 'area', 'blend', 'auto'];
 
 var DEFAULTS = {
@@ -2779,9 +2784,12 @@ var DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     clear: true
+};
 
-    // Main function
-};function grid(options) {
+var PI = Math.PI;
+
+// Main function
+function grid(options) {
     var opts = Object.assign({}, DEFAULTS, options);
 
     var container = opts.container;
@@ -3008,6 +3016,128 @@ var DEFAULTS = {
     }
 
     // mode
+    function snakes() {
+        // bitmasks for drawing modes
+        var cellModes = [0x000001, // horiz
+        0x000010, // vert
+        0x000100, // tl
+        0x001000, // tr
+        0x010000, // br
+        0x100000, // bl
+        0x101000, 0x010100];
+
+        ctx.lineCap = 'round';
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, cw, ch);
+
+        var tl = function tl() {
+            ctx.beginPath();
+            ctx.moveTo(w / 2, 0);
+            ctx.arc(0, 0, w / 2, 0, PI / 2, false);
+            ctx.stroke();
+        };
+
+        var tr = function tr() {
+            ctx.beginPath();
+            ctx.moveTo(w, h / 2);
+            ctx.arc(w, 0, w / 2, PI / 2, PI, false);
+            ctx.stroke();
+        };
+
+        var br = function br() {
+            ctx.beginPath();
+            ctx.moveTo(w / 2, h);
+            ctx.arc(w, h, w / 2, PI, 3 * PI / 2, false);
+            ctx.stroke();
+        };
+
+        var bl = function bl() {
+            ctx.beginPath();
+            ctx.moveTo(0, h / 2);
+            ctx.arc(0, h, w / 2, -PI / 2, 0, false);
+            ctx.stroke();
+        };
+
+        var horiz = function horiz() {
+            ctx.beginPath();
+            ctx.moveTo(0, h / 2);
+            ctx.lineTo(w, h / 2);
+            ctx.stroke();
+        };
+
+        var vert = function vert() {
+            ctx.beginPath();
+            ctx.moveTo(w / 2, 0);
+            ctx.lineTo(w / 2, h);
+            ctx.stroke();
+        };
+
+        var px = void 0,
+            py = void 0;
+
+        var weight = (0, _utils.randomInRange)(1, w / 6);
+        var fg1 = getContrastColor();
+        var fg2 = getContrastColor();
+
+        var drawModes = function drawModes(modes) {
+            modes & 0x000001 && horiz(); // horiz
+            modes & 0x000010 && vert(); // vert
+            modes & 0x000100 && tl(); // tl
+            modes & 0x001000 && tr(); // tr
+            modes & 0x010000 && br(); // br
+            modes & 0x100000 && bl(); // bl
+        };
+
+        // hit each cell
+        for (var i = 0; i < vcount; i++) {
+            for (var j = 0; j < count; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * i;
+                xnorm = x / cw;
+                ynorm = y / ch;
+
+                // shift and clip
+                ctx.translate(x, y);
+                //clipSquare(ctx, w, h, bg);
+
+                if (Math.random() < .25) {
+                    (0, _shapes.drawCircle)(ctx, w, h, w / (0, _utils.randomInRange)(5, 20), {
+                        fill: (0, _utils.randItem)([fg1, fg2])
+                    });
+                }
+
+                // randomize stacking of two colors
+                var c1 = void 0,
+                    c2 = void 0;
+                if (Math.random() < 0.5) {
+                    c1 = fg1;
+                    c2 = fg2;
+                } else {
+                    c1 = fg2;
+                    c2 = fg1;
+                }
+
+                // get a mode for each cell, mask for function
+                var m = (0, _utils.randItem)(cellModes);
+                ctx.lineWidth = weight;
+                ctx.strokeStyle = c1;
+                drawModes(m);
+
+                // second set of modes
+                m = (0, _utils.randItem)(cellModes);
+                ctx.lineWidth = weight;
+                ctx.strokeStyle = c2;
+                drawModes(m);
+
+                // unshift, unclip
+                //ctx.restore();
+                (0, _utils.resetTransform)(ctx);
+            }
+        }
+    }
+
+    // mode
     function mixed() {
         var px = void 0,
             py = void 0,
@@ -3081,7 +3211,7 @@ var DEFAULTS = {
     }
 
     // gather our modes
-    var modes = [maskAndRotate, circles, triangles, mixed];
+    var modes = [maskAndRotate, circles, triangles, mixed, snakes];
 
     // do the loop with one of our modes
     (0, _utils.randItem)(modes)();
@@ -3389,7 +3519,7 @@ var DEFAULTS = {
      * a grid. At each point, choose to go right or down.
      * Save the points according to type (down/right).
      * Decorate the line segments and the grid points.
-     * Pick the rightmost and downmost points in each row/column, and 
+     * Pick the rightmost and downmost points in each row/column, and
      * decorate those by extending lines to the edges.
      */
 };function walk(options) {
@@ -3451,11 +3581,11 @@ var DEFAULTS = {
 
     fg = getContrastColor(); // fg is another color
 
+    var baseWidth = (0, _utils.randomInRange)(1, 4) * SCALE / 800;
 
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
-    ctx.lineWidth = (0, _utils.randomInRange)(1, 4) * SCALE / 800;
-
+    ctx.lineWidth = baseWidth;
     ctx.strokeStyle = fg;
 
     var R = (0, _utils.randomInRange)(1, 4) * SCALE / 800; // dot radius
@@ -3463,15 +3593,25 @@ var DEFAULTS = {
     var dotFill = fg; // randItem([fg, fg, 'transparent']);
     // probability thresholds to draw connections
 
+    var modes = ['descend', 'survival'];
+    var MODENAME = (0, _utils.randItem)(modes);
+
+    var drawOverlap = MODENAME !== 'survival';
+
     var walkers = [];
+    var tracks = [];
 
     var walkerCount = Math.round((0, _utils.randomInRange)(2, 20));
     while (walkerCount--) {
         walkers.push({
-            x: 0,
-            y: 0
+            x: MODENAME === 'survival' ? 0 : Math.round((0, _utils.randomInRange)(2, count - 2)),
+            y: 0,
+            dir: 1 // right or left
         });
     }
+    tracks = walkers.map(function (w) {
+        return [];
+    });
 
     // threshold to go right vs down
     var goH = 0.5;
@@ -3498,15 +3638,14 @@ var DEFAULTS = {
     // arrays to save the places where we chose right or down
     var rightDots = [];
     var downDots = [];
+    var leftDots = [];
 
     // Walking function
-    var doWalk = function doWalk(walker, i) {
+    var survival = function survival(walker, i) {
         // For each walker, step till you hit the edges.
         // At each point, choose to go right or down.
         // Save the point into the appropriate dot array after choosing.
-        // Draw the line segment.
-        ctx.beginPath();
-        ctx.moveTo(walker.x * w, walker.y * h);
+        var track = tracks[i];
         while (walker.x < count && walker.y < vcount) {
             if (Math.random() < goH) {
                 walker.x += 1;
@@ -3515,13 +3654,41 @@ var DEFAULTS = {
                 walker.y += 1;
                 downDots.push([walker.x, walker.y]);
             }
-            ctx.lineTo(walker.x * w, walker.y * h);
+            track.push([walker.x, walker.y]);
         }
-        ctx.stroke();
-        ctx.closePath();
+    };
+
+    // Walking function
+    var descend = function descend(walker, i) {
+        // For each walker, step till you hit the edges.
+        // At each point, choose to go right or down.
+        // Save the point into the appropriate dot array after choosing.
+
+        var track = tracks[i];
+        var start = true; // first step should always go down, so set a flag
+
+        track.push([walker.x, walker.y]);
+
+        while (walker.x < count && walker.y < vcount) {
+            if (!start && Math.random() < goH) {
+                walker.x += 1 * walker.dir;
+                if (walker.dir > 0) {
+                    rightDots.push([walker.x, walker.y]);
+                } else {
+                    leftDots.push([walker.x, walker.y]);
+                }
+            } else {
+                walker.y += 1;
+                downDots.push([walker.x, walker.y]);
+                walker.dir *= -1;
+            }
+            start = false;
+            track.push([walker.x, walker.y]);
+        }
     };
 
     var rightColor = getContrastColor();
+    var leftColor = getContrastColor();
     var downColor = getContrastColor();
 
     // pick a decoration scheme, each with a right and down decorator function
@@ -3535,10 +3702,17 @@ var DEFAULTS = {
 
             (0, _shapes.drawCircle)(ctx, x * w - w / 2, y * h - h / 2, r, { fill: rightColor });
         },
-        downDeco: function downDeco(d, i) {
+        leftDeco: function leftDeco(d, i) {
             var _ref2 = [].concat(_toConsumableArray(d)),
                 x = _ref2[0],
                 y = _ref2[1];
+
+            (0, _shapes.drawCircle)(ctx, x * w + w / 2, y * h - h / 2, r, { fill: leftColor });
+        },
+        downDeco: function downDeco(d, i) {
+            var _ref3 = [].concat(_toConsumableArray(d)),
+                x = _ref3[0],
+                y = _ref3[1];
 
             (0, _shapes.drawCircle)(ctx, x * w - w / 2, y * h - h / 2, r, { fill: downColor });
         }
@@ -3546,16 +3720,23 @@ var DEFAULTS = {
     // squares right, dots down. sized to fit inside each other
     {
         rightDeco: function rightDeco(d, i) {
-            var _ref3 = [].concat(_toConsumableArray(d)),
-                x = _ref3[0],
-                y = _ref3[1];
-
-            (0, _shapes.drawSquare)(ctx, x * w - w / 2, y * h - h / 2, w / 4, { fill: rightColor });
-        },
-        downDeco: function downDeco(d, i) {
             var _ref4 = [].concat(_toConsumableArray(d)),
                 x = _ref4[0],
                 y = _ref4[1];
+
+            (0, _shapes.drawSquare)(ctx, x * w - w / 2, y * h - h / 2, w / 4, { fill: rightColor });
+        },
+        leftDeco: function leftDeco(d, i) {
+            var _ref5 = [].concat(_toConsumableArray(d)),
+                x = _ref5[0],
+                y = _ref5[1];
+
+            (0, _shapes.drawSquare)(ctx, x * w + w / 2, y * h - h / 2, w / 4, { fill: leftColor });
+        },
+        downDeco: function downDeco(d, i) {
+            var _ref6 = [].concat(_toConsumableArray(d)),
+                x = _ref6[0],
+                y = _ref6[1];
 
             (0, _shapes.drawCircle)(ctx, x * w - w / 2, y * h - h / 2, w / 6, { fill: downColor });
         }
@@ -3563,9 +3744,9 @@ var DEFAULTS = {
     // half-square triangles pointing right or down
     {
         rightDeco: function rightDeco(d, i) {
-            var _ref5 = [].concat(_toConsumableArray(d)),
-                x = _ref5[0],
-                y = _ref5[1];
+            var _ref7 = [].concat(_toConsumableArray(d)),
+                x = _ref7[0],
+                y = _ref7[1];
 
             ctx.beginPath();
             ctx.moveTo(x * w - w * .25, y * h - h / 2);
@@ -3575,10 +3756,23 @@ var DEFAULTS = {
             ctx.fillStyle = rightColor;
             ctx.fill();
         },
+        leftDeco: function leftDeco(d, i) {
+            var _ref8 = [].concat(_toConsumableArray(d)),
+                x = _ref8[0],
+                y = _ref8[1];
+
+            ctx.beginPath();
+            ctx.moveTo(x * w + w * .25, y * h - h / 2);
+            ctx.lineTo(x * w + w * .5, y * h - h * .25 - h / 2);
+            ctx.lineTo(x * w + w * .5, y * h + h * .25 - h / 2);
+            ctx.closePath();
+            ctx.fillStyle = leftColor;
+            ctx.fill();
+        },
         downDeco: function downDeco(d, i) {
-            var _ref6 = [].concat(_toConsumableArray(d)),
-                x = _ref6[0],
-                y = _ref6[1];
+            var _ref9 = [].concat(_toConsumableArray(d)),
+                x = _ref9[0],
+                y = _ref9[1];
 
             ctx.beginPath();
             ctx.moveTo(x * w - w / 2, y * h - h * .25);
@@ -3591,49 +3785,91 @@ var DEFAULTS = {
     }]);
 
     // run the walkers to draw the main lines
-    walkers.forEach(doWalk);
+    var walkFunc = MODENAME === 'survival' ? survival : descend;
+    walkers.forEach(walkFunc);
 
-    // execute the decoration functions on each junction dot
-    rightDots.forEach(decoration.rightDeco);
-    downDots.forEach(decoration.downDeco);
+    // util to draw the path of a track
+    var drawTrack = function drawTrack(track, width, color) {
+        ctx.lineWidth = width;
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(track[0][0] * w, track[0][1] * h);
+        track.forEach(function (p, i) {
+            ctx.lineTo(p[0] * w, p[1] * h);
+        });
+        ctx.stroke();
+    };
+
+    // draw the lines
+    tracks.forEach(function (track) {
+        drawOverlap && drawTrack(track, baseWidth * 3, bg);
+        drawTrack(track, baseWidth, fg);
+    });
 
     // will contain the rightmost and downmost dots in each row and column
     var rightMax = [];
+    var leftMax = [];
     var downMax = [];
 
     // run through the points and assign the rightmost and downmost points
-    [].concat(rightDots).concat(downDots).forEach(function (d) {
-        var _ref7 = [].concat(_toConsumableArray(d)),
-            x = _ref7[0],
-            y = _ref7[1];
+    tracks.forEach(function (t) {
+        t.forEach(function (d) {
+            var _ref10 = [].concat(_toConsumableArray(d)),
+                x = _ref10[0],
+                y = _ref10[1];
 
-        if (!rightMax[y] || x > rightMax[y]) {
-            rightMax[y] = x;
-        }
-        if (!downMax[x] || y > downMax[x]) {
-            downMax[x] = y;
-        }
+            if (!rightMax[y] || x > rightMax[y]) {
+                rightMax[y] = x;
+            }
+            if (!leftMax[y] || x < leftMax[y]) {
+                leftMax[y] = x;
+            }
+            if (!downMax[x] || y > downMax[x]) {
+                downMax[x] = y;
+            }
+        });
     });
 
     // use a narrow line for the grid extensions
     ctx.lineWidth = Math.max(ctx.lineWidth / 2, 1);
 
-    // draw lines from rightmost and downmost dots to boundaries
-    rightMax.forEach(function (d, i) {
+    var rightLine = function rightLine(d, i) {
         ctx.beginPath();
         ctx.moveTo(d * w + w / 2, i * h + h / 2);
         ctx.lineTo(cw, i * h + h / 2);
         ctx.strokeStyle = rightColor;
         ctx.stroke();
-    });
+    };
 
-    downMax.forEach(function (d, i) {
+    var leftLine = function leftLine(d, i) {
+        ctx.beginPath();
+        ctx.moveTo(d * w - w / 2, i * h + h / 2);
+        ctx.lineTo(0, i * h + h / 2);
+        ctx.strokeStyle = leftColor;
+        ctx.stroke();
+    };
+
+    var downLine = function downLine(d, i) {
         ctx.beginPath();
         ctx.moveTo(i * w + w / 2, d * h + h / 2);
         ctx.lineTo(i * w + w / 2, ch);
         ctx.strokeStyle = downColor;
         ctx.stroke();
-    });
+    };
+
+    // draw lines from rightmost and downmost dots to boundaries
+    rightMax.forEach(rightLine);
+
+    if (MODENAME === 'descend') {
+        leftMax.forEach(leftLine);
+    } else if (MODENAME === 'survival') {
+        downMax.forEach(downLine);
+    }
+
+    // execute the decoration functions on each junction dot
+    rightDots.forEach(decoration.rightDeco);
+    leftDots.forEach(decoration.leftDeco);
+    downDots.forEach(decoration.downDeco);
 
     // composite in the background
     ctx.globalCompositeOperation = 'destination-over';
