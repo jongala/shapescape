@@ -243,138 +243,108 @@ export function grid(options) {
 
     // mode
     function snakes () {
-        // bitmasks for drawing modes
-        let cellModes = [
-            0x000001, // horiz
-            0x000010, // vert
-            0x000100, // tl
-            0x001000, // tr
-            0x010000, // br
-            0x100000, // bl
-            0x101000,
-            0x010100,
-            /*0x011000,
-            0x100100,
-            0x011100,
-            0x101100,
-            0x110100,
-            0x111000,
-            0x111100*/
-        ];
-
         ctx.lineCap = 'round';
         ctx.fillStyle = bg;
         ctx.fillRect(0, 0, cw, ch);
 
-        let tl = () => {
-            ctx.beginPath();
-            ctx.moveTo(w/2, 0);
-            ctx.arc(0, 0, w/2, 0, PI/2, false);
-            ctx.stroke();
-        }
-
-        let tr = () => {
-            ctx.beginPath();
-            ctx.moveTo(w, h/2);
-            ctx.arc(w, 0, w/2, PI/2, PI, false);
-            ctx.stroke();
-        }
-
-        let br = () => {
-            ctx.beginPath();
-            ctx.moveTo(w/2, h);
-            ctx.arc(w, h, w/2, PI, 3*PI/2, false);
-            ctx.stroke();
-        }
-
-        let bl = () => {
-            ctx.beginPath();
-            ctx.moveTo(0, h/2);
-            ctx.arc(0, h, w/2, -PI/2, 0, false);
-            ctx.stroke();
-        }
-
-        let horiz = () => {
-            ctx.beginPath();
-            ctx.moveTo(0, h/2);
-            ctx.lineTo(w, h/2);
-            ctx.stroke();
-        }
-
-        let vert = () => {
-            ctx.beginPath();
-            ctx.moveTo(w/2, 0);
-            ctx.lineTo(w/2, h);
-            ctx.stroke();
-        }
-
         let px, py;
 
-        let weight = randomInRange(1, w/6);
+        let weight = randomInRange(1, w/10);
+        let lightweight = Math.max(1, weight/3);
         let fg1 = getContrastColor();
         let fg2 = getContrastColor();
 
-        let drawModes = (modes) => {
-            (modes & 0x000001) && horiz(); // horiz
-            (modes & 0x000010) && vert(); // vert
-            (modes & 0x000100) && tl(); // tl
-            (modes & 0x001000) && tr(); // tr
-            (modes & 0x010000) && br(); // br
-            (modes & 0x100000) && bl(); // bl
-        }
+        console.log(`${count} by ${vcount} cells`);
 
-        // hit each cell
-        for (let i = 0; i < vcount; i++) {
-            for (let j = 0; j < count; j++) {
-                // convenience vars
-                x = w * j;
-                y = h * i;
-                xnorm = x/cw;
-                ynorm = y/ch;
+        fg = getContrastColor();
+        let c1 = getContrastColor();
+        let c2 = getContrastColor();
+        let dotColor = c1;
 
-                // shift and clip
-                ctx.translate(x, y);
-                //clipSquare(ctx, w, h, bg);
+        let set1 = [];
+        let set2 = [];
 
-                if(Math.random() < .25) {
-                    drawCircle(
-                        ctx,
-                        w,
-                        h,
-                        w/randomInRange(5, 20),
-                        {
-                            fill: randItem([fg1, fg2])
+        function loop(color) {
+            let ringdefs = [];
+            let start;
+            let segments;
+            let r;
+            // hit each cell
+            for (let i = 0; i < vcount; i++) {
+                for (let j = 0; j < count; j++) {
+                    // convenience vars
+                    x = w * j;
+                    y = h * i;
+                    px = x + w/2;
+                    py = y + h/2;
+                    xnorm = px/cw;
+                    ynorm = py/ch;
+
+                    start = Math.round(randomInRange(0,4));
+                    segments = Math.round(randomInRange(1,2));
+                    r = w/2 * Math.round(randomInRange(1,1));
+
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = weight;
+
+                    dotColor = color;
+                    if(Math.random() < 0.75){
+                        // draw circles for many
+                        ringdefs.push([
+                            px,
+                            py,
+                            r,
+                            PI/2 * start,
+                            PI/2 * (start + segments),
+                            false
+                        ]);
+                    } else if (Math.random() < 0.25) {
+                        // draw line
+                        ctx.beginPath();
+                        if (Math.random() < 0.5) {
+                            ctx.moveTo(px, y);
+                            ctx.lineTo(px + w, y);
+                        } else {
+                            ctx.moveTo(x, py);
+                            ctx.lineTo(x, py + h);
                         }
-                    );
+                        ctx.stroke();
+                    } else {
+                        dotColor = fg;
+                    }
+
+                    if (Math.random() < 0.25) {
+                        drawCircle(ctx, px, py, weight * randItem([0.5, 1, 2, 4]) , {fill: dotColor});
+                    }
+
+
+                    // unshift, unclip
+                    //ctx.restore();
+                    resetTransform(ctx);
                 }
-
-                // randomize stacking of two colors
-                let c1, c2;
-                if (Math.random() < 0.5) {
-                    c1 = fg1;
-                    c2 = fg2;
-                } else {
-                    c1 = fg2;
-                    c2 = fg1;
-                }
-
-                // get a mode for each cell, mask for function
-                let m = randItem(cellModes);
-                ctx.lineWidth = weight;
-                ctx.strokeStyle = c1;
-                drawModes(m);
-
-                // second set of modes
-                m = randItem(cellModes);
-                ctx.lineWidth = weight;
-                ctx.strokeStyle = c2;
-                drawModes(m)
-
-                // unshift, unclip
-                //ctx.restore();
-                resetTransform(ctx);
             }
+            return ringdefs;
         }
+
+        set1 = loop(c1);
+        set2 = loop(c2);
+
+        // draw rings
+        ctx.strokeStyle = c1;
+        ctx.lineWidth = weight;
+        set1.forEach((def) => {
+            ctx.beginPath();
+            ctx.arc(...def);
+            ctx.stroke();
+        });
+
+        ctx.strokeStyle = c2;
+        ctx.lineWidth = weight;
+        set2.forEach((def) => {
+            ctx.beginPath();
+            ctx.arc(...def);
+            ctx.stroke();
+        });
     }
 
     function triPoints(ctx, p1, p2, p3, color) {
@@ -395,6 +365,7 @@ export function grid(options) {
         let px, py;
 
         let weight = randomInRange(1, w/10);
+        let lightweight = Math.max(1, weight/3);
         let fg1 = getContrastColor();
         let fg2 = getContrastColor();
 
@@ -407,6 +378,7 @@ export function grid(options) {
 
         let ringdefs = [];
         let centers = [];
+        let r;
 
         // hit each cell
         for (let i = 0; i < vcount; i++) {
@@ -414,27 +386,40 @@ export function grid(options) {
                 // convenience vars
                 x = w * j;
                 y = h * i;
-                xnorm = x/cw;
-                ynorm = y/ch;
+                px = x + w/2;
+                py = y + h/2;
+                xnorm = px/cw;
+                ynorm = py/ch;
 
                 let start = Math.round(randomInRange(0,4));
                 let segments = Math.round(randomInRange(2,4));
+                r = w/2 * Math.round(randomInRange(1,3));
+
+                ctx.strokeStyle = fg;
+                ctx.lineWidth = lightweight;
 
                 if(Math.random() < 0.25){
-                    centers.push([x + w/2, y + h/2]);
+                    centers.push([px, py]);
                     ringdefs.push([
-                        x + w/2,
-                        y + w/2,
-                        w/2 * Math.round(randomInRange(1,5)),
+                        px,
+                        py,
+                        r,
                         PI/2 * start,
                         PI/2 * (start + segments),
                         false
                     ])
                     dotColor = fg;
+
+                    let a = randomInRange(PI/2 * start, PI/2 * (start + segments));
+                    ctx.beginPath();
+                    ctx.moveTo(px, py);
+                    ctx.lineTo(px + r * Math.cos(a), py + r * Math.sin(a));
+                    ctx.stroke();
                 } else {
                     dotColor = c1;
                 }
-                drawCircle(ctx, x + w/2, y + w/2, ctx.lineWidth, {fill: dotColor});
+                drawCircle(ctx, px, py, lightweight, {fill: dotColor});
+
 
 
                 // unshift, unclip
@@ -443,10 +428,9 @@ export function grid(options) {
             }
         }
 
-
         // draw connecting lines between dots
-        ctx.strokeStyle = c2;
-        ctx.lineWidth = Math.max(1, ctx.lineWidth/3);
+        ctx.strokeStyle = c1;
+        ctx.lineWidth = lightweight;
         while(centers.length >= 2) {
             ctx.beginPath();
             ctx.moveTo(...centers.pop());
@@ -462,7 +446,6 @@ export function grid(options) {
             ctx.arc(...def);
             ctx.stroke();
         });
-
     }
 
     // mode
