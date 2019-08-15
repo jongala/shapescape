@@ -392,7 +392,7 @@ export function grid(options) {
                 ynorm = py/ch;
 
                 let start = Math.round(randomInRange(0,4));
-                let segments = Math.round(randomInRange(2,4));
+                let segments = Math.round(randomInRange(1,4));
                 r = w/2 * Math.round(randomInRange(1,3));
 
                 ctx.strokeStyle = fg;
@@ -417,8 +417,9 @@ export function grid(options) {
                     ctx.stroke();
                 } else {
                     dotColor = c1;
+                    drawCircle(ctx, px, py, lightweight, {fill: dotColor});
                 }
-                drawCircle(ctx, px, py, lightweight, {fill: dotColor});
+
 
 
 
@@ -428,15 +429,23 @@ export function grid(options) {
             }
         }
 
+
+
         // draw connecting lines between dots
+        let centers_copy = [].concat(centers);
         ctx.strokeStyle = c1;
         ctx.lineWidth = lightweight;
-        while(centers.length >= 2) {
+        while(centers_copy.length >= 2) {
             ctx.beginPath();
-            ctx.moveTo(...centers.pop());
-            ctx.lineTo(...centers.shift());
+            ctx.moveTo(...centers_copy.pop());
+            ctx.lineTo(...centers_copy.shift());
             ctx.stroke();
         }
+
+        // draw dots
+        centers.forEach((c) => {
+            drawCircle(ctx, c[0], c[1], lightweight, {fill: fg});
+        });
 
         // draw rings
         ctx.strokeStyle = fg;
