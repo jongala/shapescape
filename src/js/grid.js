@@ -458,6 +458,74 @@ export function grid(options) {
     }
 
     // mode
+    function pattern () {
+        let c1 = randomInRange(0.125, 0.75);
+        let c2 = randomInRange(.75, 2);
+
+        let dotScale = randomInRange(0.1, 0.5);
+        let dotMin = randomInRange(0, 0.5 - dotScale);
+        let dotFill = Math.random() < 0.5 ? fg : bg;
+        let dotSign = Math.random() < 0.5;
+
+        let crossDots = true;//Math.random() < 0.5;
+        let crossFill =  Math.random() < 0.5 ? fg : bg;
+        let crossScale = randomInRange(0.25, .3);
+
+        let cr;
+
+        let crossPattern = (r) => {
+            drawCircle(ctx, w * r, h / 2, w * r, {fill: null, stroke: fg});
+            drawCircle(ctx, -w * (r - 1), h / 2, w * r, {fill: null, stroke: fg});
+
+            drawCircle(ctx, w/2, h  * r, w * r, {fill: null, stroke: fg});
+            drawCircle(ctx, w/2, -h * (r - 1), h * r, {fill: null, stroke: fg});
+        }
+
+
+        for (let i = 0; i < vcount; i++) {
+            for (let j = 0; j < count; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * i;
+                xnorm = (x + w/2)/cw;
+                ynorm = (y + h/2)/ch;
+
+                // shift and clip
+                ctx.translate(x, y);
+                clipSquare(ctx, w, h, bg);
+
+                drawCircle(ctx, 0, 0, w/2, {fill: null, stroke: fg});
+                drawCircle(ctx, w, 0, w/2, {fill: null, stroke: fg});
+                drawCircle(ctx, w, h, w/2, {fill: null, stroke: fg});
+                drawCircle(ctx, 0, h, w/2, {fill: null, stroke: fg});
+
+                crossPattern(c1);
+                crossPattern(c2);
+
+                if (crossDots && (i % 2) === (j % 2)) {
+                    drawCircle(ctx, w/2, h/2, crossScale, {fill: crossFill, stroke: fg});
+                }
+
+                cr = Math.sqrt(Math.pow(xnorm - 0.5, 2) + Math.pow(ynorm - 0.5, 2))/.7071;
+                if (dotSign) {
+                    cr = 1 - cr;
+                }
+
+                drawCircle(ctx,
+                    w/2,
+                    h/2,
+                    dotMin + dotScale * w * cr,
+                    {fill: dotFill, stroke: fg});
+
+
+                // unshift, unclip
+                ctx.restore();
+                resetTransform(ctx);
+            }
+        }
+    }
+
+    // mode
     function mixed () {
         let px, py, seed;
         let styles = [
@@ -537,7 +605,7 @@ export function grid(options) {
 
     // gather our modes
     let modes = [maskAndRotate, circles, triangles, mixed, snakes];
-    modes = [rings];
+    modes = [pattern];
 
     // do the loop with one of our modes
     randItem(modes)();
