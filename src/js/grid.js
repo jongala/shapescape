@@ -459,12 +459,12 @@ export function grid(options) {
 
     // mode
     function pattern () {
-        let c1 = randomInRange(0.125, 0.75);
-        let c2 = randomInRange(.75, 2);
+        let c1 = randomInRange(0.125, 0.5);
+        let c2 = randomInRange(.5, 1);
 
         let dotScale = randomInRange(0.1, 0.5);
         let dotMin = randomInRange(0, 0.5 - dotScale);
-        let dotFill = Math.random() < 0.5 ? fg : bg;
+        let dotFill = Math.random() < 0.5 ? fg : null;
         let dotSign = Math.random() < 0.5;
 
         let crossDots = true;//Math.random() < 0.5;
@@ -481,6 +481,7 @@ export function grid(options) {
             drawCircle(ctx, w/2, -h * (r - 1), h * r, {fill: null, stroke: fg});
         }
 
+        ctx.lineWidth = randomInRange(1, w/30);
 
         for (let i = 0; i < vcount; i++) {
             for (let j = 0; j < count; j++) {
@@ -503,7 +504,7 @@ export function grid(options) {
                 crossPattern(c2);
 
                 if (crossDots && (i % 2) === (j % 2)) {
-                    drawCircle(ctx, w/2, h/2, crossScale, {fill: crossFill, stroke: fg});
+                    //drawCircle(ctx, w/2, h/2, crossScale, {fill: crossFill, stroke: fg});
                 }
 
                 cr = Math.sqrt(Math.pow(xnorm - 0.5, 2) + Math.pow(ynorm - 0.5, 2))/.7071;
@@ -516,6 +517,12 @@ export function grid(options) {
                     h/2,
                     dotMin + dotScale * w * cr,
                     {fill: dotFill, stroke: fg});
+
+                drawCircle(ctx,
+                    w/2,
+                    h/2,
+                    dotMin + dotScale * w * cr + ctx.lineWidth * 2,
+                    {fill: null, stroke: fg});
 
 
                 // unshift, unclip
