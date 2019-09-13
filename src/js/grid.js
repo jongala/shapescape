@@ -464,8 +464,14 @@ export function grid(options) {
 
         let dotScale = randomInRange(0.1, 0.5);
         let dotMin = randomInRange(0, 0.5 - dotScale);
-        let dotFill = Math.random() < 0.5 ? fg : null;
+        let dotFill = getContrastColor();
         let dotSign = Math.random() < 0.5;
+
+        let xref = Math.random();
+        let yref = Math.random();
+        if (Math.random() < 0.5) {
+            xref = yref = 0.5;
+        }
 
         let crossDots = true;//Math.random() < 0.5;
         let crossFill =  Math.random() < 0.5 ? fg : bg;
@@ -507,10 +513,11 @@ export function grid(options) {
                     //drawCircle(ctx, w/2, h/2, crossScale, {fill: crossFill, stroke: fg});
                 }
 
-                cr = Math.sqrt(Math.pow(xnorm - 0.5, 2) + Math.pow(ynorm - 0.5, 2))/.7071;
+                cr = Math.sqrt(Math.pow(xnorm - xref, 2) + Math.pow(ynorm - yref, 2))/.7071;
                 if (dotSign) {
                     cr = 1 - cr;
                 }
+                cr = Math.abs(cr);
 
                 drawCircle(ctx,
                     w/2,
