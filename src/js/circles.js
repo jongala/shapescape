@@ -112,8 +112,6 @@ export function circles(options) {
         let fg1 = getContrastColor();
         let fg2 = getContrastColor();
 
-        console.log(`${count} by ${vcount} cells`);
-
         fg = getContrastColor();
         let c1 = getContrastColor();
         let c2 = getContrastColor();
@@ -171,8 +169,8 @@ export function circles(options) {
                         dotColor = fg;
                     }
 
-                    if (Math.random() < 0.25) {
-                        drawCircle(ctx, px, py, weight * randItem([0.5, 1, 2, 4]) , {fill: dotColor});
+                    if (Math.random() < 0.125) {
+                        drawCircle(ctx, px, py, w/2 * randItem([0.25, 0.5, 1]) - weight/2 + 0.5 , {fill: dotColor});
                     }
 
 
@@ -402,7 +400,7 @@ export function circles(options) {
 
     // gather our modes
     let modes = [snakes, rings, pattern];
-    modes = [rings];
+    modes = [snakes];
 
     // do the loop with one of our modes
     randItem(modes)();
