@@ -1,6 +1,7 @@
 import noiseUtils from './noiseutils';
 import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
+import { defineFill, expandFill } from './colors';
 
 const DEFAULTS = {
     container: 'body',
@@ -89,15 +90,13 @@ export function circles(options) {
     c = Math.random();
 
     // shared colors
-    let fg = getSolidFill();
     let bg = getSolidFill();
 
     // get palette of non-bg colors
     let contrastPalette = [].concat(opts.palette);
     contrastPalette.splice(opts.palette.indexOf(bg), 1);
     let getContrastColor = getSolidColorFunction(contrastPalette);
-
-    
+    let fg = getContrastColor();
 
     // mode
     function snakes () {
@@ -109,13 +108,12 @@ export function circles(options) {
 
         let weight = randomInRange(1, w/10);
         let lightweight = Math.max(1, weight/3);
-        let fg1 = getContrastColor();
-        let fg2 = getContrastColor();
 
-        fg = getContrastColor();
         let c1 = getContrastColor();
         let c2 = getContrastColor();
         let dotColor = c1;
+
+        let dotGradient = getGradientFunction([c1, c2, bg])(ctx, cw/2, ch/2);
 
         let set1 = [];
         let set2 = [];
@@ -170,7 +168,7 @@ export function circles(options) {
                     }
 
                     if (Math.random() < 0.125) {
-                        drawCircle(ctx, px, py, w/2 * randItem([0.25, 0.5, 1]) - weight/2 + 0.5 , {fill: dotColor});
+                        drawCircle(ctx, px, py, w/2 * randItem([0.25, 0.5, 1]) - weight/2 + 0.5 , {fill: dotGradient});
                     }
 
 
@@ -222,12 +220,9 @@ export function circles(options) {
 
         let weight = randomInRange(1, w/10);
         let lightweight = Math.max(0.5, weight/3);
-        let fg1 = getContrastColor();
-        let fg2 = getContrastColor();
 
         console.log(`${count} by ${vcount} cells`);
 
-        fg = getContrastColor();
         let c1 = getContrastColor();
         let c2 = getContrastColor();
         let dotColor = c1;
