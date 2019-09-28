@@ -300,7 +300,7 @@ export function walk(options) {
     });
 
     // use a narrow line for the grid extensions
-    ctx.lineWidth = Math.max(ctx.lineWidth/2, 1);
+    ctx.lineWidth = Math.max(ctx.lineWidth/2, 0.5);
 
 
     let rightLine = (d, i) => {

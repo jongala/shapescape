@@ -8,6 +8,7 @@ import { shapescape } from './shapescape';
 import { lines } from './lines';
 import { waves } from './waves';
 import { grid } from './grid';
+import { circles } from './circles';
 import { mesh } from './mesh';
 import { walk } from './walk';
 import { fragments } from './fragments';
@@ -21,6 +22,7 @@ const RENDERERS = {
     lines: lines,
     waves: waves,
     grid: grid,
+    circles: circles,
     mesh: mesh,
     walk: walk,
     fragments: fragments
