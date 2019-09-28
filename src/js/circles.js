@@ -395,7 +395,6 @@ export function circles(options) {
 
     // gather our modes
     let modes = [snakes, rings, pattern];
-    modes = [snakes];
 
     // do the loop with one of our modes
     randItem(modes)();
