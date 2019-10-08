@@ -11,6 +11,7 @@ import { grid } from './grid';
 import { circles } from './circles';
 import { mesh } from './mesh';
 import { walk } from './walk';
+import { bands } from './bands';
 import { fragments } from './fragments';
 import { setAttrs } from './utils';
 
@@ -25,6 +26,7 @@ const RENDERERS = {
     circles: circles,
     mesh: mesh,
     walk: walk,
+    bands: bands,
     fragments: fragments
 };
 let initRenderer = 'waterline';
