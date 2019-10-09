@@ -91,9 +91,13 @@ export function bands(options) {
         step = baseStep * randomInRange(1 - jitter, 1 + jitter);
         _x += step;
 
+        if (Math.random() < 0.1) {
+            ctx.fillStyle = '#e7e7e7';
+            ctx.fillRect(_x, 0, step * randItem([1,2,3,4]), ch);
+        }
+
+
         _w = step * randomInRange(0.8, 1);
-
-
         _h = ch * randomInRange(0.2, 0.7);
         _y = randomInRange(0, ch);
 
