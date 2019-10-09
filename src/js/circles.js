@@ -5,7 +5,7 @@ import { defineFill, expandFill } from './colors';
 
 const DEFAULTS = {
     container: 'body',
-    palette: ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'],
+    palette: ['#f9f9f9', '#D9AC32', '#ED5045', '#1F3E9C', '#000142'],
     addNoise: 0.04,
     noiseInput: null,
     dust: false,
