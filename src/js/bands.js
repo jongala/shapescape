@@ -66,7 +66,7 @@ export function bands(options) {
 
     // draw
 
-    let count = 70;
+    let count = Math.round(randomInRange(70, 90));
     let baseStep = cw/count;
     let step = 0;
 
@@ -84,33 +84,98 @@ export function bands(options) {
     ctx.fillRect(0, 0, cw, ch);
 
 
-
-
     // bands
     for (var i = 0 ; i <= count ; i++ ) {
         step = baseStep * randomInRange(1 - jitter, 1 + jitter);
         _x += step;
 
+        // maybe draw a ghosty band in the background
         if (Math.random() < 0.1) {
             ctx.fillStyle = '#e7e7e7';
             ctx.fillRect(_x, 0, step * randItem([1,2,3,4]), ch);
         }
 
-
+        // set width, height, placement of this colored box
         _w = step * randomInRange(0.8, 1);
         _h = ch * randomInRange(0.2, 0.7);
         _y = randomInRange(0, ch);
 
-        ctx.beginPath();
-        ctx.fillStyle = getSolidFill();
-        ctx.fillRect(_x - _w, _y - _h/2, _w, _h);
+        // draw the box
+        if (Math.random() < 0.66) {
+            ctx.beginPath();
+            ctx.fillStyle = getSolidFill();
+            ctx.fillRect(_x - _w, _y - _h/2, _w, _h);
+        }
 
+        // draw the dividing band
         ctx.lineWidth = randomInRange(0.25, 2);
         ctx.beginPath();
         ctx.moveTo(_x, 0);
         ctx.lineTo(_x, ch);
         ctx.stroke();
     }
+
+    // draw cross band
+
+    let p1, p2, p3, p4, p5, p6;
+
+    let topRange = [0.1, 0.3];
+    let bottomRange = [0.35, 0.55];
+
+    p1 = [0, ch * randomInRange(...topRange)];
+    p2 = [cw * randomInRange(0.3, 0.7), ch * randomInRange(...topRange)];
+    p3 = [cw, ch * randomInRange(...topRange)];
+
+    p4 = [cw, ch * randomInRange(...bottomRange)];
+    p5 = [cw * randomInRange(0.3, 0.7), ch * randomInRange(...bottomRange)];
+    p6 = [0, ch * randomInRange(...bottomRange)];
+
+    ctx.save();
+    ctx.fillStyle = getContrastColor();
+    ctx.beginPath();
+    ctx.moveTo(...p1);
+    ctx.lineTo(...p2);
+    ctx.lineTo(...p3);
+    ctx.lineTo(...p4);
+    ctx.lineTo(...p5);
+    ctx.lineTo(...p6);
+    ctx.closePath();
+    //ctx.fill();
+    ctx.clip();
+
+    // draw color blocks
+    let boxCount = randItem([3, 4, 5]);
+    let boxWidth = cw / boxCount;
+    let boxLeft = 0;
+    let cut = randomInRange(topRange[1], bottomRange[0]);
+    // top set
+    for (var i = 0; i < boxCount; i++) {
+        ctx.beginPath();
+        ctx.rect(boxLeft, ch * topRange[0], boxLeft + boxWidth, ch * cut);
+        ctx.fillStyle = getContrastColor();
+        ctx.fill();
+        boxLeft += boxWidth;
+    }
+    // bottom set
+    boxLeft = 0;
+    for (var i = 0; i < boxCount; i++) {
+        ctx.beginPath();
+        ctx.rect(boxLeft, ch * cut, boxLeft + boxWidth, ch * bottomRange[1]);
+        ctx.fillStyle = getContrastColor();
+        ctx.fill();
+        boxLeft += boxWidth;
+    }
+
+    // unclip
+    ctx.restore();
+
+    // box it in
+    let borderWidth = SCALE / randomInRange(30, 50);
+    ctx.lineWidth = borderWidth;
+    ctx.strokeStyle = 'black';
+    ctx.beginPath();
+    ctx.rect(0, 0, cw, ch);
+    ctx.stroke();
 
 
     // add noise
