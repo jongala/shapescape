@@ -329,8 +329,10 @@ export function grid(options) {
     // add noise
     if (opts.addNoise) {
         if (opts.noiseInput) {
+            // apply noise from supplied canvas
             noiseUtils.applyNoiseCanvas(el, opts.noiseInput);
         } else {
+            // create noise pattern and apply
             noiseUtils.addNoiseFromPattern(el, opts.addNoise, w / 3);
         }
     }
