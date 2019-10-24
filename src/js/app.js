@@ -193,6 +193,7 @@ window.rerun = rerun;*/
 
 var palettes = {
     default: null,
+    ultra: ['#15d6d0', '#4481fc', '#bb19d8', '#f22f1c', '#ffa300', '#fff200'],
     high_contrast: ['#111111', '#444444', '#dddddd', '#f9f9f9'],
     low_contrast: ['#333333', '#666666', '#999999', '#cccccc', '#f9f9f9'],
     black_white_red: ['#111111', '#444444', '#dddddd', '#ffffff', '#880000', '#dd0000'],
