@@ -117,34 +117,54 @@ export function bands(options) {
 
     // draw cross band
 
-    let p1, p2, p3, p4, p5, p6;
+    let m1 = randomInRange(-0.2, 0.2); // slope 1
+    let m2 = randomInRange(-0.2, 0.2); // slope 2
 
-    let topRange = [0.1, 0.3];
-    let bottomRange = [0.35, 0.55];
+    let p1, h1; // box 1 placement and height
+    let p2, h2;
 
-    p1 = [0, ch * randomInRange(...topRange)];
-    p2 = [cw * randomInRange(0.3, 0.7), ch * randomInRange(...topRange)];
-    p3 = [cw, ch * randomInRange(...topRange)];
+    p1 = ch * randomInRange(0.1, 0.3);
+    h1 = ch * randomInRange(0.175, 0.275);
 
-    p4 = [cw, ch * randomInRange(...bottomRange)];
-    p5 = [cw * randomInRange(0.3, 0.7), ch * randomInRange(...bottomRange)];
-    p6 = [0, ch * randomInRange(...bottomRange)];
+    p2 = ch * randomInRange(0.1, 0.3);
+    h2 = ch * randomInRange(0.175, 0.275);
+
+    // box 1
+    let box1 = [
+        [0, p1],
+        [cw, p1 + m1 * cw],
+        [cw, p1 + h1 + m1 * cw],
+        [0, p1 + h1],
+    ];
+    let box2 = [
+        [0, p2],
+        [cw, p2 + m2 * cw],
+        [cw, p2 + h2 + m2 * cw],
+        [0, p2 + h2],
+    ]
 
     ctx.save();
     ctx.fillStyle = getContrastColor();
     ctx.beginPath();
-    ctx.moveTo(...p1);
-    ctx.lineTo(...p2);
-    ctx.lineTo(...p3);
-    ctx.lineTo(...p4);
-    ctx.lineTo(...p5);
-    ctx.lineTo(...p6);
+
+    box1.forEach((p, i) => {
+        if (i===0) ctx.moveTo(...p);
+        else ctx.lineTo(...p);
+    });
+
+    box2.forEach((p, i) => {
+        if (i===0) ctx.moveTo(...p);
+        else ctx.lineTo(...p);
+    });
+
     ctx.closePath();
-    //ctx.fill();
+    ctx.fill();
     ctx.clip();
 
+
+
     // draw color blocks
-    let boxCount = randItem([3, 4, 5]);
+    /*let boxCount = randItem([3, 4, 5]);
     let boxWidth = cw / boxCount;
     let boxLeft = 0;
     let cut = randomInRange(topRange[1], bottomRange[0]);
@@ -164,7 +184,7 @@ export function bands(options) {
         ctx.fillStyle = getContrastColor();
         ctx.fill();
         boxLeft += boxWidth;
-    }
+    }*/
 
     // unclip
     ctx.restore();
