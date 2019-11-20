@@ -158,33 +158,42 @@ export function bands(options) {
     });
 
     ctx.closePath();
-    ctx.fill();
     ctx.clip();
 
-
-
     // draw color blocks
-    /*let boxCount = randItem([3, 4, 5]);
+    let boxCount = randItem([3, 4, 5]);
     let boxWidth = cw / boxCount;
     let boxLeft = 0;
-    let cut = randomInRange(topRange[1], bottomRange[0]);
+    let boxTop = p1;
+    //let cut = randomInRange(topRange[1], bottomRange[0]);
     // top set
     for (var i = 0; i < boxCount; i++) {
         ctx.beginPath();
-        ctx.rect(boxLeft, ch * topRange[0], boxLeft + boxWidth, ch * cut);
+        //ctx.rect(boxLeft, ch * topRange[0], boxLeft + boxWidth, ch * cut);
+        ctx.moveTo(boxLeft, boxTop);
+        ctx.lineTo(boxLeft + boxWidth, boxTop + m1 * boxWidth);
+        ctx.lineTo(boxLeft + boxWidth, h1 + boxTop + m1 * boxWidth);
+        ctx.lineTo(boxLeft, boxTop + h1);
         ctx.fillStyle = getContrastColor();
         ctx.fill();
         boxLeft += boxWidth;
+        boxTop += boxWidth * m1;
     }
     // bottom set
     boxLeft = 0;
+    boxTop = p2;
     for (var i = 0; i < boxCount; i++) {
         ctx.beginPath();
-        ctx.rect(boxLeft, ch * cut, boxLeft + boxWidth, ch * bottomRange[1]);
+        //ctx.rect(boxLeft, ch * topRange[0], boxLeft + boxWidth, ch * cut);
+        ctx.moveTo(boxLeft, boxTop);
+        ctx.lineTo(boxLeft + boxWidth, boxTop + m2 * boxWidth);
+        ctx.lineTo(boxLeft + boxWidth, h2 + boxTop + m2 * boxWidth);
+        ctx.lineTo(boxLeft, boxTop + h2);
         ctx.fillStyle = getContrastColor();
         ctx.fill();
         boxLeft += boxWidth;
-    }*/
+        boxTop += boxWidth * m2;
+    }
 
     // unclip
     ctx.restore();
