@@ -12,6 +12,7 @@ import { circles } from './circles';
 import { mesh } from './mesh';
 import { walk } from './walk';
 import { bands } from './bands';
+import { field } from './field';
 import { fragments } from './fragments';
 import { setAttrs } from './utils';
 
@@ -20,6 +21,7 @@ const RENDERERS = {
     waterline: waterline,
     shapestack: shapestack,
     shapescape: shapescape,
+    field: field,
     lines: lines,
     waves: waves,
     grid: grid,
