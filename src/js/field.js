@@ -70,6 +70,7 @@ export function field(options) {
     let getContrastColor = getSolidColorFunction(contrastPalette);
 
     let fg = getContrastColor();
+    let fg2 = getContrastColor();
 
 
     ctx.fillStyle = bg;
@@ -94,6 +95,19 @@ export function field(options) {
 
     ctx.lineWidth = weight;
 
+    const opacityTransforms = [
+        (_x, _y) => Math.abs(_y/_x)/maxLen,
+        (_x, _y) => (1 - Math.abs(_y/_x)/maxLen),
+        (_x, _y) => Math.abs(_x/_y), // hides verticals
+        (_x, _y) => Math.abs(_y/_x), // hides horizontals
+        (_x, _y) => (_x / _y),
+        (_x, _y) => (_y / _x),
+        (_x, _y) => (_y - _x),
+        (_x, _y) => (_x - _y)
+    ]
+
+    let opacityFunc = randItem(opacityTransforms);
+
 
     for (var i = 0 ; i < count ; i++) {
         for (var j = 0 ; j < vcount ; j++) {
@@ -106,9 +120,10 @@ export function field(options) {
             _y = (Math.sin(ynorm * PI * yrate + yphase) + Math.cos(ynorm * PI * yrate + yphase));
             len = Math.sqrt(_x * _x + _y * _y);
 
-            ctx.globalAlpha = Math.abs(_y/_x)/maxLen;
+            ctx.globalAlpha = 1;
+            drawCircle(ctx, x, y, (2-len) * w/dotScale, {fill: fg2});
 
-            drawCircle(ctx, x, y, (2-len) * w/dotScale, {fill: fg});
+            ctx.globalAlpha = opacityFunc(_x, _y);
 
             ctx.beginPath();
             ctx.moveTo(x, y);
