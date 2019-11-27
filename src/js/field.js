@@ -43,7 +43,7 @@ export function field(options) {
     let getSolidFill = getSolidColorFunction(opts.palette);
 
     // define grid
-    let count = Math.round(randomInRange(25 , 50));
+    let count = Math.round(randomInRange(30 , 100));
     let w = Math.ceil(cw/count);
     let h = w;
     let vcount = Math.ceil(ch/h);
