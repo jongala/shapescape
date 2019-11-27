@@ -38,39 +38,12 @@ export function field(options) {
 
     let ctx = el.getContext('2d');
 
-    // available renderers
-    let renderMap = {
-        //circle: drawCircle,
-        //ring: drawRing,
-        triangle: drawTriangle,
-        square: drawSquare,
-        box: drawBox,
-        rect: drawRect,
-        pentagon: drawPentagon,
-        hexagon: drawHexagon
-    };
-    let shapes = Object.keys(renderMap);
-    let getRandomRenderer = () => {
-        return renderMap[randItem(shapes)];
-    }
-
-    // util to draw a square and clip following rendering inside
-    function clipSquare(ctx, w, h, color) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(0,0, w, h);
-        ctx.fillStyle = color;
-        ctx.closePath();
-        ctx.fill();
-        ctx.clip();
-    }
 
     // color funcs
-    let randomFill = () => "#" + Math.random().toString(16).slice(2,8);
     let getSolidFill = getSolidColorFunction(opts.palette);
 
     // define grid
-    let count = Math.round(randomInRange(15, 50));
+    let count = Math.round(randomInRange(25 , 50));
     let w = Math.ceil(cw/count);
     let h = w;
     let vcount = Math.ceil(ch/h);
@@ -104,12 +77,22 @@ export function field(options) {
 
     ctx.strokeStyle = fg;
 
-    let xrate = randomInRange(-3,3);
-    let yrate = randomInRange(-3,3);
+    let xrate = randomInRange(0,4);
+    let yrate = randomInRange(0,4);
 
     let xphase = randomInRange(0,PI);
     let yphase = randomInRange(0,PI);
 
+    let _x,_y,len;
+    let dotScale = randomInRange(5,15);
+    let weight = randomInRange(1,3);
+
+    let maxLen = Math.sqrt(2 * Math.sin(PI/4));
+
+    let lineScale = randomInRange(1,2);
+
+
+    ctx.lineWidth = weight;
 
 
     for (var i = 0 ; i < count ; i++) {
@@ -119,19 +102,25 @@ export function field(options) {
             xnorm = x/cw;
             ynorm = y/ch;
 
-            drawCircle(ctx, x, y, w/20, {fill: fg});
+            _x = (Math.sin(xnorm * PI * xrate + xphase) + Math.cos(xnorm * PI * xrate + xphase));
+            _y = (Math.sin(ynorm * PI * yrate + yphase) + Math.cos(ynorm * PI * yrate + yphase));
+            len = Math.sqrt(_x * _x + _y * _y);
+
+            ctx.globalAlpha = Math.abs(_y/_x)/maxLen;
+
+            drawCircle(ctx, x, y, (2-len) * w/dotScale, {fill: fg});
 
             ctx.beginPath();
             ctx.moveTo(x, y);
             ctx.lineTo(
-                x + w * Math.sin(xnorm * PI * xrate + xphase),
-                y + h * Math.sin(ynorm * PI * yrate + yphase)
+                x + w * _x * lineScale,
+                y + h * _y * lineScale
             );
             ctx.stroke();
-
-
         }
     }
+
+    ctx.globalAlpha = 1;
 
     // add noise
     if (opts.addNoise) {
