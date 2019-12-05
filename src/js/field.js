@@ -9,10 +9,14 @@ const DEFAULTS = {
     noiseInput: null,
     dust: false,
     skew: 1, // normalized skew
-    clear: true
+    clear: true,
+    lightMode: 'auto', // [auto, bloom, normal]
+    gridMode: 'auto', // [auto, coarse, fine]
 }
 
 const PI = Math.PI;
+const LIGHTMODES = ['bloom', 'normal'];
+const GRIDMODES = ['coarse', 'fine'];
 
 // Main function
 export function field(options) {
@@ -38,12 +42,25 @@ export function field(options) {
 
     let ctx = el.getContext('2d');
 
+    // modes and styles
+    const LIGHTMODE = opts.lightMode === 'auto' ? randItem(LIGHTMODES) : opts.lightMode;
+    const GRIDMODE = opts.gridMode === 'auto' ? randItem(GRIDMODES) : opts.gridMode;
 
     // color funcs
     let getSolidFill = getSolidColorFunction(opts.palette);
 
+    // how many cells are in the grid?
+    let countMin, countMax;
+    if (GRIDMODE === 'coarse') {
+        countMin = 8;
+        countMax = 20;
+    } else {
+        countMin = 30;
+        countMax = 100;
+    }
+
     // define grid
-    let count = Math.round(randomInRange(30 , 100));
+    let count = Math.round(randomInRange(countMin , countMax));
     let w = Math.ceil(cw/count);
     let h = w;
     let vcount = Math.ceil(ch/h);
@@ -69,32 +86,50 @@ export function field(options) {
     contrastPalette.splice(opts.palette.indexOf(bg), 1);
     let getContrastColor = getSolidColorFunction(contrastPalette);
 
+    // shared foregrounds
     let fg = getContrastColor();
     let fg2 = getContrastColor();
 
+    // in bloom mode, we draw high-contrast grayscale, and layer
+    // palette colors on top
+    if (LIGHTMODE === 'bloom') {
+        bg = '#222222';
+        fg = fg2 = '#cccccc';
+    }
 
+    // draw background
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, cw, ch);
 
     ctx.strokeStyle = fg;
 
-    let xrate = randomInRange(0,4);
-    let yrate = randomInRange(0,4);
+    let rateMax = 0.5;
+    if (GRIDMODE === 'fine' && Math.random() < 0.5) {
+        rateMax = 5;
+    }
 
-    let xphase = randomInRange(0,PI);
-    let yphase = randomInRange(0,PI);
+    // rate is the number of sin waves across the grid
+    let xrate = randomInRange(0, rateMax);
+    let yrate = randomInRange(0, rateMax);
+    // set phase offset
+    let xphase = randomInRange(0, PI);
+    let yphase = randomInRange(0, PI);
 
     let _x,_y,len;
-    let dotScale = randomInRange(5,15);
-    let weight = randomInRange(1,3);
-
-    let maxLen = Math.sqrt(2 * Math.sin(PI/4));
-
-    let lineScale = randomInRange(1,2);
-
+    let dotScale = randomInRange(5, 15);
+    let weight = randomInRange(1, 3);
 
     ctx.lineWidth = weight;
+    ctx.lineCap = 'round';
 
+    // const used in normalizing transforms
+    let maxLen = Math.sqrt(2 * Math.sin(PI/4));
+
+    // it looks nice to extend lines beyond their cells. how much?
+    let lineScale = randomInRange(1, 2);
+    lineScale = randomInRange(0.8, count / 10); // long lines from count
+
+    // set of functions to transform opacity across grid
     const opacityTransforms = [
         (_x, _y) => Math.abs(_y/_x)/maxLen,
         (_x, _y) => (1 - Math.abs(_y/_x)/maxLen),
@@ -105,10 +140,10 @@ export function field(options) {
         (_x, _y) => (_y - _x),
         (_x, _y) => (_x - _y)
     ]
-
+    // now pick one
     let opacityFunc = randItem(opacityTransforms);
 
-
+    // main loop
     for (var i = 0 ; i < count ; i++) {
         for (var j = 0 ; j < vcount ; j++) {
             x = w * (i + 1/2);
@@ -136,6 +171,15 @@ export function field(options) {
     }
 
     ctx.globalAlpha = 1;
+
+    // in bloom mode, we draw a big colorful gradient over the grayscale
+    // background, using palette colors and nice blend modes
+    if (LIGHTMODE === 'bloom') {
+        ctx.globalCompositeOperation = 'color-dodge';
+        ctx.fillStyle = getGradientFunction(opts.palette)(ctx, cw, ch);//getContrastColor();
+        ctx.fillRect(0, 0, cw, ch);
+        ctx.globalCompositeOperation = 'normal';
+    }
 
     // add noise
     if (opts.addNoise) {
