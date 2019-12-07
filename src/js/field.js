@@ -123,14 +123,14 @@ export function field(options) {
     ctx.lineCap = 'round';
 
     // const used in normalizing transforms
-    let maxLen = Math.sqrt(2 * Math.sin(PI/4));
+    let maxLen = 2 * Math.sqrt(2);
 
     // it looks nice to extend lines beyond their cells. how much?
-    let lineScale = randomInRange(1, 2);
-    lineScale = randomInRange(0.8, count / 10); // long lines from count
+    let lineScale = randomInRange(0.75, count / 10)/maxLen; // long lines from count
 
     // set of functions to transform opacity across grid
     const opacityTransforms = [
+        () => 1,
         (_x, _y) => Math.abs(_y/_x)/maxLen,
         (_x, _y) => (1 - Math.abs(_y/_x)/maxLen),
         (_x, _y) => Math.abs(_x/_y), // hides verticals
@@ -151,12 +151,12 @@ export function field(options) {
             xnorm = x/cw;
             ynorm = y/ch;
 
-            _x = (Math.sin(xnorm * PI * xrate + xphase) + Math.cos(xnorm * PI * xrate + xphase));
-            _y = (Math.sin(ynorm * PI * yrate + yphase) + Math.cos(ynorm * PI * yrate + yphase));
+            _x = (Math.sin(xnorm * PI * xrate + xphase) + Math.sin(ynorm * PI * xrate + xphase) );
+            _y = (Math.sin(ynorm * PI * yrate + yphase) + Math.sin(xnorm * PI * yrate + yphase) );
             len = Math.sqrt(_x * _x + _y * _y);
 
             ctx.globalAlpha = 1;
-            drawCircle(ctx, x, y, (2-len) * w/dotScale, {fill: fg2});
+            drawCircle(ctx, x, y, (maxLen-len) * w/dotScale, {fill: fg2});
 
             ctx.globalAlpha = opacityFunc(_x, _y);
 
