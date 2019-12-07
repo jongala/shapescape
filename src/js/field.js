@@ -112,8 +112,8 @@ export function field(options) {
     let xrate = randomInRange(0, rateMax);
     let yrate = randomInRange(0, rateMax);
     // set phase offset
-    let xphase = randomInRange(0, PI);
-    let yphase = randomInRange(0, PI);
+    let xphase = randomInRange(-PI, PI);
+    let yphase = randomInRange(-PI, PI);
 
     let _x,_y,len;
     let dotScale = randomInRange(5, 15);
