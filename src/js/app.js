@@ -21,15 +21,15 @@ const RENDERERS = {
     waterline: waterline,
     shapestack: shapestack,
     shapescape: shapescape,
-    field: field,
     lines: lines,
-    waves: waves,
     grid: grid,
     circles: circles,
     mesh: mesh,
     walk: walk,
+    field: field,
     bands: bands,
-    fragments: fragments
+    fragments: fragments,
+    waves: waves
 };
 let initRenderer = 'waterline';
 
