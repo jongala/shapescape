@@ -93,7 +93,7 @@ export function lines(options) {
     // divide the canvas into multiple sections?
     let splitPoint;
     let splitSeed = Math.random();
-    if (splitSeed > 0.5) {
+    if (splitSeed > 0.5 && !drawShapeMask) {
         // left right
         splitPoint = [randomInRange(cw * 1/4, cw * 3/4), 0];
 
