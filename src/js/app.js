@@ -66,7 +66,7 @@ function setRenderer(rname, ctrl) {
         activeButton && activeButton.classList.remove('activeRenderer');
         ctrl.classList.add('activeRenderer');
     }
-    loadOpts();
+    drawNew();
 }
 window.setRenderer = setRenderer;
 
@@ -100,6 +100,7 @@ function loadOpts(opts, fast) {
 function drawNew() {
     removePreview();
     requestAnimationFrame(loadOpts);
+    showMain();
 }
 window.drawNew = drawNew;
 
@@ -171,8 +172,13 @@ function renderCanvasToImg(canvas, container) {
 // Append them to div#saved
 function createBatch(opts, N) {
     N = N || 9;
+
+    hideMain()
+
     var canvas = document.querySelector('#example canvas');
     var container = document.querySelector('#saved');
+
+    // render the batch
     container.innerHTML = '';
     for (var i = 0; i < N; i++) {
         requestAnimationFrame(function() {
@@ -180,6 +186,8 @@ function createBatch(opts, N) {
             renderCanvasToImg(canvas, container);
         });
     }
+
+
 }
 window.createBatch = createBatch;
 
@@ -199,7 +207,7 @@ var palettes = {
     high_contrast: ['#111111', '#444444', '#dddddd', '#f9f9f9'],
     low_contrast: ['#333333', '#666666', '#999999', '#cccccc', '#f9f9f9'],
     black_white_red: ['#111111', '#444444', '#dddddd', '#ffffff', '#880000', '#dd0000'],
-    
+
     south_beach: ['#0c3646', '#11758e', '#89bed3', '#e4ca49', '#cabd9d', '#f2f0ea'],
     north_beach: ['#1d282e', '#4b4f52', '#0089ad', '#6e92b4', '#b9a583', '#f1e1d1'],
     twilight_beach: ['#030408', '#0c3646', '#4a828f', '#af8c70', '#aaadac', '#ffffff'],
@@ -224,7 +232,7 @@ function setPalette(pname) {
     } else {
         visualOpts.palette = palettes[pname];
     }
-    return loadOpts({});
+    return drawNew({});
 }
 window.setPalette = setPalette;
 
@@ -289,6 +297,16 @@ function previewImage(el) {
 function removePreview() {
     var p = document.querySelector('#preview');
     p && p.remove();
+}
+
+function showMain() {
+    exampleNode.className = exampleNode.className.replace(/isHidden/g,'');
+}
+
+function hideMain() {
+    if (exampleNode.className.indexOf('isHidden') === -1) {
+        exampleNode.className += 'isHidden ';
+    }
 }
 
 document.querySelector('#saved').addEventListener('click', function(e) {

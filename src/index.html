@@ -6,16 +6,17 @@
 </head>
 <body>
     <h1 id="renderPickers"></h1>
-    <div id="saved"><div id="instructions">[space] to redraw. Click image to add to tray. Click thumbnail to preview.</div></div>
     <div id="controls">
         <select onchange="setPalette(this.value)" id="paletteSelector"></select>
         <input type="text" id="customColors" placeholder="paste colors" />
+        <span class="spacerSpan">|</span>
         <button onclick="drawNew()" id="newImageTrigger">New Image</button>
         <button onclick="createBatch()" id="newBatchTrigger">New Batch</button>
         <!--<button onclick="rerun()" id="rerunTrigger">ReRun</button>-->
         <a href="#" id="downloadExample">↓</a>
     </div>
     <div id="example"></div>
+    <div id="saved"><div id="instructions">[space] to redraw. Click image to add to tray. Click thumbnail to preview.</div></div>
     <!--<div id="re-tall" class="rerun"></div>
     <div id="re-wide" class="rerun"></div>-->
     <script type="text/javascript">
