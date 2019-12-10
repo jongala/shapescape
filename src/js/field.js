@@ -176,8 +176,40 @@ export function field(options) {
     // background, using palette colors and nice blend modes
     if (LIGHTMODE === 'bloom') {
         ctx.globalCompositeOperation = 'color-dodge';
-        ctx.fillStyle = getGradientFunction(opts.palette)(ctx, cw, ch);//getContrastColor();
-        ctx.fillRect(0, 0, cw, ch);
+
+        if (Math.random() < 0.0005) {
+            // bloom with linear gradient
+            ctx.fillStyle = getGradientFunction(opts.palette)(ctx, cw, ch);//getContrastColor();
+            ctx.fillRect(0, 0, cw, ch);
+        } else {
+            // bloom with spot lights
+            let dodgeDot = (max = 1.5) => {
+                let gx, gy, gr1, gr2;
+                gx = randomInRange(0, cw);
+                gy = randomInRange(0, ch);
+                gr1 = randomInRange(0, 0.25);
+                gr2 = randomInRange(gr1, max);
+
+                let radial = ctx.createRadialGradient(
+                    gx,
+                    gy,
+                    gr1 * SCALE,
+                    gx,
+                    gy,
+                    gr2 * SCALE
+                );
+                radial.addColorStop(0, randItem(opts.palette));
+                radial.addColorStop(1, '#000000');
+
+                ctx.fillStyle = radial;
+                ctx.fillRect(0, 0, cw, ch);
+            }
+            // try layering dots with varying coverage
+            dodgeDot(1.5);
+            dodgeDot(1.0);
+            dodgeDot(0.5);
+        }
+
         ctx.globalCompositeOperation = 'normal';
     }
 
