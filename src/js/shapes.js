@@ -113,3 +113,22 @@ export var drawTriangle = (ctx, x, y, d, opts) => {
 }
 export var drawPentagon = _drawPolygon(5, 1.1);
 export var drawHexagon = _drawPolygon(6, 1.05);
+
+export var drawPath = (ctx, pts, opts) => {
+    if (pts.length < 2) return;
+    ctx.beginPath();
+    ctx.moveTo(...pts.shift());
+    while(pts.length > 0) {
+        ctx.lineTo(...pts.shift());
+    }
+    ctx.closePath();
+    if (opts.fill) {
+        ctx.fillStyle = opts.fill;
+        ctx.fill();
+    }
+    if (opts.stroke) {
+        ctx.strokeStyle = opts.stroke;
+        ctx.stroke();
+    }
+
+}

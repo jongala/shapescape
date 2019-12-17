@@ -1,6 +1,6 @@
 import noiseUtils from './noiseutils';
 import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
-import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
+import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon, drawPath } from './shapes';
 import { defineFill, expandFill } from './colors';
 
 const DEFAULTS = {
@@ -14,6 +14,7 @@ const DEFAULTS = {
 }
 
 const PI = Math.PI;
+
 
 // Main function
 export function circles(options) {
@@ -392,12 +393,151 @@ export function circles(options) {
         }
     }
 
+    // mode
+    function ccs() {
+        function centerpoint(a, b) {
+            return [(a[0] + b[0])/2, (a[1] + b[1])/2];
+        }
+
+        function drawcc(ctx, a, b, c, p, color1, color2) {
+            let [ax, ay] = a;
+            let [bx, by] = b;
+            let [cx, cy] = c;
+            let [px, py] = p;
+
+            color2 = color1;
+
+            // slopes
+            var mAB = (by - ay) / (bx - ax);
+            var mAC = (cy - ay) / (cx - ax);
+            // invert for perpendicular
+            mAB = -1/mAB;
+            mAC = -1/mAC;
+
+
+            var midAB = centerpoint(a, b);
+            var midAC = centerpoint(a, c);
+
+            var bAB = midAB[1] - mAB * midAB[0];
+            var bAC = midAC[1] - mAC * midAC[0];
+
+            var CCx;
+            var CCy;
+
+            CCx = (bAC - bAB) / (mAB - mAC);
+            CCy = mAB * CCx + bAB;
+
+            let r1 = ctx.lineWidth * 3;
+            let r2 = r1 * 2;
+
+            // draw the points
+            drawCircle(ctx, ax, ay, r1, {fill:color1});
+            drawCircle(ctx, ax, ay, r2, {stroke:color1});
+            drawCircle(ctx, bx, by, r1, {fill:color1});
+            drawCircle(ctx, bx, by, r2, {stroke:color1});
+            drawCircle(ctx, cx, cy, r1, {fill:color1});
+            drawCircle(ctx, cx, cy, r2, {stroke:color1});
+
+
+            // the triangle
+            drawPath(ctx, [a, b, c], {stroke: color1});
+
+
+            // draw midpoints
+            drawCircle(ctx, midAB[0], midAB[1], r1, {fill:color2});
+            drawCircle(ctx, midAC[0], midAC[1], r1, {fill:color2});
+
+
+            ctx.lineCap = 'round';
+            ctx.setLineDash([r1, r1 * 4]);
+
+            // with slopes and offsets, draw perp bisectors
+            ctx.strokeStyle = color2;
+            ctx.beginPath();
+            ctx.moveTo(0, bAB);
+            ctx.lineTo(cw, mAB * cw + bAB);
+            ctx.closePath();
+            ctx.stroke();
+
+            ctx.strokeStyle = color2;
+            ctx.beginPath();
+            ctx.moveTo(0, bAC);
+            ctx.lineTo(cw, mAC * cw + bAC);
+            ctx.closePath();
+            ctx.stroke();
+
+            ctx.setLineDash([]);
+
+            // draw circumcenter point
+            drawCircle(ctx, CCx, CCy, r2, {stroke:color1});
+
+            // the circle
+            var dx = CCx - ax;
+            var dy = CCy - ay;
+            var r = Math.sqrt(dx * dx + dy * dy);
+            drawCircle(ctx, CCx, CCy, r, {stroke:color1});
+
+
+
+            return [CCx, CCy];
+        }
+
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, cw, ch);
+
+        let randomPoint = () => [randomInRange(0, cw), randomInRange(0, ch)];
+
+        let cc1, cc2, cc3;
+
+        cc1 = drawcc(
+            ctx,
+            randomPoint(),
+            randomPoint(),
+            randomPoint(),
+            [cw, ch],
+            getContrastColor(),
+            getContrastColor()
+        );
+
+        cc2 = drawcc(
+            ctx,
+            randomPoint(),
+            randomPoint(),
+            randomPoint(),
+            [cw, ch],
+            getContrastColor(),
+            getContrastColor()
+        );
+
+        cc3 = drawcc(
+            ctx,
+            randomPoint(),
+            randomPoint(),
+            randomPoint(),
+            [cw, ch],
+            getContrastColor(),
+            getContrastColor()
+        );
+
+        // draw circumcenter of circumcenters
+        ctx.lineWidth = 2;
+        drawcc(
+            ctx,
+            cc1,
+            cc2,
+            cc3,
+            [cw, ch],
+            getContrastColor(),
+            getContrastColor()
+        )
+    }
 
     // gather our modes
     let modes = [snakes, rings, pattern];
 
     // do the loop with one of our modes
-    randItem(modes)();
+    //randItem(modes)();
+    ccs();
 
     // add noise
     if (opts.addNoise) {
