@@ -15,6 +15,94 @@ const DEFAULTS = {
 
 const PI = Math.PI;
 
+function centerpoint(a, b) {
+    return [(a[0] + b[0])/2, (a[1] + b[1])/2];
+}
+
+function drawcc(ctx, a, b, c, p, color1, color2) {
+    let [ax, ay] = a;
+    let [bx, by] = b;
+    let [cx, cy] = c;
+    let [px, py] = p;
+
+    color2 = color2 || color1;
+
+    // slopes
+    var mAB = (by - ay) / (bx - ax);
+    var mAC = (cy - ay) / (cx - ax);
+    // invert for perpendicular
+    mAB = -1/mAB;
+    mAC = -1/mAC;
+
+
+    var midAB = centerpoint(a, b);
+    var midAC = centerpoint(a, c);
+
+    var bAB = midAB[1] - mAB * midAB[0];
+    var bAC = midAC[1] - mAC * midAC[0];
+
+    var CCx;
+    var CCy;
+
+    CCx = (bAC - bAB) / (mAB - mAC);
+    CCy = mAB * CCx + bAB;
+
+    let r1 = ctx.lineWidth * 3;
+    let r2 = r1 * 2;
+
+    // draw the points as dots with rings around
+    drawCircle(ctx, ax, ay, r1, {fill:color1});
+    drawCircle(ctx, ax, ay, r2, {stroke:color1});
+
+    drawCircle(ctx, bx, by, r1, {fill:color1});
+    drawCircle(ctx, bx, by, r2, {stroke:color1});
+
+    drawCircle(ctx, cx, cy, r1, {fill:color1});
+    drawCircle(ctx, cx, cy, r2, {stroke:color1});
+
+
+    // draw the triangle connecting them
+    drawPath(ctx, [a, b, c], {stroke: color1});
+
+
+    // draw midpoints
+    drawCircle(ctx, midAB[0], midAB[1], r1, {fill:color2});
+    drawCircle(ctx, midAC[0], midAC[1], r1, {fill:color2});
+
+
+    // with slopes and offsets, draw perp bisectors
+    ctx.lineCap = 'round';
+    ctx.setLineDash([r1, r1 * 4]);
+
+    ctx.strokeStyle = color2;
+    ctx.beginPath();
+    ctx.moveTo(0, bAB);
+    ctx.lineTo(p[1], mAB * p[1] + bAB);
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.strokeStyle = color2;
+    ctx.beginPath();
+    ctx.moveTo(0, bAC);
+    ctx.lineTo(p[1], mAC * p[1] + bAC);
+    ctx.closePath();
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+
+    // draw circumcenter point
+    drawCircle(ctx, CCx, CCy, r2, {stroke:color1});
+
+    // draw the enclosing circle
+    var dx = CCx - ax;
+    var dy = CCy - ay;
+    var r = Math.sqrt(dx * dx + dy * dy);
+    drawCircle(ctx, CCx, CCy, r, {stroke:color1});
+
+    // return the center point
+    return [CCx, CCy];
+}
+
 
 // Main function
 export function circles(options) {
@@ -395,92 +483,7 @@ export function circles(options) {
 
     // mode
     function ccs() {
-        function centerpoint(a, b) {
-            return [(a[0] + b[0])/2, (a[1] + b[1])/2];
-        }
 
-        function drawcc(ctx, a, b, c, p, color1, color2) {
-            let [ax, ay] = a;
-            let [bx, by] = b;
-            let [cx, cy] = c;
-            let [px, py] = p;
-
-            color2 = color1;
-
-            // slopes
-            var mAB = (by - ay) / (bx - ax);
-            var mAC = (cy - ay) / (cx - ax);
-            // invert for perpendicular
-            mAB = -1/mAB;
-            mAC = -1/mAC;
-
-
-            var midAB = centerpoint(a, b);
-            var midAC = centerpoint(a, c);
-
-            var bAB = midAB[1] - mAB * midAB[0];
-            var bAC = midAC[1] - mAC * midAC[0];
-
-            var CCx;
-            var CCy;
-
-            CCx = (bAC - bAB) / (mAB - mAC);
-            CCy = mAB * CCx + bAB;
-
-            let r1 = ctx.lineWidth * 3;
-            let r2 = r1 * 2;
-
-            // draw the points
-            drawCircle(ctx, ax, ay, r1, {fill:color1});
-            drawCircle(ctx, ax, ay, r2, {stroke:color1});
-            drawCircle(ctx, bx, by, r1, {fill:color1});
-            drawCircle(ctx, bx, by, r2, {stroke:color1});
-            drawCircle(ctx, cx, cy, r1, {fill:color1});
-            drawCircle(ctx, cx, cy, r2, {stroke:color1});
-
-
-            // the triangle
-            drawPath(ctx, [a, b, c], {stroke: color1});
-
-
-            // draw midpoints
-            drawCircle(ctx, midAB[0], midAB[1], r1, {fill:color2});
-            drawCircle(ctx, midAC[0], midAC[1], r1, {fill:color2});
-
-
-            ctx.lineCap = 'round';
-            ctx.setLineDash([r1, r1 * 4]);
-
-            // with slopes and offsets, draw perp bisectors
-            ctx.strokeStyle = color2;
-            ctx.beginPath();
-            ctx.moveTo(0, bAB);
-            ctx.lineTo(cw, mAB * cw + bAB);
-            ctx.closePath();
-            ctx.stroke();
-
-            ctx.strokeStyle = color2;
-            ctx.beginPath();
-            ctx.moveTo(0, bAC);
-            ctx.lineTo(cw, mAC * cw + bAC);
-            ctx.closePath();
-            ctx.stroke();
-
-            ctx.setLineDash([]);
-
-            // draw circumcenter point
-            drawCircle(ctx, CCx, CCy, r2, {stroke:color1});
-
-            // the circle
-            var dx = CCx - ax;
-            var dy = CCy - ay;
-            var r = Math.sqrt(dx * dx + dy * dy);
-            drawCircle(ctx, CCx, CCy, r, {stroke:color1});
-
-
-
-            return [CCx, CCy];
-        }
 
         ctx.fillStyle = bg;
         ctx.fillRect(0, 0, cw, ch);
@@ -495,7 +498,6 @@ export function circles(options) {
             randomPoint(),
             randomPoint(),
             [cw, ch],
-            getContrastColor(),
             getContrastColor()
         );
 
@@ -505,7 +507,6 @@ export function circles(options) {
             randomPoint(),
             randomPoint(),
             [cw, ch],
-            getContrastColor(),
             getContrastColor()
         );
 
@@ -515,7 +516,6 @@ export function circles(options) {
             randomPoint(),
             randomPoint(),
             [cw, ch],
-            getContrastColor(),
             getContrastColor()
         );
 
@@ -527,7 +527,6 @@ export function circles(options) {
             cc2,
             cc3,
             [cw, ch],
-            getContrastColor(),
             getContrastColor()
         )
     }
