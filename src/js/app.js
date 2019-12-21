@@ -121,7 +121,7 @@ document.addEventListener('keydown', function(e) {
 // Where @anchor is the <a>, and @el is an image displaying element
 // URL encoded pixel data will be extracted from @el and downloaded
 // upon click.
-function doDownload(anchor, el) {   
+function doDownload(anchor, el) {
     function filename () {
         const f = rendererName +
             '-' +
@@ -133,24 +133,37 @@ function doDownload(anchor, el) {
         return f;
     }
 
-
-    el.toBlob((blob)=>{
-        // from https://github.com/mattdesl/canvas-sketch/blob/master/lib/save.js
-        link.download = filename();
-        link.href = window.URL.createObjectURL(blob);
-        document.body.appendChild(link);
-        link.onclick = () => {
-            link.onclick = ()=>{};
+    if (el.nodeName === 'IMG') {
+        anchor.href = el.src;
+        anchor.onclick = () => {
+            anchor.onclick = ()=>{};
             setTimeout(() => {
                 window.URL.revokeObjectURL(blob);
-                if (link.parentElement) link.parentElement.removeChild(link);
-                link.removeAttribute('href');
-                resolve({ filename, client: false });
+                anchor.removeAttribute('href');
             });
         };
-        link.click();
-    }, 'image/png');
-    
+        anchor.click();
+    } else if (el.nodeName === 'CANVAS') {
+        el.toBlob((blob)=>{
+            // from https://github.com/mattdesl/canvas-sketch/blob/master/lib/save.js
+            anchor.download = filename();
+            anchor.href = window.URL.createObjectURL(blob);
+            anchor.onclick = () => {
+                anchor.onclick = ()=>{};
+                setTimeout(() => {
+                    window.URL.revokeObjectURL(blob);
+                    anchor.removeAttribute('href');
+                });
+            };
+            anchor.click();
+        }, 'image/png');
+    } else {
+        return;
+    }
+
+
+
+
     return false;
 }
 
@@ -160,24 +173,33 @@ function doDownload(anchor, el) {
 // Wrap it in an <a> with a download handler,
 // Append it to @container
 function renderCanvasToImg(canvas, container) {
-    var pixels = canvas.toDataURL('image/png');
 
-    var image = document.createElement('img');
-    image.src = pixels;
+    // 12/21/19
+    // new approach for large images:
+    // get blob: canvas.toBlob
+    // then create ObjectURL
 
-    var anchor = document.createElement('a');
-    anchor.innerHTML = '↓';
-    anchor.onclick = function() {
-        doDownload(anchor, image);
-    };
+    canvas.toBlob((blob)=>{
 
-    var wrapper = document.createElement('div');
-    wrapper.className = 'downloader';
 
-    wrapper.appendChild(image);
-    wrapper.appendChild(anchor);
+        var image = document.createElement('img');
+        image.src = window.URL.createObjectURL(blob);
 
-    container.appendChild(wrapper);
+        var anchor = document.createElement('a');
+        anchor.innerHTML = '↓';
+        anchor.onclick = function() {
+            doDownload(anchor, image);
+        };
+
+        var wrapper = document.createElement('div');
+        wrapper.className = 'downloader';
+
+        wrapper.appendChild(image);
+        wrapper.appendChild(anchor);
+
+        container.appendChild(wrapper);
+
+    },'image/png');
 }
 
 // Create @N new renderings drawn with @opts inputs
