@@ -483,14 +483,48 @@ export function circles(options) {
 
     // mode
     function ccs() {
-
-
         ctx.fillStyle = bg;
         ctx.fillRect(0, 0, cw, ch);
 
         let randomPoint = () => [randomInRange(0, cw), randomInRange(0, ch)];
 
-        let cc1, cc2, cc3;
+        let p1, p2, p3, p4, p5;
+        p1 = randomPoint();
+        p2 = randomPoint();
+        p3 = randomPoint();
+        p4 = randomPoint();
+        p5 = randomPoint();
+
+        ctx.lineWidth = 1.5;
+
+        drawcc(
+            ctx,
+            p1,
+            p2,
+            p3,
+            [cw, ch],
+            getContrastColor()
+        );
+
+        drawcc(
+            ctx,
+            p3,
+            p4,
+            p5,
+            [cw, ch],
+            getContrastColor()
+        );
+
+        drawcc(
+            ctx,
+            p1,
+            p3,
+            p5,
+            [cw, ch],
+            getContrastColor()
+        );
+
+        /*let cc1, cc2, cc3;
 
         cc1 = drawcc(
             ctx,
@@ -528,7 +562,7 @@ export function circles(options) {
             cc3,
             [cw, ch],
             getContrastColor()
-        )
+        )*/
     }
 
     // gather our modes
