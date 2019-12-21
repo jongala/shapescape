@@ -92,7 +92,7 @@ function loadOpts(opts, fast) {
     Renderer(visualOpts);
     // set up main download link
     let a = document.getElementById('downloadExample');
-    a.onclick = doDownload(a, document.querySelector('#example canvas'));
+    a.onclick = ()=>{doDownload(a, document.querySelector('#example canvas'))};
 }
 
 // Handlers for redraw, batching, and manual saving
@@ -121,23 +121,36 @@ document.addEventListener('keydown', function(e) {
 // Where @anchor is the <a>, and @el is an image displaying element
 // URL encoded pixel data will be extracted from @el and downloaded
 // upon click.
-function doDownload(anchor, el) {
-    if (el.nodeName === 'IMG') {
-        anchor.href = el.src;
-    } else if (el.nodeName === 'CANVAS') {
-        anchor.href = el.toDataURL('image/png');
-    } else {
-        return;
+function doDownload(anchor, el) {   
+    function filename () {
+        const f = rendererName +
+            '-' +
+            new Date()
+                .toISOString()
+                .replace(/[-:]/g, '')
+                .replace('T', '-')
+                .replace(/\.\w+/, '');
+        return f;
     }
-    anchor.download =
-        rendererName +
-        '-' +
-        new Date()
-            .toISOString()
-            .replace(/[-:]/g, '')
-            .replace('T', '-')
-            .replace(/\.\w+/, '');
-    anchor.target = '_blank';
+
+
+    el.toBlob((blob)=>{
+        // from https://github.com/mattdesl/canvas-sketch/blob/master/lib/save.js
+        link.download = filename();
+        link.href = window.URL.createObjectURL(blob);
+        document.body.appendChild(link);
+        link.onclick = () => {
+            link.onclick = ()=>{};
+            setTimeout(() => {
+                window.URL.revokeObjectURL(blob);
+                if (link.parentElement) link.parentElement.removeChild(link);
+                link.removeAttribute('href');
+                resolve({ filename, client: false });
+            });
+        };
+        link.click();
+    }, 'image/png');
+    
     return false;
 }
 
