@@ -117,7 +117,7 @@ export function field(options) {
 
     let _x,_y,len;
     let dotScale = randomInRange(5, 15);
-    let weight = randomInRange(1, 3);
+    let weight = randomInRange(1, 3) * SCALE/800;
 
     ctx.lineWidth = weight;
     ctx.lineCap = 'round';
