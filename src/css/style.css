@@ -53,12 +53,12 @@ button.activeRenderer {
     position: relative;
     width: 800px;
     height: 800px;
-    width: 1600px;
+    /*width: 1600px;
     height: 1600px;
     transform: scale(0.5);
     width: 3200px;
     height: 3200px;
-    transform: scale(0.25);
+    transform: scale(0.25);*/
     transform-origin: 0 0;
     box-shadow: 0 1px 20px rgba(0, 0, 0, 0.2);
 }
@@ -112,13 +112,15 @@ button.activeRenderer {
 }
 
 #saved {
-    /* abs position because #example is being scaled */
-    position: absolute;
+    position: relative;
+    /* abs position when #example is being scaled */
+    /*position: absolute;
     left: 0;
-    top: 1000px;
+    top: 1000px;*/
     display: flex;
     flex-wrap: wrap;
     overflow: auto;
+    max-width: 1100px;
 }
 
 #saved > .downloader > img {
