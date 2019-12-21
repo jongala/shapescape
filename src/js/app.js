@@ -187,6 +187,7 @@ function renderCanvasToImg(canvas, container) {
 
         var anchor = document.createElement('a');
         anchor.innerHTML = '↓';
+        anchor.target = '_blank';
         anchor.onclick = function() {
             doDownload(anchor, image);
         };
