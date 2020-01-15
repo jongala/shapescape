@@ -1,4 +1,5 @@
 import noiseUtils from './noiseutils';
+import palettes from './palettes';
 import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
@@ -7,7 +8,7 @@ const OVERLAYLIST = ['shape', 'area', 'blend', 'auto'];
 
 const DEFAULTS = {
     container: 'body',
-    palette: ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'],
+    palette: palettes.south_beach,
     bg: 'auto', // one of BGLIST or 'auto'
     overlay: null, // one of OVERLAYLIST or 'auto'
     drawShadows: false,

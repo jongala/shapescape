@@ -1,4 +1,5 @@
 import noiseUtils from './noiseutils';
+import palettes from './palettes';
 import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 import { createStack, drawStack } from './stacks';
@@ -21,7 +22,7 @@ function removeShadow(ctx) {
 
 const DEFAULTS = {
     container: 'body',
-    palette: ['#3C2E42', '#B4254B', '#FF804A', '#E8D1A1', '#A5C9C4'],
+    palette: palettes.plum_sauce,
     drawShadows: false,
     addNoise: 0.04,
     noiseInput: null,

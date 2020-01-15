@@ -1,10 +1,11 @@
 import noiseUtils from './noiseutils';
+import palettes from './palettes';
 import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, shuffle } from './utils';
 import { drawCircle, drawSquare } from './shapes';
 
 const DEFAULTS = {
     container: 'body',
-    palette: ['#f9f9f9', '#D9AC32', '#ED5045', '#1F3E9C', '#000142'], // de_stijl
+    palette: palettes.de_stijl,
     addNoise: 0.04,
     noiseInput: null,
     dust: false,

@@ -1,5 +1,6 @@
 import { SCHEMA } from './schemas/waterline-schema';
 import noiseUtils from './noiseutils';
+import palettes from './palettes';
 import { randItem, randomInRange } from './utils';
 import { defineFill, expandFill } from './colors';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
@@ -120,7 +121,7 @@ let renderMap = {
 
 let DEFAULT_OPTIONS = {
     container: 'body',
-    palette: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
+    palette: palettes.candywafer,
     drawShadows: true,
     addNoise: 0.04,
     noiseInput: null,
