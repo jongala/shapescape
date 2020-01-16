@@ -1,11 +1,12 @@
 import noiseUtils from './noiseutils';
+import palettes from './palettes';
 import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 import { defineFill, expandFill } from './colors';
 
 const DEFAULTS = {
     container: 'body',
-    palette: ['#f4dda8','#eda87c','#c8907e','#9cacc3','#485e80','#3b465b'],
+    palette: palettes.fingerspitzen,
     addNoise: 0.04,
     noiseInput: null,
     dust: false,

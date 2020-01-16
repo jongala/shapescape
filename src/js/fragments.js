@@ -1,10 +1,11 @@
 import noiseUtils from './noiseutils';
+import { blush } from './palettes';
 import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
 const DEFAULTS = {
     container: 'body',
-    palette: ['#F8ADAA', '#F8E3AC', '#111111', '#ffffff', '#94552C'],
+    palette: blush,
     drawGrid: 'auto', // [true, false, 'auto']
     addNoise: false,//0.04,
     noiseInput: null,

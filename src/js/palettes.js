@@ -27,5 +27,5 @@ const palettes = {
 export default palettes;
 
 // older palettes:
-const lemon_beach = ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'];
-const blush = ['#F8ADAA', '#F8E3AC', '#111111', '#ffffff', '#94552C']; // fragments
+export const lemon_beach = ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'];
+export const blush = ['#F8ADAA', '#F8E3AC', '#111111', '#ffffff', '#94552C']; // fragments
