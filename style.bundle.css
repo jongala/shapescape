@@ -7,7 +7,7 @@ body {
 }
 h1 {
     margin: 20px;
-    font-size: 19px;
+    font-size: 16px;
     line-height: 20px;
     font-weight: 300;
     color: #ccc;
@@ -70,6 +70,11 @@ button.activeRenderer {
     right: 0;
 }
 
+#example.isHidden {
+    position: absolute;
+    visibility: hidden;
+}
+
 .rerun {
     display: inline-block;
     margin: 20px;
@@ -104,20 +109,15 @@ button.activeRenderer {
 }
 
 #saved {
-    position: fixed;
-    top: 0;
-    left: auto;
-    right: 0;
-    bottom: 0;
-    width: 320px;
-
-    padding-left: 10px;
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
     overflow: auto;
 }
 
 #saved > .downloader > img {
-    margin: 10px;
-    box-shadow: 0 1px 10px rgba(0, 0, 0, 0.2);
+    margin: 5px;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
     width: 300px;
 }
 
@@ -181,4 +181,10 @@ button.activeRenderer {
     border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 0.2em;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.spacerSpan {
+    display: inline-block;
+    padding: 0 1em;
+    color: #999;
 }

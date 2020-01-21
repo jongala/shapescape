@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 3);
+/******/ 	return __webpack_require__(__webpack_require__.s = 5);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -183,29 +183,45 @@ function getSolidColorFunction(palette) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-function addNoiseToCanvas(canvas, opacity) {
-    var ctx = canvas.getContext('2d'),
-        x,
-        y,
-        noise,
-        opacity = opacity || 0.2;
+/**
+ * Add noise to existing artwork, adding small equal values to each r,g,b
+ * component of each pixel, by stepping through imageData.
+ * Noise values darken or lighten pixels within the bounds of @opacity.
+ * @param {node} canvas  input canvas to act upon
+ * @param {number} opacity number from 0-1. Values < 0.1 recommended.
+ */
+function addNoiseToCanvas(canvas) {
+    var opacity = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0.2;
 
-    var w = canvas.width;
-    var h = canvas.height;
+    var ctx = canvas.getContext('2d');
 
-    for (x = 0; x < w; x++) {
-        for (y = 0; y < h; y++) {
-            noise = Math.floor(Math.random() * 255);
-
-            ctx.fillStyle = 'rgba(' + noise + ',' + noise + ',' + noise + ',' + opacity + ')';
-            ctx.fillRect(x, y, 1, 1);
-        }
+    var noise = void 0;
+    var d = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var px = d.data;
+    var n = px.length;
+    var random = Math.random;
+    var i = 0;
+    // manipulate imageData array
+    while (i < n) {
+        noise = opacity * ((random() - 0.5) * 256) | 0;
+        px[i++] += noise;
+        px[i++] += noise;
+        px[i++] += noise;
+        i++; // step i for alpha value
     }
+
+    ctx.putImageData(d, 0, 0);
 }
 
+/**
+ * Add noise to @canvas efficiently, by creating a separate offscreen noisy
+ * canvas, then applying that as a tiled pattern.
+ * @param {node} canvas     the canvas to add noise to
+ * @param {number} opacity    the intensity of the noise
+ * @param {number} tileSize   the size of the pattern tile (a square)
+ * @param {boolean} useOverlay if true, will composite using overlay blend mode
+ */
 function addNoiseFromPattern(canvas, opacity, tileSize, useOverlay) {
-    // create an offscreen canvas where we will generate
-    // noise to use as a pattern
     var noiseCanvas = createNoiseCanvas(opacity, tileSize);
     applyNoiseCanvas(canvas, noiseCanvas, useOverlay);
 
@@ -215,21 +231,48 @@ function addNoiseFromPattern(canvas, opacity, tileSize, useOverlay) {
     };
 }
 
+/**
+ * Creates an offscreen noisy canvas, where pixels are black or white with
+ * alpha values random less than @opacity. This can be applied to other canvases
+ * as a pattern for efficient noise application.
+ * @param  {number} opacity  Noise intensity. As usual, small values < 0.1 best
+ * @param  {number} tileSize The size of the pattern to be created
+ * @return {node}          returns a reference to the canvas
+ */
 function createNoiseCanvas(opacity, tileSize) {
-    // create an offscreen canvas where we will generate
-    // noise to use as a pattern
     tileSize = tileSize || 100;
-    var noise = document.createElement('canvas');
-    noise.width = tileSize;
-    noise.height = tileSize;
-    var noiseCtx = noise.getContext('2d');
+    var canvas = document.createElement('canvas');
+    canvas.width = tileSize;
+    canvas.height = tileSize;
 
     // add noise to the offscreen canvas
-    addNoiseToCanvas(noise, opacity);
 
-    return noise;
+    var ctx = canvas.getContext('2d');
+
+    var noise = void 0;
+    var d = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var px = d.data;
+    var n = px.length;
+    var random = Math.random;
+    var i = 0;
+    // manipulate imageData array
+    while (i < n) {
+        px[i++] = px[i++] = px[i++] = random() > 0.5 ? 255 : 0;
+        px[i++] = opacity * random() * 256 | 0;
+    }
+
+    ctx.putImageData(d, 0, 0);
+
+    return canvas;
 }
 
+/**
+ * Actually do the application of @noiseCanvas as a pattern to @targetCanvas
+ * @param  {node} targetCanvas the destination artwork
+ * @param  {node} noiseCanvas  the input canvas with alpha channel noise
+ * @param  {boolean} useOverlay   composite with overlay vs normal
+ * @return {node}              return ref to the @targetCanvas
+ */
 function applyNoiseCanvas(targetCanvas, noiseCanvas, useOverlay) {
     var ctx = targetCanvas.getContext('2d');
     // create a noise pattern from the offscreen canvas
@@ -254,6 +297,49 @@ exports.default = {
 
 /***/ }),
 /* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+// in use
+var palettes = {
+    ultra: ['#15d6d0', '#4481fc', '#bb19d8', '#f22f1c', '#ffa300', '#fff200'],
+    high_contrast: ['#111111', '#444444', '#dddddd', '#f9f9f9'],
+    low_contrast: ['#333333', '#666666', '#999999', '#cccccc', '#f9f9f9'],
+    black_white_red: ['#111111', '#444444', '#dddddd', '#ffffff', '#880000', '#dd0000'],
+
+    south_beach: ['#0c3646', '#11758e', '#89bed3', '#e4ca49', '#cabd9d', '#f2f0ea'],
+    north_beach: ['#1d282e', '#4b4f52', '#0089ad', '#6e92b4', '#b9a583', '#f1e1d1'],
+    twilight_beach: ['#030408', '#0c3646', '#4a828f', '#af8c70', '#aaadac', '#ffffff'],
+    admiral: ['#0a131c', '#072444', '#3b6185', '#361313', '#c47423', '#b88d40', '#f3efec'],
+    plum_sauce: ['#3C2E42', '#B4254B', '#FF804A', '#E8D1A1', '#A5C9C4'],
+    fingerspitzen: ['#f4dda8', '#eda87c', '#c8907e', '#9cacc3', '#485e80', '#3b465b'],
+    de_stijl: ['#f9f9f9', '#D9AC32', '#ED5045', '#1F3E9C', '#000142'],
+
+    terra_cotta_cactus: ['#5d576b', '#9bc1b8', '#f4f1bb', '#dcc48e', '#ed6a5a'],
+    metroid_fusion: ['#DBEED6', '#47BDC2', '#0A7DB8', '#1A3649', '#B24432'],
+
+    candywafer: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
+
+    magma: ['#000004', '#3b0f70', '#8c2981', '#de4968', '#fe9f6d', '#fcfdbf'],
+    inferno: ['#000004', '#420a68', '#932667', '#dd513a', '#fca50a', '#fcffa4'],
+    plasma: ['#0d0887', '#6a00a8', '#b12a90', '#e16462', '#fca636', '#f0f921'],
+    viridis: ['#440154', '#414487', '#2a788e', '#22a884', '#7ad151', '#fde725']
+};
+
+exports.default = palettes;
+
+// older palettes:
+
+var lemon_beach = exports.lemon_beach = ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'];
+var blush = exports.blush = ['#F8ADAA', '#F8E3AC', '#111111', '#ffffff', '#94552C']; // fragments
+
+/***/ }),
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -379,39 +465,186 @@ var drawPentagon = exports.drawPentagon = _drawPolygon(5, 1.1);
 var drawHexagon = exports.drawHexagon = _drawPolygon(6, 1.05);
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-__webpack_require__(4);
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.defineFill = defineFill;
+exports.expandFill = expandFill;
+
+var _utils = __webpack_require__(0);
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+/*
+ * The general approach is to define fills in a generic object format,
+ * which can be considered the serialized form:
+ *
+ * myFill = {
+ *     type: ['solid', 'linear', 'radial'],
+ *     params: {
+ *         // whatever you need for the fill type
+ *     }
+ * }
+ *
+ * These are returned by defineFill()
+ *
+ * These can be deserialized by expandFill(), which dispatches to helper functions
+ * for each fill type. These return an expanded fill, which is anything that
+ * is valid for assignment to context.fillStyle = {}
+ * e.g. a string of a hex color, or a defined canvas gradient.
+ * 
+ */
+
+//--------------------------------------
+// SERIALIZE
+//--------------------------------------
+
+var defineSolidFill = function defineSolidFill(palette) {
+    var f = {
+        type: 'solid',
+        params: {
+            color: (0, _utils.randItem)(palette)
+        }
+    };
+    return f;
+};
+
+/**
+ * Define a linear fill
+ * @param  {context} ctx  the canvas rendering context
+ * @param {array} palette an array of color values
+ * @param  {num} x    center x of shape, normalized
+ * @param  {num} y    center y of shape, normalized
+ * @param  {num} size       half the size of the shape (r for circle), normalized
+ * @param  {num} skew       scalar to offset endpoints left/right for angled gradient
+ * @return {fillStyle}      an object defining a linear gradient, to be processed by expandFill()
+ */
+var defineLinearGradientFill = function defineLinearGradientFill(palette, x, y, size, skew) {
+    var gradient = {
+        type: 'linear',
+        params: {
+            coords: [],
+            stops: []
+        }
+    };
+    // 
+    // pick xoffset as fraction of size to get a shallow angle
+    var xoff = (0, _utils.randomInRange)(-skew / 2, skew / 2) * size;
+    // build gradient, add stops
+    gradient.params.coords = [x - xoff, y - size, x + xoff, y + size];
+    gradient.params.stops.push([0, (0, _utils.randItem)(palette)]);
+    gradient.params.stops.push([1, (0, _utils.randItem)(palette)]);
+    return gradient;
+};
+
+// generic fill definition function
+/**
+ * Get a fill, either in solid or gradients
+ * @param  {context} ctx  the canvas rendering context
+ * @param {array} palette an array of color values
+ * @param  {num} x    center x of shape, normalized
+ * @param  {num} y    center y of shape, normalized
+ * @param  {num} size       half the size of the shape (r for circle), normalized
+ * @param  {num} skew       scalar to offset endpoints left/right for angled gradient
+ * @return {fillStyle}      a custom fill object to be processed by expandFill()
+ */
+function defineFill(type, palette, x, y, size, skew) {
+    // create a fill object
+    var fillGenerators = {
+        'solid': defineSolidFill,
+        'linear': defineLinearGradientFill,
+        'radial': defineSolidFill // FIXME
+    };
+    return fillGenerators[type](palette, x, y, size, skew);
+}
+
+//--------------------------------------
+// DESERIALIZE
+//--------------------------------------
+
+
+var gradientFromLinearDef = function gradientFromLinearDef(ctx, gradientDef, w, h, scale) {
+    var c = [].concat(_toConsumableArray(gradientDef.params.coords));
+    c[0] *= w;
+    c[1] *= h;
+    c[2] *= w;
+    c[3] *= h;
+    var g = ctx.createLinearGradient.apply(ctx, _toConsumableArray(c));
+    gradientDef.params.stops.forEach(function (s) {
+        return g.addColorStop.apply(g, _toConsumableArray(s));
+    });
+    return g;
+};
+
+// outer expandFill converts a fill spec to a usable 2D context fill
+function expandFill(ctx, fill, w, h, scale) {
+    var fillFuncs = {
+        'linear': gradientFromLinearDef,
+        'radial': function radial(ctx, fill) {
+            return fill.params.color;
+        }, // FIXME
+        'solid': function solid(ctx, fill) {
+            return fill.params.color;
+        }
+    };
+    if (fillFuncs[fill.type]) {
+        return fillFuncs[fill.type](ctx, fill, w, h, scale);
+    } else {
+        console.error('Could not resolve fill', fill, w, h, scale);
+        return '#808080';
+    }
+}
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+__webpack_require__(6);
 
 var _noiseutils = __webpack_require__(1);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _colorbrewer = __webpack_require__(5);
+var _palettes = __webpack_require__(2);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
+var _colorbrewer = __webpack_require__(7);
 
 var _colorbrewer2 = _interopRequireDefault(_colorbrewer);
 
-var _waterline = __webpack_require__(6);
+var _waterline = __webpack_require__(8);
 
-var _shapestack = __webpack_require__(9);
+var _shapestack = __webpack_require__(10);
 
-var _shapescape = __webpack_require__(12);
+var _shapescape = __webpack_require__(13);
 
-var _lines = __webpack_require__(13);
+var _lines = __webpack_require__(14);
 
-var _waves = __webpack_require__(14);
+var _waves = __webpack_require__(15);
 
-var _grid = __webpack_require__(15);
+var _grid = __webpack_require__(16);
 
-var _mesh = __webpack_require__(16);
+var _circles = __webpack_require__(17);
 
-var _walk = __webpack_require__(17);
+var _mesh = __webpack_require__(18);
 
-var _fragments = __webpack_require__(18);
+var _walk = __webpack_require__(19);
+
+var _bands = __webpack_require__(20);
+
+var _field = __webpack_require__(21);
+
+var _fragments = __webpack_require__(22);
 
 var _utils = __webpack_require__(0);
 
@@ -423,11 +656,14 @@ var RENDERERS = {
     shapestack: _shapestack.shapestack,
     shapescape: _shapescape.shapescape,
     lines: _lines.lines,
-    waves: _waves.waves,
     grid: _grid.grid,
+    circles: _circles.circles,
     mesh: _mesh.mesh,
     walk: _walk.walk,
-    fragments: _fragments.fragments
+    field: _field.field,
+    bands: _bands.bands,
+    fragments: _fragments.fragments,
+    waves: _waves.waves
 };
 var initRenderer = 'waterline';
 
@@ -464,7 +700,7 @@ function setRenderer(rname, ctrl) {
         activeButton && activeButton.classList.remove('activeRenderer');
         ctrl.classList.add('activeRenderer');
     }
-    loadOpts();
+    drawNew();
 }
 window.setRenderer = setRenderer;
 
@@ -498,6 +734,7 @@ function loadOpts(opts, fast) {
 function drawNew() {
     removePreview();
     requestAnimationFrame(loadOpts);
+    showMain();
 }
 window.drawNew = drawNew;
 
@@ -562,8 +799,13 @@ function renderCanvasToImg(canvas, container) {
 // Append them to div#saved
 function createBatch(opts, N) {
     N = N || 9;
+
+    hideMain();
+
     var canvas = document.querySelector('#example canvas');
     var container = document.querySelector('#saved');
+
+    // render the batch
     container.innerHTML = '';
     for (var i = 0; i < N; i++) {
         requestAnimationFrame(function () {
@@ -582,39 +824,16 @@ window.createBatch = createBatch;
 }
 window.rerun = rerun;*/
 
-// Option sets:
-
-var palettes = {
-    default: null,
-    high_contrast: ['#111111', '#444444', '#dddddd', '#f9f9f9'],
-    low_contrast: ['#333333', '#666666', '#999999', '#cccccc', '#f9f9f9'],
-    black_white_red: ['#111111', '#444444', '#dddddd', '#ffffff', '#880000', '#dd0000'],
-
-    south_beach: ['#0c3646', '#11758e', '#89bed3', '#e4ca49', '#cabd9d', '#f2f0ea'],
-    north_beach: ['#1d282e', '#4b4f52', '#0089ad', '#6e92b4', '#b9a583', '#f1e1d1'],
-    twilight_beach: ['#030408', '#0c3646', '#4a828f', '#af8c70', '#aaadac', '#ffffff'],
-    admiral: ['#0a131c', '#072444', '#3b6185', '#361313', '#c47423', '#b88d40', '#f3efec'],
-    plum_sauce: ['#3C2E42', '#B4254B', '#FF804A', '#E8D1A1', '#A5C9C4'],
-    fingerspitzen: ['#f4dda8', '#eda87c', '#c8907e', '#9cacc3', '#485e80', '#3b465b'],
-    de_stijl: ['#f9f9f9', '#D9AC32', '#ED5045', '#1F3E9C', '#000142'],
-
-    terra_cotta_cactus: ['#5d576b', '#9bc1b8', '#f4f1bb', '#dcc48e', '#ed6a5a'],
-    metroid_fusion: ['#DBEED6', '#47BDC2', '#0A7DB8', '#1A3649', '#B24432'],
-
-    magma: ['#000004', '#3b0f70', '#8c2981', '#de4968', '#fe9f6d', '#fcfdbf'],
-    inferno: ['#000004', '#420a68', '#932667', '#dd513a', '#fca50a', '#fcffa4'],
-    plasma: ['#0d0887', '#6a00a8', '#b12a90', '#e16462', '#fca636', '#f0f921'],
-    viridis: ['#440154', '#414487', '#2a788e', '#22a884', '#7ad151', '#fde725']
-};
+var appPalettes = Object.assign({ default: null }, _palettes2.default);
 
 // create a batch from a colorbrewer name
 function setPalette(pname) {
-    if (!palettes[pname]) {
+    if (!appPalettes[pname]) {
         delete visualOpts.palette;
     } else {
-        visualOpts.palette = palettes[pname];
+        visualOpts.palette = appPalettes[pname];
     }
-    return loadOpts({});
+    return drawNew({});
 }
 window.setPalette = setPalette;
 
@@ -622,12 +841,12 @@ window.setPalette = setPalette;
 if (_colorbrewer2.default) {
     var cbnames = Object.keys(_colorbrewer2.default);
     cbnames.forEach(function (pname) {
-        palettes[pname] = _colorbrewer2.default[pname][6];
+        appPalettes[pname] = _colorbrewer2.default[pname][6];
     });
 }
 
 var selectEl = document.querySelector('#paletteSelector');
-var pnames = Object.keys(palettes);
+var pnames = Object.keys(appPalettes);
 pnames.forEach(function (pname) {
     var option = document.createElement('option');
     option.value = pname;
@@ -648,7 +867,7 @@ custom.addEventListener('keypress', function (e) {
     var hexPattern = /#?[0-9a-f]{3,6}/;
     var palette = e.target.value.split(',');
     palette = palette.map(function (s) {
-        s = s.trim();
+        s = s.trim().replace(/['"']/g, '');
         if (hexPattern.test(s) && !s.startsWith('#')) {
             s = '#' + s;
         }
@@ -683,6 +902,16 @@ function removePreview() {
     p && p.remove();
 }
 
+function showMain() {
+    exampleNode.className = exampleNode.className.replace(/isHidden/g, '');
+}
+
+function hideMain() {
+    if (exampleNode.className.indexOf('isHidden') === -1) {
+        exampleNode.className += 'isHidden ';
+    }
+}
+
 document.querySelector('#saved').addEventListener('click', function (e) {
     if (e.target.nodeName === 'IMG') {
         // HACK: this relies on .downloader > img DOM structure
@@ -707,13 +936,13 @@ showRenderPicker(RENDERERS, document.getElementById('renderPickers'));
 setRenderer(initRenderer, document.querySelector("[data-renderer='" + initRenderer + "']"));
 
 /***/ }),
-/* 4 */
+/* 6 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 5 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -740,7 +969,7 @@ var colorbrewer = {
 exports.default = colorbrewer;
 
 /***/ }),
-/* 6 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -756,17 +985,21 @@ exports.defineWaterline = defineWaterline;
 exports.drawWaterline = drawWaterline;
 exports.waterline = waterline;
 
-var _waterlineSchema = __webpack_require__(7);
+var _waterlineSchema = __webpack_require__(9);
 
 var _noiseutils = __webpack_require__(1);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
+var _palettes = __webpack_require__(2);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
 var _utils = __webpack_require__(0);
 
-var _colors = __webpack_require__(8);
+var _colors = __webpack_require__(4);
 
-var _shapes = __webpack_require__(2);
+var _shapes = __webpack_require__(3);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -888,7 +1121,7 @@ var renderMap = {
 
 var DEFAULT_OPTIONS = {
     container: 'body',
-    palette: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
+    palette: _palettes2.default.candywafer,
     drawShadows: true,
     addNoise: 0.04,
     noiseInput: null,
@@ -1202,7 +1435,7 @@ function waterline(options) {
 }
 
 /***/ }),
-/* 7 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1254,144 +1487,7 @@ var SCHEMA = exports.SCHEMA = {
 };
 
 /***/ }),
-/* 8 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.defineFill = defineFill;
-exports.expandFill = expandFill;
-
-var _utils = __webpack_require__(0);
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-/*
- * The general approach is to define fills in a generic object format,
- * which can be considered the serialized form:
- *
- * myFill = {
- *     type: ['solid', 'linear', 'radial'],
- *     params: {
- *         // whatever you need for the fill type
- *     }
- * }
- *
- * These are returned by defineFill()
- *
- * These can be deserialized by expandFill(), which dispatches to helper functions
- * for each fill type. These return an expanded fill, which is anything that
- * is valid for assignment to context.fillStyle = {}
- * e.g. a string of a hex color, or a defined canvas gradient.
- * 
- */
-
-//--------------------------------------
-// SERIALIZE
-//--------------------------------------
-
-var defineSolidFill = function defineSolidFill(palette) {
-    var f = {
-        type: 'solid',
-        params: {
-            color: (0, _utils.randItem)(palette)
-        }
-    };
-    return f;
-};
-
-/**
- * Define a linear fill
- * @param  {context} ctx  the canvas rendering context
- * @param {array} palette an array of color values
- * @param  {num} x    center x of shape, normalized
- * @param  {num} y    center y of shape, normalized
- * @param  {num} size       half the size of the shape (r for circle), normalized
- * @param  {num} skew       scalar to offset endpoints left/right for angled gradient
- * @return {fillStyle}      an object defining a linear gradient, to be processed by expandFill()
- */
-var defineLinearGradientFill = function defineLinearGradientFill(palette, x, y, size, skew) {
-    var gradient = {
-        type: 'linear',
-        params: {
-            coords: [],
-            stops: []
-        }
-    };
-    // 
-    // pick xoffset as fraction of size to get a shallow angle
-    var xoff = (0, _utils.randomInRange)(-skew / 2, skew / 2) * size;
-    // build gradient, add stops
-    gradient.params.coords = [x - xoff, y - size, x + xoff, y + size];
-    gradient.params.stops.push([0, (0, _utils.randItem)(palette)]);
-    gradient.params.stops.push([1, (0, _utils.randItem)(palette)]);
-    return gradient;
-};
-
-// generic fill definition function
-/**
- * Get a fill, either in solid or gradients
- * @param  {context} ctx  the canvas rendering context
- * @param {array} palette an array of color values
- * @param  {num} x    center x of shape, normalized
- * @param  {num} y    center y of shape, normalized
- * @param  {num} size       half the size of the shape (r for circle), normalized
- * @param  {num} skew       scalar to offset endpoints left/right for angled gradient
- * @return {fillStyle}      a custom fill object to be processed by expandFill()
- */
-function defineFill(type, palette, x, y, size, skew) {
-    // create a fill object
-    var fillGenerators = {
-        'solid': defineSolidFill,
-        'linear': defineLinearGradientFill,
-        'radial': defineSolidFill // FIXME
-    };
-    return fillGenerators[type](palette, x, y, size, skew);
-}
-
-//--------------------------------------
-// DESERIALIZE
-//--------------------------------------
-
-
-var gradientFromLinearDef = function gradientFromLinearDef(ctx, gradientDef, w, h, scale) {
-    var c = [].concat(_toConsumableArray(gradientDef.params.coords));
-    c[0] *= w;
-    c[1] *= h;
-    c[2] *= w;
-    c[3] *= h;
-    var g = ctx.createLinearGradient.apply(ctx, _toConsumableArray(c));
-    gradientDef.params.stops.forEach(function (s) {
-        return g.addColorStop.apply(g, _toConsumableArray(s));
-    });
-    return g;
-};
-
-// outer expandFill converts a fill spec to a usable 2D context fill
-function expandFill(ctx, fill, w, h, scale) {
-    var fillFuncs = {
-        'linear': gradientFromLinearDef,
-        'radial': function radial(ctx, fill) {
-            return fill.params.color;
-        }, // FIXME
-        'solid': function solid(ctx, fill) {
-            return fill.params.color;
-        }
-    };
-    if (fillFuncs[fill.type]) {
-        return fillFuncs[fill.type](ctx, fill, w, h, scale);
-    } else {
-        console.error('Could not resolve fill', fill, w, h, scale);
-        return '#808080';
-    }
-}
-
-/***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1406,13 +1502,17 @@ var _noiseutils = __webpack_require__(1);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
+var _palettes = __webpack_require__(2);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
 var _utils = __webpack_require__(0);
 
-var _shapes = __webpack_require__(2);
+var _shapes = __webpack_require__(3);
 
-var _stacks = __webpack_require__(10);
+var _stacks = __webpack_require__(11);
 
-var _nests = __webpack_require__(11);
+var _nests = __webpack_require__(12);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1432,7 +1532,7 @@ function removeShadow(ctx) {
 
 var DEFAULTS = {
     container: 'body',
-    palette: ['#3C2E42', '#B4254B', '#FF804A', '#E8D1A1', '#A5C9C4'],
+    palette: _palettes2.default.plum_sauce,
     drawShadows: false,
     addNoise: 0.04,
     noiseInput: null,
@@ -1741,7 +1841,7 @@ var DEFAULTS = {
 }
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1793,7 +1893,7 @@ function drawStack(ctx, stack, x, w, colorFunc) {
 }
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1879,7 +1979,7 @@ function drawNest(ctx, nest, shapeFunction, colorFunction, o) {
 }
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1893,6 +1993,10 @@ exports.shapescape = shapescape;
 var _noiseutils = __webpack_require__(1);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _palettes = __webpack_require__(2);
+
+var _palettes2 = _interopRequireDefault(_palettes);
 
 var _utils = __webpack_require__(0);
 
@@ -1972,7 +2076,7 @@ function addSquare(ctx, w, h, opts) {
 function shapescape(options) {
     var defaults = {
         container: 'body',
-        palette: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
+        palette: _palettes2.default.candywafer,
         drawShadows: true,
         addNoise: 0.04,
         noiseInput: null,
@@ -2068,7 +2172,7 @@ function shapescape(options) {
 }
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2084,9 +2188,13 @@ var _noiseutils = __webpack_require__(1);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
+var _palettes = __webpack_require__(2);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
 var _utils = __webpack_require__(0);
 
-var _shapes = __webpack_require__(2);
+var _shapes = __webpack_require__(3);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2095,7 +2203,7 @@ var OVERLAYLIST = ['shape', 'area', 'blend', 'auto'];
 
 var DEFAULTS = {
     container: 'body',
-    palette: ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'],
+    palette: _palettes2.default.south_beach,
     bg: 'auto', // one of BGLIST or 'auto'
     overlay: null, // one of OVERLAYLIST or 'auto'
     drawShadows: false,
@@ -2180,7 +2288,7 @@ function lines(options) {
     // divide the canvas into multiple sections?
     var splitPoint = void 0;
     var splitSeed = Math.random();
-    if (splitSeed > 0.5) {
+    if (splitSeed > 0.5 && !drawShapeMask) {
         // left right
         splitPoint = [(0, _utils.randomInRange)(cw * 1 / 4, cw * 3 / 4), 0];
 
@@ -2494,7 +2602,7 @@ function drawLines(ctx, p1, p2, opts) {
 }
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2507,7 +2615,7 @@ exports.waves = waves;
 
 var _utils = __webpack_require__(0);
 
-var _shapes = __webpack_require__(2);
+var _shapes = __webpack_require__(3);
 
 var DEFAULTS = {
     container: 'body',
@@ -2753,7 +2861,7 @@ function waves(options) {
 }
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2768,9 +2876,13 @@ var _noiseutils = __webpack_require__(1);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
+var _palettes = __webpack_require__(2);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
 var _utils = __webpack_require__(0);
 
-var _shapes = __webpack_require__(2);
+var _shapes = __webpack_require__(3);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2778,7 +2890,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
 var DEFAULTS = {
     container: 'body',
-    palette: ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'],
+    palette: _palettes2.default.south_beach,
     addNoise: 0.04,
     noiseInput: null,
     dust: false,
@@ -3016,128 +3128,6 @@ function grid(options) {
     }
 
     // mode
-    function snakes() {
-        // bitmasks for drawing modes
-        var cellModes = [0x000001, // horiz
-        0x000010, // vert
-        0x000100, // tl
-        0x001000, // tr
-        0x010000, // br
-        0x100000, // bl
-        0x101000, 0x010100];
-
-        ctx.lineCap = 'round';
-        ctx.fillStyle = bg;
-        ctx.fillRect(0, 0, cw, ch);
-
-        var tl = function tl() {
-            ctx.beginPath();
-            ctx.moveTo(w / 2, 0);
-            ctx.arc(0, 0, w / 2, 0, PI / 2, false);
-            ctx.stroke();
-        };
-
-        var tr = function tr() {
-            ctx.beginPath();
-            ctx.moveTo(w, h / 2);
-            ctx.arc(w, 0, w / 2, PI / 2, PI, false);
-            ctx.stroke();
-        };
-
-        var br = function br() {
-            ctx.beginPath();
-            ctx.moveTo(w / 2, h);
-            ctx.arc(w, h, w / 2, PI, 3 * PI / 2, false);
-            ctx.stroke();
-        };
-
-        var bl = function bl() {
-            ctx.beginPath();
-            ctx.moveTo(0, h / 2);
-            ctx.arc(0, h, w / 2, -PI / 2, 0, false);
-            ctx.stroke();
-        };
-
-        var horiz = function horiz() {
-            ctx.beginPath();
-            ctx.moveTo(0, h / 2);
-            ctx.lineTo(w, h / 2);
-            ctx.stroke();
-        };
-
-        var vert = function vert() {
-            ctx.beginPath();
-            ctx.moveTo(w / 2, 0);
-            ctx.lineTo(w / 2, h);
-            ctx.stroke();
-        };
-
-        var px = void 0,
-            py = void 0;
-
-        var weight = (0, _utils.randomInRange)(1, w / 6);
-        var fg1 = getContrastColor();
-        var fg2 = getContrastColor();
-
-        var drawModes = function drawModes(modes) {
-            modes & 0x000001 && horiz(); // horiz
-            modes & 0x000010 && vert(); // vert
-            modes & 0x000100 && tl(); // tl
-            modes & 0x001000 && tr(); // tr
-            modes & 0x010000 && br(); // br
-            modes & 0x100000 && bl(); // bl
-        };
-
-        // hit each cell
-        for (var i = 0; i < vcount; i++) {
-            for (var j = 0; j < count; j++) {
-                // convenience vars
-                x = w * j;
-                y = h * i;
-                xnorm = x / cw;
-                ynorm = y / ch;
-
-                // shift and clip
-                ctx.translate(x, y);
-                //clipSquare(ctx, w, h, bg);
-
-                if (Math.random() < .25) {
-                    (0, _shapes.drawCircle)(ctx, w, h, w / (0, _utils.randomInRange)(5, 20), {
-                        fill: (0, _utils.randItem)([fg1, fg2])
-                    });
-                }
-
-                // randomize stacking of two colors
-                var c1 = void 0,
-                    c2 = void 0;
-                if (Math.random() < 0.5) {
-                    c1 = fg1;
-                    c2 = fg2;
-                } else {
-                    c1 = fg2;
-                    c2 = fg1;
-                }
-
-                // get a mode for each cell, mask for function
-                var m = (0, _utils.randItem)(cellModes);
-                ctx.lineWidth = weight;
-                ctx.strokeStyle = c1;
-                drawModes(m);
-
-                // second set of modes
-                m = (0, _utils.randItem)(cellModes);
-                ctx.lineWidth = weight;
-                ctx.strokeStyle = c2;
-                drawModes(m);
-
-                // unshift, unclip
-                //ctx.restore();
-                (0, _utils.resetTransform)(ctx);
-            }
-        }
-    }
-
-    // mode
     function mixed() {
         var px = void 0,
             py = void 0,
@@ -3211,7 +3201,427 @@ function grid(options) {
     }
 
     // gather our modes
-    var modes = [maskAndRotate, circles, triangles, mixed, snakes];
+    var modes = [maskAndRotate, circles, triangles, mixed];
+
+    // do the loop with one of our modes
+    (0, _utils.randItem)(modes)();
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            // apply noise from supplied canvas
+            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            // create noise pattern and apply
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, w / 3);
+        }
+    }
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
+}
+
+/***/ }),
+/* 17 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.circles = circles;
+
+var _noiseutils = __webpack_require__(1);
+
+var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _palettes = __webpack_require__(2);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
+var _utils = __webpack_require__(0);
+
+var _shapes = __webpack_require__(3);
+
+var _colors = __webpack_require__(4);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+var DEFAULTS = {
+    container: 'body',
+    palette: _palettes2.default.de_stijl,
+    addNoise: 0.04,
+    noiseInput: null,
+    dust: false,
+    skew: 1, // normalized skew
+    clear: true
+};
+
+var PI = Math.PI;
+
+// Main function
+function circles(options) {
+    var opts = Object.assign({}, DEFAULTS, options);
+
+    var container = opts.container;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
+    var SCALE = Math.min(cw, ch);
+
+    // Find or create canvas child
+    var el = container.querySelector('canvas');
+    var newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        el.width = cw;
+        el.height = ch;
+    }
+
+    var ctx = el.getContext('2d');
+
+    // available renderers
+    var renderMap = {
+        //circle: drawCircle,
+        //ring: drawRing,
+        triangle: _shapes.drawTriangle,
+        square: _shapes.drawSquare,
+        box: _shapes.drawBox,
+        rect: _shapes.drawRect,
+        pentagon: _shapes.drawPentagon,
+        hexagon: _shapes.drawHexagon
+    };
+    var shapes = Object.keys(renderMap);
+    var getRandomRenderer = function getRandomRenderer() {
+        return renderMap[(0, _utils.randItem)(shapes)];
+    };
+
+    // util to draw a square and clip following rendering inside
+    function clipSquare(ctx, w, h, color) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, w, h);
+        ctx.fillStyle = color;
+        ctx.closePath();
+        ctx.fill();
+        ctx.clip();
+    }
+
+    // color funcs
+    var randomFill = function randomFill() {
+        return "#" + Math.random().toString(16).slice(2, 8);
+    };
+    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
+
+    // define grid
+    var count = Math.round((0, _utils.randomInRange)(4, 9));
+    var w = Math.ceil(cw / count);
+    var h = w;
+    var vcount = Math.ceil(ch / h);
+
+    // setup vars for each cell
+    var x = 0;
+    var y = 0;
+    var xnorm = 0;
+    var ynorm = 0;
+    var renderer = void 0;
+
+    // play with these random seeds
+    var a = void 0,
+        b = void 0,
+        c = void 0;
+    a = Math.random();
+    b = Math.random();
+    c = Math.random();
+
+    // shared colors
+    var bg = getSolidFill();
+
+    // get palette of non-bg colors
+    var contrastPalette = [].concat(opts.palette);
+    contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
+    var fg = getContrastColor();
+
+    // mode
+    function snakes() {
+        ctx.lineCap = 'round';
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, cw, ch);
+
+        var px = void 0,
+            py = void 0;
+
+        var weight = (0, _utils.randomInRange)(1, w / 10);
+        var lightweight = Math.max(1, weight / 3);
+
+        var c1 = getContrastColor();
+        var c2 = getContrastColor();
+        var dotColor = c1;
+
+        var dotGradient = (0, _utils.getGradientFunction)([c1, c2, bg])(ctx, cw / 2, ch / 2);
+
+        var set1 = [];
+        var set2 = [];
+
+        function loop(color) {
+            var ringdefs = [];
+            var start = void 0;
+            var segments = void 0;
+            var r = void 0;
+            // hit each cell
+            for (var i = 0; i < vcount; i++) {
+                for (var j = 0; j < count; j++) {
+                    // convenience vars
+                    x = w * j;
+                    y = h * i;
+                    px = x + w / 2;
+                    py = y + h / 2;
+                    xnorm = px / cw;
+                    ynorm = py / ch;
+
+                    start = Math.round((0, _utils.randomInRange)(0, 4));
+                    segments = Math.round((0, _utils.randomInRange)(1, 2));
+                    r = w / 2 * Math.round((0, _utils.randomInRange)(1, 1));
+
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = weight;
+
+                    dotColor = color;
+                    if (Math.random() < 0.75) {
+                        // draw circles for many
+                        ringdefs.push([px, py, r, PI / 2 * start, PI / 2 * (start + segments), false]);
+                    } else if (Math.random() < 0.25) {
+                        // draw line
+                        ctx.beginPath();
+                        if (Math.random() < 0.5) {
+                            ctx.moveTo(px, y);
+                            ctx.lineTo(px + w, y);
+                        } else {
+                            ctx.moveTo(x, py);
+                            ctx.lineTo(x, py + h);
+                        }
+                        ctx.stroke();
+                    } else {
+                        dotColor = fg;
+                    }
+
+                    if (Math.random() < 0.125) {
+                        (0, _shapes.drawCircle)(ctx, px, py, w / 2 * (0, _utils.randItem)([0.25, 0.5, 1]) - weight / 2 + 0.5, { fill: dotGradient });
+                    }
+
+                    // unshift, unclip
+                    //ctx.restore();
+                    (0, _utils.resetTransform)(ctx);
+                }
+            }
+            return ringdefs;
+        }
+
+        set1 = loop(c1);
+        set2 = loop(c2);
+
+        // draw rings
+        ctx.strokeStyle = c1;
+        ctx.lineWidth = weight;
+        set1.forEach(function (def) {
+            ctx.beginPath();
+            ctx.arc.apply(ctx, _toConsumableArray(def));
+            ctx.stroke();
+        });
+
+        ctx.strokeStyle = c2;
+        ctx.lineWidth = weight;
+        set2.forEach(function (def) {
+            ctx.beginPath();
+            ctx.arc.apply(ctx, _toConsumableArray(def));
+            ctx.stroke();
+        });
+    }
+
+    function triPoints(ctx, p1, p2, p3, color) {
+        ctx.beginPath;
+        ctx.moveTo.apply(ctx, _toConsumableArray(p1));
+        ctx.lineTo.apply(ctx, _toConsumableArray(p2));
+        ctx.lineTo.apply(ctx, _toConsumableArray(p3));
+        ctx.closePath();
+        ctx.strokeStyle = color;
+        ctx.stroke();
+    }
+
+    function rings() {
+        ctx.lineCap = 'round';
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, cw, ch);
+
+        var px = void 0,
+            py = void 0;
+
+        var weight = (0, _utils.randomInRange)(1, w / 10);
+        var lightweight = Math.max(0.5, weight / 3);
+
+        console.log(count + ' by ' + vcount + ' cells');
+
+        var c1 = getContrastColor();
+        var c2 = getContrastColor();
+        var dotColor = c1;
+
+        var ringdefs = [];
+        var centers = [];
+        var r = void 0;
+
+        var threshold = 0.5 - .25 * (count / 10);
+        console.log('count:', count, 'threshold:', threshold);
+
+        // hit each cell
+        for (var i = 0; i < vcount; i++) {
+            for (var j = 0; j < count; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * i;
+                px = x + w / 2;
+                py = y + h / 2;
+                xnorm = px / cw;
+                ynorm = py / ch;
+
+                var start = Math.round((0, _utils.randomInRange)(0, 4));
+                var segments = Math.round((0, _utils.randomInRange)(1, 3));
+                r = w / 2 * Math.round((0, _utils.randomInRange)(1, 3));
+
+                ctx.strokeStyle = fg;
+                ctx.lineWidth = lightweight;
+
+                if (Math.random() < threshold) {
+                    centers.push([px, py]);
+                    ringdefs.push([px, py, r, PI / 2 * start, PI / 2 * (start + segments), false]);
+                    dotColor = fg;
+
+                    var _a = (0, _utils.randomInRange)(PI / 2 * start, PI / 2 * (start + segments));
+                    ctx.beginPath();
+                    ctx.moveTo(px, py);
+                    ctx.lineTo(px + r * Math.cos(_a), py + r * Math.sin(_a));
+                    ctx.stroke();
+                } else {
+                    dotColor = c1;
+                    (0, _shapes.drawCircle)(ctx, px, py, lightweight, { fill: dotColor });
+                }
+
+                // unshift, unclip
+                //ctx.restore();
+                (0, _utils.resetTransform)(ctx);
+            }
+        }
+
+        // draw connecting lines between dots
+        var centers_copy = [].concat(centers);
+        ctx.strokeStyle = c1;
+        ctx.lineWidth = Math.max(lightweight / 2, 0.5);
+        while (centers_copy.length >= 2) {
+            ctx.beginPath();
+            ctx.moveTo.apply(ctx, _toConsumableArray(centers_copy.pop()));
+            ctx.lineTo.apply(ctx, _toConsumableArray(centers_copy.shift()));
+            ctx.stroke();
+        }
+
+        // draw dots
+        centers.forEach(function (c) {
+            (0, _shapes.drawCircle)(ctx, c[0], c[1], lightweight, { fill: fg });
+        });
+
+        // draw rings
+        ctx.strokeStyle = fg;
+        ctx.lineWidth = weight;
+        ringdefs.forEach(function (def) {
+            ctx.beginPath();
+            ctx.arc.apply(ctx, _toConsumableArray(def));
+            ctx.stroke();
+        });
+    }
+
+    // mode
+    function pattern() {
+        var c1 = (0, _utils.randomInRange)(0.125, 0.5);
+        var c2 = (0, _utils.randomInRange)(.5, 1);
+
+        var dotScale = (0, _utils.randomInRange)(0.1, 0.5);
+        var dotMin = (0, _utils.randomInRange)(0, 0.5 - dotScale);
+        var dotFill = getContrastColor();
+        var dotSign = Math.random() < 0.5;
+
+        var xref = Math.random();
+        var yref = Math.random();
+        if (Math.random() < 0.5) {
+            xref = yref = 0.5;
+        }
+
+        var crossDots = true; //Math.random() < 0.5;
+        var crossFill = Math.random() < 0.5 ? fg : bg;
+        var crossScale = (0, _utils.randomInRange)(0.25, .3);
+
+        var cr = void 0;
+
+        var crossPattern = function crossPattern(r) {
+            (0, _shapes.drawCircle)(ctx, w * r, h / 2, w * r, { fill: null, stroke: fg });
+            (0, _shapes.drawCircle)(ctx, -w * (r - 1), h / 2, w * r, { fill: null, stroke: fg });
+
+            (0, _shapes.drawCircle)(ctx, w / 2, h * r, w * r, { fill: null, stroke: fg });
+            (0, _shapes.drawCircle)(ctx, w / 2, -h * (r - 1), h * r, { fill: null, stroke: fg });
+        };
+
+        ctx.lineWidth = (0, _utils.randomInRange)(1, w / 30);
+
+        for (var i = 0; i < vcount; i++) {
+            for (var j = 0; j < count; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * i;
+                xnorm = (x + w / 2) / cw;
+                ynorm = (y + h / 2) / ch;
+
+                // shift and clip
+                ctx.translate(x, y);
+                clipSquare(ctx, w, h, bg);
+
+                (0, _shapes.drawCircle)(ctx, 0, 0, w / 2, { fill: null, stroke: fg });
+                (0, _shapes.drawCircle)(ctx, w, 0, w / 2, { fill: null, stroke: fg });
+                (0, _shapes.drawCircle)(ctx, w, h, w / 2, { fill: null, stroke: fg });
+                (0, _shapes.drawCircle)(ctx, 0, h, w / 2, { fill: null, stroke: fg });
+
+                crossPattern(c1);
+                crossPattern(c2);
+
+                if (crossDots && i % 2 === j % 2) {
+                    //drawCircle(ctx, w/2, h/2, crossScale, {fill: crossFill, stroke: fg});
+                }
+
+                cr = Math.sqrt(Math.pow(xnorm - xref, 2) + Math.pow(ynorm - yref, 2)) / .7071;
+                if (dotSign) {
+                    cr = 1 - cr;
+                }
+                cr = Math.abs(cr);
+
+                (0, _shapes.drawCircle)(ctx, w / 2, h / 2, dotMin + dotScale * w * cr, { fill: dotFill, stroke: fg });
+
+                (0, _shapes.drawCircle)(ctx, w / 2, h / 2, dotMin + dotScale * w * cr + ctx.lineWidth * 2, { fill: null, stroke: fg });
+
+                // unshift, unclip
+                ctx.restore();
+                (0, _utils.resetTransform)(ctx);
+            }
+        }
+    }
+
+    // gather our modes
+    var modes = [snakes, rings, pattern];
 
     // do the loop with one of our modes
     (0, _utils.randItem)(modes)();
@@ -3232,7 +3642,7 @@ function grid(options) {
 }
 
 /***/ }),
-/* 16 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3247,15 +3657,19 @@ var _noiseutils = __webpack_require__(1);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
+var _palettes = __webpack_require__(2);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
 var _utils = __webpack_require__(0);
 
-var _shapes = __webpack_require__(2);
+var _shapes = __webpack_require__(3);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var DEFAULTS = {
     container: 'body',
-    palette: ['#f9f9f9', '#D9AC32', '#ED5045', '#1F3E9C', '#000142'],
+    palette: _palettes2.default.de_stijl,
     addNoise: 0.04,
     noiseInput: null,
     dust: false,
@@ -3482,7 +3896,7 @@ function mesh(options) {
 }
 
 /***/ }),
-/* 17 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3497,9 +3911,13 @@ var _noiseutils = __webpack_require__(1);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
+var _palettes = __webpack_require__(2);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
 var _utils = __webpack_require__(0);
 
-var _shapes = __webpack_require__(2);
+var _shapes = __webpack_require__(3);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3507,7 +3925,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
 var DEFAULTS = {
     container: 'body',
-    palette: ['#f9f9f9', '#D9AC32', '#ED5045', '#1F3E9C', '#000142'], // de_stijl
+    palette: _palettes2.default.de_stijl,
     addNoise: 0.04,
     noiseInput: null,
     dust: false,
@@ -3831,7 +4249,7 @@ var DEFAULTS = {
     });
 
     // use a narrow line for the grid extensions
-    ctx.lineWidth = Math.max(ctx.lineWidth / 2, 1);
+    ctx.lineWidth = Math.max(ctx.lineWidth / 2, 0.5);
 
     var rightLine = function rightLine(d, i) {
         ctx.beginPath();
@@ -3895,7 +4313,512 @@ var DEFAULTS = {
 }
 
 /***/ }),
-/* 18 */
+/* 20 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.bands = bands;
+
+var _noiseutils = __webpack_require__(1);
+
+var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _palettes = __webpack_require__(2);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
+var _utils = __webpack_require__(0);
+
+var _shapes = __webpack_require__(3);
+
+var _colors = __webpack_require__(4);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+var DEFAULTS = {
+    container: 'body',
+    palette: _palettes2.default.fingerspitzen,
+    addNoise: 0.04,
+    noiseInput: null,
+    dust: false,
+    skew: 1, // normalized skew
+    clear: true
+};
+
+var PI = Math.PI;
+
+// Main function
+function bands(options) {
+    var opts = Object.assign({}, DEFAULTS, options);
+
+    var container = opts.container;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
+    var SCALE = Math.min(cw, ch);
+
+    // Find or create canvas child
+    var el = container.querySelector('canvas');
+    var newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        el.width = cw;
+        el.height = ch;
+    }
+
+    var ctx = el.getContext('2d');
+
+    // util to draw a square and clip following rendering inside
+    function clipSquare(ctx, w, h, color) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, w, h);
+        ctx.fillStyle = color;
+        ctx.closePath();
+        ctx.fill();
+        ctx.clip();
+    }
+
+    // color funcs
+    var randomFill = function randomFill() {
+        return "#" + Math.random().toString(16).slice(2, 8);
+    };
+    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
+
+    // shared colors
+    var bg = getSolidFill();
+
+    // get palette of non-bg colors
+    var contrastPalette = [].concat(opts.palette);
+    contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
+    var fg = getContrastColor();
+
+    // draw
+
+    var count = Math.round((0, _utils.randomInRange)(70, 90));
+    var baseStep = cw / count;
+    var step = 0;
+
+    var _x = 0;
+    var jitter = 0.4;
+
+    ctx.strokeStyle = 'black';
+
+    var _h = void 0;
+    var _y = void 0;
+    var _w = void 0;
+
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, cw, ch);
+
+    // bands
+    for (var i = 0; i <= count; i++) {
+        step = baseStep * (0, _utils.randomInRange)(1 - jitter, 1 + jitter);
+        _x += step;
+
+        // maybe draw a ghosty band in the background
+        if (Math.random() < 0.1) {
+            ctx.fillStyle = '#e7e7e7';
+            ctx.fillRect(_x, 0, step * (0, _utils.randItem)([1, 2, 3, 4]), ch);
+        }
+
+        // set width, height, placement of this colored box
+        _w = step * (0, _utils.randomInRange)(0.8, 1);
+        _h = ch * (0, _utils.randomInRange)(0.2, 0.7);
+        _y = (0, _utils.randomInRange)(0, ch);
+
+        // draw the box
+        if (Math.random() < 0.66) {
+            ctx.beginPath();
+            ctx.fillStyle = getSolidFill();
+            ctx.fillRect(_x - _w, _y - _h / 2, _w, _h);
+        }
+
+        // draw the dividing band
+        ctx.lineWidth = (0, _utils.randomInRange)(0.25, 2);
+        ctx.beginPath();
+        ctx.moveTo(_x, 0);
+        ctx.lineTo(_x, ch);
+        ctx.stroke();
+    }
+
+    // draw cross band
+
+    var m1 = (0, _utils.randomInRange)(-0.2, 0.2); // slope 1
+    var m2 = (0, _utils.randomInRange)(-0.2, 0.2); // slope 2
+
+    var p1 = void 0,
+        h1 = void 0; // box 1 placement and height
+    var p2 = void 0,
+        h2 = void 0;
+
+    p1 = ch * (0, _utils.randomInRange)(0.1, 0.3);
+    h1 = ch * (0, _utils.randomInRange)(0.175, 0.275);
+
+    p2 = ch * (0, _utils.randomInRange)(0.1, 0.3);
+    h2 = ch * (0, _utils.randomInRange)(0.175, 0.275);
+
+    // box 1
+    var box1 = [[0, p1], [cw, p1 + m1 * cw], [cw, p1 + h1 + m1 * cw], [0, p1 + h1]];
+    var box2 = [[0, p2], [cw, p2 + m2 * cw], [cw, p2 + h2 + m2 * cw], [0, p2 + h2]];
+
+    ctx.save();
+    ctx.fillStyle = getContrastColor();
+    ctx.beginPath();
+
+    box1.forEach(function (p, i) {
+        if (i === 0) ctx.moveTo.apply(ctx, _toConsumableArray(p));else ctx.lineTo.apply(ctx, _toConsumableArray(p));
+    });
+
+    box2.forEach(function (p, i) {
+        if (i === 0) ctx.moveTo.apply(ctx, _toConsumableArray(p));else ctx.lineTo.apply(ctx, _toConsumableArray(p));
+    });
+
+    ctx.closePath();
+    ctx.clip();
+
+    // draw color blocks
+    var boxCount = (0, _utils.randItem)([3, 4, 5]);
+    var boxWidth = cw / boxCount;
+    var boxLeft = 0;
+    var boxTop = p1;
+    //let cut = randomInRange(topRange[1], bottomRange[0]);
+    // top set
+    for (var i = 0; i < boxCount; i++) {
+        ctx.beginPath();
+        //ctx.rect(boxLeft, ch * topRange[0], boxLeft + boxWidth, ch * cut);
+        ctx.moveTo(boxLeft, boxTop);
+        ctx.lineTo(boxLeft + boxWidth, boxTop + m1 * boxWidth);
+        ctx.lineTo(boxLeft + boxWidth, h1 + boxTop + m1 * boxWidth);
+        ctx.lineTo(boxLeft, boxTop + h1);
+        ctx.fillStyle = getContrastColor();
+        ctx.fill();
+        boxLeft += boxWidth;
+        boxTop += boxWidth * m1;
+    }
+    // bottom set
+    boxLeft = 0;
+    boxTop = p2;
+    for (var i = 0; i < boxCount; i++) {
+        ctx.beginPath();
+        //ctx.rect(boxLeft, ch * topRange[0], boxLeft + boxWidth, ch * cut);
+        ctx.moveTo(boxLeft, boxTop);
+        ctx.lineTo(boxLeft + boxWidth, boxTop + m2 * boxWidth);
+        ctx.lineTo(boxLeft + boxWidth, h2 + boxTop + m2 * boxWidth);
+        ctx.lineTo(boxLeft, boxTop + h2);
+        ctx.fillStyle = getContrastColor();
+        ctx.fill();
+        boxLeft += boxWidth;
+        boxTop += boxWidth * m2;
+    }
+
+    // unclip
+    ctx.restore();
+
+    // box it in
+    var borderWidth = SCALE / (0, _utils.randomInRange)(30, 50);
+    ctx.lineWidth = borderWidth;
+    ctx.strokeStyle = 'black';
+    ctx.beginPath();
+    ctx.rect(0, 0, cw, ch);
+    ctx.stroke();
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, w / 3);
+        }
+    }
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
+}
+
+/***/ }),
+/* 21 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.field = field;
+
+var _noiseutils = __webpack_require__(1);
+
+var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _palettes = __webpack_require__(2);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
+var _utils = __webpack_require__(0);
+
+var _shapes = __webpack_require__(3);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var DEFAULTS = {
+    container: 'body',
+    palette: _palettes2.default.de_stijl,
+    addNoise: 0.04,
+    noiseInput: null,
+    dust: false,
+    skew: 1, // normalized skew
+    clear: true,
+    lightMode: 'auto', // [auto, bloom, normal]
+    gridMode: 'auto' // [auto, coarse, fine]
+};
+
+var PI = Math.PI;
+var LIGHTMODES = ['bloom', 'normal'];
+var GRIDMODES = ['coarse', 'fine'];
+
+// Main function
+function field(options) {
+    var opts = Object.assign({}, DEFAULTS, options);
+
+    var container = opts.container;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
+    var SCALE = Math.min(cw, ch);
+
+    // Find or create canvas child
+    var el = container.querySelector('canvas');
+    var newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        el.width = cw;
+        el.height = ch;
+    }
+
+    var ctx = el.getContext('2d');
+
+    // modes and styles
+    var LIGHTMODE = opts.lightMode === 'auto' ? (0, _utils.randItem)(LIGHTMODES) : opts.lightMode;
+    var GRIDMODE = opts.gridMode === 'auto' ? (0, _utils.randItem)(GRIDMODES) : opts.gridMode;
+
+    // color funcs
+    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
+
+    // how many cells are in the grid?
+    var countMin = void 0,
+        countMax = void 0;
+    if (GRIDMODE === 'coarse') {
+        countMin = 8;
+        countMax = 20;
+    } else {
+        countMin = 30;
+        countMax = 100;
+    }
+
+    // define grid
+    var count = Math.round((0, _utils.randomInRange)(countMin, countMax));
+    var w = Math.ceil(cw / count);
+    var h = w;
+    var vcount = Math.ceil(ch / h);
+
+    // setup vars for each cell
+    var x = 0;
+    var y = 0;
+    var xnorm = 0;
+    var ynorm = 0;
+    var renderer = void 0;
+
+    // play with these random seeds
+    var a = void 0,
+        b = void 0,
+        c = void 0;
+    a = Math.random();
+    b = Math.random();
+    c = Math.random();
+
+    // shared colors
+    var bg = getSolidFill();
+
+    // get palette of non-bg colors
+    var contrastPalette = [].concat(opts.palette);
+    contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
+
+    // shared foregrounds
+    var fg = getContrastColor();
+    var fg2 = getContrastColor();
+
+    // in bloom mode, we draw high-contrast grayscale, and layer
+    // palette colors on top
+    if (LIGHTMODE === 'bloom') {
+        bg = '#222222';
+        fg = fg2 = '#cccccc';
+    }
+
+    // draw background
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, cw, ch);
+
+    ctx.strokeStyle = fg;
+
+    var rateMax = 0.5;
+    if (GRIDMODE === 'fine' && Math.random() < 0.5) {
+        rateMax = 5;
+    }
+
+    // rate is the number of sin waves across the grid
+    var xrate = (0, _utils.randomInRange)(0, rateMax);
+    var yrate = (0, _utils.randomInRange)(0, rateMax);
+    // set phase offset
+    var xphase = (0, _utils.randomInRange)(-PI, PI);
+    var yphase = (0, _utils.randomInRange)(-PI, PI);
+
+    var _x = void 0,
+        _y = void 0,
+        len = void 0;
+    var dotScale = (0, _utils.randomInRange)(5, 15);
+    var weight = (0, _utils.randomInRange)(1, 3);
+
+    ctx.lineWidth = weight;
+    ctx.lineCap = 'round';
+
+    // const used in normalizing transforms
+    var maxLen = 2 * Math.sqrt(2);
+
+    // it looks nice to extend lines beyond their cells. how much?
+    var lineScale = (0, _utils.randomInRange)(0.75, count / 10) / maxLen; // long lines from count
+
+    // set of functions to transform opacity across grid
+    var opacityTransforms = [function () {
+        return 1;
+    }, function (_x, _y) {
+        return Math.abs(_y / _x) / maxLen;
+    }, function (_x, _y) {
+        return 1 - Math.abs(_y / _x) / maxLen;
+    }, function (_x, _y) {
+        return Math.abs(_x / _y);
+    }, // hides verticals
+    function (_x, _y) {
+        return Math.abs(_y / _x);
+    }, // hides horizontals
+    function (_x, _y) {
+        return _x / _y;
+    }, function (_x, _y) {
+        return _y / _x;
+    }, function (_x, _y) {
+        return _y - _x;
+    }, function (_x, _y) {
+        return _x - _y;
+    }];
+    // now pick one
+    var opacityFunc = (0, _utils.randItem)(opacityTransforms);
+
+    // main loop
+    for (var i = 0; i < count; i++) {
+        for (var j = 0; j < vcount; j++) {
+            x = w * (i + 1 / 2);
+            y = h * (j + 1 / 2);
+            xnorm = x / cw;
+            ynorm = y / ch;
+
+            _x = Math.sin(xnorm * PI * xrate + xphase) + Math.sin(ynorm * PI * xrate + xphase);
+            _y = Math.sin(ynorm * PI * yrate + yphase) + Math.sin(xnorm * PI * yrate + yphase);
+            len = Math.sqrt(_x * _x + _y * _y);
+
+            ctx.globalAlpha = 1;
+            (0, _shapes.drawCircle)(ctx, x, y, (maxLen - len) * w / dotScale, { fill: fg2 });
+
+            ctx.globalAlpha = opacityFunc(_x, _y);
+
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + w * _x * lineScale, y + h * _y * lineScale);
+            ctx.stroke();
+        }
+    }
+
+    ctx.globalAlpha = 1;
+
+    // in bloom mode, we draw a big colorful gradient over the grayscale
+    // background, using palette colors and nice blend modes
+    if (LIGHTMODE === 'bloom') {
+        ctx.globalCompositeOperation = 'color-dodge';
+
+        // bloom with linear gradient
+        ctx.fillStyle = (0, _utils.getGradientFunction)(opts.palette)(ctx, cw, ch); //getContrastColor();
+        ctx.fillRect(0, 0, cw, ch);
+
+        if (Math.random() < 0.5) {
+            // bloom with spot lights
+            var dodgeDot = function dodgeDot() {
+                var max = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1.5;
+
+                var gx = void 0,
+                    gy = void 0,
+                    gr1 = void 0,
+                    gr2 = void 0;
+                gx = (0, _utils.randomInRange)(0, cw);
+                gy = (0, _utils.randomInRange)(0, ch);
+                gr1 = (0, _utils.randomInRange)(0, 0.25);
+                gr2 = (0, _utils.randomInRange)(gr1, max);
+
+                var radial = ctx.createRadialGradient(gx, gy, gr1 * SCALE, gx, gy, gr2 * SCALE);
+                radial.addColorStop(0, (0, _utils.randItem)(opts.palette));
+                radial.addColorStop(1, '#000000');
+
+                ctx.fillStyle = radial;
+                ctx.fillRect(0, 0, cw, ch);
+            };
+            // try layering dots with varying coverage
+            ctx.globalAlpha = (0, _utils.randomInRange)(0.4, 0.7);
+            dodgeDot(1.5);
+            ctx.globalAlpha = (0, _utils.randomInRange)(0.4, 0.7);
+            dodgeDot(1.0);
+            ctx.globalAlpha = (0, _utils.randomInRange)(0.7, 0.9);
+            dodgeDot(0.5);
+            ctx.globalAlpha = 1;
+        }
+
+        ctx.globalCompositeOperation = 'normal';
+    }
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            // apply noise from supplied canvas
+            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            // create noise pattern and apply
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, w / 3);
+        }
+    }
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
+}
+
+/***/ }),
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3910,9 +4833,11 @@ var _noiseutils = __webpack_require__(1);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
+var _palettes = __webpack_require__(2);
+
 var _utils = __webpack_require__(0);
 
-var _shapes = __webpack_require__(2);
+var _shapes = __webpack_require__(3);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3920,7 +4845,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
 var DEFAULTS = {
     container: 'body',
-    palette: ['#F8ADAA', '#F8E3AC', '#111111', '#ffffff', '#94552C'],
+    palette: _palettes.blush,
     drawGrid: 'auto', // [true, false, 'auto']
     addNoise: false, //0.04,
     noiseInput: null,
