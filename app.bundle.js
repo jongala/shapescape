@@ -726,7 +726,9 @@ function loadOpts(opts, fast) {
     Renderer(visualOpts);
     // set up main download link
     var a = document.getElementById('downloadExample');
-    a.onclick = doDownload(a, document.querySelector('#example canvas'));
+    a.onclick = function () {
+        doDownload(a, document.querySelector('#example canvas'));
+    };
 }
 
 // Handlers for redraw, batching, and manual saving
@@ -756,15 +758,39 @@ document.addEventListener('keydown', function (e) {
 // URL encoded pixel data will be extracted from @el and downloaded
 // upon click.
 function doDownload(anchor, el) {
+    function filename() {
+        var f = rendererName + '-' + new Date().toISOString().replace(/[-:]/g, '').replace('T', '-').replace(/\.\w+/, '');
+        return f;
+    }
+
     if (el.nodeName === 'IMG') {
         anchor.href = el.src;
+        anchor.onclick = function () {
+            anchor.onclick = function () {};
+            setTimeout(function () {
+                window.URL.revokeObjectURL(blob);
+                anchor.removeAttribute('href');
+            });
+        };
+        anchor.click();
     } else if (el.nodeName === 'CANVAS') {
-        anchor.href = el.toDataURL('image/png');
+        el.toBlob(function (blob) {
+            // from https://github.com/mattdesl/canvas-sketch/blob/master/lib/save.js
+            anchor.download = filename();
+            anchor.href = window.URL.createObjectURL(blob);
+            anchor.onclick = function () {
+                anchor.onclick = function () {};
+                setTimeout(function () {
+                    window.URL.revokeObjectURL(blob);
+                    anchor.removeAttribute('href');
+                });
+            };
+            anchor.click();
+        }, 'image/png');
     } else {
         return;
     }
-    anchor.download = rendererName + '-' + new Date().toISOString().replace(/[-:]/g, '').replace('T', '-').replace(/\.\w+/, '');
-    anchor.target = '_blank';
+
     return false;
 }
 
@@ -774,24 +800,32 @@ function doDownload(anchor, el) {
 // Wrap it in an <a> with a download handler,
 // Append it to @container
 function renderCanvasToImg(canvas, container) {
-    var pixels = canvas.toDataURL('image/png');
 
-    var image = document.createElement('img');
-    image.src = pixels;
+    // 12/21/19
+    // new approach for large images:
+    // get blob: canvas.toBlob
+    // then create ObjectURL
 
-    var anchor = document.createElement('a');
-    anchor.innerHTML = '↓';
-    anchor.onclick = function () {
-        doDownload(anchor, image);
-    };
+    canvas.toBlob(function (blob) {
 
-    var wrapper = document.createElement('div');
-    wrapper.className = 'downloader';
+        var image = document.createElement('img');
+        image.src = window.URL.createObjectURL(blob);
 
-    wrapper.appendChild(image);
-    wrapper.appendChild(anchor);
+        var anchor = document.createElement('a');
+        anchor.innerHTML = '↓';
+        anchor.target = '_blank';
+        anchor.onclick = function () {
+            doDownload(anchor, image);
+        };
 
-    container.appendChild(wrapper);
+        var wrapper = document.createElement('div');
+        wrapper.className = 'downloader';
+
+        wrapper.appendChild(image);
+        wrapper.appendChild(anchor);
+
+        container.appendChild(wrapper);
+    }, 'image/png');
 }
 
 // Create @N new renderings drawn with @opts inputs
@@ -4695,7 +4729,7 @@ function field(options) {
         _y = void 0,
         len = void 0;
     var dotScale = (0, _utils.randomInRange)(5, 15);
-    var weight = (0, _utils.randomInRange)(1, 3);
+    var weight = (0, _utils.randomInRange)(1, 3) * SCALE / 800;
 
     ctx.lineWidth = weight;
     ctx.lineCap = 'round';
