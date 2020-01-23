@@ -133,7 +133,7 @@ export function field(options) {
 
     // Displace the center point of each cell by this factor
     // Only do this sometimes
-    let warp = 0;// (Math.random() < 0.5) ? 0 : randomInRange(-1.4, 1.4);
+    let warp = (Math.random() < 0.5) ? 0 : randomInRange(0, Math.sqrt(2));
 
     // set of functions to transform opacity across grid
     const opacityTransforms = [
