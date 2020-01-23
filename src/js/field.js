@@ -129,6 +129,10 @@ export function field(options) {
     // it looks nice to extend lines beyond their cells. how much?
     let lineScale = randomInRange(0.75, count / 10)/maxLen; // long lines from count
 
+    // Displace the center point of each cell by this factor
+    // Only do this sometimes
+    let warp = (Math.random() < 0.5) ? 0 : randomInRange(-1.4, 1.4);
+
     // set of functions to transform opacity across grid
     const opacityTransforms = [
         () => 1,
@@ -156,8 +160,17 @@ export function field(options) {
             _y = (Math.sin(ynorm * PI * yrate + yphase) + Math.sin(xnorm * PI * yrate + yphase) );
             len = Math.sqrt(_x * _x + _y * _y);
 
+            // shift base points to their warped coordinates
+            x = x + w * _x * warp;
+            y = y + h * _y * warp,
+
             ctx.globalAlpha = 1;
-            drawCircle(ctx, x, y, (maxLen-len) * w/dotScale, {fill: fg2});
+            drawCircle(ctx,
+                x,
+                y,
+                (maxLen-len) * w/dotScale,
+                {fill: fg2}
+            );
 
             ctx.globalAlpha = opacityFunc(_x, _y);
 
