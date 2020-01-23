@@ -93,7 +93,7 @@ function loadOpts(opts, fast) {
     Renderer(visualOpts);
     // set up main download link
     let a = document.getElementById('downloadExample');
-    a.onclick = ()=>{doDownload(a, document.querySelector('#example canvas'))};
+    a.onclick = ()=>{return doDownload(a, document.querySelector('#example canvas'))};
 }
 
 // Handlers for redraw, batching, and manual saving
@@ -158,12 +158,7 @@ function doDownload(anchor, el) {
             };
             anchor.click();
         }, 'image/png');
-    } else {
-        return;
     }
-
-
-
 
     return false;
 }
@@ -190,7 +185,7 @@ function renderCanvasToImg(canvas, container) {
         anchor.innerHTML = '↓';
         anchor.target = '_blank';
         anchor.onclick = function() {
-            doDownload(anchor, image);
+            return doDownload(anchor, image);
         };
 
         var wrapper = document.createElement('div');
@@ -304,7 +299,7 @@ function previewImage(el) {
     // which does not come with the cloned element
     let anchor = document.querySelector('#preview .downloader a');
     let image =  document.querySelector('#preview .downloader img');
-    anchor.onclick = function(){doDownload(anchor, image)};
+    anchor.onclick = function(){return doDownload(anchor, image)};
 }
 
 function removePreview() {
