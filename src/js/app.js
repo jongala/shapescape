@@ -134,6 +134,8 @@ function doDownload(anchor, el) {
         return f;
     }
 
+    anchor.download = filename();
+
     if (el.nodeName === 'IMG') {
         anchor.href = el.src;
         anchor.onclick = () => {
@@ -147,7 +149,6 @@ function doDownload(anchor, el) {
     } else if (el.nodeName === 'CANVAS') {
         el.toBlob((blob)=>{
             // from https://github.com/mattdesl/canvas-sketch/blob/master/lib/save.js
-            anchor.download = filename();
             anchor.href = window.URL.createObjectURL(blob);
             anchor.onclick = () => {
                 anchor.onclick = ()=>{};
@@ -165,19 +166,12 @@ function doDownload(anchor, el) {
 
 // Util:
 // Create an <img> element,
-// Fill it with PNG DataURL from @canvas,
+// Fill it with PNG ObjectURL blob from @canvas,
 // Wrap it in an <a> with a download handler,
-// Append it to @container
+// Append it to @container.
+// The doDownload handler will revoke the URL.
 function renderCanvasToImg(canvas, container) {
-
-    // 12/21/19
-    // new approach for large images:
-    // get blob: canvas.toBlob
-    // then create ObjectURL
-
     canvas.toBlob((blob)=>{
-
-
         var image = document.createElement('img');
         image.src = window.URL.createObjectURL(blob);
 
@@ -195,7 +189,6 @@ function renderCanvasToImg(canvas, container) {
         wrapper.appendChild(anchor);
 
         container.appendChild(wrapper);
-
     },'image/png');
 }
 
@@ -218,8 +211,6 @@ function createBatch(opts, N) {
             renderCanvasToImg(canvas, container);
         });
     }
-
-
 }
 window.createBatch = createBatch;
 
