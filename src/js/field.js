@@ -117,7 +117,9 @@ export function field(options) {
     let yphase = randomInRange(-PI, PI);
 
     let _x,_y,len;
-    let dotScale = randomInRange(5, 15);
+    // dotScale will be multiplied by 2. Keep below .25 to avoid bleed.
+    // Up to 0.5 will lead to full coverage.
+    let dotScale = w * randomInRange(0.025, 0.5);
     let weight = randomInRange(1, 3) * SCALE/800;
 
     ctx.lineWidth = weight;
@@ -127,11 +129,11 @@ export function field(options) {
     let maxLen = 2 * Math.sqrt(2);
 
     // it looks nice to extend lines beyond their cells. how much?
-    let lineScale = randomInRange(0.75, count / 10)/maxLen; // long lines from count
+    let lineScale = Math.sqrt(2) * randomInRange(0.75, count / 10)/maxLen; // long lines from count
 
     // Displace the center point of each cell by this factor
     // Only do this sometimes
-    let warp = (Math.random() < 0.5) ? 0 : randomInRange(-1.4, 1.4);
+    let warp = 0;// (Math.random() < 0.5) ? 0 : randomInRange(-1.4, 1.4);
 
     // set of functions to transform opacity across grid
     const opacityTransforms = [
@@ -148,6 +150,24 @@ export function field(options) {
     // now pick one
     let opacityFunc = randItem(opacityTransforms);
 
+    function createTransform () {
+        let rate = randomInRange(0, rateMax);
+        let phase = randomInRange(-PI, PI);
+        return (x, y) => {
+            let t1 = Math.sin(x * PI * rate + phase);
+            let t2 = Math.sin(y * PI * rate + phase);
+            return (t1 + t2)/2;
+        }
+    }
+
+    let trans = {
+        xbase: createTransform(),
+        ybase: createTransform(),
+        xtail: createTransform(),
+        ytail: createTransform(),
+        radius: createTransform()
+    }
+
     // main loop
     for (var i = 0 ; i < count ; i++) {
         for (var j = 0 ; j < vcount ; j++) {
@@ -156,19 +176,19 @@ export function field(options) {
             xnorm = x/cw;
             ynorm = y/ch;
 
-            _x = (Math.sin(xnorm * PI * xrate + xphase) + Math.sin(ynorm * PI * xrate + xphase) );
-            _y = (Math.sin(ynorm * PI * yrate + yphase) + Math.sin(xnorm * PI * yrate + yphase) );
+            _x = trans.xtail(xnorm, ynorm);
+            _y = trans.ytail(xnorm, ynorm);
             len = Math.sqrt(_x * _x + _y * _y);
 
             // shift base points to their warped coordinates
-            x = x + w * _x * warp;
-            y = y + h * _y * warp,
+            x = x + w * trans.xbase(xnorm, ynorm) * warp;
+            y = y + h * trans.ybase(xnorm, ynorm) * warp,
 
             ctx.globalAlpha = 1;
             drawCircle(ctx,
                 x,
                 y,
-                (maxLen-len) * w/dotScale,
+                (trans.radius(xnorm, ynorm) + 1) * dotScale,
                 {fill: fg2}
             );
 
