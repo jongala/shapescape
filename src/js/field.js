@@ -65,6 +65,9 @@ export function field(options) {
     let w = Math.ceil(cw/count);
     let h = w;
     let vcount = Math.ceil(ch/h);
+    // add extra rows and columns for overprint when warping the grid
+    count += 2;
+    vcount += 2;
 
     // setup vars for each cell
     let x = 0;
@@ -175,8 +178,8 @@ export function field(options) {
     }
 
     // main loop
-    for (var i = 0 ; i < count ; i++) {
-        for (var j = 0 ; j < vcount ; j++) {
+    for (var i = -1 ; i < count ; i++) {
+        for (var j = -1 ; j < vcount ; j++) {
             x = w * (i + 1/2);
             y = h * (j + 1/2);
             xnorm = x/cw;
