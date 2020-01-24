@@ -727,7 +727,7 @@ function loadOpts(opts, fast) {
     // set up main download link
     var a = document.getElementById('downloadExample');
     a.onclick = function () {
-        doDownload(a, document.querySelector('#example canvas'));
+        return doDownload(a, document.querySelector('#example canvas'));
     };
 }
 
@@ -763,6 +763,8 @@ function doDownload(anchor, el) {
         return f;
     }
 
+    anchor.download = filename();
+
     if (el.nodeName === 'IMG') {
         anchor.href = el.src;
         anchor.onclick = function () {
@@ -776,7 +778,6 @@ function doDownload(anchor, el) {
     } else if (el.nodeName === 'CANVAS') {
         el.toBlob(function (blob) {
             // from https://github.com/mattdesl/canvas-sketch/blob/master/lib/save.js
-            anchor.download = filename();
             anchor.href = window.URL.createObjectURL(blob);
             anchor.onclick = function () {
                 anchor.onclick = function () {};
@@ -787,8 +788,6 @@ function doDownload(anchor, el) {
             };
             anchor.click();
         }, 'image/png');
-    } else {
-        return;
     }
 
     return false;
@@ -796,18 +795,12 @@ function doDownload(anchor, el) {
 
 // Util:
 // Create an <img> element,
-// Fill it with PNG DataURL from @canvas,
+// Fill it with PNG ObjectURL blob from @canvas,
 // Wrap it in an <a> with a download handler,
-// Append it to @container
+// Append it to @container.
+// The doDownload handler will revoke the URL.
 function renderCanvasToImg(canvas, container) {
-
-    // 12/21/19
-    // new approach for large images:
-    // get blob: canvas.toBlob
-    // then create ObjectURL
-
     canvas.toBlob(function (blob) {
-
         var image = document.createElement('img');
         image.src = window.URL.createObjectURL(blob);
 
@@ -815,7 +808,7 @@ function renderCanvasToImg(canvas, container) {
         anchor.innerHTML = '↓';
         anchor.target = '_blank';
         anchor.onclick = function () {
-            doDownload(anchor, image);
+            return doDownload(anchor, image);
         };
 
         var wrapper = document.createElement('div');
@@ -927,7 +920,7 @@ function previewImage(el) {
     var anchor = document.querySelector('#preview .downloader a');
     var image = document.querySelector('#preview .downloader img');
     anchor.onclick = function () {
-        doDownload(anchor, image);
+        return doDownload(anchor, image);
     };
 }
 
@@ -4672,6 +4665,9 @@ function field(options) {
     var w = Math.ceil(cw / count);
     var h = w;
     var vcount = Math.ceil(ch / h);
+    // add extra rows and columns for overprint when warping the grid
+    count += 2;
+    vcount += 2;
 
     // setup vars for each cell
     var x = 0;
@@ -4728,7 +4724,9 @@ function field(options) {
     var _x = void 0,
         _y = void 0,
         len = void 0;
-    var dotScale = (0, _utils.randomInRange)(5, 15);
+    // dotScale will be multiplied by 2. Keep below .25 to avoid bleed.
+    // Up to 0.5 will lead to full coverage.
+    var dotScale = w * (0, _utils.randomInRange)(0.025, 0.25);
     var weight = (0, _utils.randomInRange)(1, 3) * SCALE / 800;
 
     ctx.lineWidth = weight;
@@ -4738,7 +4736,11 @@ function field(options) {
     var maxLen = 2 * Math.sqrt(2);
 
     // it looks nice to extend lines beyond their cells. how much?
-    var lineScale = (0, _utils.randomInRange)(0.75, count / 10) / maxLen; // long lines from count
+    var lineScale = Math.sqrt(2) * (0, _utils.randomInRange)(0.75, count / 10) / maxLen; // long lines from count
+
+    // Displace the center point of each cell by this factor
+    // Only do this sometimes
+    var warp = Math.random() < 0.5 ? 0 : (0, _utils.randomInRange)(0, Math.sqrt(2));
 
     // set of functions to transform opacity across grid
     var opacityTransforms = [function () {
@@ -4765,20 +4767,45 @@ function field(options) {
     // now pick one
     var opacityFunc = (0, _utils.randItem)(opacityTransforms);
 
-    // main loop
-    for (var i = 0; i < count; i++) {
-        for (var j = 0; j < vcount; j++) {
+    // Create a function which is a periodic transform of x, y
+    function createTransform() {
+        var rate1 = (0, _utils.randomInRange)(0, rateMax);
+        var rate2 = (0, _utils.randomInRange)(0, rateMax);
+        var phase1 = (0, _utils.randomInRange)(-PI, PI);
+        var phase2 = (0, _utils.randomInRange)(-PI, PI);
+        var c1 = (0, _utils.randomInRange)(0, 1);
+        var c2 = (0, _utils.randomInRange)(0, 1);
+        return function (x, y) {
+            var t1 = Math.sin(x * PI * rate1 + phase1);
+            var t2 = Math.sin(y * PI * rate2 + phase2);
+            return (c1 * t1 + c2 * t2) / (c1 + c2);
+        };
+    }
+
+    // a set of independent transforms to use while rendering
+    var trans = {
+        xbase: createTransform(),
+        ybase: createTransform(),
+        xtail: createTransform(),
+        ytail: createTransform(),
+        radius: createTransform()
+
+        // main loop
+    };for (var i = -1; i < count; i++) {
+        for (var j = -1; j < vcount; j++) {
             x = w * (i + 1 / 2);
             y = h * (j + 1 / 2);
             xnorm = x / cw;
             ynorm = y / ch;
 
-            _x = Math.sin(xnorm * PI * xrate + xphase) + Math.sin(ynorm * PI * xrate + xphase);
-            _y = Math.sin(ynorm * PI * yrate + yphase) + Math.sin(xnorm * PI * yrate + yphase);
+            _x = trans.xtail(xnorm, ynorm);
+            _y = trans.ytail(xnorm, ynorm);
             len = Math.sqrt(_x * _x + _y * _y);
 
-            ctx.globalAlpha = 1;
-            (0, _shapes.drawCircle)(ctx, x, y, (maxLen - len) * w / dotScale, { fill: fg2 });
+            // shift base points to their warped coordinates
+            x = x + w * trans.xbase(xnorm, ynorm) * warp;
+            y = y + h * trans.ybase(xnorm, ynorm) * warp, ctx.globalAlpha = 1;
+            (0, _shapes.drawCircle)(ctx, x, y, (trans.radius(xnorm, ynorm) + 1) * dotScale, { fill: fg2 });
 
             ctx.globalAlpha = opacityFunc(_x, _y);
 
