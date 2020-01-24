@@ -119,7 +119,7 @@ export function field(options) {
     let _x,_y,len;
     // dotScale will be multiplied by 2. Keep below .25 to avoid bleed.
     // Up to 0.5 will lead to full coverage.
-    let dotScale = w * randomInRange(0.025, 0.5);
+    let dotScale = w * randomInRange(0.025, 0.25);
     let weight = randomInRange(1, 3) * SCALE/800;
 
     ctx.lineWidth = weight;
@@ -150,16 +150,22 @@ export function field(options) {
     // now pick one
     let opacityFunc = randItem(opacityTransforms);
 
+    // Create a function which is a periodic transform of x, y
     function createTransform () {
-        let rate = randomInRange(0, rateMax);
-        let phase = randomInRange(-PI, PI);
+        let rate1 = randomInRange(0, rateMax);
+        let rate2 = randomInRange(0, rateMax);
+        let phase1 = randomInRange(-PI, PI);
+        let phase2 = randomInRange(-PI, PI);
+        let c1 = randomInRange(0, 1);
+        let c2 = randomInRange(0, 1);
         return (x, y) => {
-            let t1 = Math.sin(x * PI * rate + phase);
-            let t2 = Math.sin(y * PI * rate + phase);
-            return (t1 + t2)/2;
+            let t1 = Math.sin(x * PI * rate1 + phase1);
+            let t2 = Math.sin(y * PI * rate2 + phase2);
+            return (c1 * t1 + c2 * t2)/(c1 + c2);
         }
     }
 
+    // a set of independent transforms to use while rendering
     let trans = {
         xbase: createTransform(),
         ybase: createTransform(),
