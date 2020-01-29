@@ -132,7 +132,7 @@ export function field(options) {
     let maxLen = 2 * Math.sqrt(2);
 
     // it looks nice to extend lines beyond their cells. how much?
-    let lineScale = Math.sqrt(2) * randomInRange(0.75, count / 10)/maxLen; // long lines from count
+    let lineScale = randomInRange(0.5, count / 20); // long lines from count
 
     // Displace the center point of each cell by this factor
     // Only do this sometimes
