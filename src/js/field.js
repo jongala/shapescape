@@ -1,5 +1,6 @@
 import noiseUtils from './noiseutils';
 import palettes from './palettes';
+import hexScatter from './hexScatter';
 import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
@@ -11,13 +12,15 @@ const DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     clear: true,
-    lightMode: 'auto', // [auto, bloom, normal]
-    gridMode: 'auto', // [auto, coarse, fine]
+    lightMode: 'normal', // [auto, bloom, normal]
+    gridMode: 'auto', // [auto, normal, scatter, random]
+    density: 'auto', // [auto, coarse, fine]
 }
 
 const PI = Math.PI;
 const LIGHTMODES = ['bloom', 'normal'];
-const GRIDMODES = ['coarse', 'fine'];
+const GRIDMODES = ['normal', 'scatter', 'random'];
+const DENSITIES = ['coarse', 'fine'];
 
 // Main function
 export function field(options) {
@@ -27,6 +30,8 @@ export function field(options) {
     let cw = container.offsetWidth;
     let ch = container.offsetHeight;
     let SCALE = Math.min(cw, ch);
+    let LONG = Math.max(cw, ch);
+    let SHORT = Math.min(cw, ch);
     const AREA = cw * ch;
 
     // Find or create canvas child
@@ -47,13 +52,15 @@ export function field(options) {
     // modes and styles
     const LIGHTMODE = opts.lightMode === 'auto' ? randItem(LIGHTMODES) : opts.lightMode;
     const GRIDMODE = opts.gridMode === 'auto' ? randItem(GRIDMODES) : opts.gridMode;
+    const DENSITY = opts.density === 'auto' ? randItem(DENSITIES) : opts.density;
 
     // color funcs
     let getSolidFill = getSolidColorFunction(opts.palette);
 
     // how many cells are in the grid?
     let countMin, countMax;
-    if (GRIDMODE === 'coarse') {
+    let cellSize;
+    if (DENSITY === 'coarse') {
         countMin = AREA/10000;
         countMax = AREA/1000;
     } else {
@@ -110,7 +117,7 @@ export function field(options) {
     ctx.strokeStyle = fg;
 
     let rateMax = 0.5;
-    if (GRIDMODE === 'fine' && Math.random() < 0.5) {
+    if (DENSITY === 'fine' && Math.random() < 0.5) {
         rateMax = 5;
     }
 
@@ -181,12 +188,44 @@ export function field(options) {
         radius: createTransform()
     }
 
+    function randomScatter(count, w, h) {
+        let p = [];
+        while (count--) {
+            p.push([randomInRange(0, w), randomInRange(0, h)]);
+        }
+        return p;
+    }
+
+    function placeNormal(size, w, h) {
+        let pts = [];
+        let xcount = Math.ceil(w / size);
+        let ycount = Math.ceil(h / size);
+        let count = xcount * ycount;
+        let x,y;
+        for (var i = 0 ; i < count ; i++) {
+            x = size * (i % xcount) + size / 2;
+            y = size * Math.floor(i/ycount) + size / 2;
+            pts.push([x, y]);
+        }
+        return pts;
+    }
 
     let pts = [];
-    // create points with random coords
-    while (count--) {
-        pts.push([randomInRange(0, cw), randomInRange(0, ch)]);
+    console.log(GRIDMODE);
+
+    switch (GRIDMODE) {
+        case 'scatter':
+            //pts = hexScatter(Math.round(SCALE/randomInRange(60,120)), cw, ch);
+            pts = hexScatter(20, cw, ch);
+            break;
+        case 'random':
+            pts = randomScatter(count, cw, ch);
+            break;
+        default:
+            pts = placeNormal(20, cw, ch);
     }
+
+
     // step thru points
     pts.forEach((p, i) => {
         x = p[0];
