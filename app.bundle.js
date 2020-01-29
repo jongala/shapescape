@@ -4709,8 +4709,9 @@ function field(options) {
 
     ctx.strokeStyle = fg;
 
-    var rateMax = 0.5;
+    var rateMax = 0.5; // generally show partial sin cycles
     if (GRIDMODE === 'fine' && Math.random() < 0.5) {
+        // with many points, sometimes show many cycles
         rateMax = 5;
     }
 
@@ -4736,11 +4737,14 @@ function field(options) {
     var maxLen = 2 * Math.sqrt(2);
 
     // it looks nice to extend lines beyond their cells. how much?
-    var lineScale = Math.sqrt(2) * (0, _utils.randomInRange)(0.75, count / 10) / maxLen; // long lines from count
+    var lineScale = (0, _utils.randomInRange)(0.5, count / 20); // long lines from count
 
     // Displace the center point of each cell by this factor
     // Only do this sometimes
     var warp = Math.random() < 0.5 ? 0 : (0, _utils.randomInRange)(0, Math.sqrt(2));
+
+    // add random jitter to base point placement, sometimes
+    var jitter = Math.random() < 0.5 ? 1 : 0;
 
     // set of functions to transform opacity across grid
     var opacityTransforms = [function () {
@@ -4804,7 +4808,13 @@ function field(options) {
 
             // shift base points to their warped coordinates
             x = x + w * trans.xbase(xnorm, ynorm) * warp;
-            y = y + h * trans.ybase(xnorm, ynorm) * warp, ctx.globalAlpha = 1;
+            y = y + h * trans.ybase(xnorm, ynorm) * warp,
+
+            // shift with jitter
+            x = x + w * jitter * (0, _utils.randomInRange)(-1, 1);
+            y = y + h * jitter * (0, _utils.randomInRange)(-1, 1);
+
+            ctx.globalAlpha = 1;
             (0, _shapes.drawCircle)(ctx, x, y, (trans.radius(xnorm, ynorm) + 1) * dotScale, { fill: fg2 });
 
             ctx.globalAlpha = opacityFunc(_x, _y);
