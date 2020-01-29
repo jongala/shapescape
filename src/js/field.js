@@ -85,12 +85,6 @@ export function field(options) {
     let ynorm = 0;
     let renderer;
 
-    // play with these random seeds
-    let a,b,c;
-    a = Math.random();
-    b = Math.random();
-    c = Math.random();
-
     // shared colors
     let bg = getSolidFill();
 
@@ -188,12 +182,15 @@ export function field(options) {
         radius: createTransform()
     }
 
-    function randomScatter(count, w, h) {
-        let p = [];
+    function randomScatter(size, w, h) {
+        let pts = [];
+        let xcount = Math.ceil(w / size);
+        let ycount = Math.ceil(h / size);
+        let count = xcount * ycount;
         while (count--) {
-            p.push([randomInRange(0, w), randomInRange(0, h)]);
+            pts.push([randomInRange(0, w), randomInRange(0, h)]);
         }
-        return p;
+        return pts;
     }
 
     function placeNormal(size, w, h) {
@@ -219,7 +216,7 @@ export function field(options) {
             pts = hexScatter(20, cw, ch);
             break;
         case 'random':
-            pts = randomScatter(count, cw, ch);
+            pts = randomScatter(20, cw, ch);
             break;
         default:
             pts = placeNormal(20, cw, ch);
