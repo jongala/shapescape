@@ -107,8 +107,9 @@ export function field(options) {
 
     ctx.strokeStyle = fg;
 
-    let rateMax = 0.5;
+    let rateMax = 0.5; // generally show partial sin cycles
     if (GRIDMODE === 'fine' && Math.random() < 0.5) {
+        // with many points, sometimes show many cycles
         rateMax = 5;
     }
 
@@ -137,6 +138,9 @@ export function field(options) {
     // Displace the center point of each cell by this factor
     // Only do this sometimes
     let warp = (Math.random() < 0.5) ? 0 : randomInRange(0, Math.sqrt(2));
+
+    // add random jitter to base point placement, sometimes
+    let jitter = (Math.random() < 0.5) ? 1 : 0;
 
     // set of functions to transform opacity across grid
     const opacityTransforms = [
@@ -192,6 +196,10 @@ export function field(options) {
             // shift base points to their warped coordinates
             x = x + w * trans.xbase(xnorm, ynorm) * warp;
             y = y + h * trans.ybase(xnorm, ynorm) * warp,
+
+            // shift with jitter
+            x = x + w * jitter * randomInRange(-1, 1);
+            y = y + h * jitter * randomInRange(-1, 1);
 
             ctx.globalAlpha = 1;
             drawCircle(ctx,
