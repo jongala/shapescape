@@ -27,6 +27,7 @@ export function field(options) {
     let cw = container.offsetWidth;
     let ch = container.offsetHeight;
     let SCALE = Math.min(cw, ch);
+    const AREA = cw * ch;
 
     // Find or create canvas child
     let el = container.querySelector('canvas');
@@ -53,15 +54,16 @@ export function field(options) {
     // how many cells are in the grid?
     let countMin, countMax;
     if (GRIDMODE === 'coarse') {
-        countMin = 8;
-        countMax = 20;
+        countMin = AREA/10000;
+        countMax = AREA/1000;
     } else {
-        countMin = 30;
-        countMax = 100;
+        countMin = AREA/1000;
+        countMax = AREA/100;
     }
 
-    // define grid
-    let count = Math.round(randomInRange(countMin , countMax));
+    // pick points based on area
+    
+    let count = Math.round(randomInRange( countMin, countMax));
     let w = Math.ceil(cw/count);
     let h = w;
     let vcount = Math.ceil(ch/h);
@@ -122,8 +124,8 @@ export function field(options) {
     let _x,_y,len;
     // dotScale will be multiplied by 2. Keep below .25 to avoid bleed.
     // Up to 0.5 will lead to full coverage.
-    let dotScale = w * randomInRange(0.025, 0.25);
-    let weight = randomInRange(1, 3) * SCALE/800;
+    let dotScale = w;
+    let weight = randomInRange(0.5, 3) * SCALE/800;
 
     ctx.lineWidth = weight;
     ctx.lineCap = 'round';
@@ -132,7 +134,9 @@ export function field(options) {
     let maxLen = 2 * Math.sqrt(2);
 
     // it looks nice to extend lines beyond their cells. how much?
-    let lineScale = Math.sqrt(2) * randomInRange(0.75, count / 10)/maxLen; // long lines from count
+    let lineScale = 2 * randomInRange(0.75, count / 10); // long lines from count
+    // for random points
+    lineScale = randomInRange(10,30);
 
     // Displace the center point of each cell by this factor
     // Only do this sometimes
@@ -177,41 +181,52 @@ export function field(options) {
         radius: createTransform()
     }
 
-    // main loop
-    for (var i = -1 ; i < count ; i++) {
-        for (var j = -1 ; j < vcount ; j++) {
-            x = w * (i + 1/2);
-            y = h * (j + 1/2);
-            xnorm = x/cw;
-            ynorm = y/ch;
 
-            _x = trans.xtail(xnorm, ynorm);
-            _y = trans.ytail(xnorm, ynorm);
-            len = Math.sqrt(_x * _x + _y * _y);
-
-            // shift base points to their warped coordinates
-            x = x + w * trans.xbase(xnorm, ynorm) * warp;
-            y = y + h * trans.ybase(xnorm, ynorm) * warp,
-
-            ctx.globalAlpha = 1;
-            drawCircle(ctx,
-                x,
-                y,
-                (trans.radius(xnorm, ynorm) + 1) * dotScale,
-                {fill: fg2}
-            );
-
-            ctx.globalAlpha = opacityFunc(_x, _y);
-
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(
-                x + w * _x * lineScale,
-                y + h * _y * lineScale
-            );
-            ctx.stroke();
-        }
+    let pts = [];
+    // create points with random coords
+    while (count--) {
+        pts.push([randomInRange(0, cw), randomInRange(0, ch)]);
     }
+    // step thru points
+    pts.forEach((p, i) => {
+        x = p[0];
+        y = p[1];
+        xnorm = x/cw;
+        ynorm = y/ch;
+
+        _x = trans.xtail(xnorm, ynorm);
+        _y = trans.ytail(xnorm, ynorm);
+        len = Math.sqrt(_x * _x + _y * _y);
+
+        // shift base points to their warped coordinates
+        x = x + w * trans.xbase(xnorm, ynorm) * warp;
+        y = y + h * trans.ybase(xnorm, ynorm) * warp,
+
+        drawCircle(ctx,
+            x,
+            y,
+            (trans.radius(xnorm, ynorm) + 1) * dotScale,
+            {fill: fg2}
+        );
+
+        ctx.globalAlpha = 1;
+        drawCircle(ctx,
+            x,
+            y,
+            (trans.radius(xnorm, ynorm) + 1) * dotScale,
+            {fill: fg2}
+        );
+
+        ctx.globalAlpha = opacityFunc(_x, _y);
+
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(
+            x + w * _x * lineScale,
+            y + h * _y * lineScale
+        );
+        ctx.stroke();
+    });
 
     ctx.globalAlpha = 1;
 
