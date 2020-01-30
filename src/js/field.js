@@ -194,13 +194,13 @@ export function field(options) {
 
     function placeNormal(size, w, h) {
         let pts = [];
-        let xcount = Math.ceil(w / size);
-        let ycount = Math.ceil(h / size);
+        let xcount = Math.ceil(w / size) + 2;
+        let ycount = Math.ceil(h / size) + 2;
         let count = xcount * ycount;
         let x,y;
         for (var i = 0 ; i < count ; i++) {
-            x = size * (i % xcount) + size / 2;
-            y = size * Math.floor(i/ycount) + size / 2;
+            x = size * ((i % xcount) - 1) + size / 2;
+            y = size * (Math.floor(i/ycount) - 1) + size / 2;
             pts.push([x, y]);
         }
         return pts;
