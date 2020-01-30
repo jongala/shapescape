@@ -136,8 +136,11 @@ export function field(options) {
     let lineScale = randomInRange(0.7, 3);
 
     // Displace the center point of each cell by this factor
-    // Only do this sometimes
-    let warp = (Math.random() < 0.5) ? 0 : randomInRange(0, Math.sqrt(2));
+    // Only do this sometimes, and not when scattering
+    let warp = 0;
+    if (GRIDMODE !== 'scatter' && (Math.random() < 0.5)) {
+        warp = randomInRange(0, Math.sqrt(2));
+    }
 
     // set of functions to transform opacity across grid
     const opacityTransforms = [
