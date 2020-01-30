@@ -12,7 +12,7 @@ const DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     clear: true,
-    lightMode: 'normal', // [auto, bloom, normal]
+    lightMode: 'auto', // [auto, bloom, normal]
     gridMode: 'auto', // [auto, normal, scatter, random]
     density: 'auto', // [auto, coarse, fine]
 }
@@ -59,24 +59,17 @@ export function field(options) {
 
     // how many cells are in the grid?
     let countMin, countMax;
-    let cellSize;
     if (DENSITY === 'coarse') {
-        countMin = AREA/10000;
-        countMax = AREA/1000;
+        countMin = 10;
+        countMax = 30;
     } else {
-        countMin = AREA/1000;
-        countMax = AREA/100;
+        countMin = 60;
+        countMax = 100;
     }
 
-    // pick points based on area
-    
-    let count = Math.round(randomInRange( countMin, countMax));
-    let w = Math.ceil(cw/count);
-    let h = w;
-    let vcount = Math.ceil(ch/h);
-    // add extra rows and columns for overprint when warping the grid
-    count += 2;
-    vcount += 2;
+    let cellSize = Math.round(LONG / randomInRange( countMin, countMax ));
+    console.log(`cellSize: ${cellSize}, ${GRIDMODE}, ${DENSITY}`);
+
 
     // setup vars for each cell
     let x = 0;
@@ -110,6 +103,7 @@ export function field(options) {
 
     ctx.strokeStyle = fg;
 
+
     let rateMax = 0.5;
     if (DENSITY === 'fine' && Math.random() < 0.5) {
         rateMax = 5;
@@ -122,10 +116,13 @@ export function field(options) {
     let xphase = randomInRange(-PI, PI);
     let yphase = randomInRange(-PI, PI);
 
+    // tail vars
     let _x,_y,len;
+
     // dotScale will be multiplied by 2. Keep below .25 to avoid bleed.
     // Up to 0.5 will lead to full coverage.
-    let dotScale = w;
+    let dotScale = cellSize * randomInRange(0.1, 0.25);
+    // line width
     let weight = randomInRange(0.5, 3) * SCALE/800;
 
     ctx.lineWidth = weight;
@@ -134,10 +131,9 @@ export function field(options) {
     // const used in normalizing transforms
     let maxLen = 2 * Math.sqrt(2);
 
-    // it looks nice to extend lines beyond their cells. how much?
-    let lineScale = 2 * randomInRange(0.75, count / 10); // long lines from count
-    // for random points
-    lineScale = randomInRange(10,30);
+    // It looks nice to extend lines beyond their cells. how much?
+    // Scaled against cellSize
+    let lineScale = randomInRange(0.7, 3);
 
     // Displace the center point of each cell by this factor
     // Only do this sometimes
@@ -208,18 +204,17 @@ export function field(options) {
     }
 
     let pts = [];
-    console.log(GRIDMODE);
 
     switch (GRIDMODE) {
         case 'scatter':
             //pts = hexScatter(Math.round(SCALE/randomInRange(60,120)), cw, ch);
-            pts = hexScatter(20, cw, ch);
+            pts = hexScatter(cellSize, cw, ch);
             break;
         case 'random':
-            pts = randomScatter(20, cw, ch);
+            pts = randomScatter(cellSize, cw, ch);
             break;
         default:
-            pts = placeNormal(20, cw, ch);
+            pts = placeNormal(cellSize, cw, ch);
     }
 
 
@@ -235,15 +230,8 @@ export function field(options) {
         len = Math.sqrt(_x * _x + _y * _y);
 
         // shift base points to their warped coordinates
-        x = x + w * trans.xbase(xnorm, ynorm) * warp;
-        y = y + h * trans.ybase(xnorm, ynorm) * warp,
-
-        drawCircle(ctx,
-            x,
-            y,
-            (trans.radius(xnorm, ynorm) + 1) * dotScale,
-            {fill: fg2}
-        );
+        x = x + cellSize * trans.xbase(xnorm, ynorm) * warp;
+        y = y + cellSize * trans.ybase(xnorm, ynorm) * warp;
 
         ctx.globalAlpha = 1;
         drawCircle(ctx,
@@ -258,8 +246,8 @@ export function field(options) {
         ctx.beginPath();
         ctx.moveTo(x, y);
         ctx.lineTo(
-            x + w * _x * lineScale,
-            y + h * _y * lineScale
+            x + cellSize * _x * lineScale,
+            y + cellSize * _y * lineScale
         );
         ctx.stroke();
     });
@@ -318,7 +306,7 @@ export function field(options) {
             noiseUtils.applyNoiseCanvas(el, opts.noiseInput);
         } else {
             // create noise pattern and apply
-            noiseUtils.addNoiseFromPattern(el, opts.addNoise, w / 3);
+            noiseUtils.addNoiseFromPattern(el, opts.addNoise, cw / 3);
         }
     }
 
