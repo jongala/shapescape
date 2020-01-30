@@ -644,7 +644,7 @@ var _bands = __webpack_require__(20);
 
 var _field = __webpack_require__(21);
 
-var _fragments = __webpack_require__(22);
+var _fragments = __webpack_require__(23);
 
 var _utils = __webpack_require__(0);
 
@@ -4596,6 +4596,10 @@ var _palettes = __webpack_require__(2);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
+var _hexScatter = __webpack_require__(22);
+
+var _hexScatter2 = _interopRequireDefault(_hexScatter);
+
 var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
@@ -4611,12 +4615,14 @@ var DEFAULTS = {
     skew: 1, // normalized skew
     clear: true,
     lightMode: 'auto', // [auto, bloom, normal]
-    gridMode: 'auto' // [auto, coarse, fine]
+    gridMode: 'auto', // [auto, normal, scatter, random]
+    density: 'auto' // [auto, coarse, fine]
 };
 
 var PI = Math.PI;
 var LIGHTMODES = ['bloom', 'normal'];
-var GRIDMODES = ['coarse', 'fine'];
+var GRIDMODES = ['normal', 'scatter', 'random'];
+var DENSITIES = ['coarse', 'fine'];
 
 // Main function
 function field(options) {
@@ -4626,6 +4632,9 @@ function field(options) {
     var cw = container.offsetWidth;
     var ch = container.offsetHeight;
     var SCALE = Math.min(cw, ch);
+    var LONG = Math.max(cw, ch);
+    var SHORT = Math.min(cw, ch);
+    var AREA = cw * ch;
 
     // Find or create canvas child
     var el = container.querySelector('canvas');
@@ -4645,6 +4654,7 @@ function field(options) {
     // modes and styles
     var LIGHTMODE = opts.lightMode === 'auto' ? (0, _utils.randItem)(LIGHTMODES) : opts.lightMode;
     var GRIDMODE = opts.gridMode === 'auto' ? (0, _utils.randItem)(GRIDMODES) : opts.gridMode;
+    var DENSITY = opts.density === 'auto' ? (0, _utils.randItem)(DENSITIES) : opts.density;
 
     // color funcs
     var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
@@ -4652,22 +4662,16 @@ function field(options) {
     // how many cells are in the grid?
     var countMin = void 0,
         countMax = void 0;
-    if (GRIDMODE === 'coarse') {
-        countMin = 8;
-        countMax = 20;
+    if (DENSITY === 'coarse') {
+        countMin = 10;
+        countMax = 30;
     } else {
-        countMin = 30;
+        countMin = 60;
         countMax = 100;
     }
 
-    // define grid
-    var count = Math.round((0, _utils.randomInRange)(countMin, countMax));
-    var w = Math.ceil(cw / count);
-    var h = w;
-    var vcount = Math.ceil(ch / h);
-    // add extra rows and columns for overprint when warping the grid
-    count += 2;
-    vcount += 2;
+    var cellSize = Math.round(LONG / (0, _utils.randomInRange)(countMin, countMax));
+    console.log('cellSize: ' + cellSize + ', ' + GRIDMODE + ', ' + DENSITY);
 
     // setup vars for each cell
     var x = 0;
@@ -4675,14 +4679,6 @@ function field(options) {
     var xnorm = 0;
     var ynorm = 0;
     var renderer = void 0;
-
-    // play with these random seeds
-    var a = void 0,
-        b = void 0,
-        c = void 0;
-    a = Math.random();
-    b = Math.random();
-    c = Math.random();
 
     // shared colors
     var bg = getSolidFill();
@@ -4709,9 +4705,8 @@ function field(options) {
 
     ctx.strokeStyle = fg;
 
-    var rateMax = 0.5; // generally show partial sin cycles
-    if (GRIDMODE === 'fine' && Math.random() < 0.5) {
-        // with many points, sometimes show many cycles
+    var rateMax = 0.5;
+    if (DENSITY === 'fine' && Math.random() < 0.5) {
         rateMax = 5;
     }
 
@@ -4722,13 +4717,16 @@ function field(options) {
     var xphase = (0, _utils.randomInRange)(-PI, PI);
     var yphase = (0, _utils.randomInRange)(-PI, PI);
 
+    // tail vars
     var _x = void 0,
         _y = void 0,
         len = void 0;
+
     // dotScale will be multiplied by 2. Keep below .25 to avoid bleed.
     // Up to 0.5 will lead to full coverage.
-    var dotScale = w * (0, _utils.randomInRange)(0.025, 0.25);
-    var weight = (0, _utils.randomInRange)(1, 3) * SCALE / 800;
+    var dotScale = cellSize * (0, _utils.randomInRange)(0.1, 0.25);
+    // line width
+    var weight = (0, _utils.randomInRange)(0.5, 3) * SCALE / 800;
 
     ctx.lineWidth = weight;
     ctx.lineCap = 'round';
@@ -4736,15 +4734,16 @@ function field(options) {
     // const used in normalizing transforms
     var maxLen = 2 * Math.sqrt(2);
 
-    // it looks nice to extend lines beyond their cells. how much?
-    var lineScale = (0, _utils.randomInRange)(0.5, count / 20); // long lines from count
+    // It looks nice to extend lines beyond their cells. how much?
+    // Scaled against cellSize
+    var lineScale = (0, _utils.randomInRange)(0.7, 3);
 
     // Displace the center point of each cell by this factor
-    // Only do this sometimes
-    var warp = Math.random() < 0.5 ? 0 : (0, _utils.randomInRange)(0, Math.sqrt(2));
-
-    // add random jitter to base point placement, sometimes
-    var jitter = Math.random() < 0.5 ? 1 : 0;
+    // Only do this sometimes, and not when scattering
+    var warp = 0;
+    if (GRIDMODE !== 'scatter' && Math.random() < 0.5) {
+        warp = (0, _utils.randomInRange)(0, Math.sqrt(2));
+    }
 
     // set of functions to transform opacity across grid
     var opacityTransforms = [function () {
@@ -4793,38 +4792,73 @@ function field(options) {
         xtail: createTransform(),
         ytail: createTransform(),
         radius: createTransform()
+    };
 
-        // main loop
-    };for (var i = -1; i < count; i++) {
-        for (var j = -1; j < vcount; j++) {
-            x = w * (i + 1 / 2);
-            y = h * (j + 1 / 2);
-            xnorm = x / cw;
-            ynorm = y / ch;
-
-            _x = trans.xtail(xnorm, ynorm);
-            _y = trans.ytail(xnorm, ynorm);
-            len = Math.sqrt(_x * _x + _y * _y);
-
-            // shift base points to their warped coordinates
-            x = x + w * trans.xbase(xnorm, ynorm) * warp;
-            y = y + h * trans.ybase(xnorm, ynorm) * warp,
-
-            // shift with jitter
-            x = x + w * jitter * (0, _utils.randomInRange)(-1, 1);
-            y = y + h * jitter * (0, _utils.randomInRange)(-1, 1);
-
-            ctx.globalAlpha = 1;
-            (0, _shapes.drawCircle)(ctx, x, y, (trans.radius(xnorm, ynorm) + 1) * dotScale, { fill: fg2 });
-
-            ctx.globalAlpha = opacityFunc(_x, _y);
-
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(x + w * _x * lineScale, y + h * _y * lineScale);
-            ctx.stroke();
+    function randomScatter(size, w, h) {
+        var pts = [];
+        var xcount = Math.ceil(w / size);
+        var ycount = Math.ceil(h / size);
+        var count = xcount * ycount;
+        while (count--) {
+            pts.push([(0, _utils.randomInRange)(0, w), (0, _utils.randomInRange)(0, h)]);
         }
+        return pts;
     }
+
+    function placeNormal(size, w, h) {
+        var pts = [];
+        var xcount = Math.ceil(w / size) + 2;
+        var ycount = Math.ceil(h / size) + 2;
+        var count = xcount * ycount;
+        var x = void 0,
+            y = void 0;
+        for (var i = 0; i < count; i++) {
+            x = size * (i % xcount - 1) + size / 2;
+            y = size * (Math.floor(i / ycount) - 1) + size / 2;
+            pts.push([x, y]);
+        }
+        return pts;
+    }
+
+    var pts = [];
+
+    switch (GRIDMODE) {
+        case 'scatter':
+            //pts = hexScatter(Math.round(SCALE/randomInRange(60,120)), cw, ch);
+            pts = (0, _hexScatter2.default)(cellSize, cw, ch);
+            break;
+        case 'random':
+            pts = randomScatter(cellSize, cw, ch);
+            break;
+        default:
+            pts = placeNormal(cellSize, cw, ch);
+    }
+
+    // step thru points
+    pts.forEach(function (p, i) {
+        x = p[0];
+        y = p[1];
+        xnorm = x / cw;
+        ynorm = y / ch;
+
+        _x = trans.xtail(xnorm, ynorm);
+        _y = trans.ytail(xnorm, ynorm);
+        len = Math.sqrt(_x * _x + _y * _y);
+
+        // shift base points to their warped coordinates
+        x = x + cellSize * trans.xbase(xnorm, ynorm) * warp;
+        y = y + cellSize * trans.ybase(xnorm, ynorm) * warp;
+
+        ctx.globalAlpha = 1;
+        (0, _shapes.drawCircle)(ctx, x, y, (trans.radius(xnorm, ynorm) + 1) * dotScale, { fill: fg2 });
+
+        ctx.globalAlpha = opacityFunc(_x, _y);
+
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + cellSize * _x * lineScale, y + cellSize * _y * lineScale);
+        ctx.stroke();
+    });
 
     ctx.globalAlpha = 1;
 
@@ -4878,7 +4912,7 @@ function field(options) {
             _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
         } else {
             // create noise pattern and apply
-            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, w / 3);
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, cw / 3);
         }
     }
 
@@ -4890,6 +4924,271 @@ function field(options) {
 
 /***/ }),
 /* 22 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.default = hexScatter;
+// Fast scattering of random-looking points
+
+function hexScatter(spacing, w, h, loosen) {
+    loosen = loosen || 1.25;
+
+    var TWOPI = Math.PI * 2;
+
+    var gridSize = spacing * loosen;
+    var R = spacing / 2;
+    var cellR = gridSize - R;
+    var hexW = 2 * 0.8660 * gridSize;
+    var hexH = 1.5 * gridSize;
+    var cols = Math.ceil(w / hexW) + 1;
+    var rows = Math.ceil(h / hexH) + 1;
+    var row; // current row in loops
+    var col; // current col in loops
+
+    function randomInRange(min, max) {
+        return min + Math.random() * (max - min);
+    }
+
+    // Generates hexagon center-points for non-overlapping tiling
+    function getTiledLayout(w, h, scale) {
+        var points = [];
+        var hexW = 2 * scale * 0.8660;
+        var hexH = scale * 1.5;
+        var rows = Math.ceil(h / hexH) + 1;
+        var cols = Math.ceil(w / hexW) + 1;
+        var count = rows * cols;
+        var offset;
+        var row;
+
+        for (var i = 0; i < count; i++) {
+            row = Math.floor(i / cols);
+            offset = row % 2 ? -scale * 0.8660 : 0;
+            points.push([i % cols * hexW + offset, row * hexH]);
+        }
+
+        return points;
+    }
+
+    function avgPoints(points) {
+        var avg = [0, 0];
+        avg[0] = points.reduce(function (m, v) {
+            return m + v[0];
+        }, 0) / points.length;
+        avg[1] = points.reduce(function (m, v) {
+            return m + v[1];
+        }, 0) / points.length;
+        return avg;
+    }
+
+    function isTooClose(p1, p2, d) {
+        var dx = p2[0] - p1[0];
+        var dy = p2[1] - p1[1];
+        return dx * dx + dy * dy < d * d;
+    }
+
+    function checkSet(p, others, d) {
+        var ok = true;
+        others.forEach(function (o) {
+            ok = ok && !isTooClose(p, o, d);
+        });
+        return ok;
+    }
+
+    function circumcenter(a, b, c) {
+        var ax = a[0];
+        var ay = a[1];
+        var bx = b[0];
+        var by = b[1];
+        var cx = c[0];
+        var cy = c[1];
+
+        // midpoints
+        var midAB = avgPoints([a, b]);
+        var midAC = avgPoints([a, c]);
+
+        // slopes
+        var mAB = (by - ay) / (bx - ax);
+        var mAC = (cy - ay) / (cx - ax);
+        // invert for perpendicular
+        mAB = -1 / mAB;
+        mAC = -1 / mAC;
+
+        // offsets
+        var bAB = midAB[1] - mAB * midAB[0];
+        var bAC = midAC[1] - mAC * midAC[0];
+
+        var CCx;
+        var CCy;
+
+        // algebra!
+        CCx = (bAC - bAB) / (mAB - mAC);
+        CCy = mAB * CCx + bAB;
+
+        var dx = CCx - ax;
+        var dy = CCy - ay;
+        var r = Math.sqrt(dx * dx + dy * dy);
+
+        return { x: CCx, y: CCy, r: r };
+    }
+
+    var layout = getTiledLayout(w, h, gridSize);
+    // [rows…][cols]
+    var points = [];
+    var topTriangles = [];
+
+    var renderCount = rows * cols; // track points and repacking.
+
+    var out = []; // output points
+
+    var attempts = 0;
+
+    // placement vars
+    var cc; // circumcenter from points
+    var packed = []; // coords from cc
+    var tricc; // circumcenter from packed top triangles
+    var tripacked; // coords from tricc
+
+    var start = new Date().getTime();
+
+    layout.forEach(function (p, i) {
+        var x = p[0];
+        var y = p[1];
+
+        // the point
+        var a = randomInRange(0, TWOPI);
+        var v = randomInRange(0, cellR);
+        var px = x + v * Math.cos(a);
+        var py = y + v * Math.sin(a);
+
+        points.push([px, py]);
+        out.push([px, py]);
+
+        attempts++;
+    });
+
+    // now pack points in top triangles
+    var grid = points;
+    for (var i = 0; i < grid.length - cols; i++) {
+        row = Math.floor(i / cols);
+
+        if (i % cols >= cols - 1) {
+            continue;
+        }
+
+        var nextRowColOffset = row % 2 ? 0 : 1;
+        // top triangles: get points from grid
+        var p1 = grid[i];
+        var p2 = grid[i + 1];
+        var p3 = grid[i + cols + nextRowColOffset];
+
+        cc = circumcenter(p1, p2, p3);
+        packed = [cc.x, cc.y];
+        attempts++;
+
+        topTriangles[i] = packed;
+
+        if (cc.r > spacing) {
+            out.push(packed);
+            renderCount++;
+        }
+    }
+
+    // now pack points in bottom triangles
+    for (var i = cols; i < grid.length - 1; i++) {
+        row = Math.floor(i / cols);
+
+        var odd = row % 2; // odd or even row
+        var step = i % cols; // step within a row
+
+        if (step >= cols - 1) {
+            continue;
+        }
+
+        var colOffset = odd ? 0 : 1;
+
+        var p1 = grid[i];
+        var p2 = grid[i + 1];
+        var p3 = grid[i - cols + colOffset];
+
+        cc = circumcenter(p1, p2, p3);
+        packed = [cc.x, cc.y];
+        attempts++;
+
+        var pp1;
+        var pp2;
+        var pp3;
+
+        if (odd) {
+            pp1 = topTriangles[i - cols - 1];
+            pp2 = topTriangles[i - cols - 0];
+            pp3 = topTriangles[i];
+        } else {
+            pp1 = topTriangles[i - cols + 0];
+            pp2 = topTriangles[i - cols + 1];
+            pp3 = topTriangles[i];
+        }
+
+        var hasTriangles = pp1 && pp2 && pp3;
+
+        if (hasTriangles) {
+            tricc = circumcenter(pp1, pp2, pp3);
+            tripacked = [tricc.x, tricc.y];
+            attempts++;
+        }
+
+        // check circumcenter against its component points
+        var ccOK = cc.r > spacing;
+        // now check against the neighboring packed points
+        if (ccOK && hasTriangles) {
+            ccOK = checkSet(packed, [pp1, pp2, pp3], spacing);
+        }
+
+        var tripOK = false;
+        if (tricc && !ccOK) {
+            tripOK = tricc.r > spacing;
+
+            if (tripOK) {
+                tripOK = checkSet(tripacked, [p1, p2, p3], spacing);
+            }
+        }
+
+        if (ccOK) {
+            out.push(packed);
+            renderCount++;
+        }
+
+        if (tricc && !ccOK) {
+            if (tripOK) {
+                out.push(tripacked);
+                renderCount++;
+            }
+        }
+
+        if (!ccOK && !tripOK && tricc && hasTriangles) {
+            packed = avgPoints([packed, tripacked]);
+            attempts++;
+            ccOK = checkSet(packed, [p1, p2, p3, pp1, pp2, pp3], spacing);
+            if (ccOK) {
+                out.push(packed);
+                renderCount++;
+            }
+        }
+    }
+
+    var count = out.length;
+
+    console.log(count + ' samples from ' + attempts + ' attempts, ' + (count / attempts * 100).toPrecision(2) + '% efficiency');
+
+    return out;
+}
+
+/***/ }),
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
