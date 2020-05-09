@@ -3826,6 +3826,9 @@ function mesh(options) {
         factor = factor % 1; // loop
         return palette[Math.round(factor * (palette.length - 1))];
     };
+    var loopPalette = function loopPalette(palette, index) {
+        return palette[index % palette.length];
+    };
 
     // reference point is center by default
     var refPoint = [0.5, 0.5];
@@ -3851,11 +3854,6 @@ function mesh(options) {
             // get distance to reference point
             pr = Math.sqrt(Math.pow(xnorm - refPoint[0], 2) + Math.pow(ynorm - refPoint[1], 2));
 
-            // stroke styles
-            if (multiColorStrokes) {
-                ctx.strokeStyle = mapToPalette(contrastPalette, pr);
-            }
-
             // set dot radius, and draw it
             r = rTransform();
             (0, _shapes.drawCircle)(ctx, x, y, r, { fill: dotFill });
@@ -3867,21 +3865,33 @@ function mesh(options) {
             ctx.globalCompositeOperation = 'destination-over';
             ctx.beginPath();
             if (i > 0 && Math.random() < drawUp) {
+                if (multiColorStrokes) {
+                    ctx.strokeStyle = loopPalette(contrastPalette, 0);
+                }
                 ctx.moveTo(x, y);
                 ctx.lineTo(x, y - h);
                 isConnected++;
             }
             if (j > 0 && Math.random() < drawLeft) {
+                if (multiColorStrokes) {
+                    ctx.strokeStyle = loopPalette(contrastPalette, 1);
+                }
                 ctx.moveTo(x, y);
                 ctx.lineTo(x - w, y);
                 isConnected++;
             }
             if (i > 0 && j < count - 1 && Math.random() < drawDL) {
+                if (multiColorStrokes) {
+                    ctx.strokeStyle = loopPalette(contrastPalette, 2);
+                }
                 ctx.moveTo(x, y);
                 ctx.lineTo(x + w, y - h);
                 isConnected++;
             }
             if (i > 0 && j > 0 && Math.random() < drawDR) {
+                if (multiColorStrokes) {
+                    ctx.strokeStyle = loopPalette(contrastPalette, 3);
+                }
                 ctx.moveTo(x, y);
                 ctx.lineTo(x - w, y - h);
                 isConnected++;
