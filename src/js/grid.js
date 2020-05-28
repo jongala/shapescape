@@ -321,8 +321,65 @@ export function grid(options) {
         }
     }
 
+    function layers(layerCount=7) {
+
+        function drawLayer() {
+            let px, py;
+            let s;
+
+            for (let i = 0; i < vcount; i++) {
+                for (let j = 0; j < count; j++) {
+                    // convenience vars
+                    x = w * j;
+                    y = h * i;
+                    xnorm = x/cw;
+                    ynorm = y/ch;
+
+                    // shift and clip
+                    ctx.translate(x, y);
+                    clipSquare(ctx, w, h, 'white');
+
+                    // size jitter
+                    s = randomInRange(0.15, 0.45) * w;
+                    // offset a bit, based on available size
+                    px = randomInRange(-1, 1) * 0.2 * (1 - s);
+                    py = randomInRange(-1, 1) * 0.2 * (1 - s);
+
+                    // shift to center for rotation
+                    ctx.translate(w/2, h/2);
+
+                    // draw
+                    drawSquare(ctx,
+                        px,
+                        py,
+                        s,
+                        {
+                            fill: getSolidFill(),
+                            angle: randomInRange(-1, 1) * 0.1
+                        }
+                    );
+
+                    // unshift, unclip
+                    ctx.restore();
+                    resetTransform(ctx);
+                }
+            }
+        }
+
+        ctx.globalAlpha = Math.pow(0.9, layerCount);
+        ctx.globalCompositeOperation = 'multiply';
+
+        while (layerCount--){
+            drawLayer();
+        }
+
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'normal';
+
+    }
+
     // gather our modes
-    let modes = [maskAndRotate, circles, triangles, mixed];
+    let modes = [maskAndRotate, circles, triangles, mixed, layers];
 
     // do the loop with one of our modes
     randItem(modes)();
