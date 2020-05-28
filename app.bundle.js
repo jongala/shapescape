@@ -3227,8 +3227,62 @@ function grid(options) {
         }
     }
 
+    function layers() {
+        var layerCount = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 7;
+
+
+        function drawLayer() {
+            var px = void 0,
+                py = void 0;
+            var s = void 0;
+
+            for (var i = 0; i < vcount; i++) {
+                for (var j = 0; j < count; j++) {
+                    // convenience vars
+                    x = w * j;
+                    y = h * i;
+                    xnorm = x / cw;
+                    ynorm = y / ch;
+
+                    // shift and clip
+                    ctx.translate(x, y);
+                    clipSquare(ctx, w, h, 'white');
+
+                    // size jitter
+                    s = (0, _utils.randomInRange)(0.15, 0.45) * w;
+                    // offset a bit, based on available size
+                    px = (0, _utils.randomInRange)(-1, 1) * 0.2 * (1 - s);
+                    py = (0, _utils.randomInRange)(-1, 1) * 0.2 * (1 - s);
+
+                    // shift to center for rotation
+                    ctx.translate(w / 2, h / 2);
+
+                    // draw
+                    (0, _shapes.drawSquare)(ctx, px, py, s, {
+                        fill: getSolidFill(),
+                        angle: (0, _utils.randomInRange)(-1, 1) * 0.1
+                    });
+
+                    // unshift, unclip
+                    ctx.restore();
+                    (0, _utils.resetTransform)(ctx);
+                }
+            }
+        }
+
+        ctx.globalAlpha = Math.pow(0.9, layerCount);
+        ctx.globalCompositeOperation = 'multiply';
+
+        while (layerCount--) {
+            drawLayer();
+        }
+
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'normal';
+    }
+
     // gather our modes
-    var modes = [maskAndRotate, circles, triangles, mixed];
+    var modes = [maskAndRotate, circles, triangles, mixed, layers];
 
     // do the loop with one of our modes
     (0, _utils.randItem)(modes)();
