@@ -15,7 +15,7 @@ import { walk } from './walk';
 import { bands } from './bands';
 import { field } from './field';
 import { fragments } from './fragments';
-import { setAttrs } from './utils';
+import { setAttrs, randItem } from './utils';
 
 // Renderers
 const RENDERERS = {
@@ -23,16 +23,16 @@ const RENDERERS = {
     shapestack: shapestack,
     shapescape: shapescape,
     lines: lines,
-    grid: grid,
-    circles: circles,
+    //grid: grid,
+    //circles: circles,
     mesh: mesh,
     walk: walk,
     field: field,
-    bands: bands,
-    fragments: fragments,
-    waves: waves
+    //bands: bands,
+    //fragments: fragments,
+    //waves: waves
 };
-let initRenderer = 'waterline';
+let initRenderer = randItem(Object.keys(RENDERERS));//'waterline';
 
 var rendererName;
 var Renderer;
@@ -60,7 +60,6 @@ function showRenderPicker (renderers, el) {
 function setRenderer(rname, ctrl) {
     rendererName = rname;
     Renderer = RENDERERS[rendererName];
-    window.location.hash = rendererName;
     if (ctrl) {
         ctrl.blur();
         activeButton = document.querySelector('.renderPicker.activeRenderer');
@@ -260,19 +259,6 @@ function useCustomPalette(palette) {
     }
 }
 
-var custom = document.querySelector('#customColors');
-custom.addEventListener('keypress', function(e) {
-    var hexPattern = /#?[0-9a-f]{3,6}/;
-    var palette = e.target.value.split(',');
-    palette = palette.map(s => {
-        s = s.trim().replace(/['"']/g,'');
-        if (hexPattern.test(s) && !s.startsWith('#')) {
-            s = '#' + s;
-        }
-        return s;
-    });
-    useCustomPalette(palette);
-});
 
 function previewImage(el) {
     var preview = document.createElement('div');
@@ -308,25 +294,20 @@ function hideMain() {
     }
 }
 
-document.querySelector('#saved').addEventListener('click', function(e) {
-    if (e.target.nodeName === 'IMG') {
-        // HACK: this relies on .downloader > img DOM structure
-        previewImage(e.target.parentNode.cloneNode(true));
-    }
-});
-
-exampleNode.addEventListener('click', function(e) {
-    renderCanvasToImg(exampleNode.querySelector('canvas'), document.querySelector('#saved'));
-});
 
 // expose for play
 window.visualOpts = visualOpts;
 
-// draw one to start, take renderer from hash if it is valid
 
-var h = window.location.hash.slice(1);
-if (h && RENDERERS.hasOwnProperty(h)) {
-    initRenderer = h;
-}
-showRenderPicker(RENDERERS, document.getElementById('renderPickers'));
-setRenderer(initRenderer, document.querySelector("[data-renderer='" + initRenderer + "']"));
+//showRenderPicker(RENDERERS, document.getElementById('renderPickers'));
+//setRenderer(initRenderer, document.querySelector("[data-renderer='" + initRenderer + "']"));
+setRenderer(initRenderer);
+let counter = 0;
+let timer = setInterval(function(){
+    counter++;
+    if (counter > 2) {
+        setRenderer(randItem(Object.keys(RENDERERS)));
+    } else {
+        drawNew();
+    }
+}, 6000);
