@@ -1,23 +1,29 @@
+<!doctype html>
 <html>
 <head>
-    <meta charset="utf-8"/>
-    <title>RenderLab</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <TITLE>Jonathan Gala : Web Design and Development,
+    Graphic Design,
+    and More | www.jongala.com</TITLE>
+    <meta name = "description" content = "Jonathan Gala - Graphic and Web Design. Located near New York, New York." />
+    <meta name = "keywords" content = "jon gala,
+    jonathan gala,
+    jongala,
+    graphic design,
+    web design,
+    multimedia,
+    new media,
+    new york city" />
 <link href="style.bundle.css" rel="stylesheet"></head>
 <body>
-    <h1 id="renderPickers"></h1>
-    <div id="controls">
-        <select onchange="setPalette(this.value)" id="paletteSelector"></select>
-        <input type="text" id="customColors" placeholder="paste colors" />
-        <span class="spacerSpan">|</span>
-        <button onclick="drawNew()" id="newImageTrigger">New Image</button>
-        <button onclick="createBatch()" id="newBatchTrigger">New Batch</button>
-        <!--<button onclick="rerun()" id="rerunTrigger">ReRun</button>-->
-        <a href="#" id="downloadExample" target="_blank">↓</a>
-    </div>
+    <section id="welcome" draggable="true">
+        <h1>Hi. I'm Jonathan Gala.</h1>
+        <p>I lead product design teams at <a href="http://www.datadoghq.com/" title="Datadog">Datadog</a>.</p>
+        <div id="controls">Hit <kbd>space</kbd> to <button onclick="drawAndReset()" id="newImageTrigger">Redraw</button> with colors: <select onchange="setPalette(this.value)" id="paletteSelector"></select> • <a href="#" id="downloadExample" target="_blank">Save</a>
+        </div>
+        <div id="timerBar"><span></span></div>
+    </section>
     <div id="example"></div>
-    <div id="saved"><div id="instructions">[space] to redraw. Click image to add to tray. Click thumbnail to preview.</div></div>
-    <!--<div id="re-tall" class="rerun"></div>
-    <div id="re-wide" class="rerun"></div>-->
     <script type="text/javascript">
     </script>
 <script type="text/javascript" src="app.bundle.js"></script></body>
