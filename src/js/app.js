@@ -99,6 +99,7 @@ let timer; // handle for main timer
 let timerBar = document.getElementById('timerBar');
 // function redraws automatically. resets renderer every few draws
 function resetTimer() {
+    clearInterval(timer);
     let counter = 0;
     // remove the animation class from the bar
     timerBar && timerBar.classList.remove('playing');
@@ -116,21 +117,25 @@ function resetTimer() {
     });
 }
 
-
 function drawNew() {
     removePreview();
     requestAnimationFrame(loadOpts);
     showMain();
-    clearInterval(timer);
+}
+
+
+function drawAndReset() {
     resetTimer();
+    drawNew();
 }
 window.drawNew = drawNew;
+
 
 document.addEventListener('keydown', function(e) {
     var kode = e.which || e.keyCode;
     if (kode === 32) {
         // space
-        drawNew();
+        drawAndReset();
         e.preventDefault();
         return false;
     } else if (kode === 27) {
@@ -252,7 +257,7 @@ function setPalette(pname) {
     } else {
         visualOpts.palette = appPalettes[pname];
     }
-    return drawNew({});
+    return drawAndReset({});
 }
 window.setPalette = setPalette;
 
@@ -316,3 +321,4 @@ window.visualOpts = visualOpts;
 
 // draw to start
 setRenderer(initRenderer);
+resetTimer();
