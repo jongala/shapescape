@@ -2,7 +2,6 @@ import '../css/style.css';
 
 import noiseUtils from './noiseutils';
 import palettes from './palettes';
-import colorbrewer from './colorbrewer';
 import { waterline, drawWaterline } from './waterline';
 import { shapestack } from './shapestack';
 import { shapescape } from './shapescape';
@@ -96,11 +95,34 @@ function loadOpts(opts, fast) {
 }
 
 // Handlers for redraw, batching, and manual saving
+let timer; // handle for main timer
+let timerBar = document.getElementById('timerBar');
+// function redraws automatically. resets renderer every few draws
+function resetTimer() {
+    let counter = 0;
+    // remove the animation class from the bar
+    timerBar && timerBar.classList.remove('playing');
+    // do this in a new frame so we can reset the css animation
+    requestAnimationFrame(function(){
+        timerBar && timerBar.classList.add('playing');
+        timer = setInterval(function(){
+            counter++;
+            if (counter > 2) {
+                setRenderer(randItem(Object.keys(RENDERERS)));
+            } else {
+                drawNew();
+            }
+        }, 6000);
+    });
+}
+
 
 function drawNew() {
     removePreview();
     requestAnimationFrame(loadOpts);
     showMain();
+    clearInterval(timer);
+    resetTimer();
 }
 window.drawNew = drawNew;
 
@@ -234,13 +256,6 @@ function setPalette(pname) {
 }
 window.setPalette = setPalette;
 
-// populate the selector for colorbrewer palettes
-if (colorbrewer) {
-    var cbnames = Object.keys(colorbrewer);
-    cbnames.forEach(function(pname) {
-        appPalettes[pname] = colorbrewer[pname][6];
-    });
-}
 
 var selectEl = document.querySelector('#paletteSelector');
 var pnames = Object.keys(appPalettes);
@@ -299,15 +314,5 @@ function hideMain() {
 window.visualOpts = visualOpts;
 
 
-//showRenderPicker(RENDERERS, document.getElementById('renderPickers'));
-//setRenderer(initRenderer, document.querySelector("[data-renderer='" + initRenderer + "']"));
+// draw to start
 setRenderer(initRenderer);
-let counter = 0;
-let timer = setInterval(function(){
-    counter++;
-    if (counter > 2) {
-        setRenderer(randItem(Object.keys(RENDERERS)));
-    } else {
-        drawNew();
-    }
-}, 6000);
