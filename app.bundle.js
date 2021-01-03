@@ -768,6 +768,11 @@ document.addEventListener('keydown', function (e) {
         drawAndReset();
         e.preventDefault();
         return false;
+    } else if (kode === 37 || kode === 39) {
+        // left/right arrows
+        setRenderer((0, _utils.randItem)(Object.keys(RENDERERS)));
+        drawAndReset();
+        e.preventDefault();
     } else if (kode === 27) {
         // ESC
         removePreview();
