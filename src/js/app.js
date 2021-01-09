@@ -9,6 +9,7 @@ import { shapescape } from './shapescape';
 import { lines } from './lines';
 import { waves } from './waves';
 import { grid } from './grid';
+import { truchet } from './truchet';
 import { circles } from './circles';
 import { mesh } from './mesh';
 import { walk } from './walk';
@@ -24,6 +25,7 @@ const RENDERERS = {
     shapescape: shapescape,
     lines: lines,
     grid: grid,
+    truchet: truchet,
     circles: circles,
     mesh: mesh,
     walk: walk,
