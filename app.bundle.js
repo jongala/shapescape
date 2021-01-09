@@ -634,17 +634,19 @@ var _waves = __webpack_require__(15);
 
 var _grid = __webpack_require__(16);
 
-var _circles = __webpack_require__(17);
+var _truchet = __webpack_require__(17);
 
-var _mesh = __webpack_require__(18);
+var _circles = __webpack_require__(18);
 
-var _walk = __webpack_require__(19);
+var _mesh = __webpack_require__(19);
 
-var _bands = __webpack_require__(20);
+var _walk = __webpack_require__(20);
 
-var _field = __webpack_require__(21);
+var _bands = __webpack_require__(21);
 
-var _fragments = __webpack_require__(23);
+var _field = __webpack_require__(22);
+
+var _fragments = __webpack_require__(24);
 
 var _utils = __webpack_require__(0);
 
@@ -657,6 +659,7 @@ var RENDERERS = {
     shapescape: _shapescape.shapescape,
     lines: _lines.lines,
     grid: _grid.grid,
+    truchet: _truchet.truchet,
     circles: _circles.circles,
     mesh: _mesh.mesh,
     walk: _walk.walk,
@@ -2913,8 +2916,6 @@ var _shapes = __webpack_require__(3);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
 var DEFAULTS = {
     container: 'body',
     palette: _palettes2.default.south_beach,
@@ -3057,176 +3058,6 @@ function grid(options) {
     }
 
     // mode
-    function circles() {
-        var px = void 0,
-            py = void 0;
-        for (var i = 0; i < vcount; i++) {
-            for (var j = 0; j < count; j++) {
-                // convenience vars
-                x = w * j;
-                y = h * i;
-                xnorm = x / cw;
-                ynorm = y / ch;
-
-                // shift and clip
-                ctx.translate(x, y);
-                clipSquare(ctx, w, h, bg);
-
-                switch (Math.round((0, _utils.randomInRange)(1, 5))) {
-                    case 1:
-                        renderer = _shapes.drawSquare;
-                        px = 0;
-                        py = 0;
-                        break;
-                    case 2:
-                        renderer = _shapes.drawCircle;
-                        px = 0;
-                        py = 0;
-                        break;
-                    case 3:
-                        renderer = _shapes.drawCircle;
-                        px = w;
-                        py = 0;
-                        break;
-                    case 4:
-                        renderer = _shapes.drawCircle;
-                        px = w;
-                        py = h;
-                        break;
-                    case 5:
-                        renderer = _shapes.drawCircle;
-                        px = 0;
-                        py = h;
-                        break;
-                }
-
-                // draw
-                renderer(ctx, px, py, w, {
-                    fill: getSolidFill()
-                });
-
-                // unshift, unclip
-                ctx.restore();
-                (0, _utils.resetTransform)(ctx);
-            }
-        }
-    }
-
-    // draw a triangle in a random corner
-    function _triangle() {
-        var corners = [[0, 0], [w, 0], [w, h], [0, h]];
-        var drawCorners = [];
-        var skip = void 0;
-        skip = Math.round((0, _utils.randomInRange)(0, 3));
-        drawCorners = [].concat(corners);
-        drawCorners.splice(skip, 1);
-
-        // draw a triangle with the remaining 3 points
-        ctx.beginPath();
-        ctx.moveTo.apply(ctx, _toConsumableArray(drawCorners[0]));
-        ctx.lineTo.apply(ctx, _toConsumableArray(drawCorners[1]));
-        ctx.lineTo.apply(ctx, _toConsumableArray(drawCorners[2]));
-        ctx.closePath();
-        ctx.fillStyle = getSolidFill();
-        ctx.fill();
-    }
-
-    // mode
-    function triangles() {
-        for (var i = 0; i < vcount; i++) {
-            for (var j = 0; j < count; j++) {
-                // convenience vars
-                x = w * j;
-                y = h * i;
-                xnorm = x / cw;
-                ynorm = y / ch;
-
-                // shift and clip
-                ctx.translate(x, y);
-                clipSquare(ctx, w, h, bg);
-
-                _triangle();
-
-                // unshift, unclip
-                ctx.restore();
-                (0, _utils.resetTransform)(ctx);
-            }
-        }
-    }
-
-    // mode
-    function mixed() {
-        var px = void 0,
-            py = void 0,
-            seed = void 0;
-        var styles = [function () {
-            renderer = _shapes.drawCircle;
-            px = 0;
-            py = 0;
-        }];
-
-        for (var i = 0; i < vcount; i++) {
-            for (var j = 0; j < count; j++) {
-                // convenience vars
-                x = w * j;
-                y = h * i;
-                xnorm = x / cw;
-                ynorm = y / ch;
-
-                // shift and clip
-                ctx.translate(x, y);
-                clipSquare(ctx, w, h, bg);
-
-                switch (Math.round((0, _utils.randomInRange)(1, 12))) {
-                    case 1:
-                        renderer = _shapes.drawCircle;
-                        px = 0;
-                        py = 0;
-                        break;
-                    case 2:
-                        renderer = _shapes.drawCircle;
-                        px = w;
-                        py = 0;
-                        break;
-                    case 3:
-                        renderer = _shapes.drawCircle;
-                        px = w;
-                        py = h;
-                        break;
-                    case 4:
-                        renderer = _shapes.drawCircle;
-                        px = 0;
-                        py = h;
-                        break;
-                    case 5:
-                    case 6:
-                    case 7:
-                    case 8:
-                        renderer = _shapes.drawSquare;
-                        px = 0;
-                        py = 0;
-                        break;
-                    case 9:
-                    case 10:
-                    case 11:
-                    case 12:
-                        _triangle();
-                        renderer = function renderer() {};
-                        break;
-                }
-
-                // draw
-                renderer(ctx, px, py, w, {
-                    fill: getSolidFill()
-                });
-
-                // unshift, unclip
-                ctx.restore();
-                (0, _utils.resetTransform)(ctx);
-            }
-        }
-    }
-
     function layers() {
         var layerCount = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 7;
 
@@ -3282,7 +3113,7 @@ function grid(options) {
     }
 
     // gather our modes
-    var modes = [maskAndRotate, circles, triangles, mixed, layers];
+    var modes = [maskAndRotate, layers];
 
     // do the loop with one of our modes
     (0, _utils.randItem)(modes)();
@@ -3306,6 +3137,407 @@ function grid(options) {
 
 /***/ }),
 /* 17 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.truchet = truchet;
+
+var _noiseutils = __webpack_require__(1);
+
+var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _palettes = __webpack_require__(2);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
+var _utils = __webpack_require__(0);
+
+var _shapes = __webpack_require__(3);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+var DEFAULTS = {
+    container: 'body',
+    palette: _palettes2.default.south_beach,
+    addNoise: 0.04,
+    noiseInput: null,
+    dust: false,
+    skew: 1, // normalized skew
+    clear: true
+};
+
+var PI = Math.PI;
+
+// Main function
+function truchet(options) {
+    var opts = Object.assign({}, DEFAULTS, options);
+
+    var container = opts.container;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
+    var SCALE = Math.min(cw, ch);
+
+    // Find or create canvas child
+    var el = container.querySelector('canvas');
+    var newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        el.width = cw;
+        el.height = ch;
+    }
+
+    var ctx = el.getContext('2d');
+
+    // available renderers
+    var renderMap = {
+        //circle: drawCircle,
+        //ring: drawRing,
+        triangle: _shapes.drawTriangle,
+        square: _shapes.drawSquare,
+        box: _shapes.drawBox,
+        rect: _shapes.drawRect,
+        pentagon: _shapes.drawPentagon,
+        hexagon: _shapes.drawHexagon
+    };
+    var shapes = Object.keys(renderMap);
+    var getRandomRenderer = function getRandomRenderer() {
+        return renderMap[(0, _utils.randItem)(shapes)];
+    };
+
+    // util to draw a square and clip following rendering inside
+    function clipSquare(ctx, w, h, color) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, w, h);
+        ctx.fillStyle = color;
+        ctx.closePath();
+        ctx.fill();
+        ctx.clip();
+    }
+
+    // color funcs
+    var randomFill = function randomFill() {
+        return "#" + Math.random().toString(16).slice(2, 8);
+    };
+    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
+
+    // define grid
+    var count = Math.round((0, _utils.randomInRange)(4, 9));
+    var w = Math.ceil(cw / count);
+    var h = w;
+    var vcount = Math.ceil(ch / h);
+
+    // setup vars for each cell
+    var x = 0;
+    var y = 0;
+    var xnorm = 0;
+    var ynorm = 0;
+    var renderer = void 0;
+
+    // play with these random seeds
+    var a = void 0,
+        b = void 0,
+        c = void 0;
+    a = Math.random();
+    b = Math.random();
+    c = Math.random();
+
+    // shared colors
+    var fg = void 0; // hold on…
+    var bg = getSolidFill(); // pick bg
+
+    // get palette of non-bg colors
+    var contrastPalette = [].concat(opts.palette);
+    contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
+    fg = getContrastColor(); // …now set fg in contrast to bg
+
+    // component utils
+
+    // draw a triangle at anchor corner
+    function _triangle(anchor) {
+        var corners = [[0, 0], [w, 0], [w, h], [0, h]];
+        var drawCorners = [];
+        if (anchor === undefined) anchor = Math.round((0, _utils.randomInRange)(0, 3));
+        drawCorners = [].concat(corners);
+        drawCorners.splice(anchor, 1);
+
+        // draw a triangle with the remaining 3 points
+        ctx.beginPath();
+        ctx.moveTo.apply(ctx, _toConsumableArray(drawCorners[0]));
+        ctx.lineTo.apply(ctx, _toConsumableArray(drawCorners[1]));
+        ctx.lineTo.apply(ctx, _toConsumableArray(drawCorners[2]));
+        ctx.closePath();
+        ctx.fillStyle = getSolidFill();
+        ctx.fill();
+    }
+
+    // draw a circle at anchor corner
+    function _circle(anchor) {
+        var corners = [[0, 0], [w, 0], [w, h], [0, h]];
+        var drawCorners = [];
+        if (anchor === undefined) anchor = Math.round((0, _utils.randomInRange)(0, 3));
+
+        (0, _shapes.drawCircle)(ctx, corners[anchor][0], corners[anchor][1], w, {
+            fill: getSolidFill()
+        });
+    }
+
+    // fill cell
+    function _square() {
+        ctx.rect(0, 0, w, h);
+        ctx.fillStyle = getSolidFill();
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    // draw an arc around anchor corner
+    function _arc(anchor, color) {
+        var corners = [[0, 0], [w, 0], [w, h], [0, h]];
+        if (anchor === undefined) anchor = Math.round((0, _utils.randomInRange)(0, 3));
+
+        (0, _shapes.drawCircle)(ctx, corners[anchor][0], corners[anchor][1], w / 2, {
+            stroke: color
+        });
+    }
+
+    // draw arc terminals for anchor corner
+    function _terminal(size, anchor, color) {
+        var corners = [[w / 2, 0], [w, h / 2], [w / 2, h], [0, h / 2]];
+        if (anchor === undefined) anchor = Math.round((0, _utils.randomInRange)(0, 3));
+        var a = anchor % corners.length;
+        var b = (anchor + 3) % corners.length;
+
+        (0, _shapes.drawCircle)(ctx, corners[a][0], corners[a][1], size, {
+            fill: color
+        });
+        (0, _shapes.drawCircle)(ctx, corners[b][0], corners[b][1], size, {
+            fill: color
+        });
+    }
+
+    // mode
+    function circles() {
+        var px = void 0,
+            py = void 0;
+        for (var i = 0; i < vcount; i++) {
+            for (var j = 0; j < count; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * i;
+                xnorm = x / cw;
+                ynorm = y / ch;
+
+                // shift and clip
+                ctx.translate(x, y);
+                clipSquare(ctx, w, h, bg);
+
+                _circle();
+
+                // unshift, unclip
+                ctx.restore();
+                (0, _utils.resetTransform)(ctx);
+            }
+        }
+    }
+
+    // mode
+    function triangles() {
+        for (var i = 0; i < vcount; i++) {
+            for (var j = 0; j < count; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * i;
+                xnorm = x / cw;
+                ynorm = y / ch;
+
+                // shift and clip
+                ctx.translate(x, y);
+                clipSquare(ctx, w, h, bg);
+
+                _triangle();
+
+                // unshift, unclip
+                ctx.restore();
+                (0, _utils.resetTransform)(ctx);
+            }
+        }
+    }
+
+    // mode
+    function mixed() {
+        var px = void 0,
+            py = void 0,
+            seed = void 0;
+        var styles = [function () {
+            renderer = _shapes.drawCircle;
+            px = 0;
+            py = 0;
+        }];
+
+        for (var i = 0; i < vcount; i++) {
+            for (var j = 0; j < count; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * i;
+                xnorm = x / cw;
+                ynorm = y / ch;
+
+                // shift and clip
+                ctx.translate(x, y);
+                clipSquare(ctx, w, h, bg);
+
+                switch (Math.round((0, _utils.randomInRange)(1, 12))) {
+                    case 1:
+                    case 2:
+                    case 3:
+                    case 4:
+                        _circle();
+                        break;
+                    case 5:
+                    case 6:
+                    case 7:
+                    case 8:
+                        _square();
+                        break;
+                    case 9:
+                    case 10:
+                    case 11:
+                    case 12:
+                        _triangle();
+                        break;
+                }
+
+                // unshift, unclip
+                ctx.restore();
+                (0, _utils.resetTransform)(ctx);
+            }
+        }
+    }
+
+    //mode
+    function arcs() {
+        ctx.lineWidth = w / (0, _utils.randomInRange)(4, 8);
+        for (var i = 0; i < vcount; i++) {
+            for (var j = 0; j < count; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * i;
+                xnorm = x / cw;
+                ynorm = y / ch;
+
+                // shift and clip
+                ctx.translate(x, y);
+                clipSquare(ctx, w, h, bg);
+
+                if (Math.random() < 0.5) {
+                    _arc(0, fg);
+                    _arc(2, fg);
+                } else {
+                    _arc(1, fg);
+                    _arc(3, fg);
+                }
+
+                // unshift, unclip
+                ctx.restore();
+                (0, _utils.resetTransform)(ctx);
+            }
+        }
+    }
+
+    // mode
+    function arcs2() {
+        var weight = w / (0, _utils.randomInRange)(2.5, 6.5);
+        ctx.lineWidth = weight;
+
+        for (var i = 0; i < vcount; i++) {
+            for (var j = 0; j < count; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * i;
+                xnorm = x / cw;
+                ynorm = y / ch;
+
+                // shift and clip
+                ctx.translate(x, y);
+                clipSquare(ctx, w, h, bg);
+
+                switch (Math.round((0, _utils.randomInRange)(1, 9))) {
+                    case 1:
+                    case 2:
+                        _arc(0, fg);
+                        _arc(2, fg);
+                        break;
+                    case 3:
+                    case 4:
+                        _arc(1, fg);
+                        _arc(3, fg);
+                        break;
+                    case 5:
+                        _arc(0, fg);
+                        _terminal(weight / 2, 2, fg);
+                        break;
+                    case 6:
+                        _arc(1, fg);
+                        _terminal(weight / 2, 3, fg);
+                        break;
+                    case 7:
+                        _arc(2, fg);
+                        _terminal(weight / 2, 0, fg);
+                        break;
+                    case 8:
+                        _arc(3, fg);
+                        _terminal(weight / 2, 1, fg);
+                        break;
+                    case 9:
+                        _terminal(weight / 2, 0, fg);
+                        _terminal(weight / 2, 2, fg);
+                        break;
+                }
+
+                // unshift, unclip
+                ctx.restore();
+                (0, _utils.resetTransform)(ctx);
+            }
+        }
+    }
+
+    // gather our modes
+    var modes = [circles, triangles, mixed, arcs, arcs2];
+
+    // do the loop with one of our modes
+    (0, _utils.randItem)(modes)();
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            // apply noise from supplied canvas
+            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            // create noise pattern and apply
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, w / 3);
+        }
+    }
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
+}
+
+/***/ }),
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3723,7 +3955,7 @@ function circles(options) {
 }
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3987,7 +4219,7 @@ function mesh(options) {
 }
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4404,7 +4636,7 @@ var DEFAULTS = {
 }
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4641,7 +4873,7 @@ function bands(options) {
 }
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4660,7 +4892,7 @@ var _palettes = __webpack_require__(2);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
-var _hexScatter = __webpack_require__(22);
+var _hexScatter = __webpack_require__(23);
 
 var _hexScatter2 = _interopRequireDefault(_hexScatter);
 
@@ -4987,7 +5219,7 @@ function field(options) {
 }
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5252,7 +5484,7 @@ function hexScatter(spacing, w, h, loosen) {
 }
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
