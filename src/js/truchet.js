@@ -90,19 +90,18 @@ export function truchet(options) {
     c = Math.random();
 
     // shared colors
-    let fg;
-    let bg = getSolidFill();
+    let fg; // hold on…
+    let bg = getSolidFill(); // pick bg
 
     // get palette of non-bg colors
     let contrastPalette = [].concat(opts.palette);
     contrastPalette.splice(opts.palette.indexOf(bg), 1);
     let getContrastColor = getSolidColorFunction(contrastPalette);
-    fg = getContrastColor();
-
+    fg = getContrastColor(); // …now set fg in contrast to bg
 
     // component utils
 
-    // draw a triangle in a random corner
+    // draw a triangle at anchor corner
     function _triangle(anchor) {
         let corners = [[0, 0], [w, 0], [w, h], [0, h]];
         let drawCorners = [];
@@ -120,6 +119,7 @@ export function truchet(options) {
         ctx.fill();
     }
 
+    // draw a circle at anchor corner
     function _circle(anchor) {
         let corners = [[0, 0], [w, 0], [w, h], [0, h]];
         let drawCorners = [];
@@ -135,13 +135,15 @@ export function truchet(options) {
         );
     }
 
-    function _square(anchor) {
+    // fill cell
+    function _square() {
         ctx.rect(0,0, w, h);
         ctx.fillStyle = getSolidFill();
         ctx.closePath();
         ctx.fill();
     }
 
+    // draw an arc around anchor corner
     function _arc(anchor, color) {
         let corners = [[0, 0], [w, 0], [w, h], [0, h]];
         if (anchor === undefined) anchor = Math.round(randomInRange(0,3));
@@ -155,6 +157,7 @@ export function truchet(options) {
             });
     }
 
+    // draw arc terminals for anchor corner
     function _terminal(size, anchor, color) {
         let corners = [[w/2, 0], [w, h/2], [w/2, h], [0, h/2]];
         if (anchor === undefined) anchor = Math.round(randomInRange(0,3));
@@ -279,65 +282,6 @@ export function truchet(options) {
         }
     }
 
-    function layers(layerCount=7) {
-
-        function drawLayer() {
-            let px, py;
-            let s;
-
-            for (let i = 0; i < vcount; i++) {
-                for (let j = 0; j < count; j++) {
-                    // convenience vars
-                    x = w * j;
-                    y = h * i;
-                    xnorm = x/cw;
-                    ynorm = y/ch;
-
-                    // shift and clip
-                    ctx.translate(x, y);
-                    clipSquare(ctx, w, h, 'white');
-
-                    // size jitter
-                    s = randomInRange(0.15, 0.45) * w;
-                    // offset a bit, based on available size
-                    px = randomInRange(-1, 1) * 0.2 * (1 - s);
-                    py = randomInRange(-1, 1) * 0.2 * (1 - s);
-
-                    // shift to center for rotation
-                    ctx.translate(w/2, h/2);
-
-                    // draw
-                    drawSquare(ctx,
-                        px,
-                        py,
-                        s,
-                        {
-                            fill: getSolidFill(),
-                            angle: randomInRange(-1, 1) * 0.1
-                        }
-                    );
-
-                    // unshift, unclip
-                    ctx.restore();
-                    resetTransform(ctx);
-                }
-            }
-        }
-
-        ctx.globalAlpha = Math.pow(0.9, layerCount);
-        ctx.globalCompositeOperation = 'multiply';
-
-        while (layerCount--){
-            drawLayer();
-        }
-
-        ctx.globalAlpha = 1;
-        ctx.globalCompositeOperation = 'normal';
-
-    }
-
-
-
 
     //mode
     function arcs() {
@@ -369,8 +313,9 @@ export function truchet(options) {
         }
     }
 
+    // mode
     function arcs2() {
-        let weight = w/randomInRange(4,8);
+        let weight = w/randomInRange(2.5, 6.5);
         ctx.lineWidth = weight;
 
         for (let i = 0; i < vcount; i++) {
