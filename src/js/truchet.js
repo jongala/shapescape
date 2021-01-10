@@ -39,22 +39,6 @@ export function truchet(options) {
 
     let ctx = el.getContext('2d');
 
-    // available renderers
-    let renderMap = {
-        //circle: drawCircle,
-        //ring: drawRing,
-        triangle: drawTriangle,
-        square: drawSquare,
-        box: drawBox,
-        rect: drawRect,
-        pentagon: drawPentagon,
-        hexagon: drawHexagon
-    };
-    let shapes = Object.keys(renderMap);
-    let getRandomRenderer = () => {
-        return renderMap[randItem(shapes)];
-    }
-
     // util to draw a square and clip following rendering inside
     function clipSquare(ctx, w, h, color) {
         ctx.save();
@@ -82,6 +66,8 @@ export function truchet(options) {
     let xnorm = 0;
     let ynorm = 0;
     let renderer;
+
+    let secondLayer = (Math.random() < 0.5);
 
     // play with these random seeds
     let a,b,c;
@@ -182,7 +168,8 @@ export function truchet(options) {
 
 
     // mode
-    function circles () {
+    function circles (background) {
+        background = background || bg;
         let px, py;
         for (let i = 0; i < vcount; i++) {
             for (let j = 0; j < count; j++) {
@@ -194,7 +181,7 @@ export function truchet(options) {
 
                 // shift and clip
                 ctx.translate(x, y);
-                clipSquare(ctx, w, h, bg);
+                clipSquare(ctx, w, h, background);
 
                 _circle();
 
@@ -208,7 +195,8 @@ export function truchet(options) {
 
 
     // mode
-    function triangles () {
+    function triangles (background) {
+        background = background || bg;
         for (let i = 0; i < vcount; i++) {
             for (let j = 0; j < count; j++) {
                 // convenience vars
@@ -219,7 +207,7 @@ export function truchet(options) {
 
                 // shift and clip
                 ctx.translate(x, y);
-                clipSquare(ctx, w, h, bg);
+                clipSquare(ctx, w, h, background);
 
                 _triangle();
 
@@ -232,7 +220,8 @@ export function truchet(options) {
 
 
     // mode
-    function mixed () {
+    function mixed (background) {
+        background = background || bg;
         let px, py, seed;
         let styles = [
             ()=>{
@@ -252,7 +241,7 @@ export function truchet(options) {
 
                 // shift and clip
                 ctx.translate(x, y);
-                clipSquare(ctx, w, h, bg);
+                clipSquare(ctx, w, h, background);
 
                 switch (Math.round(randomInRange(1, 12))){
                     case 1:
@@ -284,7 +273,8 @@ export function truchet(options) {
 
 
     //mode
-    function arcs() {
+    function arcs(background) {
+        background = background || bg;
         ctx.lineWidth = w/randomInRange(4,8);
         for (let i = 0; i < vcount; i++) {
             for (let j = 0; j < count; j++) {
@@ -296,7 +286,7 @@ export function truchet(options) {
 
                 // shift and clip
                 ctx.translate(x, y);
-                clipSquare(ctx, w, h, bg);
+                clipSquare(ctx, w, h, background);
 
                 if (Math.random() < 0.5) {
                     _arc(0, fg);
@@ -314,7 +304,8 @@ export function truchet(options) {
     }
 
     // mode
-    function arcs2() {
+    function arcs2(background) {
+        background = background || bg;
         let weight = w/randomInRange(2.5, 6.5);
         ctx.lineWidth = weight;
 
@@ -328,7 +319,7 @@ export function truchet(options) {
 
                 // shift and clip
                 ctx.translate(x, y);
-                clipSquare(ctx, w, h, bg);
+                clipSquare(ctx, w, h, background);
 
                 switch (Math.round(randomInRange(1, 9))){
                     case 1:
@@ -375,7 +366,15 @@ export function truchet(options) {
     let modes = [circles, triangles, mixed, arcs, arcs2];
 
     // do the loop with one of our modes
-    randItem(modes)();
+    renderer = randItem(modes);
+    renderer(bg);
+
+    if (secondLayer) {
+        fg = getContrastColor();
+        ctx.globalAlpha = 0.8;
+        renderer('transparent');
+        ctx.globalAlpha = 1;
+    }
 
     // add noise
     if (opts.addNoise) {
