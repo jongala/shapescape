@@ -3199,22 +3199,6 @@ function truchet(options) {
 
     var ctx = el.getContext('2d');
 
-    // available renderers
-    var renderMap = {
-        //circle: drawCircle,
-        //ring: drawRing,
-        triangle: _shapes.drawTriangle,
-        square: _shapes.drawSquare,
-        box: _shapes.drawBox,
-        rect: _shapes.drawRect,
-        pentagon: _shapes.drawPentagon,
-        hexagon: _shapes.drawHexagon
-    };
-    var shapes = Object.keys(renderMap);
-    var getRandomRenderer = function getRandomRenderer() {
-        return renderMap[(0, _utils.randItem)(shapes)];
-    };
-
     // util to draw a square and clip following rendering inside
     function clipSquare(ctx, w, h, color) {
         ctx.save();
@@ -3244,6 +3228,8 @@ function truchet(options) {
     var xnorm = 0;
     var ynorm = 0;
     var renderer = void 0;
+
+    var secondLayer = Math.random() < 0.5;
 
     // play with these random seeds
     var a = void 0,
@@ -3328,7 +3314,8 @@ function truchet(options) {
     }
 
     // mode
-    function circles() {
+    function circles(background) {
+        background = background || bg;
         var px = void 0,
             py = void 0;
         for (var i = 0; i < vcount; i++) {
@@ -3341,7 +3328,7 @@ function truchet(options) {
 
                 // shift and clip
                 ctx.translate(x, y);
-                clipSquare(ctx, w, h, bg);
+                clipSquare(ctx, w, h, background);
 
                 _circle();
 
@@ -3353,7 +3340,8 @@ function truchet(options) {
     }
 
     // mode
-    function triangles() {
+    function triangles(background) {
+        background = background || bg;
         for (var i = 0; i < vcount; i++) {
             for (var j = 0; j < count; j++) {
                 // convenience vars
@@ -3364,7 +3352,7 @@ function truchet(options) {
 
                 // shift and clip
                 ctx.translate(x, y);
-                clipSquare(ctx, w, h, bg);
+                clipSquare(ctx, w, h, background);
 
                 _triangle();
 
@@ -3376,7 +3364,8 @@ function truchet(options) {
     }
 
     // mode
-    function mixed() {
+    function mixed(background) {
+        background = background || bg;
         var px = void 0,
             py = void 0,
             seed = void 0;
@@ -3396,7 +3385,7 @@ function truchet(options) {
 
                 // shift and clip
                 ctx.translate(x, y);
-                clipSquare(ctx, w, h, bg);
+                clipSquare(ctx, w, h, background);
 
                 switch (Math.round((0, _utils.randomInRange)(1, 12))) {
                     case 1:
@@ -3427,7 +3416,8 @@ function truchet(options) {
     }
 
     //mode
-    function arcs() {
+    function arcs(background) {
+        background = background || bg;
         ctx.lineWidth = w / (0, _utils.randomInRange)(4, 8);
         for (var i = 0; i < vcount; i++) {
             for (var j = 0; j < count; j++) {
@@ -3439,7 +3429,7 @@ function truchet(options) {
 
                 // shift and clip
                 ctx.translate(x, y);
-                clipSquare(ctx, w, h, bg);
+                clipSquare(ctx, w, h, background);
 
                 if (Math.random() < 0.5) {
                     _arc(0, fg);
@@ -3457,7 +3447,8 @@ function truchet(options) {
     }
 
     // mode
-    function arcs2() {
+    function arcs2(background) {
+        background = background || bg;
         var weight = w / (0, _utils.randomInRange)(2.5, 6.5);
         ctx.lineWidth = weight;
 
@@ -3471,7 +3462,7 @@ function truchet(options) {
 
                 // shift and clip
                 ctx.translate(x, y);
-                clipSquare(ctx, w, h, bg);
+                clipSquare(ctx, w, h, background);
 
                 switch (Math.round((0, _utils.randomInRange)(1, 9))) {
                     case 1:
@@ -3517,7 +3508,15 @@ function truchet(options) {
     var modes = [circles, triangles, mixed, arcs, arcs2];
 
     // do the loop with one of our modes
-    (0, _utils.randItem)(modes)();
+    renderer = (0, _utils.randItem)(modes);
+    renderer(bg);
+
+    if (secondLayer) {
+        fg = getContrastColor();
+        ctx.globalAlpha = 0.8;
+        renderer('transparent');
+        ctx.globalAlpha = 1;
+    }
 
     // add noise
     if (opts.addNoise) {
