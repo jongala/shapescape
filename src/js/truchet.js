@@ -10,7 +10,12 @@ const DEFAULTS = {
     noiseInput: null,
     dust: false,
     skew: 1, // normalized skew
-    clear: true
+    clear: true,
+
+    mode: null,
+    count: 9,
+    weight: 5, // 0 for auto, or 1-10 for normalized weights
+    contrast: true
 }
 
 const PI = Math.PI;
@@ -84,6 +89,16 @@ export function truchet(options) {
     contrastPalette.splice(opts.palette.indexOf(bg), 1);
     let getContrastColor = getSolidColorFunction(contrastPalette);
     fg = getContrastColor(); // …now set fg in contrast to bg
+
+    // mode settings
+    // line weight
+    let weight;
+    if (opts.weight) {
+        weight = w/30 * opts.weight;
+    } else {
+        weight = w/30 * randomInRange(1,10);
+    }
+
 
     // component utils
 
@@ -273,9 +288,9 @@ export function truchet(options) {
 
 
     //mode
-    function arcs(background) {
+    function arcs(background, weight) {
         background = background || bg;
-        ctx.lineWidth = w/randomInRange(4,8);
+        ctx.lineWidth = weight;
         for (let i = 0; i < vcount; i++) {
             for (let j = 0; j < count; j++) {
                 // convenience vars
@@ -304,9 +319,8 @@ export function truchet(options) {
     }
 
     // mode
-    function arcs2(background) {
+    function arcs2(background, weight) {
         background = background || bg;
-        let weight = w/randomInRange(2.5, 6.5);
         ctx.lineWidth = weight;
 
         for (let i = 0; i < vcount; i++) {
@@ -367,12 +381,12 @@ export function truchet(options) {
 
     // do the loop with one of our modes
     renderer = randItem(modes);
-    renderer(bg);
+    renderer(bg, weight);
 
     if (secondLayer) {
         fg = getContrastColor();
         ctx.globalAlpha = 0.8;
-        renderer('transparent');
+        renderer('transparent', (opts.contrast)? weight/2:weight);
         ctx.globalAlpha = 1;
     }
 
