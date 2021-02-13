@@ -13,8 +13,8 @@ const DEFAULTS = {
     clear: true,
 
     mode: null,
-    count: 9,
-    weight: 5, // 0 for auto, or 1-10 for normalized weights
+    count: 0, // 0 for auto, or an integer
+    weight: 0, // 0 for auto, or 1-10 for normalized weights
     contrast: true
 }
 
@@ -60,7 +60,7 @@ export function truchet(options) {
     let getSolidFill = getSolidColorFunction(opts.palette);
 
     // define grid
-    let count = Math.round(randomInRange(4, 9));
+    let count = Math.round(opts.count) || Math.round(randomInRange(4, 9));
     let w = Math.ceil(cw/count);
     let h = w;
     let vcount = Math.ceil(ch/h);
