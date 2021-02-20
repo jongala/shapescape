@@ -1,0 +1,15 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Clock</title>
+</head>
+<body>
+    <div id="controls">
+        <select onchange="setPalette(this.value)" id="paletteSelector"></select>
+        <input type="text" id="customColors" placeholder="paste colors" />
+        <span class="spacerSpan">|</span>
+        <button onclick="drawNew()" id="newImageTrigger">New Image</button>
+    </div>
+    <div id="example"></div>
+</body>
+</html>

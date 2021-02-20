@@ -15,16 +15,26 @@ const paths = {
 
 // Webpack configuration
 module.exports = {
-  entry: path.join(paths.JS, 'app.js'),
+  entry: {
+    app: path.join(paths.JS, 'app.js'),
+    clock: path.join(paths.JS, 'clock.js')
+  },
   output: {
     path: paths.DIST,
-    filename: 'app.bundle.js',
+    filename: '[name].bundle.js',
   },
   // Tell webpack to use html plugin -> ADDED IN THIS STEP
   // index.html is used as a template in which it'll inject bundled app.
   plugins: [
     new HtmlWebpackPlugin({
       template: path.join(paths.SRC, 'index.html'),
+      chunks: ['app'],
+      filename: 'index.html'
+    }),
+    new HtmlWebpackPlugin({
+      template: path.join(paths.SRC, 'clock.html'),
+      chunks: ['clock'],
+      filename: 'clock.html'
     }),
     new ExtractTextPlugin('style.bundle.css'), // CSS will be extracted to this bundle file -> ADDED IN THIS STEP
   ],
