@@ -25,6 +25,8 @@ module.exports = {
   },
   // Tell webpack to use html plugin -> ADDED IN THIS STEP
   // index.html is used as a template in which it'll inject bundled app.
+  // Include a plugin for each output page. Add @chunks to target, otherwise
+  // it will add all chunks processed to all html files.
   plugins: [
     new HtmlWebpackPlugin({
       template: path.join(paths.SRC, 'index.html'),

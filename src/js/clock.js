@@ -16,7 +16,8 @@ var visualOpts = {
     dust: true,
     skew: 1,
     addNoise: 0.04,
-    noiseInput: noiseUtils.createNoiseCanvas(0.04, 200)
+    noiseInput: noiseUtils.createNoiseCanvas(0.04, 200),
+    count: 12
 };
 
 var exampleNode = document.getElementById('example');
