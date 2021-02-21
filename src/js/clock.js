@@ -4,6 +4,7 @@ import noiseUtils from './noiseutils';
 import palettes from './palettes';
 import colorbrewer from './colorbrewer';
 import { truchet } from './truchet';
+import { numerals } from './numerals';
 import { setAttrs } from './utils';
 
 // Renderers
@@ -17,7 +18,7 @@ var visualOpts = {
     skew: 1,
     addNoise: 0.04,
     noiseInput: noiseUtils.createNoiseCanvas(0.04, 200),
-    count: 12
+    count: 14
 };
 
 var exampleNode = document.getElementById('example');
@@ -27,7 +28,7 @@ var exampleNode = document.getElementById('example');
 function loadOpts(opts, fast) {
     visualOpts = Object.assign(visualOpts, opts);
     // render art
-    Renderer(visualOpts);
+    truchet(visualOpts);
 }
 
 // Handlers for redraw, batching, and manual saving
@@ -100,4 +101,17 @@ window.visualOpts = visualOpts;
 
 // draw one to start, take renderer from hash if it is valid
 
-drawNew();
+//drawNew();
+setInterval(()=>{
+    drawNew();
+    window.requestAnimationFrame(()=>{
+        numerals(Object.assign({},visualOpts,{
+            clear: false,
+            addNoise: 0,
+        }));
+    });
+    
+}, 1000);
+
+
+

@@ -162,77 +162,6 @@ export function truchet(options) {
             });
     }
 
-    let numberDefs = {
-        0: '891176',
-        1: '410101',
-        2: '898611',
-        3: '717176',
-        4: '551101',
-        5: '117976',
-        6: '891976',
-        7: '118210',
-        8: '898976',
-        9: '897146'
-    }
-
-    function drawNumber(N, i, j, fill) {
-        let def = numberDefs[N];
-
-        // map serialized hex code to cell styles
-        // defined inside drawNumber for ease of passing fills
-        let toCell = {
-            0: ()=>{},
-            1: ()=>{_square(null, fill)},
-            2: ()=>{_triangle(2, fill)},
-            3: ()=>{_triangle(3, fill)},
-            4: ()=>{_triangle(0, fill)},
-            5: ()=>{_triangle(1, fill)},
-            6: ()=>{_circle(0, fill)},
-            7: ()=>{_circle(1, fill)},
-            8: ()=>{_circle(2, fill)},
-            9: ()=>{_circle(3, fill)},
-            "a": ()=>{_square(null, fill)},
-            "b": ()=>{_square(null, fill)},
-            "c": ()=>{_square(null, fill)},
-            "d": ()=>{_square(null, fill)},
-            "e": ()=>{_square(null, fill)},
-            "f": ()=>{_square(null, fill)}
-        }
-
-
-        ctx.translate(i * w, j * h);
-        clipSquare(ctx, w, h, 'transparent');
-        toCell[def[0]]();
-        ctx.restore();
-
-        ctx.translate(w,0);
-        clipSquare(ctx, w, h, 'transparent');
-        toCell[def[1]]();
-        ctx.restore();
-
-        ctx.translate(-w,h);
-        clipSquare(ctx, w, h, 'transparent');
-        toCell[def[2]]();
-        ctx.restore();
-
-        ctx.translate(w,0);
-        clipSquare(ctx, w, h, 'transparent');
-        toCell[def[3]]();
-        ctx.restore();
-
-        ctx.translate(-w,h);
-        clipSquare(ctx, w, h, 'transparent');
-        toCell[def[4]]();
-        ctx.restore();
-
-        ctx.translate(w,0);
-        clipSquare(ctx, w, h, 'transparent');
-        toCell[def[5]]();
-        ctx.restore();
-
-        resetTransform(ctx);
-    }
-
     // draw arc terminals for anchor corner
     function _terminal(size, anchor, color) {
         let corners = [[w/2, 0], [w, h/2], [w/2, h], [0, h/2]];
@@ -475,20 +404,6 @@ export function truchet(options) {
             noiseUtils.addNoiseFromPattern(el, opts.addNoise, w / 3);
         }
     }
-
-    drawNumber(0, 1, 1, 'white');
-    drawNumber(1, 3, 1, 'white');
-    drawNumber(2, 5, 1, 'white');
-    drawNumber(3, 7, 1, 'white');
-
-    drawNumber(4, 1, 4, 'white');
-    drawNumber(5, 3, 4, 'white');
-    drawNumber(6, 5, 4, 'white');
-    drawNumber(7, 7, 4, 'white');
-
-    drawNumber(8, 5, 7, 'white');
-    drawNumber(9, 7, 7, 'white');
-
 
     // if new canvas child was created, append it
     if (newEl) {
