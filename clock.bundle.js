@@ -1064,6 +1064,8 @@ custom.addEventListener('keypress', function (e) {
 // expose for play
 window.visualOpts = visualOpts;
 
+setPalette('plum_sauce');
+
 // draw one to start, take renderer from hash if it is valid
 
 drawNew();
