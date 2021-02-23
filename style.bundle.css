@@ -76,6 +76,17 @@ button.activeRenderer {
     right: 0;
 }
 
+.art {
+    position: relative;
+}
+.art canvas {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
 #example.isHidden {
     position: absolute;
     visibility: hidden;

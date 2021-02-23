@@ -76,6 +76,17 @@ button.activeRenderer {
     right: 0;
 }
 
+.artContainer {
+    position: relative;
+}
+.artContainer canvas {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
 #example.isHidden {
     position: absolute;
     visibility: hidden;
@@ -198,4 +209,92 @@ button.activeRenderer {
     display: inline-block;
     padding: 0 1em;
     color: #999;
+}
+
+/*
+Home page
+*/
+
+body.home #controls {
+    font-size: 0.85rem;
+    margin: 1em -20px 0;
+    padding: 5px 20px;
+    color: #444;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+body.home #art {
+    margin: 0;
+    width: 100vw;
+    height: 100vh;
+}
+
+#welcome {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 20px 20px 0;
+    font-family: Georgia, serif;
+    font-size: 16px;
+    background-color: #f2f2f2;
+    background-image: linear-gradient(to right bottom, #fff, #e7e7e7);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    z-index: 10;
+}
+
+#welcome h1 {
+    margin: 0;
+    padding: 0;
+    font-size: 24px;
+    color: #444;
+}
+
+#welcome p {
+    margin: 0.5em 0;
+}
+
+#welcome a.text {
+    color: #410;
+}
+
+#timerBar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+}
+
+#timerBar span {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 2px;
+    width: 50%;
+    background: #ff1500;
+}
+
+#timerBar.playing span {
+    animation: timeBar 6s linear infinite;
+}
+
+@keyframes timeBar {
+    from {width: 0;}
+    to {width: 100%;}
+}
+
+kbd {
+    display: inline-block;
+    padding: 0 0.2em .2em;
+    border: 1px solid #ccc;
+    border-width: 1px 1px 3px;
+    border-radius: 3px;
+}
+
+#copyright {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    font-size: 0.8rem;
+    color: rgba(0, 0, 0, 0.33);
 }

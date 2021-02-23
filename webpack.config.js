@@ -17,6 +17,7 @@ const paths = {
 module.exports = {
   entry: {
     app: path.join(paths.JS, 'app.js'),
+    home: path.join(paths.JS, 'home.js'),
     clock: path.join(paths.JS, 'clock.js')
   },
   output: {
@@ -32,6 +33,11 @@ module.exports = {
       template: path.join(paths.SRC, 'index.html'),
       chunks: ['app'],
       filename: 'index.html'
+    }),
+    new HtmlWebpackPlugin({
+      template: path.join(paths.SRC, 'home.html'),
+      chunks: ['home'],
+      filename: 'home.html'
     }),
     new HtmlWebpackPlugin({
       template: path.join(paths.SRC, 'clock.html'),

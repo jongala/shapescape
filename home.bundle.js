@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 24);
+/******/ 	return __webpack_require__(__webpack_require__.s = 25);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -608,33 +608,7 @@ function expandFill(ctx, fill, w, h, scale) {
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-var colorbrewer = {
-    "Set1": { "3": ["rgb(228,26,28)", "rgb(55,126,184)", "rgb(77,175,74)"], "4": ["rgb(228,26,28)", "rgb(55,126,184)", "rgb(77,175,74)", "rgb(152,78,163)"], "5": ["rgb(228,26,28)", "rgb(55,126,184)", "rgb(77,175,74)", "rgb(152,78,163)", "rgb(255,127,0)"], "6": ["rgb(228,26,28)", "rgb(55,126,184)", "rgb(77,175,74)", "rgb(152,78,163)", "rgb(255,127,0)", "rgb(255,255,51)"], "7": ["rgb(228,26,28)", "rgb(55,126,184)", "rgb(77,175,74)", "rgb(152,78,163)", "rgb(255,127,0)", "rgb(255,255,51)", "rgb(166,86,40)"], "8": ["rgb(228,26,28)", "rgb(55,126,184)", "rgb(77,175,74)", "rgb(152,78,163)", "rgb(255,127,0)", "rgb(255,255,51)", "rgb(166,86,40)", "rgb(247,129,191)"], "9": ["rgb(228,26,28)", "rgb(55,126,184)", "rgb(77,175,74)", "rgb(152,78,163)", "rgb(255,127,0)", "rgb(255,255,51)", "rgb(166,86,40)", "rgb(247,129,191)", "rgb(153,153,153)"], "type": "qual" },
-    "Set3": { "3": ["rgb(141,211,199)", "rgb(255,255,179)", "rgb(190,186,218)"], "4": ["rgb(141,211,199)", "rgb(255,255,179)", "rgb(190,186,218)", "rgb(251,128,114)"], "5": ["rgb(141,211,199)", "rgb(255,255,179)", "rgb(190,186,218)", "rgb(251,128,114)", "rgb(128,177,211)"], "6": ["rgb(141,211,199)", "rgb(255,255,179)", "rgb(190,186,218)", "rgb(251,128,114)", "rgb(128,177,211)", "rgb(253,180,98)"], "7": ["rgb(141,211,199)", "rgb(255,255,179)", "rgb(190,186,218)", "rgb(251,128,114)", "rgb(128,177,211)", "rgb(253,180,98)", "rgb(179,222,105)"], "8": ["rgb(141,211,199)", "rgb(255,255,179)", "rgb(190,186,218)", "rgb(251,128,114)", "rgb(128,177,211)", "rgb(253,180,98)", "rgb(179,222,105)", "rgb(252,205,229)"], "9": ["rgb(141,211,199)", "rgb(255,255,179)", "rgb(190,186,218)", "rgb(251,128,114)", "rgb(128,177,211)", "rgb(253,180,98)", "rgb(179,222,105)", "rgb(252,205,229)", "rgb(217,217,217)"], "10": ["rgb(141,211,199)", "rgb(255,255,179)", "rgb(190,186,218)", "rgb(251,128,114)", "rgb(128,177,211)", "rgb(253,180,98)", "rgb(179,222,105)", "rgb(252,205,229)", "rgb(217,217,217)", "rgb(188,128,189)"], "11": ["rgb(141,211,199)", "rgb(255,255,179)", "rgb(190,186,218)", "rgb(251,128,114)", "rgb(128,177,211)", "rgb(253,180,98)", "rgb(179,222,105)", "rgb(252,205,229)", "rgb(217,217,217)", "rgb(188,128,189)", "rgb(204,235,197)"], "12": ["rgb(141,211,199)", "rgb(255,255,179)", "rgb(190,186,218)", "rgb(251,128,114)", "rgb(128,177,211)", "rgb(253,180,98)", "rgb(179,222,105)", "rgb(252,205,229)", "rgb(217,217,217)", "rgb(188,128,189)", "rgb(204,235,197)", "rgb(255,237,111)"], "type": "qual" },
-    "Pastel1": { "3": ["rgb(251,180,174)", "rgb(179,205,227)", "rgb(204,235,197)"], "4": ["rgb(251,180,174)", "rgb(179,205,227)", "rgb(204,235,197)", "rgb(222,203,228)"], "5": ["rgb(251,180,174)", "rgb(179,205,227)", "rgb(204,235,197)", "rgb(222,203,228)", "rgb(254,217,166)"], "6": ["rgb(251,180,174)", "rgb(179,205,227)", "rgb(204,235,197)", "rgb(222,203,228)", "rgb(254,217,166)", "rgb(255,255,204)"], "7": ["rgb(251,180,174)", "rgb(179,205,227)", "rgb(204,235,197)", "rgb(222,203,228)", "rgb(254,217,166)", "rgb(255,255,204)", "rgb(229,216,189)"], "8": ["rgb(251,180,174)", "rgb(179,205,227)", "rgb(204,235,197)", "rgb(222,203,228)", "rgb(254,217,166)", "rgb(255,255,204)", "rgb(229,216,189)", "rgb(253,218,236)"], "9": ["rgb(251,180,174)", "rgb(179,205,227)", "rgb(204,235,197)", "rgb(222,203,228)", "rgb(254,217,166)", "rgb(255,255,204)", "rgb(229,216,189)", "rgb(253,218,236)", "rgb(242,242,242)"], "type": "qual" },
-
-    "YlOrRd": { "3": ["rgb(255,237,160)", "rgb(254,178,76)", "rgb(240,59,32)"], "4": ["rgb(255,255,178)", "rgb(254,204,92)", "rgb(253,141,60)", "rgb(227,26,28)"], "5": ["rgb(255,255,178)", "rgb(254,204,92)", "rgb(253,141,60)", "rgb(240,59,32)", "rgb(189,0,38)"], "6": ["rgb(255,255,178)", "rgb(254,217,118)", "rgb(254,178,76)", "rgb(253,141,60)", "rgb(240,59,32)", "rgb(189,0,38)"], "7": ["rgb(255,255,178)", "rgb(254,217,118)", "rgb(254,178,76)", "rgb(253,141,60)", "rgb(252,78,42)", "rgb(227,26,28)", "rgb(177,0,38)"], "8": ["rgb(255,255,204)", "rgb(255,237,160)", "rgb(254,217,118)", "rgb(254,178,76)", "rgb(253,141,60)", "rgb(252,78,42)", "rgb(227,26,28)", "rgb(177,0,38)"], "type": "seq" },
-    "YlGnBu": { "3": ["rgb(237,248,177)", "rgb(127,205,187)", "rgb(44,127,184)"], "4": ["rgb(255,255,204)", "rgb(161,218,180)", "rgb(65,182,196)", "rgb(34,94,168)"], "5": ["rgb(255,255,204)", "rgb(161,218,180)", "rgb(65,182,196)", "rgb(44,127,184)", "rgb(37,52,148)"], "6": ["rgb(255,255,204)", "rgb(199,233,180)", "rgb(127,205,187)", "rgb(65,182,196)", "rgb(44,127,184)", "rgb(37,52,148)"], "7": ["rgb(255,255,204)", "rgb(199,233,180)", "rgb(127,205,187)", "rgb(65,182,196)", "rgb(29,145,192)", "rgb(34,94,168)", "rgb(12,44,132)"], "8": ["rgb(255,255,217)", "rgb(237,248,177)", "rgb(199,233,180)", "rgb(127,205,187)", "rgb(65,182,196)", "rgb(29,145,192)", "rgb(34,94,168)", "rgb(12,44,132)"], "9": ["rgb(255,255,217)", "rgb(237,248,177)", "rgb(199,233,180)", "rgb(127,205,187)", "rgb(65,182,196)", "rgb(29,145,192)", "rgb(34,94,168)", "rgb(37,52,148)", "rgb(8,29,88)"], "type": "seq" },
-    "PuBu": { "3": ["rgb(236,231,242)", "rgb(166,189,219)", "rgb(43,140,190)"], "4": ["rgb(241,238,246)", "rgb(189,201,225)", "rgb(116,169,207)", "rgb(5,112,176)"], "5": ["rgb(241,238,246)", "rgb(189,201,225)", "rgb(116,169,207)", "rgb(43,140,190)", "rgb(4,90,141)"], "6": ["rgb(241,238,246)", "rgb(208,209,230)", "rgb(166,189,219)", "rgb(116,169,207)", "rgb(43,140,190)", "rgb(4,90,141)"], "7": ["rgb(241,238,246)", "rgb(208,209,230)", "rgb(166,189,219)", "rgb(116,169,207)", "rgb(54,144,192)", "rgb(5,112,176)", "rgb(3,78,123)"], "8": ["rgb(255,247,251)", "rgb(236,231,242)", "rgb(208,209,230)", "rgb(166,189,219)", "rgb(116,169,207)", "rgb(54,144,192)", "rgb(5,112,176)", "rgb(3,78,123)"], "9": ["rgb(255,247,251)", "rgb(236,231,242)", "rgb(208,209,230)", "rgb(166,189,219)", "rgb(116,169,207)", "rgb(54,144,192)", "rgb(5,112,176)", "rgb(4,90,141)", "rgb(2,56,88)"], "type": "seq" },
-    "BuPu": { "3": ["rgb(224,236,244)", "rgb(158,188,218)", "rgb(136,86,167)"], "4": ["rgb(237,248,251)", "rgb(179,205,227)", "rgb(140,150,198)", "rgb(136,65,157)"], "5": ["rgb(237,248,251)", "rgb(179,205,227)", "rgb(140,150,198)", "rgb(136,86,167)", "rgb(129,15,124)"], "6": ["rgb(237,248,251)", "rgb(191,211,230)", "rgb(158,188,218)", "rgb(140,150,198)", "rgb(136,86,167)", "rgb(129,15,124)"], "7": ["rgb(237,248,251)", "rgb(191,211,230)", "rgb(158,188,218)", "rgb(140,150,198)", "rgb(140,107,177)", "rgb(136,65,157)", "rgb(110,1,107)"], "8": ["rgb(247,252,253)", "rgb(224,236,244)", "rgb(191,211,230)", "rgb(158,188,218)", "rgb(140,150,198)", "rgb(140,107,177)", "rgb(136,65,157)", "rgb(110,1,107)"], "9": ["rgb(247,252,253)", "rgb(224,236,244)", "rgb(191,211,230)", "rgb(158,188,218)", "rgb(140,150,198)", "rgb(140,107,177)", "rgb(136,65,157)", "rgb(129,15,124)", "rgb(77,0,75)"], "type": "seq" },
-    "PuRd": { "3": ["rgb(231,225,239)", "rgb(201,148,199)", "rgb(221,28,119)"], "4": ["rgb(241,238,246)", "rgb(215,181,216)", "rgb(223,101,176)", "rgb(206,18,86)"], "5": ["rgb(241,238,246)", "rgb(215,181,216)", "rgb(223,101,176)", "rgb(221,28,119)", "rgb(152,0,67)"], "6": ["rgb(241,238,246)", "rgb(212,185,218)", "rgb(201,148,199)", "rgb(223,101,176)", "rgb(221,28,119)", "rgb(152,0,67)"], "7": ["rgb(241,238,246)", "rgb(212,185,218)", "rgb(201,148,199)", "rgb(223,101,176)", "rgb(231,41,138)", "rgb(206,18,86)", "rgb(145,0,63)"], "8": ["rgb(247,244,249)", "rgb(231,225,239)", "rgb(212,185,218)", "rgb(201,148,199)", "rgb(223,101,176)", "rgb(231,41,138)", "rgb(206,18,86)", "rgb(145,0,63)"], "9": ["rgb(247,244,249)", "rgb(231,225,239)", "rgb(212,185,218)", "rgb(201,148,199)", "rgb(223,101,176)", "rgb(231,41,138)", "rgb(206,18,86)", "rgb(152,0,67)", "rgb(103,0,31)"], "type": "seq" },
-    "RdPu": { "3": ["rgb(253,224,221)", "rgb(250,159,181)", "rgb(197,27,138)"], "4": ["rgb(254,235,226)", "rgb(251,180,185)", "rgb(247,104,161)", "rgb(174,1,126)"], "5": ["rgb(254,235,226)", "rgb(251,180,185)", "rgb(247,104,161)", "rgb(197,27,138)", "rgb(122,1,119)"], "6": ["rgb(254,235,226)", "rgb(252,197,192)", "rgb(250,159,181)", "rgb(247,104,161)", "rgb(197,27,138)", "rgb(122,1,119)"], "7": ["rgb(254,235,226)", "rgb(252,197,192)", "rgb(250,159,181)", "rgb(247,104,161)", "rgb(221,52,151)", "rgb(174,1,126)", "rgb(122,1,119)"], "8": ["rgb(255,247,243)", "rgb(253,224,221)", "rgb(252,197,192)", "rgb(250,159,181)", "rgb(247,104,161)", "rgb(221,52,151)", "rgb(174,1,126)", "rgb(122,1,119)"], "9": ["rgb(255,247,243)", "rgb(253,224,221)", "rgb(252,197,192)", "rgb(250,159,181)", "rgb(247,104,161)", "rgb(221,52,151)", "rgb(174,1,126)", "rgb(122,1,119)", "rgb(73,0,106)"], "type": "seq" },
-
-    "Greys": { "3": ["rgb(240,240,240)", "rgb(189,189,189)", "rgb(99,99,99)"], "4": ["rgb(247,247,247)", "rgb(204,204,204)", "rgb(150,150,150)", "rgb(82,82,82)"], "5": ["rgb(247,247,247)", "rgb(204,204,204)", "rgb(150,150,150)", "rgb(99,99,99)", "rgb(37,37,37)"], "6": ["rgb(247,247,247)", "rgb(217,217,217)", "rgb(189,189,189)", "rgb(150,150,150)", "rgb(99,99,99)", "rgb(37,37,37)"], "7": ["rgb(247,247,247)", "rgb(217,217,217)", "rgb(189,189,189)", "rgb(150,150,150)", "rgb(115,115,115)", "rgb(82,82,82)", "rgb(37,37,37)"], "8": ["rgb(255,255,255)", "rgb(240,240,240)", "rgb(217,217,217)", "rgb(189,189,189)", "rgb(150,150,150)", "rgb(115,115,115)", "rgb(82,82,82)", "rgb(37,37,37)"], "9": ["rgb(255,255,255)", "rgb(240,240,240)", "rgb(217,217,217)", "rgb(189,189,189)", "rgb(150,150,150)", "rgb(115,115,115)", "rgb(82,82,82)", "rgb(37,37,37)", "rgb(0,0,0)"], "type": "seq" }
-};
-
-exports.default = colorbrewer;
-
-/***/ }),
+/* 6 */,
 /* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -2772,423 +2746,7 @@ function grid(options) {
 }
 
 /***/ }),
-/* 16 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.truchet = truchet;
-
-var _noiseutils = __webpack_require__(1);
-
-var _noiseutils2 = _interopRequireDefault(_noiseutils);
-
-var _palettes = __webpack_require__(2);
-
-var _palettes2 = _interopRequireDefault(_palettes);
-
-var _utils = __webpack_require__(0);
-
-var _shapes = __webpack_require__(3);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-var DEFAULTS = {
-    container: 'body',
-    palette: _palettes2.default.south_beach,
-    addNoise: 0.04,
-    noiseInput: null,
-    dust: false,
-    skew: 1, // normalized skew
-    clear: true,
-
-    mode: null,
-    count: 0, // 0 for auto, or an integer
-    weight: 0, // 0 for auto, or 1-10 for normalized weights
-    contrast: true
-};
-
-var PI = Math.PI;
-
-// Main function
-function truchet(options) {
-    var opts = Object.assign({}, DEFAULTS, options);
-
-    var container = opts.container;
-    var cw = container.offsetWidth;
-    var ch = container.offsetHeight;
-    var SCALE = Math.min(cw, ch);
-
-    // Find or create canvas child
-    var el = container.querySelector('canvas');
-    var newEl = false;
-    if (!el) {
-        container.innerHTML = '';
-        el = document.createElement('canvas');
-        newEl = true;
-    }
-    if (newEl || opts.clear) {
-        el.width = cw;
-        el.height = ch;
-    }
-
-    var ctx = el.getContext('2d');
-
-    // util to draw a square and clip following rendering inside
-    function clipSquare(ctx, w, h, color) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(0, 0, w, h);
-        ctx.fillStyle = color;
-        ctx.closePath();
-        ctx.fill();
-        ctx.clip();
-    }
-
-    // color funcs
-    var randomFill = function randomFill() {
-        return "#" + Math.random().toString(16).slice(2, 8);
-    };
-    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
-
-    // define grid
-    var count = Math.round(opts.count) || Math.round((0, _utils.randomInRange)(4, 9));
-    var w = Math.ceil(cw / count);
-    var h = w;
-    var vcount = Math.ceil(ch / h);
-
-    // setup vars for each cell
-    var x = 0;
-    var y = 0;
-    var xnorm = 0;
-    var ynorm = 0;
-    var renderer = void 0;
-
-    var secondLayer = Math.random() < 0.5;
-
-    // play with these random seeds
-    var a = void 0,
-        b = void 0,
-        c = void 0;
-    a = Math.random();
-    b = Math.random();
-    c = Math.random();
-
-    // shared colors
-    var fg = void 0; // hold on…
-    var bg = getSolidFill(); // pick bg
-
-    // get palette of non-bg colors
-    var contrastPalette = [].concat(opts.palette);
-    contrastPalette.splice(opts.palette.indexOf(bg), 1);
-    var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
-    fg = getContrastColor(); // …now set fg in contrast to bg
-
-    // mode settings
-    // line weight
-    var weight = void 0;
-    if (opts.weight) {
-        weight = w / 30 * opts.weight;
-    } else {
-        weight = w / 30 * (0, _utils.randomInRange)(1, 10);
-    }
-
-    // component utils
-
-    // draw a triangle at anchor corner
-    function _triangle(anchor, fill) {
-        var corners = [[0, 0], [w, 0], [w, h], [0, h]];
-        var drawCorners = [];
-        fill = fill || getSolidFill();
-        if (anchor === undefined) anchor = Math.round((0, _utils.randomInRange)(0, 3));
-        drawCorners = [].concat(corners);
-        drawCorners.splice(anchor, 1);
-
-        // draw a triangle with the remaining 3 points
-        ctx.beginPath();
-        ctx.moveTo.apply(ctx, _toConsumableArray(drawCorners[0]));
-        ctx.lineTo.apply(ctx, _toConsumableArray(drawCorners[1]));
-        ctx.lineTo.apply(ctx, _toConsumableArray(drawCorners[2]));
-        ctx.closePath();
-        ctx.fillStyle = fill;
-        ctx.fill();
-    }
-
-    // draw a circle at anchor corner
-    function _circle(anchor, fill) {
-        var corners = [[0, 0], [w, 0], [w, h], [0, h]];
-        var drawCorners = [];
-        fill = fill || getSolidFill();
-        if (anchor === undefined) anchor = Math.round((0, _utils.randomInRange)(0, 3));
-
-        (0, _shapes.drawCircle)(ctx, corners[anchor][0], corners[anchor][1], w, {
-            fill: fill
-        });
-    }
-
-    // fill cell
-    // first arg is for parity with _triangle and _circle
-    function _square(_, fill) {
-        fill = fill || getSolidFill();
-        ctx.rect(0, 0, w, h);
-        ctx.fillStyle = fill;
-        ctx.closePath();
-        ctx.fill();
-    }
-
-    // draw an arc around anchor corner
-    function _arc(anchor, color) {
-        var corners = [[0, 0], [w, 0], [w, h], [0, h]];
-        if (anchor === undefined) anchor = Math.round((0, _utils.randomInRange)(0, 3));
-
-        (0, _shapes.drawCircle)(ctx, corners[anchor][0], corners[anchor][1], w / 2, {
-            stroke: color
-        });
-    }
-
-    // draw arc terminals for anchor corner
-    function _terminal(size, anchor, color) {
-        var corners = [[w / 2, 0], [w, h / 2], [w / 2, h], [0, h / 2]];
-        if (anchor === undefined) anchor = Math.round((0, _utils.randomInRange)(0, 3));
-        var a = anchor % corners.length;
-        var b = (anchor + 3) % corners.length;
-
-        (0, _shapes.drawCircle)(ctx, corners[a][0], corners[a][1], size, {
-            fill: color
-        });
-        (0, _shapes.drawCircle)(ctx, corners[b][0], corners[b][1], size, {
-            fill: color
-        });
-    }
-
-    // mode
-    function circles(background) {
-        background = background || bg;
-        var px = void 0,
-            py = void 0;
-        for (var i = 0; i < vcount; i++) {
-            for (var j = 0; j < count; j++) {
-                // convenience vars
-                x = w * j;
-                y = h * i;
-                xnorm = x / cw;
-                ynorm = y / ch;
-
-                // shift and clip
-                ctx.translate(x, y);
-                clipSquare(ctx, w, h, background);
-
-                _circle();
-
-                // unshift, unclip
-                ctx.restore();
-                (0, _utils.resetTransform)(ctx);
-            }
-        }
-    }
-
-    // mode
-    function triangles(background) {
-        background = background || bg;
-        for (var i = 0; i < vcount; i++) {
-            for (var j = 0; j < count; j++) {
-                // convenience vars
-                x = w * j;
-                y = h * i;
-                xnorm = x / cw;
-                ynorm = y / ch;
-
-                // shift and clip
-                ctx.translate(x, y);
-                clipSquare(ctx, w, h, background);
-
-                _triangle();
-
-                // unshift, unclip
-                ctx.restore();
-                (0, _utils.resetTransform)(ctx);
-            }
-        }
-    }
-
-    // mode
-    function mixed(background) {
-        background = background || bg;
-        var px = void 0,
-            py = void 0,
-            seed = void 0;
-        var styles = [function () {
-            renderer = _shapes.drawCircle;
-            px = 0;
-            py = 0;
-        }];
-
-        for (var i = 0; i < vcount; i++) {
-            for (var j = 0; j < count; j++) {
-                // convenience vars
-                x = w * j;
-                y = h * i;
-                xnorm = x / cw;
-                ynorm = y / ch;
-
-                // shift and clip
-                ctx.translate(x, y);
-                clipSquare(ctx, w, h, background);
-
-                switch (Math.round((0, _utils.randomInRange)(1, 12))) {
-                    case 1:
-                    case 2:
-                    case 3:
-                    case 4:
-                        _circle();
-                        break;
-                    case 5:
-                    case 6:
-                    case 7:
-                    case 8:
-                        _square();
-                        break;
-                    case 9:
-                    case 10:
-                    case 11:
-                    case 12:
-                        _triangle();
-                        break;
-                }
-
-                // unshift, unclip
-                ctx.restore();
-                (0, _utils.resetTransform)(ctx);
-            }
-        }
-    }
-
-    //mode
-    function arcs(background, weight) {
-        background = background || bg;
-        ctx.lineWidth = weight;
-        for (var i = 0; i < vcount; i++) {
-            for (var j = 0; j < count; j++) {
-                // convenience vars
-                x = w * j;
-                y = h * i;
-                xnorm = x / cw;
-                ynorm = y / ch;
-
-                // shift and clip
-                ctx.translate(x, y);
-                clipSquare(ctx, w, h, background);
-
-                if (Math.random() < 0.5) {
-                    _arc(0, fg);
-                    _arc(2, fg);
-                } else {
-                    _arc(1, fg);
-                    _arc(3, fg);
-                }
-
-                // unshift, unclip
-                ctx.restore();
-                (0, _utils.resetTransform)(ctx);
-            }
-        }
-    }
-
-    // mode
-    function arcs2(background, weight) {
-        background = background || bg;
-        ctx.lineWidth = weight;
-
-        for (var i = 0; i < vcount; i++) {
-            for (var j = 0; j < count; j++) {
-                // convenience vars
-                x = w * j;
-                y = h * i;
-                xnorm = x / cw;
-                ynorm = y / ch;
-
-                // shift and clip
-                ctx.translate(x, y);
-                clipSquare(ctx, w, h, background);
-
-                switch (Math.round((0, _utils.randomInRange)(1, 9))) {
-                    case 1:
-                    case 2:
-                        _arc(0, fg);
-                        _arc(2, fg);
-                        break;
-                    case 3:
-                    case 4:
-                        _arc(1, fg);
-                        _arc(3, fg);
-                        break;
-                    case 5:
-                        _arc(0, fg);
-                        _terminal(weight / 2, 2, fg);
-                        break;
-                    case 6:
-                        _arc(1, fg);
-                        _terminal(weight / 2, 3, fg);
-                        break;
-                    case 7:
-                        _arc(2, fg);
-                        _terminal(weight / 2, 0, fg);
-                        break;
-                    case 8:
-                        _arc(3, fg);
-                        _terminal(weight / 2, 1, fg);
-                        break;
-                    case 9:
-                        _terminal(weight / 2, 0, fg);
-                        _terminal(weight / 2, 2, fg);
-                        break;
-                }
-
-                // unshift, unclip
-                ctx.restore();
-                (0, _utils.resetTransform)(ctx);
-            }
-        }
-    }
-
-    // gather our modes
-    var modes = [circles, triangles, mixed, arcs, arcs2];
-
-    // do the loop with one of our modes
-    renderer = (0, _utils.randItem)(modes);
-    renderer(bg, weight);
-
-    if (secondLayer) {
-        fg = getContrastColor();
-        ctx.globalAlpha = 0.8;
-        renderer('transparent', opts.contrast ? weight / 2 : weight);
-        ctx.globalAlpha = 1;
-    }
-
-    // add noise
-    if (opts.addNoise) {
-        if (opts.noiseInput) {
-            // apply noise from supplied canvas
-            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
-        } else {
-            // create noise pattern and apply
-            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, w / 3);
-        }
-    }
-
-    // if new canvas child was created, append it
-    if (newEl) {
-        container.appendChild(el);
-    }
-}
-
-/***/ }),
+/* 16 */,
 /* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -5432,7 +4990,8 @@ function fragments(options) {
 }
 
 /***/ }),
-/* 24 */
+/* 24 */,
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5448,10 +5007,6 @@ var _palettes = __webpack_require__(2);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
-var _colorbrewer = __webpack_require__(6);
-
-var _colorbrewer2 = _interopRequireDefault(_colorbrewer);
-
 var _waterline = __webpack_require__(7);
 
 var _shapestack = __webpack_require__(9);
@@ -5463,8 +5018,6 @@ var _lines = __webpack_require__(13);
 var _waves = __webpack_require__(14);
 
 var _grid = __webpack_require__(15);
-
-var _truchet = __webpack_require__(16);
 
 var _circles = __webpack_require__(17);
 
@@ -5488,17 +5041,16 @@ var RENDERERS = {
     shapestack: _shapestack.shapestack,
     shapescape: _shapescape.shapescape,
     lines: _lines.lines,
-    grid: _grid.grid,
-    truchet: _truchet.truchet,
-    circles: _circles.circles,
+    //grid: grid,
+    //circles: circles,
     mesh: _mesh.mesh,
     walk: _walk.walk,
-    field: _field.field,
-    bands: _bands.bands,
-    fragments: _fragments.fragments,
-    waves: _waves.waves
+    field: _field.field
+    //bands: bands,
+    //fragments: fragments,
+    //waves: waves
 };
-var initRenderer = 'waterline';
+var initRenderer = (0, _utils.randItem)(Object.keys(RENDERERS)); //'waterline';
 
 var rendererName;
 var Renderer;
@@ -5526,7 +5078,6 @@ function showRenderPicker(renderers, el) {
 function setRenderer(rname, ctrl) {
     rendererName = rname;
     Renderer = RENDERERS[rendererName];
-    window.location.hash = rendererName;
     if (ctrl) {
         ctrl.blur();
         activeButton = document.querySelector('.renderPicker.activeRenderer');
@@ -5539,7 +5090,7 @@ window.setRenderer = setRenderer;
 
 // GUI controlled opts
 var visualOpts = {
-    container: document.querySelector('#example'),
+    container: document.querySelector('#art'),
     clear: true,
     dust: true,
     skew: 1,
@@ -5547,29 +5098,55 @@ var visualOpts = {
     noiseInput: _noiseutils2.default.createNoiseCanvas(0.04, 200)
 };
 
-var exampleNode = document.getElementById('example');
+var artNode = document.getElementById('art');
 
 // @fast skips re-rendering the canvas in place as an img,
 // which makes for easy saving but slows down rendering
 function loadOpts(opts, fast) {
-    var img = exampleNode.querySelector('img');
+    var img = artNode.querySelector('img');
     img && img.remove();
     visualOpts = Object.assign(visualOpts, opts);
     // render art
     Renderer(visualOpts);
     // set up main download link
-    var a = document.getElementById('downloadExample');
+    var a = document.getElementById('downloadArt');
     a.onclick = function () {
-        return doDownload(a, document.querySelector('#example canvas'));
+        return doDownload(a, document.querySelector('#art canvas'));
     };
 }
 
 // Handlers for redraw, batching, and manual saving
+var timer = void 0; // handle for main timer
+var timerBar = document.getElementById('timerBar');
+// function redraws automatically. resets renderer every few draws
+function resetTimer() {
+    clearInterval(timer);
+    var counter = 0;
+    // remove the animation class from the bar
+    timerBar && timerBar.classList.remove('playing');
+    // do this in a new frame so we can reset the css animation
+    requestAnimationFrame(function () {
+        timerBar && timerBar.classList.add('playing');
+        timer = setInterval(function () {
+            counter++;
+            if (counter > 2) {
+                setRenderer((0, _utils.randItem)(Object.keys(RENDERERS)));
+            } else {
+                drawNew();
+            }
+        }, 6000);
+    });
+}
 
 function drawNew() {
     removePreview();
     requestAnimationFrame(loadOpts);
     showMain();
+}
+
+function drawAndReset() {
+    resetTimer();
+    drawNew();
 }
 window.drawNew = drawNew;
 
@@ -5577,9 +5154,14 @@ document.addEventListener('keydown', function (e) {
     var kode = e.which || e.keyCode;
     if (kode === 32) {
         // space
-        drawNew();
+        drawAndReset();
         e.preventDefault();
         return false;
+    } else if (kode === 37 || kode === 39) {
+        // left/right arrows
+        setRenderer((0, _utils.randItem)(Object.keys(RENDERERS)));
+        drawAndReset();
+        e.preventDefault();
     } else if (kode === 27) {
         // ESC
         removePreview();
@@ -5662,7 +5244,7 @@ function createBatch(opts, N) {
 
     hideMain();
 
-    var canvas = document.querySelector('#example canvas');
+    var canvas = document.querySelector('#art canvas');
     var container = document.querySelector('#saved');
 
     // render the batch
@@ -5693,17 +5275,9 @@ function setPalette(pname) {
     } else {
         visualOpts.palette = appPalettes[pname];
     }
-    return drawNew({});
+    return drawAndReset({});
 }
 window.setPalette = setPalette;
-
-// populate the selector for colorbrewer palettes
-if (_colorbrewer2.default) {
-    var cbnames = Object.keys(_colorbrewer2.default);
-    cbnames.forEach(function (pname) {
-        appPalettes[pname] = _colorbrewer2.default[pname][6];
-    });
-}
 
 var selectEl = document.querySelector('#paletteSelector');
 var pnames = Object.keys(appPalettes);
@@ -5721,20 +5295,6 @@ function useCustomPalette(palette) {
         Renderer(visualOpts);
     }
 }
-
-var custom = document.querySelector('#customColors');
-custom.addEventListener('keypress', function (e) {
-    var hexPattern = /#?[0-9a-f]{3,6}/;
-    var palette = e.target.value.split(',');
-    palette = palette.map(function (s) {
-        s = s.trim().replace(/['"']/g, '');
-        if (hexPattern.test(s) && !s.startsWith('#')) {
-            s = '#' + s;
-        }
-        return s;
-    });
-    useCustomPalette(palette);
-});
 
 function previewImage(el) {
     var preview = document.createElement('div');
@@ -5763,37 +5323,21 @@ function removePreview() {
 }
 
 function showMain() {
-    exampleNode.className = exampleNode.className.replace(/isHidden/g, '');
+    artNode.className = artNode.className.replace(/isHidden/g, '');
 }
 
 function hideMain() {
-    if (exampleNode.className.indexOf('isHidden') === -1) {
-        exampleNode.className += 'isHidden ';
+    if (artNode.className.indexOf('isHidden') === -1) {
+        artNode.className += 'isHidden ';
     }
 }
-
-document.querySelector('#saved').addEventListener('click', function (e) {
-    if (e.target.nodeName === 'IMG') {
-        // HACK: this relies on .downloader > img DOM structure
-        previewImage(e.target.parentNode.cloneNode(true));
-    }
-});
-
-exampleNode.addEventListener('click', function (e) {
-    renderCanvasToImg(exampleNode.querySelector('canvas'), document.querySelector('#saved'));
-});
 
 // expose for play
 window.visualOpts = visualOpts;
 
-// draw one to start, take renderer from hash if it is valid
-
-var h = window.location.hash.slice(1);
-if (h && RENDERERS.hasOwnProperty(h)) {
-    initRenderer = h;
-}
-showRenderPicker(RENDERERS, document.getElementById('renderPickers'));
-setRenderer(initRenderer, document.querySelector("[data-renderer='" + initRenderer + "']"));
+// draw to start
+setRenderer(initRenderer);
+resetTimer();
 
 /***/ })
 /******/ ]);
