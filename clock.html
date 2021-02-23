@@ -3,14 +3,16 @@
     <meta charset="utf-8"/>
     <title>Clock</title>
 <link href="style.bundle.css" rel="stylesheet"></head>
-<body>
+<body class="clock">
     <div id="controls">
         <select onchange="setPalette(this.value)" id="paletteSelector"></select>
         <input type="text" id="customColors" placeholder="paste colors" />
         <span class="spacerSpan">|</span>
         <button onclick="drawNew()" id="newImageTrigger">New Image</button>
     </div>
-    <div id="truchet" class="artContainer"></div>
-    <div id="time" class="artContainer"></div>
+    <div id="clockLayers">
+        <div id="truchet" class="artContainer"></div>
+        <div id="time" class="artContainer"></div>
+    </div>
 <script type="text/javascript" src="clock.bundle.js"></script></body>
 </html>

@@ -965,6 +965,9 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 // Renderers
 var Renderer = _truchet.truchet;
 
+// TODO: put this into a resize handler and make it smart
+var COUNT = 16;
+
 // GUI controlled opts
 var visualOpts = {
     container: document.querySelector('#truchet'),
@@ -973,14 +976,22 @@ var visualOpts = {
     skew: 1,
     addNoise: 0.04,
     noiseInput: _noiseutils2.default.createNoiseCanvas(0.04, 200),
-    count: 14
+    count: COUNT
 };
 
-var exampleNode = document.getElementById('truchet');
+var artNode = document.getElementById('truchet');
 
-// @fast skips re-rendering the canvas in place as an img,
-// which makes for easy saving but slows down rendering
-function loadOpts(opts, fast) {
+var timeOpts = {
+    container: document.querySelector('#time'),
+    clear: true,
+    dust: true,
+    skew: 1,
+    addNoise: false,
+    count: COUNT
+
+    // @fast skips re-rendering the canvas in place as an img,
+    // which makes for easy saving but slows down rendering
+};function loadOpts(opts, fast) {
     visualOpts = Object.assign(visualOpts, opts);
     // render art
     (0, _truchet.truchet)(visualOpts);
@@ -1055,14 +1066,11 @@ window.visualOpts = visualOpts;
 
 // draw one to start, take renderer from hash if it is valid
 
-//drawNew();
+drawNew();
 setInterval(function () {
-    drawNew();
+    if (new Date().getSeconds() % 10 === 0) drawNew();
     window.requestAnimationFrame(function () {
-        (0, _numerals.numerals)(Object.assign({}, visualOpts, {
-            clear: false,
-            addNoise: 0
-        }));
+        (0, _numerals.numerals)(timeOpts);
     });
 }, 1000);
 
@@ -1355,16 +1363,43 @@ function numerals(options) {
     minutes = padNum(minutes);
     seconds = padNum(seconds);
 
-    console.log('hours:', hours);
-
-    drawNumber(hours[0], 1, 1, 'white');
+    // count === 14
+    // smoosh them all together on one line
+    /*drawNumber(hours[0], 1, 1, 'white');
     drawNumber(hours[1], 3, 1, 'white');
-
-    drawNumber(minutes[0], 5, 1, 'white');
+     drawNumber(minutes[0], 5, 1, 'white');
     drawNumber(minutes[1], 7, 1, 'white');
+     drawNumber(seconds[0], 9, 1, 'white');
+    drawNumber(seconds[1], 11, 1, 'white');*/
 
-    drawNumber(seconds[0], 9, 1, 'white');
-    drawNumber(seconds[1], 11, 1, 'white');
+    if (count >= 16) {
+        // draw all three on a line
+        drawNumber(hours[0], 1, 1, 'white');
+        drawNumber(hours[1], 3, 1, 'white');
+
+        drawNumber(minutes[0], 6, 1, 'white');
+        drawNumber(minutes[1], 8, 1, 'white');
+
+        drawNumber(seconds[0], 11, 1, 'white');
+        drawNumber(seconds[1], 13, 1, 'white');
+    } else if (count >= 11 && vcount >= 8) {
+        // bump seconds down to their own line
+        drawNumber(hours[0], 1, 1, 'white');
+        drawNumber(hours[1], 3, 1, 'white');
+
+        drawNumber(minutes[0], 6, 1, 'white');
+        drawNumber(minutes[1], 8, 1, 'white');
+
+        drawNumber(seconds[0], 6, 5, 'white');
+        drawNumber(seconds[1], 8, 5, 'white');
+    } else {
+        // hours and minutes only
+        drawNumber(hours[0], 1, 1, 'white');
+        drawNumber(hours[1], 3, 1, 'white');
+
+        drawNumber(minutes[0], 6, 1, 'white');
+        drawNumber(minutes[1], 8, 1, 'white');
+    }
 
     /*drawNumber(0, 1, 1, 'white');
     drawNumber(1, 3, 1, 'white');

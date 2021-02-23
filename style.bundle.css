@@ -298,3 +298,25 @@ kbd {
     font-size: 0.8rem;
     color: rgba(0, 0, 0, 0.33);
 }
+
+/*
+Clock
+*/
+
+body.clock #controls {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 2;
+}
+
+body.clock #clockLayers {
+    position: relative;
+}
+
+body.clock #truchet,
+body.clock #time {
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+}
