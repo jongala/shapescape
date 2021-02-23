@@ -3,13 +3,16 @@
     <meta charset="utf-8"/>
     <title>Clock</title>
 </head>
-<body>
+<body class="clock">
     <div id="controls">
         <select onchange="setPalette(this.value)" id="paletteSelector"></select>
         <input type="text" id="customColors" placeholder="paste colors" />
         <span class="spacerSpan">|</span>
         <button onclick="drawNew()" id="newImageTrigger">New Image</button>
     </div>
-    <div id="example"></div>
+    <div id="clockLayers">
+        <div id="truchet" class="artContainer"></div>
+        <div id="time" class="artContainer"></div>
+    </div>
 </body>
 </html>

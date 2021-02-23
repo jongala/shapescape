@@ -10,18 +10,30 @@ import { setAttrs } from './utils';
 // Renderers
 let Renderer = truchet;
 
+let COUNT = 14;
+
 // GUI controlled opts
 var visualOpts = {
-    container: document.querySelector('#example'),
+    container: document.querySelector('#truchet'),
     clear: true,
     dust: true,
     skew: 1,
     addNoise: 0.04,
     noiseInput: noiseUtils.createNoiseCanvas(0.04, 200),
-    count: 14
+    count: COUNT
 };
 
-var exampleNode = document.getElementById('example');
+var artNode = document.getElementById('truchet');
+
+var timeOpts = {
+    container: document.querySelector('#time'),
+    clear: true,
+    dust: true,
+    skew: 1,
+    addNoise: false,
+    count: COUNT
+}
+
 
 // @fast skips re-rendering the canvas in place as an img,
 // which makes for easy saving but slows down rendering
@@ -101,14 +113,11 @@ window.visualOpts = visualOpts;
 
 // draw one to start, take renderer from hash if it is valid
 
-//drawNew();
+drawNew();
 setInterval(()=>{
-    drawNew();
+    if (new Date().getSeconds() % 10 === 0) drawNew();
     window.requestAnimationFrame(()=>{
-        numerals(Object.assign({},visualOpts,{
-            clear: false,
-            addNoise: 0,
-        }));
+        numerals(timeOpts);
     });
     
 }, 1000);

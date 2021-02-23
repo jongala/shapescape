@@ -242,8 +242,6 @@ export function numerals(options) {
     minutes = padNum(minutes);
     seconds = padNum(seconds);
 
-    console.log('hours:', hours);
-
     drawNumber(hours[0], 1, 1, 'white');
     drawNumber(hours[1], 3, 1, 'white');
 
@@ -252,8 +250,6 @@ export function numerals(options) {
 
     drawNumber(seconds[0], 9, 1, 'white');
     drawNumber(seconds[1], 11, 1, 'white');
-
-
 
 
     /*drawNumber(0, 1, 1, 'white');

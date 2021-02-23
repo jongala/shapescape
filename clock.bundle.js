@@ -967,7 +967,7 @@ var Renderer = _truchet.truchet;
 
 // GUI controlled opts
 var visualOpts = {
-    container: document.querySelector('#example'),
+    container: document.querySelector('#truchet'),
     clear: true,
     dust: true,
     skew: 1,
@@ -976,7 +976,7 @@ var visualOpts = {
     count: 14
 };
 
-var exampleNode = document.getElementById('example');
+var exampleNode = document.getElementById('truchet');
 
 // @fast skips re-rendering the canvas in place as an img,
 // which makes for easy saving but slows down rendering
@@ -1056,16 +1056,15 @@ window.visualOpts = visualOpts;
 // draw one to start, take renderer from hash if it is valid
 
 //drawNew();
-/*setInterval(()=>{
+setInterval(function () {
     drawNew();
-    window.requestAnimationFrame(()=>{
-        numerals(Object.assign({},visualOpts,{
+    window.requestAnimationFrame(function () {
+        (0, _numerals.numerals)(Object.assign({}, visualOpts, {
             clear: false,
-            addNoise: 0,
+            addNoise: 0
         }));
     });
-    
-}, 1000);*/
+}, 1000);
 
 /***/ }),
 /* 27 */
