@@ -10,7 +10,8 @@ import { setAttrs } from './utils';
 // Renderers
 let Renderer = truchet;
 
-let COUNT = 14;
+// TODO: put this into a resize handler and make it smart
+let COUNT = 16;
 
 // GUI controlled opts
 var visualOpts = {

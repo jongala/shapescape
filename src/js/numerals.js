@@ -242,14 +242,48 @@ export function numerals(options) {
     minutes = padNum(minutes);
     seconds = padNum(seconds);
 
-    drawNumber(hours[0], 1, 1, 'white');
+
+    // count === 14
+    // smoosh them all together on one line
+    /*drawNumber(hours[0], 1, 1, 'white');
     drawNumber(hours[1], 3, 1, 'white');
 
     drawNumber(minutes[0], 5, 1, 'white');
     drawNumber(minutes[1], 7, 1, 'white');
 
     drawNumber(seconds[0], 9, 1, 'white');
-    drawNumber(seconds[1], 11, 1, 'white');
+    drawNumber(seconds[1], 11, 1, 'white');*/
+
+    if (count >= 16) {
+        // draw all three on a line
+        drawNumber(hours[0], 1, 1, 'white');
+        drawNumber(hours[1], 3, 1, 'white');
+
+        drawNumber(minutes[0], 6, 1, 'white');
+        drawNumber(minutes[1], 8, 1, 'white');
+
+        drawNumber(seconds[0], 11, 1, 'white');
+        drawNumber(seconds[1], 13, 1, 'white');
+    } else if (count >= 11 && vcount >= 8) {
+        // bump seconds down to their own line
+        drawNumber(hours[0], 1, 1, 'white');
+        drawNumber(hours[1], 3, 1, 'white');
+
+        drawNumber(minutes[0], 6, 1, 'white');
+        drawNumber(minutes[1], 8, 1, 'white');
+
+        drawNumber(seconds[0], 6, 5, 'white');
+        drawNumber(seconds[1], 8, 5, 'white');
+    } else {
+        // hours and minutes only
+        drawNumber(hours[0], 1, 1, 'white');
+        drawNumber(hours[1], 3, 1, 'white');
+
+        drawNumber(minutes[0], 6, 1, 'white');
+        drawNumber(minutes[1], 8, 1, 'white');
+    }
+      
+
 
 
     /*drawNumber(0, 1, 1, 'white');
