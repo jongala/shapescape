@@ -303,6 +303,13 @@ kbd {
 Clock
 */
 
+body.clock #controls {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 2;
+}
+
 body.clock #clockLayers {
     position: relative;
 }
@@ -310,8 +317,6 @@ body.clock #clockLayers {
 body.clock #truchet,
 body.clock #time {
     position: absolute;
-    margin: 20px;
-    width: 800px;
-    height: 800px;
-    box-shadow: 0 1px 20px rgba(0, 0, 0, 0.2);
+    width: 100vw;
+    height: 100vh;
 }
