@@ -12,9 +12,9 @@ const DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     clear: true,
-    lightMode: 'auto', // [auto, bloom, normal]
-    gridMode: 'auto', // [auto, normal, scatter, random]
-    density: 'auto', // [auto, coarse, fine]
+    lightMode: 'normal', // [auto, bloom, normal]
+    gridMode: 'scatter', // [auto, normal, scatter, random]
+    density: 'coarse', // [auto, coarse, fine]
 }
 
 const PI = Math.PI;
@@ -122,7 +122,7 @@ export function field(options) {
     // Up to 0.5 will lead to full coverage.
     let dotScale = cellSize * randomInRange(0.1, 0.25);
     // line width
-    let weight = randomInRange(0.5, 3) * SCALE/800;
+    let weight = randomInRange(1, 6) * SCALE/800;
 
     ctx.lineWidth = weight;
     ctx.lineCap = 'round';
@@ -221,7 +221,7 @@ export function field(options) {
 
 
     // step thru points
-    pts.forEach((p, i) => {
+    /*pts.forEach((p, i) => {
         x = p[0];
         y = p[1];
         xnorm = x/cw;
@@ -252,6 +252,56 @@ export function field(options) {
             y + cellSize * _y * lineScale
         );
         ctx.stroke();
+    });*/
+
+
+    // Field trails: for each point, follow the tail functions for 
+    // a bunch of steps. Seems to work well for 20-100 steps. With more steps
+    // you have to fade out opacity as you go to remain legible
+    let steps = 20;
+    lineScale = 0.5;
+
+    let dx, dy;
+
+    ctx.globalAlpha = 1;
+
+    pts.forEach((p, i) => {
+        for (var z=0; z<=steps; z++) {
+            x = p[0];
+            y = p[1];
+            xnorm = x/cw;
+            ynorm = y/ch;
+
+            _x = trans.xtail(xnorm, ynorm);
+            _y = trans.ytail(xnorm, ynorm);
+            len = Math.sqrt(_x * _x + _y * _y);
+
+            /*drawCircle(ctx,
+                x,
+                y,
+                (trans.radius(xnorm, ynorm) + 1) * dotScale,
+                {fill: fg2}
+            );*/
+
+            //ctx.globalAlpha = opacityFunc(_x, _y);
+
+            // Fadeout
+            //ctx.globalAlpha = (1 - z/steps) * 1;
+
+            dx = cellSize * _x * lineScale;
+            dy = cellSize * _y * lineScale
+
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(
+                x + dx,
+                y + dy
+            );
+            ctx.stroke();
+
+            p[0] = x + dx;
+            p[1] = y + dy;
+        }
     });
 
     ctx.globalAlpha = 1;
