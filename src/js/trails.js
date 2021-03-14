@@ -229,14 +229,14 @@ export function trails(options) {
         ref.setAttribute('width', cw);
         ref.setAttribute('height', ch);
         ref.className = 'artContainer';
-        //document.querySelector('body').appendChild(ref);
+        document.querySelector('body').appendChild(ref);
     }
     let rctx = ref.getContext('2d');
 
     rctx.fillStyle = 'black';
     rctx.fillRect(0, 0, cw, ch);
 
-    rctx.strokeStyle = 'white';
+    rctx.strokeStyle = '#0000ff';
     rctx.lineWidth = weight * 1.5; // exclusion
     rctx.lineCap = 'round';
 
@@ -280,7 +280,7 @@ export function trails(options) {
             trace = rctx.getImageData(x + dx, y + dy, 1, 1).data;
 
             // stop if white
-            if (trace[0]===255) {
+            if (trace[0] > 5) {
                 break;
             }
 
@@ -302,10 +302,12 @@ export function trails(options) {
 
             p[0] = x + dx;
             p[1] = y + dy;
-
-
-
         }
+
+        rctx.globalCompositeOperation = 'color';
+        rctx.fillStyle = '#ff0000';
+        rctx.fillRect(0, 0, cw, ch);
+        rctx.globalCompositeOperation = 'normal';
     });
 
     ctx.globalAlpha = 1;
@@ -354,6 +356,8 @@ export function trails(options) {
 
         ctx.globalCompositeOperation = 'normal';
     }
+
+    window.ctx = ctx;
 
     // add noise
     if (opts.addNoise) {
