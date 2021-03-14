@@ -12,9 +12,9 @@ const DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     clear: true,
-    lightMode: 'auto', // [auto, bloom, normal]
-    gridMode: 'auto', // [auto, normal, scatter, random]
-    density: 'auto', // [auto, coarse, fine]
+    lightMode: 'normal', // [auto, bloom, normal]
+    gridMode: 'scatter', // [auto, normal, scatter, random]
+    density: 'fine', // [auto, coarse, fine]
 }
 
 const PI = Math.PI;
@@ -23,7 +23,7 @@ const GRIDMODES = ['normal', 'scatter', 'random'];
 const DENSITIES = ['coarse', 'fine'];
 
 // Main function
-export function field(options) {
+export function trails(options) {
     let opts = Object.assign({}, DEFAULTS, options);
 
     let container = opts.container;
@@ -108,6 +108,9 @@ export function field(options) {
         rateMax = 5;
     }
 
+    // trails:
+    rateMax = 5;
+
     // rate is the number of sin waves across the grid
     let xrate = randomInRange(0, rateMax);
     let yrate = randomInRange(0, rateMax);
@@ -122,7 +125,7 @@ export function field(options) {
     // Up to 0.5 will lead to full coverage.
     let dotScale = cellSize * randomInRange(0.1, 0.25);
     // line width
-    let weight = randomInRange(0.5, 3) * SCALE/800;
+    let weight = randomInRange(1, 6) * SCALE/800;
 
     ctx.lineWidth = weight;
     ctx.lineCap = 'round';
@@ -221,7 +224,7 @@ export function field(options) {
 
 
     // step thru points
-    pts.forEach((p, i) => {
+    /*pts.forEach((p, i) => {
         x = p[0];
         y = p[1];
         xnorm = x/cw;
@@ -252,6 +255,109 @@ export function field(options) {
             y + cellSize * _y * lineScale
         );
         ctx.stroke();
+    });*/
+
+    // Create another canvas
+
+    let ref = document.querySelector('#ref');
+    if (!ref) {
+        ref = document.createElement('canvas');
+        ref.setAttribute('id','ref');
+        ref.setAttribute('width', cw);
+        ref.setAttribute('height', ch);
+        ref.className = 'artContainer';
+        //document.querySelector('body').appendChild(ref);
+    }
+    let rctx = ref.getContext('2d');
+
+    rctx.fillStyle = 'black';
+    rctx.fillRect(0, 0, cw, ch);
+
+    rctx.strokeStyle = 'white';
+    rctx.lineWidth = weight * 1.3; // exclusion
+    rctx.lineCap = 'round';
+
+
+
+
+    // Field trails: for each point, follow the tail functions for 
+    // a bunch of steps. Seems to work well for 20-100 steps. With more steps
+    // you have to fade out opacity as you go to remain legible
+    let steps = 60;
+    lineScale = 0.5;
+
+    let dx, dy;
+
+    ctx.globalAlpha = 1;
+    //ctx.globalAlpha = 0.5;
+    //ctx.globalCompositeOperation = 'overlay';
+
+    ctx.lineWidth = weight * 0.66;
+
+    let trace;
+
+    pts.forEach((p, i) => {
+        ctx.strokeStyle = (i%2)? fg : fg2;
+        //ctx.strokeStyle = (i%2)? 'white' : 'black';
+        //ctx.strokeStyle = getContrastColor();
+
+        //steps = randomInRange(10,40);
+
+        for (var z=0; z<=steps; z++) {
+            x = p[0];
+            y = p[1];
+            xnorm = x/cw;
+            ynorm = y/ch;
+
+            _x = trans.xtail(xnorm, ynorm);
+            _y = trans.ytail(xnorm, ynorm);
+            len = Math.sqrt(_x * _x + _y * _y);
+
+            /*drawCircle(ctx,
+                x,
+                y,
+                (trans.radius(xnorm, ynorm) + 1) * dotScale,
+                {fill: fg2}
+            );*/
+
+            //ctx.globalAlpha = opacityFunc(_x, _y);
+
+            // Fadeout
+            //ctx.globalAlpha = (1 - z/steps) * 1;
+
+            dx = cellSize * _x * lineScale;
+            dy = cellSize * _y * lineScale
+
+            // get ref sample
+            trace = rctx.getImageData(x + dx, y + dy, 1, 1).data;
+
+            // stop if white
+            if (trace[0]===255) {
+                //console.log(trace);
+                z=steps;
+            } else {
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(
+                    x + dx,
+                    y + dy
+                );
+                ctx.stroke();
+
+                rctx.beginPath();
+                rctx.moveTo(x, y);
+                rctx.lineTo(
+                    x + dx,
+                    y + dy
+                );
+                rctx.stroke();
+
+                p[0] = x + dx;
+                p[1] = y + dy;
+            }
+
+            
+        }
     });
 
     ctx.globalAlpha = 1;
@@ -317,4 +423,5 @@ export function field(options) {
         container.appendChild(el);
     }
 }
+
 

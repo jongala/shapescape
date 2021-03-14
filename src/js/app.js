@@ -15,6 +15,7 @@ import { mesh } from './mesh';
 import { walk } from './walk';
 import { bands } from './bands';
 import { field } from './field';
+import { trails } from './trails';
 import { fragments } from './fragments';
 import { setAttrs } from './utils';
 
@@ -30,6 +31,7 @@ const RENDERERS = {
     mesh: mesh,
     walk: walk,
     field: field,
+    trails: trails,
     bands: bands,
     fragments: fragments,
     waves: waves
