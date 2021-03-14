@@ -121,11 +121,9 @@ export function trails(options) {
     // tail vars
     let _x,_y,len;
 
-    // dotScale will be multiplied by 2. Keep below .25 to avoid bleed.
-    // Up to 0.5 will lead to full coverage.
-    let dotScale = cellSize * randomInRange(0.1, 0.25);
     // line width
     let weight = randomInRange(1, 6) * SCALE/800;
+    weight = cellSize * randomInRange(0.2, 0.6);
 
     ctx.lineWidth = weight;
     ctx.lineCap = 'round';
@@ -222,41 +220,6 @@ export function trails(options) {
             pts = placeNormal(cellSize, cw, ch);
     }
 
-
-    // step thru points
-    /*pts.forEach((p, i) => {
-        x = p[0];
-        y = p[1];
-        xnorm = x/cw;
-        ynorm = y/ch;
-
-        _x = trans.xtail(xnorm, ynorm);
-        _y = trans.ytail(xnorm, ynorm);
-        len = Math.sqrt(_x * _x + _y * _y);
-
-        // shift base points to their warped coordinates
-        x = x + cellSize * trans.xbase(xnorm, ynorm) * warp;
-        y = y + cellSize * trans.ybase(xnorm, ynorm) * warp;
-
-        ctx.globalAlpha = 1;
-        drawCircle(ctx,
-            x,
-            y,
-            (trans.radius(xnorm, ynorm) + 1) * dotScale,
-            {fill: fg2}
-        );
-
-        ctx.globalAlpha = opacityFunc(_x, _y);
-
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(
-            x + cellSize * _x * lineScale,
-            y + cellSize * _y * lineScale
-        );
-        ctx.stroke();
-    });*/
-
     // Create another canvas
 
     let ref = document.querySelector('#ref');
@@ -274,13 +237,11 @@ export function trails(options) {
     rctx.fillRect(0, 0, cw, ch);
 
     rctx.strokeStyle = 'white';
-    rctx.lineWidth = weight * 1.3; // exclusion
+    rctx.lineWidth = weight * 1.5; // exclusion
     rctx.lineCap = 'round';
 
 
-
-
-    // Field trails: for each point, follow the tail functions for 
+    // Field trails: for each point, follow the tail functions for
     // a bunch of steps. Seems to work well for 20-100 steps. With more steps
     // you have to fade out opacity as you go to remain legible
     let steps = 60;
@@ -294,7 +255,7 @@ export function trails(options) {
 
     ctx.lineWidth = weight * 0.66;
 
-    let trace;
+    let trace; // color sample
 
     pts.forEach((p, i) => {
         ctx.strokeStyle = (i%2)? fg : fg2;
@@ -311,19 +272,6 @@ export function trails(options) {
 
             _x = trans.xtail(xnorm, ynorm);
             _y = trans.ytail(xnorm, ynorm);
-            len = Math.sqrt(_x * _x + _y * _y);
-
-            /*drawCircle(ctx,
-                x,
-                y,
-                (trans.radius(xnorm, ynorm) + 1) * dotScale,
-                {fill: fg2}
-            );*/
-
-            //ctx.globalAlpha = opacityFunc(_x, _y);
-
-            // Fadeout
-            //ctx.globalAlpha = (1 - z/steps) * 1;
 
             dx = cellSize * _x * lineScale;
             dy = cellSize * _y * lineScale
@@ -333,30 +281,30 @@ export function trails(options) {
 
             // stop if white
             if (trace[0]===255) {
-                //console.log(trace);
-                z=steps;
-            } else {
-                ctx.beginPath();
-                ctx.moveTo(x, y);
-                ctx.lineTo(
-                    x + dx,
-                    y + dy
-                );
-                ctx.stroke();
-
-                rctx.beginPath();
-                rctx.moveTo(x, y);
-                rctx.lineTo(
-                    x + dx,
-                    y + dy
-                );
-                rctx.stroke();
-
-                p[0] = x + dx;
-                p[1] = y + dy;
+                break;
             }
 
-            
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(
+                x + dx,
+                y + dy
+            );
+            ctx.stroke();
+
+            rctx.beginPath();
+            rctx.moveTo(x, y);
+            rctx.lineTo(
+                x + dx,
+                y + dy
+            );
+            rctx.stroke();
+
+            p[0] = x + dx;
+            p[1] = y + dy;
+
+
+
         }
     });
 
