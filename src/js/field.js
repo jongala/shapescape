@@ -14,7 +14,7 @@ const DEFAULTS = {
     clear: true,
     lightMode: 'normal', // [auto, bloom, normal]
     gridMode: 'scatter', // [auto, normal, scatter, random]
-    density: 'coarse', // [auto, coarse, fine]
+    density: 'fine', // [auto, coarse, fine]
 }
 
 const PI = Math.PI;
@@ -107,6 +107,9 @@ export function field(options) {
     if (DENSITY === 'fine' && Math.random() < 0.5) {
         rateMax = 5;
     }
+
+    // trails:
+    rateMax = 5;
 
     // rate is the number of sin waves across the grid
     let xrate = randomInRange(0, rateMax);
@@ -258,14 +261,24 @@ export function field(options) {
     // Field trails: for each point, follow the tail functions for 
     // a bunch of steps. Seems to work well for 20-100 steps. With more steps
     // you have to fade out opacity as you go to remain legible
-    let steps = 20;
+    let steps = 60;
     lineScale = 0.5;
 
     let dx, dy;
 
     ctx.globalAlpha = 1;
+    //ctx.globalAlpha = 0.5;
+    //ctx.globalCompositeOperation = 'overlay';
+
+    ctx.lineWidth = weight * 0.66;
 
     pts.forEach((p, i) => {
+        ctx.strokeStyle = (i%2)? fg : fg2;
+        //ctx.strokeStyle = (i%2)? 'white' : 'black';
+        //ctx.strokeStyle = getContrastColor();
+
+        steps = randomInRange(10,40);
+
         for (var z=0; z<=steps; z++) {
             x = p[0];
             y = p[1];
