@@ -109,7 +109,7 @@ export function trails(options) {
     }
 
     // trails:
-    rateMax = randomInRange(1, 10);
+    rateMax = randomInRange(1, 10); // this is a bit meta and silly
 
     // rate is the number of sin waves across the grid
     let xrate = randomInRange(0, rateMax);
@@ -158,7 +158,7 @@ export function trails(options) {
     let opacityFunc = randItem(opacityTransforms);
 
     // Create a function which is a periodic transform of x, y
-    function createTransform () {
+    function createTransform (rateMin = 0, rateMax = 1) {
         let rate1 = randomInRange(0, rateMax);
         let rate2 = randomInRange(0, rateMax);
         let phase1 = randomInRange(-PI, PI);
@@ -174,11 +174,12 @@ export function trails(options) {
 
     // a set of independent transforms to use while rendering
     let trans = {
-        xbase: createTransform(),
-        ybase: createTransform(),
-        xtail: createTransform(),
-        ytail: createTransform(),
-        radius: createTransform()
+        xbase: createTransform(0, rateMax),
+        ybase: createTransform(0, rateMax),
+        xtail: createTransform(0, rateMax),
+        ytail: createTransform(0, rateMax),
+        radius: createTransform(0, rateMax),
+        color: createTransform(0, rateMax / 2.5), // colors change less
     }
 
     function randomScatter(size, w, h) {
@@ -266,11 +267,16 @@ export function trails(options) {
     let trail = [];
 
     pts.forEach((p, i) => {
-        ctx.strokeStyle = (i%2)? fg : fg2;
+        //ctx.strokeStyle = (i%2)? fg : fg2;
         //ctx.strokeStyle = (i%2)? 'white' : 'black';
         //ctx.strokeStyle = getContrastColor();
 
         steps = randomInRange(40, 80);
+
+        // set color as a function of position of trail origin
+        let cx = (trans.color(p[0], p[1]) + 1)/2;
+        let cnorm = Math.round(cx * (contrastPalette.length - 1));
+        ctx.strokeStyle = contrastPalette[cnorm] || 'green';
 
         for (var z=0; z<=steps; z++) {
             x = p[0];
