@@ -109,7 +109,7 @@ export function trails(options) {
     }
 
     // trails:
-    rateMax = 5;
+    rateMax = randomInRange(1, 10);
 
     // rate is the number of sin waves across the grid
     let xrate = randomInRange(0, rateMax);
@@ -236,7 +236,7 @@ export function trails(options) {
     rctx.fillStyle = 'black';
     rctx.fillRect(0, 0, cw, ch);
 
-    rctx.strokeStyle = '#0000ff';
+    rctx.strokeStyle = 'white';
     rctx.lineWidth = weight * 1.5; // exclusion
     rctx.lineCap = 'round';
 
@@ -257,12 +257,20 @@ export function trails(options) {
 
     let trace; // color sample
 
+    let tStart = new Date().getTime();
+
+    // to avoid self blocking,
+    // hold each trail and defer reference rendering till each is done.
+    // This allows self intersection, but avoids self-interference when
+    // each step is too small to avoid colliding with the last.
+    let trail = [];
+
     pts.forEach((p, i) => {
         ctx.strokeStyle = (i%2)? fg : fg2;
         //ctx.strokeStyle = (i%2)? 'white' : 'black';
         //ctx.strokeStyle = getContrastColor();
 
-        //steps = randomInRange(10,40);
+        steps = randomInRange(40, 80);
 
         for (var z=0; z<=steps; z++) {
             x = p[0];
@@ -292,22 +300,25 @@ export function trails(options) {
             );
             ctx.stroke();
 
-            rctx.beginPath();
-            rctx.moveTo(x, y);
-            rctx.lineTo(
-                x + dx,
-                y + dy
-            );
-            rctx.stroke();
+            trail.push([x + dx, y + dy]);
 
             p[0] = x + dx;
             p[1] = y + dy;
         }
 
-        rctx.globalCompositeOperation = 'color';
-        rctx.fillStyle = '#ff0000';
-        rctx.fillRect(0, 0, cw, ch);
-        rctx.globalCompositeOperation = 'normal';
+        // foreach trail, render it
+        if (trail.length) {
+            rctx.beginPath();
+            rctx.moveTo(...trail.shift());
+            trail.forEach((pt, i) => {
+                rctx.lineTo(
+                    pt[0],
+                    pt[1]
+                );
+            });
+            rctx.stroke();
+            trail = [];
+        }
     });
 
     ctx.globalAlpha = 1;
@@ -356,6 +367,10 @@ export function trails(options) {
 
         ctx.globalCompositeOperation = 'normal';
     }
+
+    let tEnd = new Date().getTime();
+
+    console.log('rendered in ' + (tEnd - tStart) + 'ms');
 
     window.ctx = ctx;
 
