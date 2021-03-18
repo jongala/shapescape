@@ -121,9 +121,8 @@ export function trails(options) {
     // tail vars
     let _x,_y,len;
 
-    // line width
-    let weight = randomInRange(1, 6) * SCALE/800;
-    weight = cellSize * randomInRange(0.2, 0.6);
+    // line width, based on cell size
+    let weight = cellSize * randomInRange(0.2, 0.6);
 
     ctx.lineWidth = weight;
     ctx.lineCap = 'round';
@@ -238,15 +237,16 @@ export function trails(options) {
     rctx.fillRect(0, 0, cw, ch);
 
     rctx.strokeStyle = 'white';
-    rctx.lineWidth = weight * 1.5; // exclusion
+    rctx.lineWidth = cellSize; // exclusion
     rctx.lineCap = 'round';
 
 
     // Field trails: for each point, follow the tail functions for
     // a bunch of steps. Seems to work well for 20-100 steps. With more steps
     // you have to fade out opacity as you go to remain legible
-    let steps = 60;
-    lineScale = 0.5;
+    let steps;
+    let stepBase = randomInRange(10, 40); // vary this for each trail. See loop.
+    lineScale = 0.5; // scalar of the function at each step. small=smooth.
 
     let dx, dy;
 
@@ -271,12 +271,18 @@ export function trails(options) {
         //ctx.strokeStyle = (i%2)? 'white' : 'black';
         //ctx.strokeStyle = getContrastColor();
 
-        steps = randomInRange(40, 80);
+        steps = stepBase * randomInRange(1, 2);
 
         // set color as a function of position of trail origin
         let cx = (trans.color(p[0], p[1]) + 1)/2;
         let cnorm = Math.round(cx * (contrastPalette.length - 1));
         ctx.strokeStyle = contrastPalette[cnorm] || 'green';
+
+        // check reference canvas at start point.
+        trace = rctx.getImageData(p[0], p[1], 1, 1).data;
+        if (trace[0] > 5) {
+            return;
+        }
 
         for (var z=0; z<=steps; z++) {
             x = p[0];
@@ -292,10 +298,9 @@ export function trails(options) {
 
             // get ref sample
             trace = rctx.getImageData(x + dx, y + dy, 1, 1).data;
-
             // stop if white
             if (trace[0] > 5) {
-                break;
+                continue;
             }
 
             ctx.beginPath();
