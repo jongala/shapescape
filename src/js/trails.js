@@ -83,6 +83,7 @@ export function trails(options) {
     // get palette of non-bg colors
     let contrastPalette = [].concat(opts.palette);
     contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    contrastPalette.sort(()=>(randomInRange(-1, 1)));
     let getContrastColor = getSolidColorFunction(contrastPalette);
 
     // shared foregrounds
@@ -178,7 +179,7 @@ export function trails(options) {
         xtail: createTransform(0, rateMax),
         ytail: createTransform(0, rateMax),
         radius: createTransform(0, rateMax),
-        color: createTransform(0, rateMax / 2.5), // colors change less
+        color: createTransform(0, rateMax / 2.5) // change colors slowly
     }
 
     function randomScatter(size, w, h) {
@@ -273,13 +274,16 @@ export function trails(options) {
 
         steps = stepBase * randomInRange(1, 2);
 
+        x = p[0];
+        y = p[1];
+
         // set color as a function of position of trail origin
-        let cx = (trans.color(p[0], p[1]) + 1)/2;
+        let cx = (trans.color(x, y) + 1) / 2;
         let cnorm = Math.round(cx * (contrastPalette.length - 1));
         ctx.strokeStyle = contrastPalette[cnorm] || 'green';
 
         // check reference canvas at start point.
-        trace = rctx.getImageData(p[0], p[1], 1, 1).data;
+        trace = rctx.getImageData(x, y, 1, 1).data;
         if (trace[0] > 5) {
             return;
         }
