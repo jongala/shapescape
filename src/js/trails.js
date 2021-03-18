@@ -14,7 +14,7 @@ const DEFAULTS = {
     clear: true,
     lightMode: 'normal', // [auto, bloom, normal]
     gridMode: 'scatter', // [auto, normal, scatter, random]
-    density: 'fine', // [auto, coarse, fine]
+    density: 'auto', // [auto, coarse, fine]
 }
 
 const PI = Math.PI;
@@ -60,8 +60,8 @@ export function trails(options) {
     // how many cells are in the grid?
     let countMin, countMax;
     if (DENSITY === 'coarse') {
-        countMin = 10;
-        countMax = 30;
+        countMin = 30;
+        countMax = 60;
     } else {
         countMin = 60;
         countMax = 100;
@@ -83,8 +83,9 @@ export function trails(options) {
     // get palette of non-bg colors
     let contrastPalette = [].concat(opts.palette);
     contrastPalette.splice(opts.palette.indexOf(bg), 1);
-    contrastPalette.sort(()=>(randomInRange(-1, 1)));
+    //contrastPalette.sort(()=>(randomInRange(-1, 1)));
     let getContrastColor = getSolidColorFunction(contrastPalette);
+    let colorCount = contrastPalette.length;
 
     // shared foregrounds
     let fg = getContrastColor();
@@ -230,7 +231,7 @@ export function trails(options) {
         ref.setAttribute('width', cw);
         ref.setAttribute('height', ch);
         ref.className = 'artContainer';
-        document.querySelector('body').appendChild(ref);
+        //document.querySelector('body').appendChild(ref);
     }
     let rctx = ref.getContext('2d');
 
@@ -288,6 +289,8 @@ export function trails(options) {
             return;
         }
 
+        let tlen = 0;
+
         for (var z=0; z<=steps; z++) {
             x = p[0];
             y = p[1];
@@ -307,30 +310,53 @@ export function trails(options) {
                 continue;
             }
 
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(
-                x + dx,
-                y + dy
-            );
-            ctx.stroke();
+            //ctx.beginPath();
+            //ctx.moveTo(x, y);
+            //ctx.lineTo(
+            //    x + dx,
+            //    y + dy
+            //);
+            //ctx.stroke();
 
             trail.push([x + dx, y + dy]);
+            tlen += Math.sqrt(dx * dx + dy * dy);
 
             p[0] = x + dx;
             p[1] = y + dy;
         }
 
+        let trailStart;
+        let trailEnd;
+
         // foreach trail, render it
         if (trail.length) {
+            trailStart = trail.shift();
+            trailEnd = trail[trail.length - 1];
+
+            //ctx.strokeStyle = '#ff' + (Math.round(tlen).toString(16)) + '00';
+            cx = tlen / (cw/5);
+            cx = tlen / (stepBase * 2 * 3);
+            //console.log(cx);
+            cnorm = Math.round(cx * (colorCount - 1));
+            ctx.strokeStyle = contrastPalette[cnorm % colorCount] || 'green';
+
+            ctx.beginPath();
+            ctx.moveTo(...trailStart);
+
             rctx.beginPath();
-            rctx.moveTo(...trail.shift());
+            rctx.moveTo(...trailStart);
+
             trail.forEach((pt, i) => {
+                ctx.lineTo(
+                    pt[0],
+                    pt[1]
+                );
                 rctx.lineTo(
                     pt[0],
                     pt[1]
                 );
             });
+            ctx.stroke();
             rctx.stroke();
             trail = [];
         }
