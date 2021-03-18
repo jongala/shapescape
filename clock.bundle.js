@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 26);
+/******/ 	return __webpack_require__(__webpack_require__.s = 27);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -472,7 +472,8 @@ var drawHexagon = exports.drawHexagon = _drawPolygon(6, 1.05);
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 6 */
+/* 6 */,
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -499,7 +500,6 @@ var colorbrewer = {
 exports.default = colorbrewer;
 
 /***/ }),
-/* 7 */,
 /* 8 */,
 /* 9 */,
 /* 10 */,
@@ -508,7 +508,8 @@ exports.default = colorbrewer;
 /* 13 */,
 /* 14 */,
 /* 15 */,
-/* 16 */
+/* 16 */,
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -925,7 +926,6 @@ function truchet(options) {
 }
 
 /***/ }),
-/* 17 */,
 /* 18 */,
 /* 19 */,
 /* 20 */,
@@ -934,7 +934,8 @@ function truchet(options) {
 /* 23 */,
 /* 24 */,
 /* 25 */,
-/* 26 */
+/* 26 */,
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -950,13 +951,13 @@ var _palettes = __webpack_require__(2);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
-var _colorbrewer = __webpack_require__(6);
+var _colorbrewer = __webpack_require__(7);
 
 var _colorbrewer2 = _interopRequireDefault(_colorbrewer);
 
-var _truchet = __webpack_require__(16);
+var _truchet = __webpack_require__(17);
 
-var _numerals = __webpack_require__(27);
+var _numerals = __webpack_require__(28);
 
 var _utils = __webpack_require__(0);
 
@@ -1077,7 +1078,7 @@ setInterval(function () {
 }, 1000);
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
