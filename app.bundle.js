@@ -4883,7 +4883,7 @@ function field(options) {
         countMax = 100;
     }
 
-    var cellSize = Math.round(LONG / (0, _utils.randomInRange)(countMin, countMax));
+    var cellSize = Math.round(SHORT / (0, _utils.randomInRange)(countMin, countMax));
     //console.log(`cellSize: ${cellSize}, ${GRIDMODE}, ${DENSITY}`);
 
     // setup vars for each cell
@@ -5771,9 +5771,16 @@ function showMain() {
 
 function hideMain() {
     if (exampleNode.className.indexOf('isHidden') === -1) {
-        exampleNode.className += 'isHidden ';
+        exampleNode.className += ' isHidden ';
     }
 }
+
+function setSize(className) {
+    exampleNode.className = exampleNode.className.replace(/(wide|square|tall)/g, '');
+    exampleNode.className += ' ' + className + ' ';
+    drawNew();
+}
+window.setSize = setSize;
 
 document.querySelector('#saved').addEventListener('click', function (e) {
     if (e.target.nodeName === 'IMG') {
@@ -5830,6 +5837,11 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
+var PI = Math.PI;
+var LIGHTMODES = ['bloom', 'normal'];
+var GRIDMODES = ['normal', 'scatter', 'random'];
+var COLORMODES = ['length', 'curve', 'origin', 'random'];
+
 var DEFAULTS = {
     container: 'body',
     palette: _palettes2.default.de_stijl,
@@ -5838,18 +5850,13 @@ var DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     clear: true,
-    lightMode: 'normal', // [auto, bloom, normal]
-    gridMode: 'scatter', // [auto, normal, scatter, random]
-    density: 'auto' // [auto, coarse, fine]
-};
+    lightMode: 'normal', // from LIGHTMODES
+    gridMode: 'scatter', // from GRIDMODES
+    colorMode: 'auto', // from COLORMODES
+    isolate: true
 
-var PI = Math.PI;
-var LIGHTMODES = ['bloom', 'normal'];
-var GRIDMODES = ['normal', 'scatter', 'random'];
-var DENSITIES = ['coarse', 'fine'];
-
-// Main function
-function trails(options) {
+    // Main function
+};function trails(options) {
     var opts = Object.assign({}, DEFAULTS, options);
 
     var container = opts.container;
@@ -5878,7 +5885,7 @@ function trails(options) {
     // modes and styles
     var LIGHTMODE = opts.lightMode === 'auto' ? (0, _utils.randItem)(LIGHTMODES) : opts.lightMode;
     var GRIDMODE = opts.gridMode === 'auto' ? (0, _utils.randItem)(GRIDMODES) : opts.gridMode;
-    var DENSITY = opts.density === 'auto' ? (0, _utils.randItem)(DENSITIES) : opts.density;
+    var COLORMODE = opts.colorMode === 'auto' ? (0, _utils.randItem)(COLORMODES) : opts.colorMode;
 
     // color funcs
     var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
@@ -5886,16 +5893,10 @@ function trails(options) {
     // how many cells are in the grid?
     var countMin = void 0,
         countMax = void 0;
-    if (DENSITY === 'coarse') {
-        countMin = 30;
-        countMax = 60;
-    } else {
-        countMin = 60;
-        countMax = 100;
-    }
+    countMin = 80;
+    countMax = 160;
 
-    var cellSize = Math.round(LONG / (0, _utils.randomInRange)(countMin, countMax));
-    //console.log(`cellSize: ${cellSize}, ${GRIDMODE}, ${DENSITY}`);
+    var cellSize = Math.round(SHORT / (0, _utils.randomInRange)(countMin, countMax));
 
     // setup vars for each cell
     var x = 0;
@@ -5931,13 +5932,8 @@ function trails(options) {
 
     ctx.strokeStyle = fg;
 
-    var rateMax = 0.5;
-    if (DENSITY === 'fine' && Math.random() < 0.5) {
-        rateMax = 5;
-    }
-
     // trails:
-    rateMax = (0, _utils.randomInRange)(1, 10); // this is a bit meta and silly
+    var rateMax = (0, _utils.randomInRange)(1, 10); // this is a bit meta and silly
 
     // rate is the number of sin waves across the grid
     var xrate = (0, _utils.randomInRange)(0, rateMax);
@@ -5951,8 +5947,8 @@ function trails(options) {
         _y = void 0,
         len = void 0;
 
-    // line width, based on cell size
-    var weight = cellSize * (0, _utils.randomInRange)(0.2, 0.6);
+    // line width
+    var weight = SHORT / (0, _utils.randomInRange)(400, 50);
 
     ctx.lineWidth = weight;
     ctx.lineCap = 'round';
@@ -6021,7 +6017,7 @@ function trails(options) {
         xtail: createTransform(0, rateMax),
         ytail: createTransform(0, rateMax),
         radius: createTransform(0, rateMax),
-        color: createTransform(0, rateMax / 2.5) // change colors slowly
+        color: createTransform(0, 5 / SHORT) // change colors slowly
     };
 
     function randomScatter(size, w, h) {
@@ -6064,6 +6060,11 @@ function trails(options) {
             pts = placeNormal(cellSize, cw, ch);
     }
 
+    // shuffle the points so trails are initialized randomly
+    pts.sort(function () {
+        return (0, _utils.randomInRange)(-1, 1);
+    });
+
     // Create another canvas
 
     var ref = document.querySelector('#ref');
@@ -6081,7 +6082,7 @@ function trails(options) {
     rctx.fillRect(0, 0, cw, ch);
 
     rctx.strokeStyle = 'white';
-    rctx.lineWidth = cellSize; // exclusion
+    rctx.lineWidth = weight * 2; // exclusion based on stroke
     rctx.lineCap = 'round';
 
     // Field trails: for each point, follow the tail functions for
@@ -6100,7 +6101,10 @@ function trails(options) {
 
     ctx.lineWidth = weight * 0.66;
 
-    var trace = void 0; // color sample
+    var colorVal = void 0; // color transform value
+    var colorNorm = void 0; // color val normalized to palette
+
+    var trace = [0, 0]; // color sample
 
     var tStart = new Date().getTime();
 
@@ -6120,18 +6124,16 @@ function trails(options) {
         x = p[0];
         y = p[1];
 
-        // set color as a function of position of trail origin
-        var cx = (trans.color(x, y) + 1) / 2;
-        var cnorm = Math.round(cx * (contrastPalette.length - 1));
-        ctx.strokeStyle = contrastPalette[cnorm] || 'green';
-
         // check reference canvas at start point.
-        trace = rctx.getImageData(x, y, 1, 1).data;
+        if (opts.isolate) trace = rctx.getImageData(x, y, 1, 1).data;
         if (trace[0] > 5) {
             return;
         }
 
         var tlen = 0;
+        var tCurve = 0;
+        var angle = 0;
+        var lastAngle = 0;
 
         for (var z = 0; z <= steps; z++) {
             x = p[0];
@@ -6146,12 +6148,13 @@ function trails(options) {
             dy = cellSize * _y * lineScale;
 
             // get ref sample
-            trace = rctx.getImageData(x + dx, y + dy, 1, 1).data;
+            if (opts.isolate) trace = rctx.getImageData(x + dx, y + dy, 1, 1).data;
             // stop if white
             if (trace[0] > 5) {
                 continue;
             }
 
+            // direct draw
             //ctx.beginPath();
             //ctx.moveTo(x, y);
             //ctx.lineTo(
@@ -6161,7 +6164,21 @@ function trails(options) {
             //ctx.stroke();
 
             trail.push([x + dx, y + dy]);
-            tlen += Math.sqrt(dx * dx + dy * dy);
+            if (COLORMODE === 'length') {
+                // tally up the length
+                tlen += Math.sqrt(dx * dx + dy * dy);
+            }
+            if (COLORMODE === 'curve') {
+                // add abs change in angle
+                // tCurve += Math.abs((Math.atan((y+dy)/(x+dx)) - Math.atan(y/x)));
+                angle = Math.atan(dy / dx);
+                if (z > 0) {
+                    // don't accumulate until second point, otherwise we include
+                    // the initial angle of the root position in the tally
+                    tCurve += Math.abs(angle - lastAngle);
+                }
+                lastAngle = angle;
+            }
 
             p[0] = x + dx;
             p[1] = y + dy;
@@ -6170,17 +6187,41 @@ function trails(options) {
         var trailStart = void 0;
         var trailEnd = void 0;
 
+        // Deferred drawing
         // foreach trail, render it
         if (trail.length) {
             trailStart = trail.shift();
             trailEnd = trail[trail.length - 1];
 
-            //ctx.strokeStyle = '#ff' + (Math.round(tlen).toString(16)) + '00';
-            cx = tlen / (cw / 5);
-            cx = tlen / (stepBase * 2 * 3);
-            //console.log(cx);
-            cnorm = Math.round(cx * (colorCount - 1));
-            ctx.strokeStyle = contrastPalette[cnorm % colorCount] || 'green';
+            // Colors
+
+            if (COLORMODE === 'origin') {
+                // set color as a function of position of trail origin
+                colorVal = (trans.color(x, y) + 1) / 2;
+                colorNorm = Math.round(colorVal * (contrastPalette.length - 1));
+                ctx.strokeStyle = contrastPalette[colorNorm] || 'green';
+            }
+
+            if (COLORMODE === 'length') {
+                colorVal = tlen / (stepBase * 2 * 3); // roughly the expected max length
+                //console.log(colorVal);
+                colorNorm = Math.round(colorVal * (colorCount - 1));
+                ctx.strokeStyle = contrastPalette[colorNorm % colorCount] || 'green';
+            }
+
+            if (COLORMODE === 'curve') {
+                colorVal = tCurve * 1.2; // magic number
+                colorVal = colorVal % PI;
+                //console.log(colorVal.toFixed(1));
+                colorNorm = Math.round(colorVal * (colorCount - 1));
+                ctx.strokeStyle = contrastPalette[colorNorm % colorCount] || 'green';
+            }
+
+            if (COLORMODE === 'random') {
+                ctx.strokeStyle = getContrastColor();
+            }
+
+            // Start drawing
 
             ctx.beginPath();
             ctx.moveTo.apply(ctx, _toConsumableArray(trailStart));

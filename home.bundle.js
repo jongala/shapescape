@@ -4441,7 +4441,7 @@ function field(options) {
         countMax = 100;
     }
 
-    var cellSize = Math.round(LONG / (0, _utils.randomInRange)(countMin, countMax));
+    var cellSize = Math.round(SHORT / (0, _utils.randomInRange)(countMin, countMax));
     //console.log(`cellSize: ${cellSize}, ${GRIDMODE}, ${DENSITY}`);
 
     // setup vars for each cell
