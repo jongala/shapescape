@@ -292,6 +292,9 @@ export function trails(options) {
         }
 
         let tlen = 0;
+        let tCurve = 0;
+        let angle = 0;
+        let lastAngle = 0;
 
         for (var z=0; z<=steps; z++) {
             x = p[0];
@@ -322,7 +325,21 @@ export function trails(options) {
             //ctx.stroke();
 
             trail.push([x + dx, y + dy]);
-            tlen += Math.sqrt(dx * dx + dy * dy);
+            if ( COLORMODE === 'length' ) {
+                // tally up the length
+                tlen += Math.sqrt(dx * dx + dy * dy);
+            }
+            if ( COLORMODE === 'curve') {
+                // add abs change in angle
+                // tCurve += Math.abs((Math.atan((y+dy)/(x+dx)) - Math.atan(y/x)));
+                angle = Math.atan(dy/dx);
+                if (z > 0) {
+                    // don't accumulate until second point, otherwise we include
+                    // the initial angle of the root position in the tally
+                    tCurve += Math.abs(angle - lastAngle);
+                }
+                lastAngle = angle;
+            }
 
             p[0] = x + dx;
             p[1] = y + dy;
@@ -348,9 +365,16 @@ export function trails(options) {
 
 
             if (COLORMODE === 'length') {
-                colorVal = tlen / (cw/5);
-                colorVal = tlen / (stepBase * 2 * 3);
+                colorVal = tlen / (stepBase * 2 * 3); // roughly the expected max length
                 //console.log(colorVal);
+                colorNorm = Math.round(colorVal * (colorCount - 1));
+                ctx.strokeStyle = contrastPalette[colorNorm % colorCount] || 'green';
+            }
+
+            if (COLORMODE === 'curve') {
+                colorVal = tCurve * 1.2; // magic number
+                colorVal = colorVal % PI;
+                //console.log(colorVal.toFixed(1));
                 colorNorm = Math.round(colorVal * (colorCount - 1));
                 ctx.strokeStyle = contrastPalette[colorNorm % colorCount] || 'green';
             }
@@ -358,7 +382,6 @@ export function trails(options) {
             if (COLORMODE === 'random') {
                 ctx.strokeStyle = getContrastColor();
             }
-
 
             // Start drawing
 
