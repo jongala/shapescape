@@ -308,9 +308,16 @@ function showMain() {
 
 function hideMain() {
     if (exampleNode.className.indexOf('isHidden') === -1) {
-        exampleNode.className += 'isHidden ';
+        exampleNode.className += ' isHidden ';
     }
 }
+
+function setSize(className) {
+    exampleNode.className = exampleNode.className.replace(/(wide|square|tall)/g, '');
+    exampleNode.className += ` ${className} `;
+    drawNew();
+}
+window.setSize = setSize;
 
 document.querySelector('#saved').addEventListener('click', function(e) {
     if (e.target.nodeName === 'IMG') {

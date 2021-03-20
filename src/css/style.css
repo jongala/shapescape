@@ -76,6 +76,16 @@ button.activeRenderer {
     right: 0;
 }
 
+#example.wide {
+    width: 1600px;
+    height: 800px;
+}
+
+#example.tall {
+    width: 800px;
+    height: 1600px;
+}
+
 .artContainer {
     position: relative;
 }

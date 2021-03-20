@@ -67,7 +67,7 @@ export function field(options) {
         countMax = 100;
     }
 
-    let cellSize = Math.round(LONG / randomInRange( countMin, countMax ));
+    let cellSize = Math.round(SHORT / randomInRange( countMin, countMax ));
     //console.log(`cellSize: ${cellSize}, ${GRIDMODE}, ${DENSITY}`);
 
     // setup vars for each cell

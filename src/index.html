@@ -9,6 +9,10 @@
         <select onchange="setPalette(this.value)" id="paletteSelector"></select>
         <input type="text" id="customColors" placeholder="paste colors" />
         <span class="spacerSpan">|</span>
+        <button onClick="setSize('square')">square</button>
+        <button onClick="setSize('wide')">wide</button>
+        <button onClick="setSize('tall')">tall</button>
+        <span class="spacerSpan">|</span>
         <button onclick="drawNew()" id="newImageTrigger">New Image</button>
         <button onclick="createBatch()" id="newBatchTrigger">New Batch</button>
         <!--<button onclick="rerun()" id="rerunTrigger">ReRun</button>-->

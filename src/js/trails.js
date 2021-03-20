@@ -64,7 +64,7 @@ export function trails(options) {
     countMin = 80;
     countMax = 160;
 
-    let cellSize = Math.round(LONG / randomInRange( countMin, countMax ));
+    let cellSize = Math.round(SHORT / randomInRange( countMin, countMax ));
 
     // setup vars for each cell
     let x = 0;
