@@ -4,6 +4,13 @@ import hexScatter from './hexScatter';
 import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
+const PI = Math.PI;
+const LIGHTMODES = ['bloom', 'normal'];
+const GRIDMODES = ['normal', 'scatter', 'random'];
+const DENSITIES = ['coarse', 'fine'];
+const COLORMODES = ['length', 'curve', 'origin', 'random'];
+
+
 const DEFAULTS = {
     container: 'body',
     palette: palettes.de_stijl,
@@ -12,15 +19,11 @@ const DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     clear: true,
-    lightMode: 'normal', // [auto, bloom, normal]
-    gridMode: 'scatter', // [auto, normal, scatter, random]
-    density: 'auto', // [auto, coarse, fine]
+    lightMode: 'normal', // from LIGHTMODES
+    gridMode: 'scatter', // from GRIDMODES
+    density: 'auto', // from DENSITIES
+    colorMode: 'auto', // from COLORMODES
 }
-
-const PI = Math.PI;
-const LIGHTMODES = ['bloom', 'normal'];
-const GRIDMODES = ['normal', 'scatter', 'random'];
-const DENSITIES = ['coarse', 'fine'];
 
 // Main function
 export function trails(options) {
@@ -53,6 +56,7 @@ export function trails(options) {
     const LIGHTMODE = opts.lightMode === 'auto' ? randItem(LIGHTMODES) : opts.lightMode;
     const GRIDMODE = opts.gridMode === 'auto' ? randItem(GRIDMODES) : opts.gridMode;
     const DENSITY = opts.density === 'auto' ? randItem(DENSITIES) : opts.density;
+    const COLORMODE = opts.colorMode === 'auto' ? randItem(COLORMODES) : opts.colorMode;
 
     // color funcs
     let getSolidFill = getSolidColorFunction(opts.palette);
@@ -180,7 +184,7 @@ export function trails(options) {
         xtail: createTransform(0, rateMax),
         ytail: createTransform(0, rateMax),
         radius: createTransform(0, rateMax),
-        color: createTransform(0, rateMax / 2.5) // change colors slowly
+        color: createTransform(0, rateMax / 22.5) // change colors slowly
     }
 
     function randomScatter(size, w, h) {
@@ -258,6 +262,9 @@ export function trails(options) {
 
     ctx.lineWidth = weight * 0.66;
 
+    let colorVal; // color transform value
+    let colorNorm; // color val normalized to palette
+
     let trace; // color sample
 
     let tStart = new Date().getTime();
@@ -277,11 +284,6 @@ export function trails(options) {
 
         x = p[0];
         y = p[1];
-
-        // set color as a function of position of trail origin
-        let cx = (trans.color(x, y) + 1) / 2;
-        let cnorm = Math.round(cx * (contrastPalette.length - 1));
-        ctx.strokeStyle = contrastPalette[cnorm] || 'green';
 
         // check reference canvas at start point.
         trace = rctx.getImageData(x, y, 1, 1).data;
@@ -310,6 +312,7 @@ export function trails(options) {
                 continue;
             }
 
+            // direct draw
             //ctx.beginPath();
             //ctx.moveTo(x, y);
             //ctx.lineTo(
@@ -328,17 +331,36 @@ export function trails(options) {
         let trailStart;
         let trailEnd;
 
+        // Deferred drawing
         // foreach trail, render it
         if (trail.length) {
             trailStart = trail.shift();
             trailEnd = trail[trail.length - 1];
 
-            //ctx.strokeStyle = '#ff' + (Math.round(tlen).toString(16)) + '00';
-            cx = tlen / (cw/5);
-            cx = tlen / (stepBase * 2 * 3);
-            //console.log(cx);
-            cnorm = Math.round(cx * (colorCount - 1));
-            ctx.strokeStyle = contrastPalette[cnorm % colorCount] || 'green';
+            // Colors
+
+            if (COLORMODE === 'origin') {
+                // set color as a function of position of trail origin
+                colorVal = (trans.color(x, y) + 1) / 2;
+                colorNorm = Math.round(colorVal * (contrastPalette.length - 1));
+                ctx.strokeStyle = contrastPalette[colorNorm] || 'green';
+            }
+
+
+            if (COLORMODE === 'length') {
+                colorVal = tlen / (cw/5);
+                colorVal = tlen / (stepBase * 2 * 3);
+                //console.log(colorVal);
+                colorNorm = Math.round(colorVal * (colorCount - 1));
+                ctx.strokeStyle = contrastPalette[colorNorm % colorCount] || 'green';
+            }
+
+            if (COLORMODE === 'random') {
+                ctx.strokeStyle = getContrastColor();
+            }
+
+
+            // Start drawing
 
             ctx.beginPath();
             ctx.moveTo(...trailStart);
