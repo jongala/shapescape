@@ -23,6 +23,7 @@ const DEFAULTS = {
     gridMode: 'scatter', // from GRIDMODES
     density: 'auto', // from DENSITIES
     colorMode: 'auto', // from COLORMODES
+    isolate: true
 }
 
 // Main function
@@ -265,7 +266,7 @@ export function trails(options) {
     let colorVal; // color transform value
     let colorNorm; // color val normalized to palette
 
-    let trace; // color sample
+    let trace = [0, 0]; // color sample
 
     let tStart = new Date().getTime();
 
@@ -286,7 +287,7 @@ export function trails(options) {
         y = p[1];
 
         // check reference canvas at start point.
-        trace = rctx.getImageData(x, y, 1, 1).data;
+        if (opts.isolate) trace = rctx.getImageData(x, y, 1, 1).data;
         if (trace[0] > 5) {
             return;
         }
@@ -309,7 +310,7 @@ export function trails(options) {
             dy = cellSize * _y * lineScale
 
             // get ref sample
-            trace = rctx.getImageData(x + dx, y + dy, 1, 1).data;
+            if (opts.isolate) trace = rctx.getImageData(x + dx, y + dy, 1, 1).data;
             // stop if white
             if (trace[0] > 5) {
                 continue;
