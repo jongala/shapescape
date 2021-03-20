@@ -7,7 +7,6 @@ import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, draw
 const PI = Math.PI;
 const LIGHTMODES = ['bloom', 'normal'];
 const GRIDMODES = ['normal', 'scatter', 'random'];
-const DENSITIES = ['coarse', 'fine'];
 const COLORMODES = ['length', 'curve', 'origin', 'random'];
 
 
@@ -21,7 +20,6 @@ const DEFAULTS = {
     clear: true,
     lightMode: 'normal', // from LIGHTMODES
     gridMode: 'scatter', // from GRIDMODES
-    density: 'auto', // from DENSITIES
     colorMode: 'auto', // from COLORMODES
     isolate: true
 }
@@ -56,7 +54,6 @@ export function trails(options) {
     // modes and styles
     const LIGHTMODE = opts.lightMode === 'auto' ? randItem(LIGHTMODES) : opts.lightMode;
     const GRIDMODE = opts.gridMode === 'auto' ? randItem(GRIDMODES) : opts.gridMode;
-    const DENSITY = opts.density === 'auto' ? randItem(DENSITIES) : opts.density;
     const COLORMODE = opts.colorMode === 'auto' ? randItem(COLORMODES) : opts.colorMode;
 
     // color funcs
@@ -64,16 +61,10 @@ export function trails(options) {
 
     // how many cells are in the grid?
     let countMin, countMax;
-    if (DENSITY === 'coarse') {
-        countMin = 30;
-        countMax = 60;
-    } else {
-        countMin = 60;
-        countMax = 100;
-    }
+    countMin = 80;
+    countMax = 160;
 
     let cellSize = Math.round(LONG / randomInRange( countMin, countMax ));
-    //console.log(`cellSize: ${cellSize}, ${GRIDMODE}, ${DENSITY}`);
 
     // setup vars for each cell
     let x = 0;
@@ -109,14 +100,8 @@ export function trails(options) {
 
     ctx.strokeStyle = fg;
 
-
-    let rateMax = 0.5;
-    if (DENSITY === 'fine' && Math.random() < 0.5) {
-        rateMax = 5;
-    }
-
     // trails:
-    rateMax = randomInRange(1, 10); // this is a bit meta and silly
+    let rateMax = randomInRange(1, 10); // this is a bit meta and silly
 
     // rate is the number of sin waves across the grid
     let xrate = randomInRange(0, rateMax);
@@ -128,8 +113,8 @@ export function trails(options) {
     // tail vars
     let _x,_y,len;
 
-    // line width, based on cell size
-    let weight = cellSize * randomInRange(0.2, 0.6);
+    // line width
+    let weight = SHORT / randomInRange(400, 50);
 
     ctx.lineWidth = weight;
     ctx.lineCap = 'round';
@@ -185,7 +170,7 @@ export function trails(options) {
         xtail: createTransform(0, rateMax),
         ytail: createTransform(0, rateMax),
         radius: createTransform(0, rateMax),
-        color: createTransform(0, rateMax / 22.5) // change colors slowly
+        color: createTransform(0, 5/SHORT) // change colors slowly
     }
 
     function randomScatter(size, w, h) {
@@ -227,6 +212,9 @@ export function trails(options) {
             pts = placeNormal(cellSize, cw, ch);
     }
 
+    // shuffle the points so trails are initialized randomly
+    pts.sort(()=>randomInRange(-1,1));
+
     // Create another canvas
 
     let ref = document.querySelector('#ref');
@@ -244,7 +232,7 @@ export function trails(options) {
     rctx.fillRect(0, 0, cw, ch);
 
     rctx.strokeStyle = 'white';
-    rctx.lineWidth = cellSize; // exclusion
+    rctx.lineWidth = weight * 2; // exclusion based on stroke
     rctx.lineCap = 'round';
 
 
