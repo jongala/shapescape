@@ -6086,8 +6086,8 @@ var DEFAULTS = {
     // a bunch of steps. Seems to work well for 20-100 steps. With more steps
     // you have to fade out opacity as you go to remain legible
     var steps = void 0;
-    var stepBase = (0, _utils.randomInRange)(10, 40); // vary this for each trail. See loop.
-    lineScale = 0.5; // scalar of the function at each step. small=smooth.
+    var stepBase = (0, _utils.randomInRange)(6, 30); // vary this for each trail. See loop.
+    lineScale = 0.7; // scalar of the function at each step. small=smooth.
 
     var dx = void 0,
         dy = void 0;
