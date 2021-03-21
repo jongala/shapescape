@@ -7,7 +7,7 @@ import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, draw
 const PI = Math.PI;
 const LIGHTMODES = ['bloom', 'normal'];
 const GRIDMODES = ['normal', 'scatter', 'random'];
-const COLORMODES = ['length', 'curve', 'origin', 'random'];
+const COLORMODES = ['length', 'curve', 'origin', 'mono', 'duo', 'random' ];
 
 
 const DEFAULTS = {
@@ -114,7 +114,7 @@ export function trails(options) {
     let _x,_y,len;
 
     // line width
-    let weight = SHORT / randomInRange(400, 50);
+    let weight = SHORT / randomInRange(350, 50);
 
     ctx.lineWidth = weight;
     ctx.lineCap = 'round';
@@ -366,6 +366,14 @@ export function trails(options) {
                 //console.log(colorVal.toFixed(1));
                 colorNorm = Math.round(colorVal * (colorCount - 1));
                 ctx.strokeStyle = contrastPalette[colorNorm % colorCount] || 'green';
+            }
+
+            if (COLORMODE === 'mono') {
+                ctx.strokeStyle = fg;
+            }
+
+            if (COLORMODE === 'duo') {
+                ctx.strokeStyle = randItem([fg, fg2]);
             }
 
             if (COLORMODE === 'random') {
