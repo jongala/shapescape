@@ -5840,7 +5840,8 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 var PI = Math.PI;
 var LIGHTMODES = ['bloom', 'normal'];
 var GRIDMODES = ['normal', 'scatter', 'random'];
-var COLORMODES = ['length', 'curve', 'origin', 'random'];
+var COLORMODES = ['length', 'curve', /*'origin',*/'mono', 'duo', 'random'];
+var STYLES = ['round', 'square'];
 
 var DEFAULTS = {
     container: 'body',
@@ -5853,6 +5854,8 @@ var DEFAULTS = {
     lightMode: 'normal', // from LIGHTMODES
     gridMode: 'scatter', // from GRIDMODES
     colorMode: 'auto', // from COLORMODES
+    style: 'auto', // from STYLES
+    mixWeight: false,
     isolate: true
 
     // Main function
@@ -5886,6 +5889,7 @@ var DEFAULTS = {
     var LIGHTMODE = opts.lightMode === 'auto' ? (0, _utils.randItem)(LIGHTMODES) : opts.lightMode;
     var GRIDMODE = opts.gridMode === 'auto' ? (0, _utils.randItem)(GRIDMODES) : opts.gridMode;
     var COLORMODE = opts.colorMode === 'auto' ? (0, _utils.randItem)(COLORMODES) : opts.colorMode;
+    var STYLE = opts.style === 'auto' ? (0, _utils.randItem)(STYLES) : opts.style;
 
     // color funcs
     var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
@@ -5948,10 +5952,10 @@ var DEFAULTS = {
         len = void 0;
 
     // line width
-    var weight = SHORT / (0, _utils.randomInRange)(400, 50);
+    var weight = SHORT / (0, _utils.randomInRange)(400, 75);
 
     ctx.lineWidth = weight;
-    ctx.lineCap = 'round';
+    ctx.lineCap = STYLE;
 
     // const used in normalizing transforms
     var maxLen = 2 * Math.sqrt(2);
@@ -6083,7 +6087,7 @@ var DEFAULTS = {
 
     rctx.strokeStyle = 'white';
     rctx.lineWidth = weight * 2; // exclusion based on stroke
-    rctx.lineCap = 'round';
+    rctx.lineCap = STYLE;
 
     // Field trails: for each point, follow the tail functions for
     // a bunch of steps. Seems to work well for 20-100 steps. With more steps
@@ -6099,7 +6103,7 @@ var DEFAULTS = {
     //ctx.globalAlpha = 0.5;
     //ctx.globalCompositeOperation = 'overlay';
 
-    ctx.lineWidth = weight * 0.66;
+    ctx.lineWidth = weight;
 
     var colorVal = void 0; // color transform value
     var colorNorm = void 0; // color val normalized to palette
@@ -6134,6 +6138,11 @@ var DEFAULTS = {
         var tCurve = 0;
         var angle = 0;
         var lastAngle = 0;
+
+        if (opts.mixWeight) {
+            ctx.lineWidth = weight * Math.tan(PI * (0, _utils.randomInRange)(0, 0.27));
+            rctx.lineWidth = ctx.lineWidth * 2;
+        }
 
         for (var z = 0; z <= steps; z++) {
             x = p[0];
@@ -6215,6 +6224,14 @@ var DEFAULTS = {
                 //console.log(colorVal.toFixed(1));
                 colorNorm = Math.round(colorVal * (colorCount - 1));
                 ctx.strokeStyle = contrastPalette[colorNorm % colorCount] || 'green';
+            }
+
+            if (COLORMODE === 'mono') {
+                ctx.strokeStyle = fg;
+            }
+
+            if (COLORMODE === 'duo') {
+                ctx.strokeStyle = (0, _utils.randItem)([fg, fg2]);
             }
 
             if (COLORMODE === 'random') {
