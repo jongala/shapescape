@@ -7,7 +7,7 @@ import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, draw
 const PI = Math.PI;
 const LIGHTMODES = ['bloom', 'normal'];
 const GRIDMODES = ['normal', 'scatter', 'random'];
-const COLORMODES = ['length', 'curve', 'origin', 'mono', 'duo', 'random' ];
+const COLORMODES = ['length', 'curve', /*'origin',*/ 'mono', 'duo', 'random' ];
 const STYLES = ['round', 'square'];
 
 const DEFAULTS = {
