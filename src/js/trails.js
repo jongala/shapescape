@@ -8,7 +8,7 @@ const PI = Math.PI;
 const LIGHTMODES = ['bloom', 'normal'];
 const GRIDMODES = ['normal', 'scatter', 'random'];
 const COLORMODES = ['length', 'curve', 'origin', 'mono', 'duo', 'random' ];
-
+const STYLES = ['round', 'square'];
 
 const DEFAULTS = {
     container: 'body',
@@ -21,6 +21,8 @@ const DEFAULTS = {
     lightMode: 'normal', // from LIGHTMODES
     gridMode: 'scatter', // from GRIDMODES
     colorMode: 'auto', // from COLORMODES
+    style: 'auto', // from STYLES
+    mixWeight: false,
     isolate: true
 }
 
@@ -55,6 +57,7 @@ export function trails(options) {
     const LIGHTMODE = opts.lightMode === 'auto' ? randItem(LIGHTMODES) : opts.lightMode;
     const GRIDMODE = opts.gridMode === 'auto' ? randItem(GRIDMODES) : opts.gridMode;
     const COLORMODE = opts.colorMode === 'auto' ? randItem(COLORMODES) : opts.colorMode;
+    const STYLE = opts.style === 'auto' ? randItem(STYLES) : opts.style;
 
     // color funcs
     let getSolidFill = getSolidColorFunction(opts.palette);
@@ -114,10 +117,10 @@ export function trails(options) {
     let _x,_y,len;
 
     // line width
-    let weight = SHORT / randomInRange(350, 50);
+    let weight = SHORT / randomInRange(400, 75);
 
     ctx.lineWidth = weight;
-    ctx.lineCap = 'round';
+    ctx.lineCap = STYLE;
 
     // const used in normalizing transforms
     let maxLen = 2 * Math.sqrt(2);
@@ -233,7 +236,7 @@ export function trails(options) {
 
     rctx.strokeStyle = 'white';
     rctx.lineWidth = weight * 2; // exclusion based on stroke
-    rctx.lineCap = 'round';
+    rctx.lineCap = STYLE;
 
 
     // Field trails: for each point, follow the tail functions for
@@ -249,7 +252,7 @@ export function trails(options) {
     //ctx.globalAlpha = 0.5;
     //ctx.globalCompositeOperation = 'overlay';
 
-    ctx.lineWidth = weight * 0.66;
+    ctx.lineWidth = weight;
 
     let colorVal; // color transform value
     let colorNorm; // color val normalized to palette
@@ -284,6 +287,11 @@ export function trails(options) {
         let tCurve = 0;
         let angle = 0;
         let lastAngle = 0;
+
+        if (opts.mixWeight) {
+            ctx.lineWidth = weight * Math.tan(PI * randomInRange(0, 0.27));
+            rctx.lineWidth = ctx.lineWidth * 2;
+        }
 
         for (var z=0; z<=steps; z++) {
             x = p[0];
@@ -402,6 +410,7 @@ export function trails(options) {
             rctx.stroke();
             trail = [];
         }
+
     });
 
     ctx.globalAlpha = 1;
