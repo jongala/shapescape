@@ -106,13 +106,6 @@ export function trails(options) {
     // trails:
     let rateMax = randomInRange(1, 10); // this is a bit meta and silly
 
-    // rate is the number of sin waves across the grid
-    let xrate = randomInRange(0, rateMax);
-    let yrate = randomInRange(0, rateMax);
-    // set phase offset
-    let xphase = randomInRange(-PI, PI);
-    let yphase = randomInRange(-PI, PI);
-
     // tail vars
     let _x,_y,len;
 

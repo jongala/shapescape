@@ -2,7 +2,7 @@
 const palettes = {
     ultra: ['#15d6d0', '#4481fc', '#bb19d8', '#f22f1c', '#ffa300', '#fff200'],
     high_contrast: ['#111111', '#444444', '#dddddd', '#f9f9f9'],
-    low_contrast: ['#333333', '#666666', '#999999', '#cccccc', '#f9f9f9'],
+    low_contrast: ['#555555', '#777777', '#999999', '#cccccc', '#dddddd'],
     black_white_red: ['#111111', '#444444', '#dddddd', '#ffffff', '#880000', '#dd0000'],
 
     south_beach: ['#0c3646', '#11758e', '#89bed3', '#e4ca49', '#cabd9d', '#f2f0ea'],
@@ -17,6 +17,7 @@ const palettes = {
     metroid_fusion: ['#DBEED6', '#47BDC2', '#0A7DB8', '#1A3649', '#B24432'],
 
     candywafer: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
+    blush: ['#F8ADAA', '#F8E3AC', '#111111', '#ffffff', '#94552C'],
 
     magma: ['#000004', '#3b0f70', '#8c2981', '#de4968', '#fe9f6d', '#fcfdbf'],
     inferno: ['#000004', '#420a68', '#932667', '#dd513a', '#fca50a', '#fcffa4'],
@@ -28,4 +29,3 @@ export default palettes;
 
 // older palettes:
 export const lemon_beach = ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'];
-export const blush = ['#F8ADAA', '#F8E3AC', '#111111', '#ffffff', '#94552C']; // fragments
