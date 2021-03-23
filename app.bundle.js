@@ -5035,16 +5035,29 @@ function field(options) {
 
     var pts = [];
 
+    // If we are warping the grid, we should plot points outside of the canvas
+    // bounds to avoid gaps at the edges. Shift them over below.
+    var overscan = 1;
+    if (warp) {
+        overscan = 1.2;
+    }
+
     switch (GRIDMODE) {
         case 'scatter':
-            //pts = hexScatter(Math.round(SCALE/randomInRange(60,120)), cw, ch);
-            pts = (0, _hexScatter2.default)(cellSize, cw, ch);
+            pts = (0, _hexScatter2.default)(cellSize, cw * overscan, ch * overscan);
             break;
         case 'random':
-            pts = randomScatter(cellSize, cw, ch);
+            pts = randomScatter(cellSize, cw * overscan, ch * overscan);
             break;
         default:
-            pts = placeNormal(cellSize, cw, ch);
+            pts = placeNormal(cellSize, cw * overscan, ch * overscan);
+    }
+
+    // compensate for overscan by shifting pts back
+    if (warp) {
+        pts.map(function (p, i) {
+            return [p[0] - cw * .1, p[1] - ch * .1];
+        });
     }
 
     // step thru points
@@ -5840,7 +5853,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 var PI = Math.PI;
 var LIGHTMODES = ['bloom', 'normal'];
 var GRIDMODES = ['normal', 'scatter', 'random'];
-var COLORMODES = ['length', 'curve', /*'origin',*/'mono', 'duo', 'random'];
+var COLORMODES = ['length', 'curve', 'change', /*'origin',*/'mono', 'duo', 'random'];
 var STYLES = ['round', 'square'];
 
 var DEFAULTS = {
@@ -6129,8 +6142,12 @@ var DEFAULTS = {
 
         var tlen = 0;
         var tCurve = 0;
+        var tChange = 0;
         var angle = 0;
         var lastAngle = 0;
+        var ddx = void 0,
+            ddy = void 0;
+        var lastDelta = [0, 0];
 
         if (opts.mixWeight) {
             ctx.lineWidth = weight * Math.tan(PI * (0, _utils.randomInRange)(0, 0.27));
@@ -6181,6 +6198,12 @@ var DEFAULTS = {
                 }
                 lastAngle = angle;
             }
+            if (COLORMODE === 'change') {
+                ddx = dx - lastDelta[0];
+                ddy = dy - lastDelta[1];
+                tChange += Math.sqrt(ddx * ddx + ddy * ddy);
+                lastDelta = [dx, dy];
+            }
 
             p[0] = x + dx;
             p[1] = y + dy;
@@ -6214,6 +6237,13 @@ var DEFAULTS = {
             if (COLORMODE === 'curve') {
                 colorVal = tCurve * 1.2; // magic number
                 colorVal = colorVal % PI;
+                //console.log(colorVal.toFixed(1));
+                colorNorm = Math.round(colorVal * (colorCount - 1));
+                ctx.strokeStyle = contrastPalette[colorNorm % colorCount] || 'green';
+            }
+
+            if (COLORMODE === 'change') {
+                colorVal = tChange * 0.2; // magic number
                 //console.log(colorVal.toFixed(1));
                 colorNorm = Math.round(colorVal * (colorCount - 1));
                 ctx.strokeStyle = contrastPalette[colorNorm % colorCount] || 'green';
