@@ -207,18 +207,30 @@ export function field(options) {
 
     let pts = [];
 
-    switch (GRIDMODE) {
-        case 'scatter':
-            //pts = hexScatter(Math.round(SCALE/randomInRange(60,120)), cw, ch);
-            pts = hexScatter(cellSize, cw, ch);
-            break;
-        case 'random':
-            pts = randomScatter(cellSize, cw, ch);
-            break;
-        default:
-            pts = placeNormal(cellSize, cw, ch);
+    // If we are warping the grid, we should plot points outside of the canvas
+    // bounds to avoid gaps at the edges. Shift them over below.
+    let overscan = 1;
+    if (warp) {
+        overscan = 1.2;
     }
 
+    switch (GRIDMODE) {
+        case 'scatter':
+            pts = hexScatter(cellSize, cw * overscan, ch * overscan);
+            break;
+        case 'random':
+            pts = randomScatter(cellSize, cw  * overscan, ch * overscan);
+            break;
+        default:
+            pts = placeNormal(cellSize, cw * overscan, ch * overscan);
+    }
+
+    // compensate for overscan by shifting pts back
+    if (warp) {
+        pts.map((p,i) => {
+            return [p[0] - cw * .1, p[1] - ch * .1];
+        });
+    }
 
     // step thru points
     pts.forEach((p, i) => {
