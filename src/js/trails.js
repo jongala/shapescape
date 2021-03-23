@@ -7,7 +7,7 @@ import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, draw
 const PI = Math.PI;
 const LIGHTMODES = ['bloom', 'normal'];
 const GRIDMODES = ['normal', 'scatter', 'random'];
-const COLORMODES = ['length', 'curve', /*'origin',*/ 'mono', 'duo', 'random' ];
+const COLORMODES = ['length', 'curve', 'change', /*'origin',*/ 'mono', 'duo', 'random' ];
 const STYLES = ['round', 'square'];
 
 const DEFAULTS = {
@@ -278,8 +278,11 @@ export function trails(options) {
 
         let tlen = 0;
         let tCurve = 0;
+        let tChange = 0;
         let angle = 0;
         let lastAngle = 0;
+        let ddx, ddy;
+        let lastDelta = [0, 0];
 
         if (opts.mixWeight) {
             ctx.lineWidth = weight * Math.tan(PI * randomInRange(0, 0.27));
@@ -330,6 +333,12 @@ export function trails(options) {
                 }
                 lastAngle = angle;
             }
+            if (COLORMODE === 'change') {
+                ddx = dx - lastDelta[0];
+                ddy = dy - lastDelta[1];
+                tChange += Math.sqrt( ( ddx * ddx ) + ( ddy * ddy) );
+                lastDelta = [dx, dy];
+            }
 
             p[0] = x + dx;
             p[1] = y + dy;
@@ -364,6 +373,13 @@ export function trails(options) {
             if (COLORMODE === 'curve') {
                 colorVal = tCurve * 1.2; // magic number
                 colorVal = colorVal % PI;
+                //console.log(colorVal.toFixed(1));
+                colorNorm = Math.round(colorVal * (colorCount - 1));
+                ctx.strokeStyle = contrastPalette[colorNorm % colorCount] || 'green';
+            }
+
+            if (COLORMODE === 'change') {
+                colorVal = tChange * 0.2; // magic number
                 //console.log(colorVal.toFixed(1));
                 colorNorm = Math.round(colorVal * (colorCount - 1));
                 ctx.strokeStyle = contrastPalette[colorNorm % colorCount] || 'green';
