@@ -17,6 +17,7 @@ import { bands } from './bands';
 import { field } from './field';
 import { trails } from './trails';
 import { fragments } from './fragments';
+import { clouds } from './clouds';
 import { setAttrs } from './utils';
 
 // Renderers
@@ -34,7 +35,8 @@ const RENDERERS = {
     trails: trails,
     bands: bands,
     fragments: fragments,
-    waves: waves
+    waves: waves,
+    clouds: clouds
 };
 let initRenderer = 'waterline';
 
