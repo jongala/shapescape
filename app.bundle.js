@@ -4918,17 +4918,11 @@ function field(options) {
 
     ctx.strokeStyle = fg;
 
-    var rateMax = 0.5;
+    var cellCount = cw / cellSize;
+    var rateMax = 3;
     if (DENSITY === 'fine' && Math.random() < 0.5) {
-        rateMax = 5;
+        rateMax = 6;
     }
-
-    // rate is the number of sin waves across the grid
-    var xrate = (0, _utils.randomInRange)(0, rateMax);
-    var yrate = (0, _utils.randomInRange)(0, rateMax);
-    // set phase offset
-    var xphase = (0, _utils.randomInRange)(-PI, PI);
-    var yphase = (0, _utils.randomInRange)(-PI, PI);
 
     // tail vars
     var _x = void 0,
@@ -4949,7 +4943,7 @@ function field(options) {
 
     // It looks nice to extend lines beyond their cells. how much?
     // Scaled against cellSize
-    var lineScale = (0, _utils.randomInRange)(0.7, 3);
+    var lineScale = (0, _utils.randomInRange)(0.7, 2);
 
     // Displace the center point of each cell by this factor
     // Only do this sometimes, and not when scattering
@@ -4985,26 +4979,39 @@ function field(options) {
 
     // Create a function which is a periodic transform of x, y
     function createTransform() {
-        var rate1 = (0, _utils.randomInRange)(0, rateMax);
-        var rate2 = (0, _utils.randomInRange)(0, rateMax);
+        var rateMin = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+        var rateMax = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+
+        var rate1 = (0, _utils.randomInRange)(0, rateMax / 2);
+        var rate2 = (0, _utils.randomInRange)(0, rateMax / 2);
+        var rate3 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
+        var rate4 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
+
         var phase1 = (0, _utils.randomInRange)(-PI, PI);
         var phase2 = (0, _utils.randomInRange)(-PI, PI);
+        var phase3 = (0, _utils.randomInRange)(-PI, PI);
+        var phase4 = (0, _utils.randomInRange)(-PI, PI);
+
         var c1 = (0, _utils.randomInRange)(0, 1);
         var c2 = (0, _utils.randomInRange)(0, 1);
-        return function (x, y) {
-            var t1 = Math.sin(x * PI * rate1 + phase1);
-            var t2 = Math.sin(y * PI * rate2 + phase2);
-            return (c1 * t1 + c2 * t2) / (c1 + c2);
+        var c3 = (0, _utils.randomInRange)(0, 1);
+        var c4 = (0, _utils.randomInRange)(0, 1);
+        return function (xnorm, ynorm) {
+            var t1 = Math.sin(xnorm * rate1 * 2 * PI + phase1);
+            var t2 = Math.sin(ynorm * rate2 * 2 * PI + phase2);
+            var t3 = Math.sin(xnorm * rate3 * 2 * PI + phase3);
+            var t4 = Math.sin(ynorm * rate4 * 2 * PI + phase4);
+            return (c1 * t1 + c2 * t2 + c3 * t3 + c4 * t4) / (c1 + c2 + c3 + c4);
         };
     }
 
     // a set of independent transforms to use while rendering
     var trans = {
-        xbase: createTransform(),
-        ybase: createTransform(),
-        xtail: createTransform(),
-        ytail: createTransform(),
-        radius: createTransform()
+        xbase: createTransform(rateMax), // (x,y)=>0,//
+        ybase: createTransform(rateMax), // (x,y)=>0,//
+        xtail: createTransform(rateMax), // (x,y)=>0,//
+        ytail: createTransform(rateMax), // (x,y)=>0,//
+        radius: createTransform(rateMax)
     };
 
     function randomScatter(size, w, h) {
@@ -6007,16 +6014,26 @@ var DEFAULTS = {
         var rateMin = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
         var rateMax = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
 
-        var rate1 = (0, _utils.randomInRange)(0, rateMax);
-        var rate2 = (0, _utils.randomInRange)(0, rateMax);
+        var rate1 = (0, _utils.randomInRange)(0, rateMax / 2);
+        var rate2 = (0, _utils.randomInRange)(0, rateMax / 2);
+        var rate3 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
+        var rate4 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
+
         var phase1 = (0, _utils.randomInRange)(-PI, PI);
         var phase2 = (0, _utils.randomInRange)(-PI, PI);
+        var phase3 = (0, _utils.randomInRange)(-PI, PI);
+        var phase4 = (0, _utils.randomInRange)(-PI, PI);
+
         var c1 = (0, _utils.randomInRange)(0, 1);
         var c2 = (0, _utils.randomInRange)(0, 1);
-        return function (x, y) {
-            var t1 = Math.sin(x * PI * rate1 + phase1);
-            var t2 = Math.sin(y * PI * rate2 + phase2);
-            return (c1 * t1 + c2 * t2) / (c1 + c2);
+        var c3 = (0, _utils.randomInRange)(0, 1);
+        var c4 = (0, _utils.randomInRange)(0, 1);
+        return function (xnorm, ynorm) {
+            var t1 = Math.sin(xnorm * rate1 * 2 * PI + phase1);
+            var t2 = Math.sin(ynorm * rate2 * 2 * PI + phase2);
+            var t3 = Math.sin(xnorm * rate3 * 2 * PI + phase3);
+            var t4 = Math.sin(ynorm * rate4 * 2 * PI + phase4);
+            return (c1 * t1 + c2 * t2 + c3 * t3 + c4 * t4) / (c1 + c2 + c3 + c4);
         };
     }
 
