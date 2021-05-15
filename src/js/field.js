@@ -12,7 +12,7 @@ const DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     clear: true,
-    lightMode: 'auto', // [auto, bloom, normal]
+    lightMode: 'normal', // [auto, bloom, normal]
     gridMode: 'auto', // [auto, normal, scatter, random]
     density: 'auto', // [auto, coarse, fine]
 }
@@ -103,17 +103,12 @@ export function field(options) {
     ctx.strokeStyle = fg;
 
 
-    let rateMax = 0.5;
+    let cellCount = cw/cellSize;
+    let rateMax = 3;
     if (DENSITY === 'fine' && Math.random() < 0.5) {
-        rateMax = 5;
+        rateMax = 6;
     }
 
-    // rate is the number of sin waves across the grid
-    let xrate = randomInRange(0, rateMax);
-    let yrate = randomInRange(0, rateMax);
-    // set phase offset
-    let xphase = randomInRange(-PI, PI);
-    let yphase = randomInRange(-PI, PI);
 
     // tail vars
     let _x,_y,len;
@@ -132,7 +127,7 @@ export function field(options) {
 
     // It looks nice to extend lines beyond their cells. how much?
     // Scaled against cellSize
-    let lineScale = randomInRange(0.7, 3);
+    let lineScale = randomInRange(0.7, 2);
 
     // Displace the center point of each cell by this factor
     // Only do this sometimes, and not when scattering
@@ -157,7 +152,31 @@ export function field(options) {
     let opacityFunc = randItem(opacityTransforms);
 
     // Create a function which is a periodic transform of x, y
-    function createTransform () {
+    function createTransform2 (rateMax = 5) {
+        let rate1 = randomInRange(0, rateMax/2);
+        let rate2 = randomInRange(0, rateMax/2);
+        let rate3 = randomInRange(rateMax/2, rateMax);
+        let rate4 = randomInRange(rateMax/2, rateMax);
+
+        let phase1 = randomInRange(-PI, PI);
+        let phase2 = randomInRange(-PI, PI);
+        let phase3 = randomInRange(-PI, PI);
+        let phase4 = randomInRange(-PI, PI);
+
+        let c1 = randomInRange(0, 1);
+        let c2 = randomInRange(0, 1);
+        let c3 = randomInRange(0, 1);
+        let c4 = randomInRange(0, 1);
+        return (xnorm, ynorm) => {
+            let t1 = Math.sin(xnorm * rate1 * 2 * PI + phase1);
+            let t2 = Math.sin(ynorm * rate2 * 2 * PI + phase2);
+            let t3 = Math.sin(xnorm * rate3 * 2 * PI + phase3);
+            let t4 = Math.sin(ynorm * rate4 * 2 * PI + phase4);
+            return (c1 * t1 + c2 * t2 + c3 * t3 + c4 * t4)/(c1 + c2 + c3 + c4);
+        }
+    }
+
+    function createTransform1 (rateMin = 0, rateMax = 1) {
         let rate1 = randomInRange(0, rateMax);
         let rate2 = randomInRange(0, rateMax);
         let phase1 = randomInRange(-PI, PI);
@@ -171,13 +190,15 @@ export function field(options) {
         }
     }
 
+    let createTransform = createTransform2;
+
     // a set of independent transforms to use while rendering
     let trans = {
-        xbase: createTransform(),
-        ybase: createTransform(),
-        xtail: createTransform(),
-        ytail: createTransform(),
-        radius: createTransform()
+        xbase: createTransform(rateMax), // (x,y)=>0,//
+        ybase: createTransform(rateMax), // (x,y)=>0,//
+        xtail: createTransform(rateMax), // (x,y)=>0,//
+        ytail: createTransform(rateMax), // (x,y)=>0,//
+        radius: createTransform(rateMax)
     }
 
     function randomScatter(size, w, h) {
