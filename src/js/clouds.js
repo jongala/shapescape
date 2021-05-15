@@ -66,7 +66,7 @@ export function clouds(options) {
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, cw, ch);
 
-    let rateMax = 5;
+    let rateMax = 3;
 
     function createTransform () {
         let rate1 = randomInRange(0, rateMax);
@@ -83,6 +83,9 @@ export function clouds(options) {
     }
 
     let wave = createTransform();
+    let harm1  = createTransform();
+    let harm2 = createTransform();
+
     let pointCount = 50;
     let x, y, r;
 
@@ -93,7 +96,7 @@ export function clouds(options) {
     let bubbleMax = ch/4;
 
     // first, box off the waved region
-    ctx.beginPath();
+    /*ctx.beginPath();
     ctx.moveTo(cw, ch);
     ctx.lineTo(0, ch);
 
@@ -106,19 +109,38 @@ export function clouds(options) {
     ctx.closePath();
 
     ctx.fillStyle = 'white';
-    ctx.fill();
+    ctx.fill();*/
+
+    let xnorm, ynorm;
+    let countNorm;
 
     for (let i = 0; i<=pointCount; i++) {
+        countNorm = i/pointCount;
         x = i * cw/(pointCount);
-        y = wave(i/pointCount, 0) * waveScale; // input a normalized value
+        y = wave(countNorm, 0) * waveScale; // input a normalized value
         y += ch/2; // center, roughly
         r_seed = Math.random();
         bubbleSize = randomInRange(10, bubbleMax);
         r = Math.pow(r_seed, 3) * bubbleSize + 10;
-        drawCircle(ctx, x, y , r, {
+        /*drawCircle(ctx, x, y , r, {
             fill: null,
             stroke: fg
+        });*/
+
+        drawCircle(ctx, x, y + (harm1(countNorm, 0) + 1) * waveScale , r, {
+            fill: 'white',
+            stroke: null
         });
+
+
+        r_seed = Math.random();
+        bubbleSize = randomInRange(10, bubbleMax);
+        r = Math.pow(r_seed, 3) * bubbleSize + 10;
+        drawCircle(ctx, x, y - (harm2(countNorm, 0) + 1) * waveScale , r, {
+            fill: 'white',
+            stroke: null
+        });
+
     }
 
 
