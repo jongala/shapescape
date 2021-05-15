@@ -12,7 +12,7 @@ const DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     clear: true,
-    lightMode: 'normal', // [auto, bloom, normal]
+    lightMode: 'auto', // [auto, bloom, normal]
     gridMode: 'auto', // [auto, normal, scatter, random]
     density: 'auto', // [auto, coarse, fine]
 }
@@ -152,7 +152,7 @@ export function field(options) {
     let opacityFunc = randItem(opacityTransforms);
 
     // Create a function which is a periodic transform of x, y
-    function createTransform2 (rateMax = 5) {
+    function createTransform (rateMin = 0, rateMax = 1) {
         let rate1 = randomInRange(0, rateMax/2);
         let rate2 = randomInRange(0, rateMax/2);
         let rate3 = randomInRange(rateMax/2, rateMax);
@@ -175,22 +175,6 @@ export function field(options) {
             return (c1 * t1 + c2 * t2 + c3 * t3 + c4 * t4)/(c1 + c2 + c3 + c4);
         }
     }
-
-    function createTransform1 (rateMin = 0, rateMax = 1) {
-        let rate1 = randomInRange(0, rateMax);
-        let rate2 = randomInRange(0, rateMax);
-        let phase1 = randomInRange(-PI, PI);
-        let phase2 = randomInRange(-PI, PI);
-        let c1 = randomInRange(0, 1);
-        let c2 = randomInRange(0, 1);
-        return (x, y) => {
-            let t1 = Math.sin(x * PI * rate1 + phase1);
-            let t2 = Math.sin(y * PI * rate2 + phase2);
-            return (c1 * t1 + c2 * t2)/(c1 + c2);
-        }
-    }
-
-    let createTransform = createTransform2;
 
     // a set of independent transforms to use while rendering
     let trans = {

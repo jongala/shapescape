@@ -146,16 +146,26 @@ export function trails(options) {
 
     // Create a function which is a periodic transform of x, y
     function createTransform (rateMin = 0, rateMax = 1) {
-        let rate1 = randomInRange(0, rateMax);
-        let rate2 = randomInRange(0, rateMax);
+        let rate1 = randomInRange(0, rateMax/2);
+        let rate2 = randomInRange(0, rateMax/2);
+        let rate3 = randomInRange(rateMax/2, rateMax);
+        let rate4 = randomInRange(rateMax/2, rateMax);
+
         let phase1 = randomInRange(-PI, PI);
         let phase2 = randomInRange(-PI, PI);
+        let phase3 = randomInRange(-PI, PI);
+        let phase4 = randomInRange(-PI, PI);
+
         let c1 = randomInRange(0, 1);
         let c2 = randomInRange(0, 1);
-        return (x, y) => {
-            let t1 = Math.sin(x * PI * rate1 + phase1);
-            let t2 = Math.sin(y * PI * rate2 + phase2);
-            return (c1 * t1 + c2 * t2)/(c1 + c2);
+        let c3 = randomInRange(0, 1);
+        let c4 = randomInRange(0, 1);
+        return (xnorm, ynorm) => {
+            let t1 = Math.sin(xnorm * rate1 * 2 * PI + phase1);
+            let t2 = Math.sin(ynorm * rate2 * 2 * PI + phase2);
+            let t3 = Math.sin(xnorm * rate3 * 2 * PI + phase3);
+            let t4 = Math.sin(ynorm * rate4 * 2 * PI + phase4);
+            return (c1 * t1 + c2 * t2 + c3 * t3 + c4 * t4)/(c1 + c2 + c3 + c4);
         }
     }
 
