@@ -1,6 +1,7 @@
 import noiseUtils from './noiseutils';
 import palettes from './palettes';
-import { randItem, randomInRange } from './utils';
+import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
+import { randItem, randomInRange, getGradientFunction } from './utils';
 
 /**
  * Get a fill, either in solid or gradients
@@ -25,51 +26,6 @@ function getFill(ctx, palette, x, y, size, skew) {
         grad.addColorStop(1, randItem(palette));
         return grad;
     }
-}
-
-function drawCircle(ctx, x, y, r, fill, stroke, alpha) {
-    alpha = alpha === undefined ? 1 : alpha;
-    ctx.fillStyle = fill;
-    ctx.strokeStyle = stroke;
-    ctx.globalAlpha = alpha;
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arc(x, y, r, 0, 2 * Math.PI, false);
-    ctx.fill();
-    stroke && ctx.stroke();
-    ctx.closePath();
-}
-
-function addCircle(ctx, w, h, opts) {
-    var x = w / 2;
-    var y = h * randomInRange(0.4, 0.6);
-    var r = Math.min(w, h) * randomInRange(0.2, 0.4);
-    drawCircle(ctx, x, y, r, getFill(ctx, opts.palette, x, y, r, opts.skew));
-    return ctx;
-}
-
-function addTriangle(ctx, w, h, opts) {
-    var d = Math.min(w, h) * randomInRange(0.5, 0.85);
-    var cx = w / 2;
-    var cy = randomInRange(h / 3, 2 * h / 3);
-    var leg = Math.cos(30 * Math.PI / 180) * (d / 2);
-    ctx.fillStyle = getFill(ctx, opts.palette, cx, cy, leg, opts.skew);
-    ctx.beginPath();
-    ctx.moveTo(cx, cy - leg);
-    ctx.lineTo(cx + d / 2, cy + leg);
-    ctx.lineTo(cx - d / 2, cy + leg);
-    ctx.closePath();
-    ctx.fill();
-    return ctx;
-}
-
-function addSquare(ctx, w, h, opts) {
-    var d = Math.min(w, h) * 0.5;
-    var x = w / 2 - d / 2;
-    var y = randomInRange(h / 3, 2 * h / 3) - d / 2;
-    ctx.fillStyle = getFill(ctx, opts.palette, x, y + d / 2, d / 2, opts.skew);
-    ctx.fillRect(x, y, d, d);
-    return ctx;
 }
 
 // Tile the container
@@ -117,9 +73,12 @@ export function shapescape(options) {
 
     var renderer;
     var renderMap = {
-        circle: addCircle,
-        triangle: addTriangle,
-        square: addSquare
+        circle: drawCircle,
+        triangle: drawTriangle,
+        square: drawSquare,
+        ring: drawRing,
+        pentagon: drawPentagon,
+        hexagon: drawHexagon
     };
     var shapes = Object.keys(renderMap);
 
@@ -132,13 +91,30 @@ export function shapescape(options) {
         ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
     }
 
+    let shapeOpts = {};
+
+    // sometimes, lock them to centerline. Else, nudge each left or right
+    let centers = [];
+    if (Math.random() < 0.33) {
+        centers = [w/2, w/2, w/2];
+        shapeOpts.angle = 0;
+    } else {
+        centers = [
+            w * randomInRange(0.4, 0.6), // shape 1
+            w * randomInRange(0.4, 0.6), // shape 2
+            w * randomInRange(0.2, 0.8), // bg block
+        ];
+        shapeOpts.angle = randomInRange(-1,1) * Math.PI/2;
+    }
+
     // add one or two bg blocks
     ctx.fillStyle = getFill(ctx, opts.palette, 0, 0, h, opts.skew);
     ctx.fillRect(0, 0, w, h);
-    if (Math.random() > 0.25) {
+    if (true || Math.random() > 0.25) {
         var hr = randomInRange(3, 12) * w;
-        var hy = hr + randomInRange(0.3, 0.85) * h;
-        drawCircle(ctx, w / 2, hy, hr, getFill(ctx, opts.palette, w / 2, hy, hr, opts.skew));
+        var hy = hr + randomInRange(0.5, 0.85) * h;
+        //drawCircle(ctx, w / 2, hy, hr, getFill(ctx, opts.palette, w / 2, hy, hr, opts.skew));
+        drawCircle(ctx, centers[2], hy, hr, {fill: getGradientFunction(opts.palette)(ctx, w, h)})
     }
 
     // draw two shape layers in some order:
@@ -148,8 +124,24 @@ export function shapescape(options) {
     });
 
     // pop a renderer name, get render func and execute X 2
-    renderMap[shapes.pop()](ctx, w, h, opts);
-    renderMap[shapes.pop()](ctx, w, h, opts);
+    renderMap[shapes.pop()](ctx,
+        centers[0],
+        h * randomInRange(0.3, 0.7),
+        w * 0.4,//randomInRange(0.2, 0.4),
+        {
+            angle: shapeOpts.angle,
+            fill: getGradientFunction(opts.palette)(ctx, w, h)
+        }
+    );
+    renderMap[shapes.pop()](ctx,
+        centers[1],
+        h * randomInRange(0.3, 0.7),
+        w * 0.4,//randomInRange(0.2, 0.4),
+        {
+            angle: shapeOpts.angle,
+            fill: getGradientFunction(opts.palette)(ctx, w, h)
+        }
+    );
 
     // Add effect elements
     // ...
