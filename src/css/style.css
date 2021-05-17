@@ -52,7 +52,8 @@ button.activeRenderer {
     margin: 20px;
     position: relative;
     width: 800px;
-    height: 800px;
+    height: 1200px;
+    transform: scale(0.66);
     /*width: 1600px;
     height: 1600px;
     transform: scale(0.5);*/
