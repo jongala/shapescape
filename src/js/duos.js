@@ -53,8 +53,8 @@ export function duos(options) {
         triangle: drawTriangle,
         square: drawSquare,
         ring: drawRing,
-        pentagon: drawPentagon,
-        hexagon: drawHexagon
+        /*pentagon: drawPentagon,
+        hexagon: drawHexagon*/
     };
     var shapes = Object.keys(renderMap);
 
@@ -71,7 +71,7 @@ export function duos(options) {
 
     // sometimes, lock them to centerline. Else, nudge each left or right
     let centers = [];
-    if (Math.random() < 0.33) {
+    if (Math.random() < 0.2) {
         centers = [w/2, w/2, w/2];
         shapeOpts.angle = 0;
     } else {
