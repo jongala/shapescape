@@ -171,6 +171,7 @@ export function duos(options) {
 
     ctx.globalCompositeOperation = 'destination-over';
     ctx.fillStyle = getGradientFunction(['#ffffff','#f2f2f2','#eeeeee','#e7e7e7','#e0e0e0','#d7d7d7'])(ctx, w, h);
+    ctx.fillStyle = getGradientFunction(opts.palette)(ctx, w, h);
     ctx.fillRect(0, 0, w, h);
 
     ctx.globalCompositeOperation = 'normal';

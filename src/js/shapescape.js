@@ -77,8 +77,8 @@ export function shapescape(options) {
         triangle: drawTriangle,
         square: drawSquare,
         ring: drawRing,
-        pentagon: drawPentagon,
-        hexagon: drawHexagon
+        /*pentagon: drawPentagon,
+        hexagon: drawHexagon*/
     };
     var shapes = Object.keys(renderMap);
 
@@ -95,7 +95,7 @@ export function shapescape(options) {
 
     // sometimes, lock them to centerline. Else, nudge each left or right
     let centers = [];
-    if (Math.random() < 0.33) {
+    if (Math.random() < 0.99933) {
         centers = [w/2, w/2, w/2];
         shapeOpts.angle = 0;
     } else {
@@ -110,7 +110,7 @@ export function shapescape(options) {
     // add one or two bg blocks
     ctx.fillStyle = getFill(ctx, opts.palette, 0, 0, h, opts.skew);
     ctx.fillRect(0, 0, w, h);
-    if (true || Math.random() > 0.25) {
+    if (Math.random() < 0.5) {
         var hr = randomInRange(3, 12) * w;
         var hy = hr + randomInRange(0.5, 0.85) * h;
         //drawCircle(ctx, w / 2, hy, hr, getFill(ctx, opts.palette, w / 2, hy, hr, opts.skew));
@@ -127,7 +127,7 @@ export function shapescape(options) {
     renderMap[shapes.pop()](ctx,
         centers[0],
         h * randomInRange(0.3, 0.7),
-        w * 0.4,//randomInRange(0.2, 0.4),
+        w * randomInRange(0.25, 0.35),
         {
             angle: shapeOpts.angle,
             fill: getGradientFunction(opts.palette)(ctx, w, h)
@@ -136,7 +136,7 @@ export function shapescape(options) {
     renderMap[shapes.pop()](ctx,
         centers[1],
         h * randomInRange(0.3, 0.7),
-        w * 0.4,//randomInRange(0.2, 0.4),
+        w * randomInRange(0.25, 0.35),
         {
             angle: shapeOpts.angle,
             fill: getGradientFunction(opts.palette)(ctx, w, h)
