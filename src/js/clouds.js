@@ -92,6 +92,7 @@ export function clouds(options) {
     let r_seed;
 
     let waveScale = 100;
+    let harmScale = 40;
     let bubbleSize;
     let bubbleMax = ch/4;
 
@@ -114,29 +115,49 @@ export function clouds(options) {
     let xnorm, ynorm;
     let countNorm;
 
+    let y1, y2;
+    let r1, r2;
+
+    ctx.lineCap = 'round';
+
     for (let i = 0; i<=pointCount; i++) {
         countNorm = i/pointCount;
         x = i * cw/(pointCount);
         y = wave(countNorm, 0) * waveScale; // input a normalized value
         y += ch/2; // center, roughly
+
+        r = 5;
+
         r_seed = Math.random();
         bubbleSize = randomInRange(10, bubbleMax);
-        r = Math.pow(r_seed, 3) * bubbleSize + 10;
-        /*drawCircle(ctx, x, y , r, {
+        r1 = Math.pow(r_seed, 3) * bubbleSize + 10;
+
+        r_seed = Math.random();
+        bubbleSize = randomInRange(10, bubbleMax);
+        r2 = Math.pow(r_seed, 3) * bubbleSize + 10;
+
+        y1 = y + (harm1(countNorm, 0) + 1) * harmScale + harmScale/2;
+        y2 = y - (harm2(countNorm, 0) + 1) * harmScale - harmScale/2;
+
+
+        /*drawCircle(ctx, x, y , harmScale, {
             fill: null,
             stroke: fg
         });*/
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = harmScale/2;
 
-        drawCircle(ctx, x, y + (harm1(countNorm, 0) + 1) * waveScale , r, {
+        ctx.beginPath();
+        ctx.moveTo(x, y1);
+        ctx.lineTo(x, y2);
+        ctx.stroke();
+
+        drawCircle(ctx, x, y1, r1, {
             fill: 'white',
             stroke: null
         });
 
-
-        r_seed = Math.random();
-        bubbleSize = randomInRange(10, bubbleMax);
-        r = Math.pow(r_seed, 3) * bubbleSize + 10;
-        drawCircle(ctx, x, y - (harm2(countNorm, 0) + 1) * waveScale , r, {
+        drawCircle(ctx, x, y2, r2, {
             fill: 'white',
             stroke: null
         });
