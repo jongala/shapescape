@@ -5,7 +5,7 @@ import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, draw
 
 const DEFAULTS = {
     container: 'body',
-    palette: palettes.candywafer,
+    palette: palettes.fingerspitzen,
     addNoise: 0.04,
     noiseInput: null,
     dust: false,
@@ -96,13 +96,13 @@ export function clouds(options) {
     let harm1  = createTransform();
     let harm2 = createTransform();
 
-    let pointCount = 50;
+    let pointCount = cw/4;
     let x, y, r;
 
     let r_seed;
 
-    let waveScale = 100;
-    let harmScale = 40;
+    let waveScale = SHORT/8;
+    let harmScale = waveScale/2;
     let bubbleSize;
     let bubbleMax = ch/4;
 
@@ -140,35 +140,17 @@ export function clouds(options) {
 
         r_seed = Math.random();
         bubbleSize = randomInRange(10, bubbleMax);
-        r1 = Math.pow(r_seed, 3) * bubbleSize + 10;
+        r = Math.pow(r_seed, 6) * bubbleSize + 20;
 
-        r_seed = Math.random();
-        bubbleSize = randomInRange(10, bubbleMax);
-        r2 = Math.pow(r_seed, 3) * bubbleSize + 10;
-
-        y1 = y + (harm1(countNorm, 0) + 1) * harmScale + harmScale/2;
-        y2 = y - (harm2(countNorm, 0) + 1) * harmScale - harmScale/2;
-
+        y -= randomInRange(0, bubbleSize);
 
         /*drawCircle(ctx, x, y , harmScale, {
             fill: null,
             stroke: fg
         });*/
-        ctx.strokeStyle = 'white';
-        ctx.lineWidth = harmScale/2;
 
-        ctx.beginPath();
-        ctx.moveTo(x, y1);
-        ctx.lineTo(x, y2);
-        ctx.stroke();
-
-        drawCircle(ctx, x, y1, r1, {
-            fill: getCloudFill(y1 - r1, ch, bg),//'white',
-            stroke: null
-        });
-
-        drawCircle(ctx, x, y2, r2, {
-            fill: getCloudFill(y2 - r2, ch, bg),//'white',
+        drawCircle(ctx, x, y, r, {
+            fill: 'white',//getCloudFill(y - r, ch, bg),
             stroke: null
         });
 
