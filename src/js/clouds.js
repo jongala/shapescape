@@ -61,6 +61,16 @@ export function clouds(options) {
     let fg = getContrastColor();
     let fg2 = getContrastColor();
 
+    // special fill functions
+    let getBgGradient = getGradientFunction(['#ffffff', bg]);
+    let getCloudFill = function(y1, y2, color = bg) {
+        let grad = ctx.createLinearGradient(0, y1, 0, y2);
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(1, color);
+        return grad;
+    }
+
+
     // draw
 
     ctx.fillStyle = bg;
@@ -153,12 +163,12 @@ export function clouds(options) {
         ctx.stroke();
 
         drawCircle(ctx, x, y1, r1, {
-            fill: 'white',
+            fill: getCloudFill(y1 - r1, ch, bg),//'white',
             stroke: null
         });
 
         drawCircle(ctx, x, y2, r2, {
-            fill: 'white',
+            fill: getCloudFill(y2 - r2, ch, bg),//'white',
             stroke: null
         });
 
