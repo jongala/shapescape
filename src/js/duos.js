@@ -3,6 +3,7 @@ import palettes from './palettes';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 import { randItem, randomInRange, getGradientFunction } from './utils';
 
+const SILVERS = ['#ffffff','#f2f2f2','#eeeeee','#e7e7e7','#e0e0e0','#d7d7d7'];
 
 // Tile the container
 export function duos(options) {
@@ -18,10 +19,13 @@ export function duos(options) {
     var opts = {};
     opts = Object.assign(Object.assign(opts, defaults), options);
 
-    var container = options.container;
-
-    var w = container.offsetWidth;
-    var h = container.offsetHeight;
+    let container = opts.container;
+    let cw = container.offsetWidth;
+    let ch = container.offsetHeight;
+    let SCALE = Math.min(cw, ch);
+    let LONG = Math.max(cw, ch);
+    let SHORT = Math.min(cw, ch);
+    const AREA = cw * ch;
 
     // Find or create canvas child
     var el = container.querySelector('canvas');
@@ -32,8 +36,8 @@ export function duos(options) {
         newEl = true;
     }
     if (newEl || opts.clear) {
-        el.width = w;
-        el.height = h;
+        el.width = cw;
+        el.height = ch;
     }
 
     var ctx; // canvas ctx or svg tag
@@ -44,7 +48,7 @@ export function duos(options) {
     if (opts.clear) {
         el.width = container.offsetWidth;
         el.height = container.offsetHeight;
-        ctx.clearRect(0, 0, w, h);
+        ctx.clearRect(0, 0, cw, ch);
     }
 
     var renderer;
@@ -62,8 +66,8 @@ export function duos(options) {
 
     if (opts.drawShadows) {
         ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 3 * Math.min(w, h) / 400;
-        ctx.shadowBlur = 10 * Math.min(w, h) / 400;
+        ctx.shadowOffsetY = 3 * SHORT / 400;
+        ctx.shadowBlur = 10 * SHORT / 400;
         ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
     }
 
@@ -72,13 +76,13 @@ export function duos(options) {
     // sometimes, lock them to centerline. Else, nudge each left or right
     let centers = [];
     if (Math.random() < 0.2) {
-        centers = [w/2, w/2, w/2];
+        centers = [cw/2, cw/2, cw/2];
         shapeOpts.angle = 0;
     } else {
         centers = [
-            w * randomInRange(0.33, 0.66), // shape 1
-            w * randomInRange(0.33, 0.66), // shape 2
-            w * randomInRange(0.2, 0.8), // bg block
+            cw * randomInRange(0.33, 0.66), // shape 1
+            cw * randomInRange(0.33, 0.66), // shape 2
+            cw * randomInRange(0.2, 0.8), // bg block
         ];
         shapeOpts.angle = randomInRange(-1,1) * Math.PI/2;
     }
@@ -92,12 +96,12 @@ export function duos(options) {
 
 
     let shape1 = renderMap[randItem(shapes)];
-    let y1 = h * randomInRange(0.3, 0.7);
-    let r1 = w * 0.33;
+    let y1 = ch * randomInRange(0.3, 0.7);
+    let r1 = SHORT * 0.33;
 
     let shape2 = renderMap[randItem(shapes)];
-    let y2 = h * randomInRange(0.3, 0.7);
-    let r2 = w * 0.33;
+    let y2 = ch * randomInRange(0.3, 0.7);
+    let r2 = SHORT * 0.33;
 
     // draw them
     shape1(ctx,
@@ -106,7 +110,7 @@ export function duos(options) {
         r1,
         {
             angle: shapeOpts.angle,
-            fill: getGradientFunction(opts.palette)(ctx, w, h)
+            fill: getGradientFunction(opts.palette)(ctx, cw, ch)
         }
     );
 
@@ -118,7 +122,7 @@ export function duos(options) {
         r2,
         {
             angle: shapeOpts.angle,
-            fill: getGradientFunction(opts.palette)(ctx, w, h)
+            fill: getGradientFunction(opts.palette)(ctx, cw, ch)
         }
     );
 
@@ -130,7 +134,7 @@ export function duos(options) {
         r2,
         {
             angle: shapeOpts.angle,
-            fill: getGradientFunction(opts.palette)(ctx, w, h)
+            fill: getGradientFunction(opts.palette)(ctx, cw, ch)
         }
     );
 
@@ -170,9 +174,8 @@ export function duos(options) {
 
 
     ctx.globalCompositeOperation = 'destination-over';
-    ctx.fillStyle = getGradientFunction(['#ffffff','#f2f2f2','#eeeeee','#e7e7e7','#e0e0e0','#d7d7d7'])(ctx, w, h);
-    ctx.fillStyle = getGradientFunction(opts.palette)(ctx, w, h);
-    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = getGradientFunction( (Math.random() < 0.5) ? SILVERS : opts.palette)(ctx, cw, ch);
+    ctx.fillRect(0, 0, cw, ch);
 
     ctx.globalCompositeOperation = 'normal';
 
@@ -185,7 +188,7 @@ export function duos(options) {
         if (opts.noiseInput) {
             noiseUtils.applyNoiseCanvas(el, opts.noiseInput);
         } else {
-            noiseUtils.addNoiseFromPattern(el, opts.addNoise, w / 3);
+            noiseUtils.addNoiseFromPattern(el, opts.addNoise, cw / 3);
         }
     }
 
