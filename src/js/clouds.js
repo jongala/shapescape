@@ -93,8 +93,6 @@ export function clouds(options) {
     }
 
     let wave = createTransform();
-    let harm1  = createTransform();
-    let harm2 = createTransform();
 
     let pointCount = cw/4;
     let x, y, r;
@@ -106,27 +104,8 @@ export function clouds(options) {
     let bubbleSize;
     let bubbleMax = ch/4;
 
-    // first, box off the waved region
-    /*ctx.beginPath();
-    ctx.moveTo(cw, ch);
-    ctx.lineTo(0, ch);
-
-    for (let i = 0; i<=pointCount; i++) {
-        x = i * cw/(pointCount);
-        y = wave(i/pointCount, 0) * waveScale; // input a normalized value
-        y += ch/2; // center, roughly
-        ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-
-    ctx.fillStyle = 'white';
-    ctx.fill();*/
-
     let xnorm, ynorm;
     let countNorm;
-
-    let y1, y2;
-    let r1, r2;
 
     ctx.lineCap = 'round';
 
