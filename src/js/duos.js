@@ -1,6 +1,6 @@
 import noiseUtils from './noiseutils';
 import palettes from './palettes';
-import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
+import { drawCircle, drawRing, drawExactTriangle, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 import { randItem, randomInRange, getGradientFunction } from './utils';
 
 const SILVERS = ['#ffffff','#f2f2f2','#eeeeee','#e7e7e7','#e0e0e0','#d7d7d7'];
@@ -54,7 +54,7 @@ export function duos(options) {
     var renderer;
     var renderMap = {
         circle: drawCircle,
-        triangle: drawTriangle,
+        triangle: drawExactTriangle,
         square: drawSquare,
         ring: drawRing,
         /*pentagon: drawPentagon,
@@ -82,31 +82,26 @@ export function duos(options) {
 
     let shape1 = renderMap[randItem(shapes)];
     let r1 = SHORT * 0.33;
+    let x1 = randomInRange(r1, cw - r1);
     let y1 = randomInRange(r1, ch-r1);
     let a1 = randomInRange(-1,1) * Math.PI/2;
 
 
     let shape2 = renderMap[randItem(shapes)];
     let r2 = SHORT * 0.33;
+    let x2 = randomInRange(r2, cw - r2);
     let y2 = randomInRange(r2, ch-r2);
     let a2 = randomInRange(-1,1) * Math.PI/2;
 
-    // sometimes, lock them to centerline. Else, nudge each left or right
-    let centers = [];
+    // sometimes, lock them to centerline with no angle
     if (Math.random() < 0.2) {
-        centers = [cw/2, cw/2, cw/2];
+        x1 = x2 = cw/2;
         a1 = a2 = 0;
-    } else {
-        centers = [
-            randomInRange(r1, cw - r1), // shape 1
-            randomInRange(r2, cw - r2), // shape 2
-            cw * randomInRange(0.2, 0.8), // bg block
-        ];
     }
 
     // draw them
     shape1(ctx,
-        centers[0],
+        x1,
         y1,
         r1,
         {
@@ -118,7 +113,7 @@ export function duos(options) {
     ctx.globalCompositeOperation = 'source-atop';
 
     shape2(ctx,
-        centers[1],
+        x2,
         y2,
         r2,
         {
@@ -130,7 +125,7 @@ export function duos(options) {
     ctx.globalCompositeOperation = 'destination-over';
 
     shape2(ctx,
-        centers[1],
+        x2,
         y2,
         r2,
         {
@@ -140,19 +135,19 @@ export function duos(options) {
     );
 
     ctx.globalCompositeOperation = 'normal';
+    ctx.lineWidth = SHORT / 800;
 
-
-    drawCircle(ctx, centers[0], y1, 5, {fill:'black'});
-    drawCircle(ctx, centers[1], y2, 5, {fill:'black'});
+    drawCircle(ctx, x1, y1, 5, {fill:'black'});
+    drawCircle(ctx, x2, y2, 5, {fill:'black'});
     ctx.beginPath();
-    ctx.moveTo(centers[0], y1);
-    ctx.lineTo(centers[1], y2);
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
     ctx.strokeStyle = 'black';
     ctx.stroke();
 
 
     shape1(ctx,
-        centers[0],
+        x1,
         y1,
         r1,
         {
@@ -163,7 +158,7 @@ export function duos(options) {
     );
 
     shape2(ctx,
-        centers[1],
+        x2,
         y2,
         r2,
         {
@@ -172,6 +167,45 @@ export function duos(options) {
             stroke: 'black'
         }
     );
+
+    // rotate the angles for triangle matching
+    a1 += Math.PI/2;
+    a2 += Math.PI/2;
+
+    // OPTIONAL DECORATIONS
+    if ( Math.random() < 0.5 && x1 !== x2 ) {
+        // EXTEND THE CONNECTING LINE
+        //ctx.setLineDash([LONG/150, LONG/100]);
+        ctx.strokeStyle = 'black';
+        ctx.globalAlpha = randomInRange(0.4, 0.6);
+        let m = (y2 - y1)/(x2 - x1);
+        let b = y1 - m * x1;
+        ctx.beginPath();
+        ctx.moveTo(0, m * 0 + b);
+        ctx.lineTo(cw, m * cw + b);
+        ctx.stroke();
+        ctx.strokeStyle = 'black';
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
+    } else if (Math.random() < 0.5 && a1 !== a2) {
+        // EXTEND EACH ANGLE LINE
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(
+            x1 + Math.cos(a1) * LONG,
+            y1 + Math.sin(a1) * LONG
+        );
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(
+            x2 + Math.cos(a2) * LONG,
+            y2 + Math.sin(a2) * LONG
+        );
+        ctx.stroke();
+    }
+
 
 
     ctx.globalCompositeOperation = 'destination-over';
