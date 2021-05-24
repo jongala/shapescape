@@ -36,7 +36,7 @@ const RENDERERS = {
     bands: bands,
     fragments: fragments,
     waves: waves,
-    clouds: clouds
+    //clouds: clouds
 };
 let initRenderer = 'waterline';
 
