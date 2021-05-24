@@ -73,21 +73,6 @@ export function duos(options) {
 
     let shapeOpts = {};
 
-    // sometimes, lock them to centerline. Else, nudge each left or right
-    let centers = [];
-    if (Math.random() < 0.2) {
-        centers = [cw/2, cw/2, cw/2];
-        shapeOpts.angle = 0;
-    } else {
-        centers = [
-            cw * randomInRange(0.33, 0.66), // shape 1
-            cw * randomInRange(0.33, 0.66), // shape 2
-            cw * randomInRange(0.2, 0.8), // bg block
-        ];
-        shapeOpts.angle = randomInRange(-1,1) * Math.PI/2;
-    }
-
-
     // draw two shape layers in some order:
     // shuffle shape list
     shapes.sort(function(a, b) {
@@ -96,12 +81,28 @@ export function duos(options) {
 
 
     let shape1 = renderMap[randItem(shapes)];
-    let y1 = ch * randomInRange(0.3, 0.7);
     let r1 = SHORT * 0.33;
+    let y1 = randomInRange(r1, ch-r1);
+    let a1 = randomInRange(-1,1) * Math.PI/2;
+
 
     let shape2 = renderMap[randItem(shapes)];
-    let y2 = ch * randomInRange(0.3, 0.7);
     let r2 = SHORT * 0.33;
+    let y2 = randomInRange(r2, ch-r2);
+    let a2 = randomInRange(-1,1) * Math.PI/2;
+
+    // sometimes, lock them to centerline. Else, nudge each left or right
+    let centers = [];
+    if (Math.random() < 0.2) {
+        centers = [cw/2, cw/2, cw/2];
+        a1 = a2 = 0;
+    } else {
+        centers = [
+            randomInRange(r1, cw - r1), // shape 1
+            randomInRange(r2, cw - r2), // shape 2
+            cw * randomInRange(0.2, 0.8), // bg block
+        ];
+    }
 
     // draw them
     shape1(ctx,
@@ -109,7 +110,7 @@ export function duos(options) {
         y1,
         r1,
         {
-            angle: shapeOpts.angle,
+            angle: a1,
             fill: getGradientFunction(opts.palette)(ctx, cw, ch)
         }
     );
@@ -121,7 +122,7 @@ export function duos(options) {
         y2,
         r2,
         {
-            angle: shapeOpts.angle,
+            angle: a2,
             fill: getGradientFunction(opts.palette)(ctx, cw, ch)
         }
     );
@@ -133,7 +134,7 @@ export function duos(options) {
         y2,
         r2,
         {
-            angle: shapeOpts.angle,
+            angle: a2,
             fill: getGradientFunction(opts.palette)(ctx, cw, ch)
         }
     );
@@ -155,7 +156,7 @@ export function duos(options) {
         y1,
         r1,
         {
-            angle: shapeOpts.angle,
+            angle: a1,
             fill: null,
             stroke: 'black'
         }
@@ -166,7 +167,7 @@ export function duos(options) {
         y2,
         r2,
         {
-            angle: shapeOpts.angle,
+            angle: a2,
             fill: null,
             stroke: 'black'
         }
