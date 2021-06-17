@@ -100,6 +100,8 @@ export function duos(options) {
     }
 
     // draw them
+
+    // draw the first shape
     shape1(ctx,
         x1,
         y1,
@@ -110,8 +112,10 @@ export function duos(options) {
         }
     );
 
-    ctx.globalCompositeOperation = 'source-atop';
+    // draw the second shape twice, using blend modes to draw
+    // the intersecting and non-intersecting regions with different colors
 
+    ctx.globalCompositeOperation = 'source-atop';
     shape2(ctx,
         x2,
         y2,
@@ -123,7 +127,6 @@ export function duos(options) {
     );
 
     ctx.globalCompositeOperation = 'destination-over';
-
     shape2(ctx,
         x2,
         y2,
@@ -134,18 +137,20 @@ export function duos(options) {
         }
     );
 
+    // reset blendmodes
     ctx.globalCompositeOperation = 'normal';
     ctx.lineWidth = SHORT / 800;
 
-    drawCircle(ctx, x1, y1, 5, {fill:'black'});
-    drawCircle(ctx, x2, y2, 5, {fill:'black'});
+    // draw the center points and connecting line
+    drawCircle(ctx, x1, y1, SHORT/150, {fill:'black'});
+    drawCircle(ctx, x2, y2, SHORT/150, {fill:'black'});
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
     ctx.strokeStyle = 'black';
     ctx.stroke();
 
-
+    // draw the shapes again, in black outline
     shape1(ctx,
         x1,
         y1,
@@ -185,7 +190,7 @@ export function duos(options) {
         ctx.lineTo(cw, m * cw + b);
         ctx.stroke();
         ctx.strokeStyle = 'black';
-        ctx.setLineDash([]);
+        //ctx.setLineDash([]);
         ctx.globalAlpha = 1;
     } else if (Math.random() < 0.5 && a1 !== a2) {
         // EXTEND EACH ANGLE LINE
@@ -207,7 +212,10 @@ export function duos(options) {
     }
 
 
-
+    // draw the background
+    // this is done last so we can use blend modes to target the intersections
+    // while drawing the shapes. Use the same technique to draw only the
+    // unpainted background.
     ctx.globalCompositeOperation = 'destination-over';
     ctx.fillStyle = getGradientFunction( (Math.random() < 0.5) ? SILVERS : opts.palette)(ctx, cw, ch);
     ctx.fillRect(0, 0, cw, ch);
