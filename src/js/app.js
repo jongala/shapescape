@@ -6,6 +6,7 @@ import colorbrewer from './colorbrewer';
 import { waterline, drawWaterline } from './waterline';
 import { shapestack } from './shapestack';
 import { shapescape } from './shapescape';
+import { duos } from './duos';
 import { lines } from './lines';
 import { waves } from './waves';
 import { grid } from './grid';
@@ -25,6 +26,7 @@ const RENDERERS = {
     waterline: waterline,
     shapestack: shapestack,
     shapescape: shapescape,
+    duos: duos,
     lines: lines,
     grid: grid,
     truchet: truchet,
