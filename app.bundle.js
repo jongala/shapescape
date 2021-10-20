@@ -1929,6 +1929,8 @@ var _palettes = __webpack_require__(2);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
+var _shapes = __webpack_require__(3);
+
 var _utils = __webpack_require__(0);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -1956,51 +1958,6 @@ function getFill(ctx, palette, x, y, size, skew) {
         grad.addColorStop(1, (0, _utils.randItem)(palette));
         return grad;
     }
-}
-
-function drawCircle(ctx, x, y, r, fill, stroke, alpha) {
-    alpha = alpha === undefined ? 1 : alpha;
-    ctx.fillStyle = fill;
-    ctx.strokeStyle = stroke;
-    ctx.globalAlpha = alpha;
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arc(x, y, r, 0, 2 * Math.PI, false);
-    ctx.fill();
-    stroke && ctx.stroke();
-    ctx.closePath();
-}
-
-function addCircle(ctx, w, h, opts) {
-    var x = w / 2;
-    var y = h * (0, _utils.randomInRange)(0.4, 0.6);
-    var r = Math.min(w, h) * (0, _utils.randomInRange)(0.2, 0.4);
-    drawCircle(ctx, x, y, r, getFill(ctx, opts.palette, x, y, r, opts.skew));
-    return ctx;
-}
-
-function addTriangle(ctx, w, h, opts) {
-    var d = Math.min(w, h) * (0, _utils.randomInRange)(0.5, 0.85);
-    var cx = w / 2;
-    var cy = (0, _utils.randomInRange)(h / 3, 2 * h / 3);
-    var leg = Math.cos(30 * Math.PI / 180) * (d / 2);
-    ctx.fillStyle = getFill(ctx, opts.palette, cx, cy, leg, opts.skew);
-    ctx.beginPath();
-    ctx.moveTo(cx, cy - leg);
-    ctx.lineTo(cx + d / 2, cy + leg);
-    ctx.lineTo(cx - d / 2, cy + leg);
-    ctx.closePath();
-    ctx.fill();
-    return ctx;
-}
-
-function addSquare(ctx, w, h, opts) {
-    var d = Math.min(w, h) * 0.5;
-    var x = w / 2 - d / 2;
-    var y = (0, _utils.randomInRange)(h / 3, 2 * h / 3) - d / 2;
-    ctx.fillStyle = getFill(ctx, opts.palette, x, y + d / 2, d / 2, opts.skew);
-    ctx.fillRect(x, y, d, d);
-    return ctx;
 }
 
 // Tile the container
@@ -2048,9 +2005,12 @@ function shapescape(options) {
 
     var renderer;
     var renderMap = {
-        circle: addCircle,
-        triangle: addTriangle,
-        square: addSquare
+        circle: _shapes.drawCircle,
+        triangle: _shapes.drawTriangle,
+        square: _shapes.drawSquare,
+        ring: _shapes.drawRing
+        /*pentagon: drawPentagon,
+        hexagon: drawHexagon*/
     };
     var shapes = Object.keys(renderMap);
 
@@ -2063,13 +2023,28 @@ function shapescape(options) {
         ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
     }
 
+    var shapeOpts = {};
+
+    // sometimes, lock them to centerline. Else, nudge each left or right
+    var centers = [];
+    if (Math.random() < 0.99933) {
+        centers = [w / 2, w / 2, w / 2];
+        shapeOpts.angle = 0;
+    } else {
+        centers = [w * (0, _utils.randomInRange)(0.4, 0.6), // shape 1
+        w * (0, _utils.randomInRange)(0.4, 0.6), // shape 2
+        w * (0, _utils.randomInRange)(0.2, 0.8)];
+        shapeOpts.angle = (0, _utils.randomInRange)(-1, 1) * Math.PI / 2;
+    }
+
     // add one or two bg blocks
     ctx.fillStyle = getFill(ctx, opts.palette, 0, 0, h, opts.skew);
     ctx.fillRect(0, 0, w, h);
-    if (Math.random() > 0.25) {
+    if (Math.random() < 0.5) {
         var hr = (0, _utils.randomInRange)(3, 12) * w;
-        var hy = hr + (0, _utils.randomInRange)(0.3, 0.85) * h;
-        drawCircle(ctx, w / 2, hy, hr, getFill(ctx, opts.palette, w / 2, hy, hr, opts.skew));
+        var hy = hr + (0, _utils.randomInRange)(0.5, 0.85) * h;
+        //drawCircle(ctx, w / 2, hy, hr, getFill(ctx, opts.palette, w / 2, hy, hr, opts.skew));
+        (0, _shapes.drawCircle)(ctx, centers[2], hy, hr, { fill: (0, _utils.getGradientFunction)(opts.palette)(ctx, w, h) });
     }
 
     // draw two shape layers in some order:
@@ -2079,8 +2054,14 @@ function shapescape(options) {
     });
 
     // pop a renderer name, get render func and execute X 2
-    renderMap[shapes.pop()](ctx, w, h, opts);
-    renderMap[shapes.pop()](ctx, w, h, opts);
+    renderMap[shapes.pop()](ctx, centers[0], h * (0, _utils.randomInRange)(0.3, 0.7), w * (0, _utils.randomInRange)(0.25, 0.35), {
+        angle: shapeOpts.angle,
+        fill: (0, _utils.getGradientFunction)(opts.palette)(ctx, w, h)
+    });
+    renderMap[shapes.pop()](ctx, centers[1], h * (0, _utils.randomInRange)(0.3, 0.7), w * (0, _utils.randomInRange)(0.25, 0.35), {
+        angle: shapeOpts.angle,
+        fill: (0, _utils.getGradientFunction)(opts.palette)(ctx, w, h)
+    });
 
     // Add effect elements
     // ...
@@ -5478,6 +5459,8 @@ var _shapestack = __webpack_require__(10);
 
 var _shapescape = __webpack_require__(13);
 
+var _duos = __webpack_require__(25);
+
 var _lines = __webpack_require__(14);
 
 var _waves = __webpack_require__(15);
@@ -5496,9 +5479,11 @@ var _bands = __webpack_require__(21);
 
 var _field = __webpack_require__(22);
 
-var _trails = __webpack_require__(25);
+var _trails = __webpack_require__(26);
 
 var _fragments = __webpack_require__(23);
+
+var _clouds = __webpack_require__(27);
 
 var _utils = __webpack_require__(0);
 
@@ -5509,6 +5494,7 @@ var RENDERERS = {
     waterline: _waterline.waterline,
     shapestack: _shapestack.shapestack,
     shapescape: _shapescape.shapescape,
+    duos: _duos.duos,
     lines: _lines.lines,
     grid: _grid.grid,
     truchet: _truchet.truchet,
@@ -5520,6 +5506,7 @@ var RENDERERS = {
     bands: _bands.bands,
     fragments: _fragments.fragments,
     waves: _waves.waves
+    //clouds: clouds
 };
 var initRenderer = 'waterline';
 
@@ -5827,6 +5814,237 @@ setRenderer(initRenderer, document.querySelector("[data-renderer='" + initRender
 
 /***/ }),
 /* 25 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.duos = duos;
+
+var _noiseutils = __webpack_require__(1);
+
+var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _palettes = __webpack_require__(2);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
+var _shapes = __webpack_require__(3);
+
+var _utils = __webpack_require__(0);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var SILVERS = ['#ffffff', '#f2f2f2', '#eeeeee', '#e7e7e7', '#e0e0e0', '#d7d7d7'];
+
+// Tile the container
+function duos(options) {
+    var defaults = {
+        container: 'body',
+        palette: _palettes2.default.terra_cotta_cactus,
+        drawShadows: false,
+        addNoise: 0.04,
+        noiseInput: null,
+        skew: 1, // normalized skew
+        clear: true
+    };
+    var opts = {};
+    opts = Object.assign(Object.assign(opts, defaults), options);
+
+    var container = opts.container;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
+    var SCALE = Math.min(cw, ch);
+    var LONG = Math.max(cw, ch);
+    var SHORT = Math.min(cw, ch);
+    var AREA = cw * ch;
+
+    // Find or create canvas child
+    var el = container.querySelector('canvas');
+    var newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        el.width = cw;
+        el.height = ch;
+    }
+
+    var ctx; // canvas ctx or svg tag
+
+    ctx = el.getContext('2d');
+
+    // optional clear
+    if (opts.clear) {
+        el.width = container.offsetWidth;
+        el.height = container.offsetHeight;
+        ctx.clearRect(0, 0, cw, ch);
+    }
+
+    var renderer;
+    var renderMap = {
+        circle: _shapes.drawCircle,
+        triangle: _shapes.drawExactTriangle,
+        square: _shapes.drawSquare,
+        ring: _shapes.drawRing
+        /*pentagon: drawPentagon,
+        hexagon: drawHexagon*/
+    };
+    var shapes = Object.keys(renderMap);
+
+    // BEGIN RENDERING
+
+    if (opts.drawShadows) {
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 3 * SHORT / 400;
+        ctx.shadowBlur = 10 * SHORT / 400;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+    }
+
+    var shapeOpts = {};
+
+    // draw two shape layers in some order:
+    // shuffle shape list
+    shapes.sort(function (a, b) {
+        return (0, _utils.randomInRange)(-1, 1);
+    });
+
+    var shape1 = renderMap[(0, _utils.randItem)(shapes)];
+    var r1 = SHORT * 0.33;
+    var x1 = (0, _utils.randomInRange)(r1, cw - r1);
+    var y1 = (0, _utils.randomInRange)(r1, ch - r1);
+    var a1 = (0, _utils.randomInRange)(-1, 1) * Math.PI / 2;
+
+    var shape2 = renderMap[(0, _utils.randItem)(shapes)];
+    var r2 = SHORT * 0.33;
+    var x2 = (0, _utils.randomInRange)(r2, cw - r2);
+    var y2 = (0, _utils.randomInRange)(r2, ch - r2);
+    var a2 = (0, _utils.randomInRange)(-1, 1) * Math.PI / 2;
+
+    // sometimes, lock them to centerline with no angle
+    if (Math.random() < 0.2) {
+        x1 = x2 = cw / 2;
+        a1 = a2 = 0;
+    }
+
+    // draw them
+
+    // draw the first shape
+    shape1(ctx, x1, y1, r1, {
+        angle: a1,
+        fill: (0, _utils.getGradientFunction)(opts.palette)(ctx, cw, ch)
+    });
+
+    // draw the second shape twice, using blend modes to draw
+    // the intersecting and non-intersecting regions with different colors
+
+    ctx.globalCompositeOperation = 'source-atop';
+    shape2(ctx, x2, y2, r2, {
+        angle: a2,
+        fill: (0, _utils.getGradientFunction)(opts.palette)(ctx, cw, ch)
+    });
+
+    ctx.globalCompositeOperation = 'destination-over';
+    shape2(ctx, x2, y2, r2, {
+        angle: a2,
+        fill: (0, _utils.getGradientFunction)(opts.palette)(ctx, cw, ch)
+    });
+
+    // reset blendmodes
+    ctx.globalCompositeOperation = 'normal';
+    ctx.lineWidth = SHORT / 800;
+
+    // draw the center points and connecting line
+    (0, _shapes.drawCircle)(ctx, x1, y1, SHORT / 150, { fill: 'black' });
+    (0, _shapes.drawCircle)(ctx, x2, y2, SHORT / 150, { fill: 'black' });
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = 'black';
+    ctx.stroke();
+
+    // draw the shapes again, in black outline
+    shape1(ctx, x1, y1, r1, {
+        angle: a1,
+        fill: null,
+        stroke: 'black'
+    });
+
+    shape2(ctx, x2, y2, r2, {
+        angle: a2,
+        fill: null,
+        stroke: 'black'
+    });
+
+    // rotate the angles for triangle matching
+    a1 += Math.PI / 2;
+    a2 += Math.PI / 2;
+
+    // OPTIONAL DECORATIONS
+    if (Math.random() < 0.5 && x1 !== x2) {
+        // EXTEND THE CONNECTING LINE
+        //ctx.setLineDash([LONG/150, LONG/100]);
+        ctx.strokeStyle = 'black';
+        ctx.globalAlpha = (0, _utils.randomInRange)(0.4, 0.6);
+        var m = (y2 - y1) / (x2 - x1);
+        var b = y1 - m * x1;
+        ctx.beginPath();
+        ctx.moveTo(0, m * 0 + b);
+        ctx.lineTo(cw, m * cw + b);
+        ctx.stroke();
+        ctx.strokeStyle = 'black';
+        //ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
+    } else if (Math.random() < 0.5 && a1 !== a2) {
+        // EXTEND EACH ANGLE LINE
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x1 + Math.cos(a1) * LONG, y1 + Math.sin(a1) * LONG);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(x2, y2);
+        ctx.lineTo(x2 + Math.cos(a2) * LONG, y2 + Math.sin(a2) * LONG);
+        ctx.stroke();
+    }
+
+    // draw the background
+    // this is done last so we can use blend modes to target the intersections
+    // while drawing the shapes. Use the same technique to draw only the
+    // unpainted background.
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.fillStyle = (0, _utils.getGradientFunction)(Math.random() < 0.5 ? SILVERS : opts.palette)(ctx, cw, ch);
+    ctx.fillRect(0, 0, cw, ch);
+
+    ctx.globalCompositeOperation = 'normal';
+
+    // Add effect elements
+    // ...
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, cw / 3);
+        }
+    }
+
+    // END RENDERING
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
+}
+
+/***/ }),
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6346,6 +6564,183 @@ var DEFAULTS = {
     console.log('rendered in ' + (tEnd - tStart) + 'ms');
 
     window.ctx = ctx;
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            // apply noise from supplied canvas
+            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            // create noise pattern and apply
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, cw / 3);
+        }
+    }
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
+}
+
+/***/ }),
+/* 27 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.clouds = clouds;
+
+var _noiseutils = __webpack_require__(1);
+
+var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _palettes = __webpack_require__(2);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
+var _utils = __webpack_require__(0);
+
+var _shapes = __webpack_require__(3);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var DEFAULTS = {
+    container: 'body',
+    palette: _palettes2.default.fingerspitzen,
+    addNoise: 0.04,
+    noiseInput: null,
+    dust: false,
+    skew: 1, // normalized skew
+    clear: true,
+    lightMode: 'auto', // [auto, bloom, normal]
+    gridMode: 'auto', // [auto, normal, scatter, random]
+    density: 'auto' // [auto, coarse, fine]
+};
+
+var PI = Math.PI;
+
+// Main function
+function clouds(options) {
+    var opts = Object.assign({}, DEFAULTS, options);
+
+    var container = opts.container;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
+    var SCALE = Math.min(cw, ch);
+    var LONG = Math.max(cw, ch);
+    var SHORT = Math.min(cw, ch);
+    var AREA = cw * ch;
+
+    // Find or create canvas child
+    var el = container.querySelector('canvas');
+    var newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        el.width = cw;
+        el.height = ch;
+    }
+
+    var ctx = el.getContext('2d');
+
+    // color funcs
+    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
+
+    // shared colors
+    var bg = getSolidFill();
+
+    // get palette of non-bg colors
+    var contrastPalette = [].concat(opts.palette);
+    contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
+
+    // shared foregrounds
+    var fg = getContrastColor();
+    var fg2 = getContrastColor();
+
+    // special fill functions
+    var getBgGradient = (0, _utils.getGradientFunction)(['#ffffff', bg]);
+    var getCloudFill = function getCloudFill(y1, y2) {
+        var color = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : bg;
+
+        var grad = ctx.createLinearGradient(0, y1, 0, y2);
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(1, color);
+        return grad;
+    };
+
+    // draw
+
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, cw, ch);
+
+    var rateMax = 3;
+
+    function createTransform() {
+        var rate1 = (0, _utils.randomInRange)(0, rateMax);
+        var rate2 = (0, _utils.randomInRange)(0, rateMax);
+        var phase1 = (0, _utils.randomInRange)(-PI, PI);
+        var phase2 = (0, _utils.randomInRange)(-PI, PI);
+        var c1 = (0, _utils.randomInRange)(1, 2);
+        var c2 = (0, _utils.randomInRange)(0, 1);
+        return function (x, y) {
+            var t1 = Math.sin(x * PI * rate1 + phase1);
+            var t2 = Math.sin(y * PI * rate2 + phase2);
+            return (c1 * t1 + c2 * t2) / (c1 + c2);
+        };
+    }
+
+    var wave = createTransform();
+
+    var pointCount = cw / 4;
+    var x = void 0,
+        y = void 0,
+        r = void 0;
+
+    var r_seed = void 0;
+
+    var waveScale = SHORT / 8;
+    var harmScale = waveScale / 2;
+    var bubbleSize = void 0;
+    var bubbleMax = ch / 4;
+
+    var xnorm = void 0,
+        ynorm = void 0;
+    var countNorm = void 0;
+
+    ctx.lineCap = 'round';
+
+    for (var i = 0; i <= pointCount; i++) {
+        countNorm = i / pointCount;
+        x = i * cw / pointCount;
+        y = wave(countNorm, 0) * waveScale; // input a normalized value
+        y += ch / 2; // center, roughly
+
+        r = 5;
+
+        r_seed = Math.random();
+        bubbleSize = (0, _utils.randomInRange)(10, bubbleMax);
+        r = Math.pow(r_seed, 6) * bubbleSize + 20;
+
+        y -= (0, _utils.randomInRange)(0, bubbleSize);
+
+        /*drawCircle(ctx, x, y , harmScale, {
+            fill: null,
+            stroke: fg
+        });*/
+
+        (0, _shapes.drawCircle)(ctx, x, y, r, {
+            fill: 'white', //getCloudFill(y - r, ch, bg),
+            stroke: null
+        });
+    }
 
     // add noise
     if (opts.addNoise) {

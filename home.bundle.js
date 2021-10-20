@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 26);
+/******/ 	return __webpack_require__(__webpack_require__.s = 28);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -1903,6 +1903,8 @@ var _palettes = __webpack_require__(2);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
+var _shapes = __webpack_require__(3);
+
 var _utils = __webpack_require__(0);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -1930,51 +1932,6 @@ function getFill(ctx, palette, x, y, size, skew) {
         grad.addColorStop(1, (0, _utils.randItem)(palette));
         return grad;
     }
-}
-
-function drawCircle(ctx, x, y, r, fill, stroke, alpha) {
-    alpha = alpha === undefined ? 1 : alpha;
-    ctx.fillStyle = fill;
-    ctx.strokeStyle = stroke;
-    ctx.globalAlpha = alpha;
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arc(x, y, r, 0, 2 * Math.PI, false);
-    ctx.fill();
-    stroke && ctx.stroke();
-    ctx.closePath();
-}
-
-function addCircle(ctx, w, h, opts) {
-    var x = w / 2;
-    var y = h * (0, _utils.randomInRange)(0.4, 0.6);
-    var r = Math.min(w, h) * (0, _utils.randomInRange)(0.2, 0.4);
-    drawCircle(ctx, x, y, r, getFill(ctx, opts.palette, x, y, r, opts.skew));
-    return ctx;
-}
-
-function addTriangle(ctx, w, h, opts) {
-    var d = Math.min(w, h) * (0, _utils.randomInRange)(0.5, 0.85);
-    var cx = w / 2;
-    var cy = (0, _utils.randomInRange)(h / 3, 2 * h / 3);
-    var leg = Math.cos(30 * Math.PI / 180) * (d / 2);
-    ctx.fillStyle = getFill(ctx, opts.palette, cx, cy, leg, opts.skew);
-    ctx.beginPath();
-    ctx.moveTo(cx, cy - leg);
-    ctx.lineTo(cx + d / 2, cy + leg);
-    ctx.lineTo(cx - d / 2, cy + leg);
-    ctx.closePath();
-    ctx.fill();
-    return ctx;
-}
-
-function addSquare(ctx, w, h, opts) {
-    var d = Math.min(w, h) * 0.5;
-    var x = w / 2 - d / 2;
-    var y = (0, _utils.randomInRange)(h / 3, 2 * h / 3) - d / 2;
-    ctx.fillStyle = getFill(ctx, opts.palette, x, y + d / 2, d / 2, opts.skew);
-    ctx.fillRect(x, y, d, d);
-    return ctx;
 }
 
 // Tile the container
@@ -2022,9 +1979,12 @@ function shapescape(options) {
 
     var renderer;
     var renderMap = {
-        circle: addCircle,
-        triangle: addTriangle,
-        square: addSquare
+        circle: _shapes.drawCircle,
+        triangle: _shapes.drawTriangle,
+        square: _shapes.drawSquare,
+        ring: _shapes.drawRing
+        /*pentagon: drawPentagon,
+        hexagon: drawHexagon*/
     };
     var shapes = Object.keys(renderMap);
 
@@ -2037,13 +1997,28 @@ function shapescape(options) {
         ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
     }
 
+    var shapeOpts = {};
+
+    // sometimes, lock them to centerline. Else, nudge each left or right
+    var centers = [];
+    if (Math.random() < 0.99933) {
+        centers = [w / 2, w / 2, w / 2];
+        shapeOpts.angle = 0;
+    } else {
+        centers = [w * (0, _utils.randomInRange)(0.4, 0.6), // shape 1
+        w * (0, _utils.randomInRange)(0.4, 0.6), // shape 2
+        w * (0, _utils.randomInRange)(0.2, 0.8)];
+        shapeOpts.angle = (0, _utils.randomInRange)(-1, 1) * Math.PI / 2;
+    }
+
     // add one or two bg blocks
     ctx.fillStyle = getFill(ctx, opts.palette, 0, 0, h, opts.skew);
     ctx.fillRect(0, 0, w, h);
-    if (Math.random() > 0.25) {
+    if (Math.random() < 0.5) {
         var hr = (0, _utils.randomInRange)(3, 12) * w;
-        var hy = hr + (0, _utils.randomInRange)(0.3, 0.85) * h;
-        drawCircle(ctx, w / 2, hy, hr, getFill(ctx, opts.palette, w / 2, hy, hr, opts.skew));
+        var hy = hr + (0, _utils.randomInRange)(0.5, 0.85) * h;
+        //drawCircle(ctx, w / 2, hy, hr, getFill(ctx, opts.palette, w / 2, hy, hr, opts.skew));
+        (0, _shapes.drawCircle)(ctx, centers[2], hy, hr, { fill: (0, _utils.getGradientFunction)(opts.palette)(ctx, w, h) });
     }
 
     // draw two shape layers in some order:
@@ -2053,8 +2028,14 @@ function shapescape(options) {
     });
 
     // pop a renderer name, get render func and execute X 2
-    renderMap[shapes.pop()](ctx, w, h, opts);
-    renderMap[shapes.pop()](ctx, w, h, opts);
+    renderMap[shapes.pop()](ctx, centers[0], h * (0, _utils.randomInRange)(0.3, 0.7), w * (0, _utils.randomInRange)(0.25, 0.35), {
+        angle: shapeOpts.angle,
+        fill: (0, _utils.getGradientFunction)(opts.palette)(ctx, w, h)
+    });
+    renderMap[shapes.pop()](ctx, centers[1], h * (0, _utils.randomInRange)(0.3, 0.7), w * (0, _utils.randomInRange)(0.25, 0.35), {
+        angle: shapeOpts.angle,
+        fill: (0, _utils.getGradientFunction)(opts.palette)(ctx, w, h)
+    });
 
     // Add effect elements
     // ...
@@ -5012,7 +4993,9 @@ function fragments(options) {
 /***/ }),
 /* 24 */,
 /* 25 */,
-/* 26 */
+/* 26 */,
+/* 27 */,
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
