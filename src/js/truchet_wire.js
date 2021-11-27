@@ -5,7 +5,7 @@ import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, draw
 
 const DEFAULTS = {
     container: 'body',
-    palette: palettes.south_beach,
+    palette: palettes.high_contrast,
     addNoise: 0.04,
     noiseInput: null,
     dust: false,
@@ -49,7 +49,7 @@ export function truchet_wire(options) {
         ctx.save();
         ctx.translate(x, y);
         ctx.beginPath();
-        ctx.rect(-size/2, -size/2, size, size);
+        ctx.rect(-size/2 - 0.5, -size/2 - 0.5, size + 0.5, size + 0.5);
         ctx.fillStyle = color;
         ctx.closePath();
         ctx.fill();
@@ -105,15 +105,183 @@ export function truchet_wire(options) {
 
     // box styles
 
+    function _diag() {
+        let d = h/2;
+        ctx.beginPath();
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(d, d);
+        ctx.stroke();
+    }
+
     function _fan() {
         let d = h/2;
-        //ctx.moveTo(-d, -d);
-        //ctx.beginPath();
-        //ctx.lineTo(d, d);
-        //ctx.strokeStyle = fg;
-        //ctx.stroke();
+        
+        // straight or curved crosspiece?
+        let straight = (Math.random() > 0.5);
 
-        ctx.strokeStyle = fg;
+        ctx.beginPath();
+        
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(-d, d);
+
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(-d/2, d);
+
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(0, d);
+
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(d/2, d);
+
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(d, d);
+
+        //
+
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(d, -d);
+
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(d, -d/2);
+
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(d, 0);
+
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(d, d/2);
+
+        
+        if (straight) {
+            ctx.moveTo(d, -d);
+            ctx.lineTo(-d, d);    
+        }
+        
+        ctx.stroke();
+
+        if (!straight) {
+            drawCircle(ctx, -d, -d, d * 3/2, {fill: 'transparent', stroke: fg});
+        }
+
+        drawCircle(ctx, -d, -d, d/2, {fill: bg, stroke: fg});
+    }
+
+    function _cross() {
+        let d = h/2;
+        ctx.beginPath();
+        
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(d, d);
+
+        ctx.moveTo(-d/2, -d);
+        ctx.lineTo(d/2, d);
+
+        ctx.moveTo(0, -d);
+        ctx.lineTo(0, d);
+
+        ctx.moveTo(d/2, -d);
+        ctx.lineTo(-d/2, d);
+
+        ctx.moveTo(d, -d);
+        ctx.lineTo(-d, d);
+        
+        
+        ctx.stroke();
+
+        drawCircle(ctx, 0, 0, d/4, {fill: bg, stroke: fg});
+    }
+
+    function _sun() {
+        let d = h/2;
+        ctx.beginPath();
+        
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(d, d);
+
+        ctx.moveTo(-d/2, -d);
+        ctx.lineTo(d/2, d);
+
+        ctx.moveTo(0, -d);
+        ctx.lineTo(0, d);
+
+        ctx.moveTo(d/2, -d);
+        ctx.lineTo(-d/2, d);
+
+        ctx.moveTo(d, -d);
+        ctx.lineTo(-d, d);
+
+        //
+
+        ctx.moveTo(-d, -d/2);
+        ctx.lineTo(d, d/2);
+
+        ctx.moveTo(-d, 0);
+        ctx.lineTo(d, 0);
+
+        ctx.moveTo(-d, d/2);
+        ctx.lineTo(d, -d/2);
+        
+        
+        ctx.stroke();
+
+        drawCircle(ctx, 0, 0, d/4, {fill: bg, stroke: fg});
+    }
+
+    function _bars() {
+        let d = h/2;
+        ctx.beginPath();
+        
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(-d, d);
+
+        ctx.moveTo(-d/2, -d);
+        ctx.lineTo(-d/2, d);
+
+        ctx.moveTo(-0, -d);
+        ctx.lineTo(-0, d);
+        
+        ctx.moveTo(d/2, -d);
+        ctx.lineTo(d/2, d);
+
+        ctx.moveTo(d, -d);
+        ctx.lineTo(d, d);
+        
+        ctx.moveTo(-d, 0);
+        ctx.lineTo(d, 0);
+
+
+        ctx.stroke();
+
+
+        drawCircle(ctx, -d * .75, 0, d/4, {fill: 'transparent', stroke: fg});
+        drawCircle(ctx, -d * .25, 0, d/4, {fill: 'transparent', stroke: fg});
+        drawCircle(ctx, d * .25, 0, d/4, {fill: 'transparent', stroke: fg});
+        drawCircle(ctx, d * .75, 0, d/4, {fill: 'transparent', stroke: fg});
+    }
+
+    function _squares() {
+        let d = h/2;
+
+        drawSquare(ctx, 0, 0, d, {fill: 'transparent', stroke: fg});
+        drawSquare(ctx, 0, 0, d / (4/3), {fill: 'transparent', stroke: fg});
+        drawSquare(ctx, 0, 0, d / 2, {fill: 'transparent', stroke: fg});
+        drawSquare(ctx, 0, 0, d / 4, {fill: 'transparent', stroke: fg});
+
+        ctx.rotate(PI/4);
+
+        let diag = d * 0.7071
+
+        drawSquare(ctx, 0, 0, diag * 1.5, {fill: 'transparent', stroke: fg});
+        drawSquare(ctx, 0, 0, diag / 1, {fill: 'transparent', stroke: fg});
+        drawSquare(ctx, 0, 0, diag / 2, {fill: 'transparent', stroke: fg});
+    }
+
+    function _arcs() {
+        let d = h/2;
+
+        drawCircle(ctx, -d, -d, h / 1, {fill: 'transparent', stroke: fg});
+        drawCircle(ctx, -d, -d, h / 2, {fill: 'transparent', stroke: fg});
+        drawCircle(ctx, -d, -d, h / (4/3), {fill: 'transparent', stroke: fg});
+        drawCircle(ctx, -d, -d, h / 4, {fill: 'transparent', stroke: fg});
 
         ctx.beginPath();
         ctx.moveTo(-d, -d);
@@ -122,34 +290,44 @@ export function truchet_wire(options) {
     }
 
 
+    let styles = [_fan, _cross, _sun, _bars, _squares, _arcs];
+    //styles = [_cross];
+
+
 
     // mode
-    function main (background) {
+    function main (background, double) {
+        let factor = (double) ? 1 : 2;
+        console.log('factor:', factor);
         background = background || bg;
+        ctx.strokeStyle = fg;
         let px, py;
-        for (let i = 0; i < vcount; i++) {
-            for (let j = 0; j < count; j++) {
+        for (let i = 0; i < (vcount * factor); i++) {
+            for (let j = 0; j < (count * factor); j++) {
                 // convenience vars
-                x = w * j;
-                y = h * i;
+                x = (w/factor) * j;
+                y = (h/factor) * i;
                 xnorm = x/cw;
                 ynorm = y/ch;
                 // center point
-                px = x + w / 2;
-                py = y + h / 2;
+                px = x + (w/factor) / 2;
+                py = y + (h/factor) / 2;
 
                 // shift and clip at center point
-                moveAndClip(ctx, px, py, h, background);
+                moveAndClip(ctx, px, py, h/factor, background);
                 // randomly rotate by 90 degree increment
                 ctx.rotate(randItem([0, PI/2, PI, PI * 3/2]));
 
                 // do art in this box
-                drawTriangle(ctx, 0, 0, h/10, {fill:fg});
-                _fan();
+                
+                //drawTriangle(ctx, 0, 0, (h/factor)/10, {fill:fg});
+                randItem(styles)();
 
                 // unshift, unclip
                 ctx.restore();
                 resetTransform(ctx);
+
+                drawSquare(ctx, px, py, h/2, {fill: null, stroke: fg});
             }
         }
     }
