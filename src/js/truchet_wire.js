@@ -109,14 +109,16 @@ export function truchet_wire(options) {
 
     // box styles
 
-    function _diag() {
+    let modes = {};
+
+    modes.diag = function() {
         ctx.beginPath();
         ctx.moveTo(-d, -d);
         ctx.lineTo(d, d);
         ctx.stroke();
     }
 
-    function _fan() {
+    modes.fan = function () {
         // straight or curved crosspiece?
         let straight = (Math.random() > 0.5);
 
@@ -166,7 +168,7 @@ export function truchet_wire(options) {
         drawCircle(ctx, -d, -d, d/2, {fill: bg, stroke: fg});
     }
 
-    function _cross() {
+    modes.cross = function () {
         ctx.beginPath();
 
         ctx.moveTo(-d, -d);
@@ -189,7 +191,7 @@ export function truchet_wire(options) {
         drawCircle(ctx, 0, 0, d/4, {fill: bg, stroke: fg});
     }
 
-    function _sun() {
+    modes.sun = function() {
         ctx.beginPath();
 
         ctx.moveTo(-d, -d);
@@ -223,7 +225,7 @@ export function truchet_wire(options) {
         drawCircle(ctx, 0, 0, d/5, {fill: bg, stroke: fg});
     }
 
-    function _offset() {
+    modes.offset = function() {
         ctx.beginPath();
 
         let pts = [
@@ -258,7 +260,7 @@ export function truchet_wire(options) {
         drawCircle(ctx, ...center, d/4, {fill: bg, stroke: fg});
     }
 
-    function _bars() {
+    modes.bars = function () {
         ctx.beginPath();
 
         ctx.moveTo(-d, -d);
@@ -286,7 +288,7 @@ export function truchet_wire(options) {
         drawCircle(ctx, d * .75, 0, d/4, {fill: 'transparent', stroke: fg});
     }
 
-    function _notes () {
+    modes.notes = function () {
         ctx.beginPath();
 
         ctx.moveTo(-d, -d);
@@ -312,7 +314,7 @@ export function truchet_wire(options) {
         drawCircle(ctx, d * .75, d * .75, d/4, {fill: 'transparent', stroke: fg});
     }
 
-    function _squares() {
+    modes.squares = function () {
 
         drawSquare(ctx, 0, 0, d, {fill: 'transparent', stroke: fg});
         drawSquare(ctx, 0, 0, d / (4/3), {fill: 'transparent', stroke: fg});
@@ -328,7 +330,7 @@ export function truchet_wire(options) {
         drawSquare(ctx, 0, 0, diag / 2, {fill: 'transparent', stroke: fg});
     }
 
-    function _arcs() {
+    modes.arcs = function () {
 
         drawCircle(ctx, -d, -d, h / 1, {fill: 'transparent', stroke: fg});
         drawCircle(ctx, -d, -d, h / 2, {fill: 'transparent', stroke: fg});
@@ -341,7 +343,7 @@ export function truchet_wire(options) {
         ctx.stroke();
     }
 
-    function _arcSide() {
+    modes.arcSide = function () {
 
         drawCircle(ctx, 0, -d, d/2, {fill: null, stroke:fg});
         drawCircle(ctx, 0, -d, d/1, {fill: null, stroke:fg});
@@ -358,7 +360,7 @@ export function truchet_wire(options) {
         ctx.stroke();
     }
 
-    function _arcCorners () {
+    modes.arcCorners = function () {
         drawCircle(ctx, -d, -d, h / 1, {fill: 'transparent', stroke: fg});
         drawCircle(ctx, -d, -d, h / 2, {fill: 'transparent', stroke: fg});
         drawCircle(ctx, -d, -d, h / (4/3), {fill: 'transparent', stroke: fg});
@@ -370,7 +372,7 @@ export function truchet_wire(options) {
         drawCircle(ctx, d, d, h / 4, {fill: 'transparent', stroke: fg});
     }
 
-    function _flower() {
+    modes.flower = function() {
         drawCircle(ctx, 0, -d, d/1, {fill: null, stroke:fg});
         drawCircle(ctx, 0, d, d/1, {fill: null, stroke:fg});
         drawCircle(ctx, -d, 0, d/1, {fill: null, stroke:fg});
@@ -379,7 +381,7 @@ export function truchet_wire(options) {
         drawCircle(ctx, 0, 0, d/4, {fill: bg, stroke:fg});
     }
 
-    function _herringbone() {
+    modes.herringbone = function() {
         function up(y) {
             ctx.moveTo(-d, -d + y);
             ctx.lineTo(0, -d + y - d);
@@ -404,20 +406,7 @@ export function truchet_wire(options) {
     }
 
 
-    let modes = [_fan,
-        _cross,
-        _sun,
-        _offset,
-        _bars,
-        _notes,
-        _squares,
-        _arcs,
-        _arcSide,
-        _arcCorners,
-        _flower,
-        _herringbone
-    ];
-    //modes = [_notes];
+    //opts.mode = 'herringbone';
 
 
     // mode
@@ -445,7 +434,11 @@ export function truchet_wire(options) {
                 ctx.rotate(randItem([0, PI/2, PI, PI * 3/2]));
 
                 // do art in this box
-                randItem(modes)();
+                if (opts.mode && modes[opts.mode]) {
+                    modes[opts.mode]();
+                } else {
+                    modes[randItem(Object.keys(modes))]();
+                }
 
                 // unshift, unclip
                 ctx.restore();
