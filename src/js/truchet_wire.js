@@ -336,38 +336,35 @@ export function truchet_wire(options) {
     }
 
 
-    let styles = [_fan, _cross, _sun, _offset, _bars, _squares, _arcs, _arcSide];
+    let modes = [_fan, _cross, _sun, _offset, _bars, _squares, _arcs, _arcSide];
     //styles = [_offset];
 
 
 
     // mode
     function main (background, double) {
-        let factor = (double) ? 1 : 2;
-        console.log('factor:', factor);
         background = background || bg;
         ctx.strokeStyle = fg;
         let px, py;
-        for (let i = 0; i < (vcount * factor); i++) {
-            for (let j = 0; j < (count * factor); j++) {
+        for (let i = 0; i < vcount; i++) {
+            for (let j = 0; j < count; j++) {
                 // convenience vars
-                x = (w/factor) * j;
-                y = (h/factor) * i;
+                x = w * j;
+                y = h * i;
                 xnorm = x/cw;
                 ynorm = y/ch;
                 // center point
-                px = x + (w/factor) / 2;
-                py = y + (h/factor) / 2;
+                px = x + w / 2;
+                py = y + h / 2;
 
                 // shift and clip at center point
-                moveAndClip(ctx, px, py, h/factor, background);
+                moveAndClip(ctx, px, py, h, background);
                 // randomly rotate by 90 degree increment
                 ctx.rotate(randItem([0, PI/2, PI, PI * 3/2]));
 
                 // do art in this box
                 
-                //drawTriangle(ctx, 0, 0, (h/factor)/10, {fill:fg});
-                randItem(styles)();
+                randItem(modes)();
 
                 // unshift, unclip
                 ctx.restore();
@@ -378,75 +375,7 @@ export function truchet_wire(options) {
         }
     }
 
-
-
-
-    // mode
-    function mixed (background) {
-        background = background || bg;
-        let px, py, seed;
-        let styles = [
-            ()=>{
-                renderer = drawCircle;
-                px = 0;
-                py = 0;
-            }
-        ];
-
-        for (let i = 0; i < vcount; i++) {
-            for (let j = 0; j < count; j++) {
-                // convenience vars
-                x = w * j;
-                y = h * i;
-                xnorm = x/cw;
-                ynorm = y/ch;
-
-                // shift and clip
-                ctx.translate(x, y);
-                clipSquare(ctx, w, h, background);
-
-                switch (Math.round(randomInRange(1, 12))){
-                    case 1:
-                    case 2:
-                    case 3:
-                    case 4:
-                        _circle();
-                        break;
-                    case 5:
-                    case 6:
-                    case 7:
-                    case 8:
-                        _square();
-                        break;
-                    case 9:
-                    case 10:
-                    case 11:
-                    case 12:
-                        _triangle();
-                        break;
-                }
-
-                // unshift, unclip
-                ctx.restore();
-                resetTransform(ctx);
-            }
-        }
-    }
-
-
-    // gather our modes
-    let modes = [main];
-
-    // do the loop with one of our modes
-    renderer = randItem(modes);
-    renderer(bg, weight);
-
-    if (secondLayer) {
-        fg = getContrastColor();
-        ctx.globalAlpha = 0.8;
-        renderer('transparent', (opts.contrast)? weight/2:weight);
-        ctx.globalAlpha = 1;
-    }
+    main(bg);
 
     // add noise
     if (opts.addNoise) {
