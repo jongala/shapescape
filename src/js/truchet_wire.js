@@ -289,6 +289,32 @@ export function truchet_wire(options) {
         drawCircle(ctx, d * .75, 0, d/4, {fill: 'transparent', stroke: fg});
     }
 
+    function _notes () {
+        ctx.beginPath();
+
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(-d, d);
+
+        ctx.moveTo(-d/2, -d);
+        ctx.lineTo(-d/2, d);
+
+        ctx.moveTo(-0, -d);
+        ctx.lineTo(-0, d);
+
+        ctx.moveTo(d/2, -d);
+        ctx.lineTo(d/2, d);
+
+        ctx.moveTo(d, -d);
+        ctx.lineTo(d, d);
+
+        ctx.stroke();
+
+        drawCircle(ctx, -d * .75, -d * .75, d/4, {fill: 'transparent', stroke: fg});
+        drawCircle(ctx, -d * .25, -d * .25, d/4, {fill: 'transparent', stroke: fg});
+        drawCircle(ctx, d * .25, d * .25, d/4, {fill: 'transparent', stroke: fg});
+        drawCircle(ctx, d * .75, d * .75, d/4, {fill: 'transparent', stroke: fg});
+    }
+
     function _squares() {
 
         drawSquare(ctx, 0, 0, d, {fill: 'transparent', stroke: fg});
@@ -356,9 +382,45 @@ export function truchet_wire(options) {
         drawCircle(ctx, 0, 0, d/4, {fill: bg, stroke:fg});
     }
 
+    function _herringbone() {
+        function up(y) {
+            ctx.moveTo(-d, -d + y);
+            ctx.lineTo(0, -d + y - d);
+        }
 
-    let modes = [_fan, _cross, _sun, _offset, _bars, _squares, _arcs, _arcSide, _arcCorners, _flower];
-    //modes = [_flower];
+        function down(y) {
+            ctx.moveTo(d, -d + y);
+            ctx.lineTo(0, -d + y - d);
+        }
+
+        ctx.beginPath();
+
+        for (var i = 0; i <= 6; i++) {
+            up(i * d/2);
+            down(i * d/2);
+        }
+
+        ctx.moveTo(0, -d);
+        ctx.lineTo(0, d);
+
+        ctx.stroke();
+    }
+
+
+    let modes = [_fan,
+        _cross,
+        _sun,
+        _offset,
+        _bars,
+        _notes,
+        _squares,
+        _arcs,
+        _arcSide,
+        _arcCorners,
+        _flower,
+        _herringbone
+    ];
+    //modes = [_notes];
 
 
     // mode
