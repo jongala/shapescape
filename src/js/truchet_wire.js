@@ -12,6 +12,7 @@ const DEFAULTS = {
     skew: 1, // normalized skew
     clear: true,
 
+    inset: 'auto', // or truthy/falsy
     mode: null,
     count: 0, // 0 for auto, or an integer
     weight: 0, // 0 for auto, or 1-10 for normalized weights
@@ -61,15 +62,6 @@ export function truchet_wire(options) {
     let ynorm = 0;
     let renderer;
 
-    let secondLayer = (Math.random() < 0.5);
-    secondLayer = false;
-
-    // play with these random seeds
-    let a,b,c;
-    a = Math.random();
-    b = Math.random();
-    c = Math.random();
-
     // shared colors
     let fg; // hold on…
     let bg = getSolidFill(); // pick bg
@@ -91,7 +83,12 @@ export function truchet_wire(options) {
     ctx.lineWidth = WEIGHT;
 
     // Spacing and zoom
-    let INSET = (Math.random() <= 0.5);
+    let INSET;
+    if (opts.inset === 'auto') {
+        INSET = (Math.random() <= 0.5);
+    } else {
+        INSET = !!opts.inset;
+    }
     let ZOOM = INSET ? (1 - 3 * WEIGHT/w) : 1;
 
     // util to draw a square and clip following rendering inside
