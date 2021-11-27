@@ -107,8 +107,8 @@ export function truchet_wire(options) {
         ctx.clip();
     }
 
-    let d = h/2;
-
+    // convenience var for center-based boxes
+    let d = h / 2;
 
     // box styles
 
@@ -120,7 +120,6 @@ export function truchet_wire(options) {
     }
 
     function _fan() {
-
         // straight or curved crosspiece?
         let straight = (Math.random() > 0.5);
 
@@ -188,7 +187,6 @@ export function truchet_wire(options) {
         ctx.moveTo(d, -d);
         ctx.lineTo(-d, d);
 
-
         ctx.stroke();
 
         drawCircle(ctx, 0, 0, d/4, {fill: bg, stroke: fg});
@@ -223,10 +221,9 @@ export function truchet_wire(options) {
         ctx.moveTo(-d, d/2);
         ctx.lineTo(d, -d/2);
 
-
         ctx.stroke();
 
-        drawCircle(ctx, 0, 0, d/4, {fill: bg, stroke: fg});
+        drawCircle(ctx, 0, 0, d/5, {fill: bg, stroke: fg});
     }
 
     function _offset() {
@@ -251,17 +248,17 @@ export function truchet_wire(options) {
             [-d, -d/2]
         ]
 
+        let center = [-d/3, -d/3];
+
         pts.forEach((p)=>{
-            ctx.moveTo(-d/2, -d/2);
+            ctx.moveTo(...center);
             ctx.lineTo(...p);
         });
 
-        ctx.moveTo(d, -d);
-        ctx.lineTo(-d, d);
-
         ctx.stroke();
 
-        drawCircle(ctx, -d/2, -d/2, d/4, {fill: bg, stroke: fg});
+        drawCircle(ctx, -d*1.9, -d*1.9, h * 1.5, {fill: null, stroke: fg});
+        drawCircle(ctx, ...center, d/4, {fill: bg, stroke: fg});
     }
 
     function _bars() {
@@ -285,13 +282,10 @@ export function truchet_wire(options) {
         ctx.moveTo(-d, 0);
         ctx.lineTo(d, 0);
 
-
         ctx.stroke();
 
-
         drawCircle(ctx, -d * .75, 0, d/4, {fill: 'transparent', stroke: fg});
-        drawCircle(ctx, -d * .25, 0, d/4, {fill: 'transparent', stroke: fg});
-        drawCircle(ctx, d * .25, 0, d/4, {fill: 'transparent', stroke: fg});
+        drawCircle(ctx, 0, 0, d/2, {fill: 'transparent', stroke: fg});
         drawCircle(ctx, d * .75, 0, d/4, {fill: 'transparent', stroke: fg});
     }
 
@@ -304,7 +298,7 @@ export function truchet_wire(options) {
 
         ctx.rotate(PI/4);
 
-        let diag = d * 0.7071
+        let diag = d * 0.7071;
 
         drawSquare(ctx, 0, 0, diag * 1.5, {fill: 'transparent', stroke: fg});
         drawSquare(ctx, 0, 0, diag / 1, {fill: 'transparent', stroke: fg});
@@ -341,8 +335,20 @@ export function truchet_wire(options) {
         ctx.stroke();
     }
 
+    function _arcCorners () {
+        drawCircle(ctx, -d, -d, h / 1, {fill: 'transparent', stroke: fg});
+        drawCircle(ctx, -d, -d, h / 2, {fill: 'transparent', stroke: fg});
+        drawCircle(ctx, -d, -d, h / (4/3), {fill: 'transparent', stroke: fg});
+        drawCircle(ctx, -d, -d, h / 4, {fill: 'transparent', stroke: fg});
 
-    let modes = [_fan, _cross, _sun, _offset, _bars, _squares, _arcs, _arcSide];
+        drawCircle(ctx, d, d, h / 1, {fill: 'transparent', stroke: fg});
+        drawCircle(ctx, d, d, h / 2, {fill: 'transparent', stroke: fg});
+        drawCircle(ctx, d, d, h / (4/3), {fill: 'transparent', stroke: fg});
+        drawCircle(ctx, d, d, h / 4, {fill: 'transparent', stroke: fg});
+    }
+
+
+    let modes = [_fan, _cross, _sun, _offset, _bars, _squares, _arcs, _arcSide, _arcCorners];
     //styles = [_offset];
 
 
