@@ -11,6 +11,7 @@ import { lines } from './lines';
 import { waves } from './waves';
 import { grid } from './grid';
 import { truchet } from './truchet';
+import { truchet_wire } from './truchet_wire';
 import { circles } from './circles';
 import { mesh } from './mesh';
 import { walk } from './walk';
@@ -30,6 +31,7 @@ const RENDERERS = {
     lines: lines,
     grid: grid,
     truchet: truchet,
+    truchet_wire: truchet_wire,
     circles: circles,
     mesh: mesh,
     walk: walk,
