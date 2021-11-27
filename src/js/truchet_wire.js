@@ -101,12 +101,12 @@ export function truchet_wire(options) {
         weight = w/30 * randomInRange(1,10);
     }
 
+    let d = h/2;
 
 
     // box styles
 
     function _diag() {
-        let d = h/2;
         ctx.beginPath();
         ctx.moveTo(-d, -d);
         ctx.lineTo(d, d);
@@ -114,7 +114,6 @@ export function truchet_wire(options) {
     }
 
     function _fan() {
-        let d = h/2;
         
         // straight or curved crosspiece?
         let straight = (Math.random() > 0.5);
@@ -166,7 +165,6 @@ export function truchet_wire(options) {
     }
 
     function _cross() {
-        let d = h/2;
         ctx.beginPath();
         
         ctx.moveTo(-d, -d);
@@ -191,7 +189,6 @@ export function truchet_wire(options) {
     }
 
     function _sun() {
-        let d = h/2;
         ctx.beginPath();
         
         ctx.moveTo(-d, -d);
@@ -226,8 +223,42 @@ export function truchet_wire(options) {
         drawCircle(ctx, 0, 0, d/4, {fill: bg, stroke: fg});
     }
 
+    function _offset() {
+        ctx.beginPath();
+
+        let pts = [
+            [-d, -d],
+            [-d/2, -d],
+            [0, -d],
+            [d/2, -d],
+            //[d, -d],
+            [d, -d/2],
+            [d, 0],
+            [d, d/2],
+            //[d, d],
+            [d/2, d],
+            [0, d],
+            [-d/2, d],
+            //[-d, d],
+            [-d, d/2],
+            [-d, 0],
+            [-d, -d/2]
+        ]
+
+        pts.forEach((p)=>{
+            ctx.moveTo(-d/2, -d/2);
+            ctx.lineTo(...p);
+        });
+
+        ctx.moveTo(d, -d);
+        ctx.lineTo(-d, d);
+
+        ctx.stroke();
+
+        drawCircle(ctx, -d/2, -d/2, d/4, {fill: bg, stroke: fg});
+    }
+
     function _bars() {
-        let d = h/2;
         ctx.beginPath();
         
         ctx.moveTo(-d, -d);
@@ -259,7 +290,6 @@ export function truchet_wire(options) {
     }
 
     function _squares() {
-        let d = h/2;
 
         drawSquare(ctx, 0, 0, d, {fill: 'transparent', stroke: fg});
         drawSquare(ctx, 0, 0, d / (4/3), {fill: 'transparent', stroke: fg});
@@ -276,7 +306,6 @@ export function truchet_wire(options) {
     }
 
     function _arcs() {
-        let d = h/2;
 
         drawCircle(ctx, -d, -d, h / 1, {fill: 'transparent', stroke: fg});
         drawCircle(ctx, -d, -d, h / 2, {fill: 'transparent', stroke: fg});
@@ -289,9 +318,26 @@ export function truchet_wire(options) {
         ctx.stroke();
     }
 
+    function _arcSide() {
 
-    let styles = [_fan, _cross, _sun, _bars, _squares, _arcs];
-    //styles = [_cross];
+        drawCircle(ctx, 0, -d, d/2, {fill: null, stroke:fg});
+        drawCircle(ctx, 0, -d, d/1, {fill: null, stroke:fg});
+
+        drawCircle(ctx, 0, d, d/2, {fill: null, stroke:fg});
+        drawCircle(ctx, 0, d, d/1, {fill: null, stroke:fg});
+
+        drawCircle(ctx, 0, 0, d/2, {fill: null, stroke:fg});
+        drawCircle(ctx, 0, 0, d/1, {fill: null, stroke:fg});
+
+        ctx.beginPath();
+        ctx.moveTo(0, -d);
+        ctx.lineTo(0, d);
+        ctx.stroke();
+    }
+
+
+    let styles = [_fan, _cross, _sun, _offset, _bars, _squares, _arcs, _arcSide];
+    //styles = [_offset];
 
 
 
