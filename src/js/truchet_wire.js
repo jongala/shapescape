@@ -44,22 +44,6 @@ export function truchet_wire(options) {
 
     let ctx = el.getContext('2d');
 
-    let INSET = true;
-    let ZOOM = INSET ? 9/10 : 1;
-
-    // util to draw a square and clip following rendering inside
-    function moveAndClip(ctx, x, y, size, color) {
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.scale(ZOOM, ZOOM);
-        ctx.beginPath();
-        ctx.rect(-size/2 - 0.5, -size/2 - 0.5, size + 0.5, size + 0.5);
-        ctx.fillStyle = color;
-        ctx.closePath();
-        ctx.fill();
-        ctx.clip();   
-    }
-
     // color funcs
     let randomFill = () => "#" + Math.random().toString(16).slice(2,8);
     let getSolidFill = getSolidColorFunction(opts.palette);
@@ -98,14 +82,30 @@ export function truchet_wire(options) {
 
     // mode settings
     // line weight
-    let weight;
+    let WEIGHT;
     if (opts.weight) {
-        weight = 1 + w/250 * opts.weight;
+        WEIGHT = 1 + w/250 * opts.weight;
     } else {
-        weight = 1 + w/250 * randomInRange(1,10);
+        WEIGHT = 1 + w/250 * randomInRange(1,10);
     }
+    ctx.lineWidth = WEIGHT;
 
-    ctx.lineWidth = weight;
+    // Spacing and zoom
+    let INSET = (Math.random() <= 0.5);
+    let ZOOM = INSET ? (1 - 3 * WEIGHT/w) : 1;
+
+    // util to draw a square and clip following rendering inside
+    function moveAndClip(ctx, x, y, size, color) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(ZOOM, ZOOM);
+        ctx.beginPath();
+        ctx.rect(-size/2 - 0.5, -size/2 - 0.5, size + 0.5, size + 0.5);
+        ctx.fillStyle = color;
+        ctx.closePath();
+        ctx.fill();
+        ctx.clip();
+    }
 
     let d = h/2;
 
@@ -120,12 +120,12 @@ export function truchet_wire(options) {
     }
 
     function _fan() {
-        
+
         // straight or curved crosspiece?
         let straight = (Math.random() > 0.5);
 
         ctx.beginPath();
-        
+
         ctx.moveTo(-d, -d);
         ctx.lineTo(-d, d);
 
@@ -155,12 +155,12 @@ export function truchet_wire(options) {
         ctx.moveTo(-d, -d);
         ctx.lineTo(d, d/2);
 
-        
+
         if (straight) {
             ctx.moveTo(d, -d);
-            ctx.lineTo(-d, d);    
+            ctx.lineTo(-d, d);
         }
-        
+
         ctx.stroke();
 
         if (!straight) {
@@ -172,7 +172,7 @@ export function truchet_wire(options) {
 
     function _cross() {
         ctx.beginPath();
-        
+
         ctx.moveTo(-d, -d);
         ctx.lineTo(d, d);
 
@@ -187,8 +187,8 @@ export function truchet_wire(options) {
 
         ctx.moveTo(d, -d);
         ctx.lineTo(-d, d);
-        
-        
+
+
         ctx.stroke();
 
         drawCircle(ctx, 0, 0, d/4, {fill: bg, stroke: fg});
@@ -196,7 +196,7 @@ export function truchet_wire(options) {
 
     function _sun() {
         ctx.beginPath();
-        
+
         ctx.moveTo(-d, -d);
         ctx.lineTo(d, d);
 
@@ -222,8 +222,8 @@ export function truchet_wire(options) {
 
         ctx.moveTo(-d, d/2);
         ctx.lineTo(d, -d/2);
-        
-        
+
+
         ctx.stroke();
 
         drawCircle(ctx, 0, 0, d/4, {fill: bg, stroke: fg});
@@ -266,7 +266,7 @@ export function truchet_wire(options) {
 
     function _bars() {
         ctx.beginPath();
-        
+
         ctx.moveTo(-d, -d);
         ctx.lineTo(-d, d);
 
@@ -275,13 +275,13 @@ export function truchet_wire(options) {
 
         ctx.moveTo(-0, -d);
         ctx.lineTo(-0, d);
-        
+
         ctx.moveTo(d/2, -d);
         ctx.lineTo(d/2, d);
 
         ctx.moveTo(d, -d);
         ctx.lineTo(d, d);
-        
+
         ctx.moveTo(-d, 0);
         ctx.lineTo(d, 0);
 
