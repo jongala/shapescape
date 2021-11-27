@@ -347,9 +347,18 @@ export function truchet_wire(options) {
         drawCircle(ctx, d, d, h / 4, {fill: 'transparent', stroke: fg});
     }
 
+    function _flower() {
+        drawCircle(ctx, 0, -d, d/1, {fill: null, stroke:fg});
+        drawCircle(ctx, 0, d, d/1, {fill: null, stroke:fg});
+        drawCircle(ctx, -d, 0, d/1, {fill: null, stroke:fg});
+        drawCircle(ctx, d, 0, d/1, {fill: null, stroke:fg});
 
-    let modes = [_fan, _cross, _sun, _offset, _bars, _squares, _arcs, _arcSide, _arcCorners];
-    //styles = [_offset];
+        drawCircle(ctx, 0, 0, d/4, {fill: bg, stroke:fg});
+    }
+
+
+    let modes = [_fan, _cross, _sun, _offset, _bars, _squares, _arcs, _arcSide, _arcCorners, _flower];
+    //modes = [_flower];
 
 
     // mode
