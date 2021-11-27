@@ -111,7 +111,7 @@ export function truchet_wire(options) {
 
     let modes = {};
 
-    modes.diag = function() {
+    let diag = function() {
         ctx.beginPath();
         ctx.moveTo(-d, -d);
         ctx.lineTo(d, d);
