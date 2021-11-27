@@ -44,10 +44,14 @@ export function truchet_wire(options) {
 
     let ctx = el.getContext('2d');
 
+    let INSET = true;
+    let ZOOM = INSET ? 9/10 : 1;
+
     // util to draw a square and clip following rendering inside
     function moveAndClip(ctx, x, y, size, color) {
         ctx.save();
         ctx.translate(x, y);
+        ctx.scale(ZOOM, ZOOM);
         ctx.beginPath();
         ctx.rect(-size/2 - 0.5, -size/2 - 0.5, size + 0.5, size + 0.5);
         ctx.fillStyle = color;
@@ -340,12 +344,14 @@ export function truchet_wire(options) {
     //styles = [_offset];
 
 
-
     // mode
     function main (background, double) {
         background = background || bg;
         ctx.strokeStyle = fg;
         let px, py;
+        ctx.fillStyle = background;
+        ctx.rect(0, 0, cw, ch);
+        ctx.fill();
         for (let i = 0; i < vcount; i++) {
             for (let j = 0; j < count; j++) {
                 // convenience vars
@@ -363,14 +369,14 @@ export function truchet_wire(options) {
                 ctx.rotate(randItem([0, PI/2, PI, PI * 3/2]));
 
                 // do art in this box
-                
                 randItem(modes)();
 
                 // unshift, unclip
                 ctx.restore();
                 resetTransform(ctx);
 
-                drawSquare(ctx, px, py, h/2, {fill: null, stroke: fg});
+                // draw border box after unclipping, to avoid aliasing
+                drawSquare(ctx, px, py, h/2 * ZOOM, {fill: null, stroke: fg});
             }
         }
     }
