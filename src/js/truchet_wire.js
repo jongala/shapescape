@@ -5,7 +5,7 @@ import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, draw
 
 const DEFAULTS = {
     container: 'body',
-    palette: palettes.high_contrast,
+    palette: palettes.blush,
     addNoise: 0.04,
     noiseInput: null,
     dust: false,
@@ -100,10 +100,12 @@ export function truchet_wire(options) {
     // line weight
     let weight;
     if (opts.weight) {
-        weight = w/30 * opts.weight;
+        weight = 1 + w/250 * opts.weight;
     } else {
-        weight = w/30 * randomInRange(1,10);
+        weight = 1 + w/250 * randomInRange(1,10);
     }
+
+    ctx.lineWidth = weight;
 
     let d = h/2;
 
