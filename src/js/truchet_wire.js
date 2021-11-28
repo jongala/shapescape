@@ -314,6 +314,100 @@ export function truchet_wire(options) {
         drawCircle(ctx, d * .75, d * .75, d/4, {fill: 'transparent', stroke: fg});
     }
 
+    modes.circleSet = function () {
+        ctx.beginPath();
+
+        ctx.moveTo(-d * .5, -d);
+        ctx.lineTo(-d * .5, d);
+
+        ctx.moveTo(0, -d);
+        ctx.lineTo(0, d);
+
+        ctx.moveTo(d * .5, -d);
+        ctx.lineTo(d * .5, d);
+
+
+        ctx.moveTo(-d, -d * .5);
+        ctx.lineTo(d, -d * .5);
+
+        ctx.moveTo(-d, 0);
+        ctx.lineTo(d, 0);
+
+        ctx.moveTo(-d, d * .5);
+        ctx.lineTo(d, d * .5);
+
+        ctx.stroke();
+
+        let r = d/5;
+
+        drawCircle(ctx, d * -.5, -d * .5, r, {fill:bg, stroke:fg});
+        drawCircle(ctx, d * 0, -d * .5,   r, {fill:bg, stroke:fg});
+        drawCircle(ctx, d * .5, -d * .5,  r, {fill:bg, stroke:fg});
+
+        drawCircle(ctx, d * -.5, 0, r, {fill:bg, stroke:fg});
+        drawCircle(ctx, d * 0, 0,   r, {fill:bg, stroke:fg});
+        drawCircle(ctx, d * .5, 0,  r, {fill:bg, stroke:fg});
+
+        drawCircle(ctx, d * -.5, d * .5, r, {fill:bg, stroke:fg});
+        drawCircle(ctx, d * 0, d * .5,   r, {fill:bg, stroke:fg});
+        drawCircle(ctx, d * .5, d * .5,  r, {fill:bg, stroke:fg});
+    }
+
+    modes.standUps = function () {
+        ctx.beginPath();
+
+        let ringEdge = -d * .3;
+
+        ctx.moveTo(-d * .5, -d);
+        ctx.lineTo(-d * .5, -d * .5);
+
+        ctx.moveTo(0, -d);
+        ctx.lineTo(0, -d * .5);
+
+        ctx.moveTo(d * .5, -d);
+        ctx.lineTo(d * .5, -d * .5);
+
+        ctx.moveTo(-d, -d * .5);
+        ctx.lineTo(d, -d * .5);
+
+        if (Math.random() < 0.5) {
+            // criss cross
+
+            ctx.moveTo(-d, d);
+            ctx.lineTo(-d * .5, ringEdge);
+            ctx.lineTo(0, d);
+            ctx.lineTo(d * .5, ringEdge);
+            ctx.lineTo(d, d);
+
+            ctx.moveTo(-d, ringEdge);
+            ctx.lineTo(-d * .5, d);
+            ctx.lineTo(0, ringEdge);
+            ctx.lineTo(d * .5, d);
+            ctx.lineTo(d, ringEdge);
+        } else {
+            // zig zag
+
+            ctx.moveTo(-d, ringEdge);
+            ctx.lineTo(-d * .75, d);
+            ctx.lineTo(-d * .5, ringEdge);
+            ctx.lineTo(-d * .25, d);
+            ctx.lineTo(0, ringEdge);
+            ctx.lineTo(d * .25, d);
+            ctx.lineTo(d * .5, ringEdge);
+            ctx.lineTo(d * .75, d);
+            ctx.lineTo(d, ringEdge);
+        }
+
+        ctx.stroke();
+
+        // rings
+        drawCircle(ctx, -d, -d * .5, d/5, {fill: bg, stroke: fg});
+        drawCircle(ctx, -d * .5, -d * .5, d/5, {fill: bg, stroke: fg});
+        drawCircle(ctx, 0, -d * .5, d/5, {fill: bg, stroke: fg});
+        drawCircle(ctx, d * .5, -d * .5, d/5, {fill: bg, stroke: fg});
+        drawCircle(ctx, d, -d * .5, d/5, {fill: bg, stroke: fg});
+    }
+
     modes.squares = function () {
 
         drawSquare(ctx, 0, 0, d, {fill: 'transparent', stroke: fg});
@@ -406,7 +500,8 @@ export function truchet_wire(options) {
     }
 
 
-    //opts.mode = 'herringbone';
+    // TESTING
+    //opts.mode = 'standUps';
 
 
     // mode
