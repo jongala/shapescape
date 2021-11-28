@@ -51,7 +51,7 @@ export function truchet_wire(options) {
 
     // define grid
     let count = Math.round(opts.count) || Math.round(randomInRange(4, 9));
-    let w = Math.ceil(cw/count);
+    let w = Math.floor(cw/count);
     let h = w;
     let vcount = Math.ceil(ch/h);
 
@@ -97,7 +97,7 @@ export function truchet_wire(options) {
         ctx.translate(x, y);
         ctx.scale(ZOOM, ZOOM);
         ctx.beginPath();
-        ctx.rect(-size/2 - 0.5, -size/2 - 0.5, size + 0.5, size + 0.5);
+        ctx.rect(-size/2 - 0.5, -size/2 - 0.5, size + 1, size + 1);
         ctx.fillStyle = color;
         ctx.closePath();
         ctx.fill();
