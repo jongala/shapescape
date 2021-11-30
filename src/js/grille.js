@@ -22,7 +22,7 @@ const DEFAULTS = {
 const PI = Math.PI;
 
 // Main function
-export function truchet_wire(options) {
+export function grille(options) {
     let opts = Object.assign({}, DEFAULTS, options);
 
     let container = opts.container;
