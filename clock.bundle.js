@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 29);
+/******/ 	return __webpack_require__(__webpack_require__.s = 30);
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -761,150 +761,6 @@ var lemon_beach = exports.lemon_beach = ['#d7d7d7', '#979797', '#cabd9d', '#e4ca
 
 /***/ }),
 
-/***/ 29:
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-__webpack_require__(5);
-
-var _noiseutils = __webpack_require__(1);
-
-var _noiseutils2 = _interopRequireDefault(_noiseutils);
-
-var _palettes = __webpack_require__(2);
-
-var _palettes2 = _interopRequireDefault(_palettes);
-
-var _colorbrewer = __webpack_require__(7);
-
-var _colorbrewer2 = _interopRequireDefault(_colorbrewer);
-
-var _truchet = __webpack_require__(17);
-
-var _numerals = __webpack_require__(30);
-
-var _utils = __webpack_require__(0);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-// Renderers
-var Renderer = _truchet.truchet;
-
-// TODO: put this into a resize handler and make it smart
-var COUNT = 16;
-
-// GUI controlled opts
-var visualOpts = {
-    container: document.querySelector('#truchet'),
-    clear: true,
-    dust: true,
-    skew: 1,
-    addNoise: 0.04,
-    noiseInput: _noiseutils2.default.createNoiseCanvas(0.04, 200),
-    count: COUNT
-};
-
-var artNode = document.getElementById('truchet');
-
-var timeOpts = {
-    container: document.querySelector('#time'),
-    clear: true,
-    dust: true,
-    skew: 1,
-    addNoise: false,
-    count: COUNT
-
-    // @fast skips re-rendering the canvas in place as an img,
-    // which makes for easy saving but slows down rendering
-};function loadOpts(opts, fast) {
-    visualOpts = Object.assign(visualOpts, opts);
-    // render art
-    (0, _truchet.truchet)(visualOpts);
-}
-
-// Handlers for redraw, batching, and manual saving
-
-function drawNew() {
-    requestAnimationFrame(loadOpts);
-}
-window.drawNew = drawNew;
-
-document.addEventListener('keydown', function (e) {
-    var kode = e.which || e.keyCode;
-    if (kode === 32) {
-        // space
-        drawNew();
-        e.preventDefault();
-        return false;
-    } else if (kode === 27) {
-        // ESC
-        removePreview();
-    }
-});
-
-var appPalettes = Object.assign({ default: null }, _palettes2.default);
-
-// create a batch from a colorbrewer name
-function setPalette(pname) {
-    if (!appPalettes[pname]) {
-        delete visualOpts.palette;
-    } else {
-        visualOpts.palette = appPalettes[pname];
-    }
-    return drawNew({});
-}
-window.setPalette = setPalette;
-
-var selectEl = document.querySelector('#paletteSelector');
-var pnames = Object.keys(appPalettes);
-pnames.forEach(function (pname) {
-    var option = document.createElement('option');
-    option.value = pname;
-    option.innerHTML = pname;
-    selectEl.appendChild(option);
-});
-
-function useCustomPalette(palette) {
-    if (palette && palette.length) {
-        visualOpts.palette = palette;
-        selectEl.value = 'custom';
-        Renderer(visualOpts);
-    }
-}
-
-var custom = document.querySelector('#customColors');
-custom.addEventListener('keypress', function (e) {
-    var hexPattern = /#?[0-9a-f]{3,6}/;
-    var palette = e.target.value.split(',');
-    palette = palette.map(function (s) {
-        s = s.trim().replace(/['"']/g, '');
-        if (hexPattern.test(s) && !s.startsWith('#')) {
-            s = '#' + s;
-        }
-        return s;
-    });
-    useCustomPalette(palette);
-});
-
-// expose for play
-window.visualOpts = visualOpts;
-
-setPalette('plum_sauce');
-
-// draw one to start, take renderer from hash if it is valid
-
-drawNew();
-setInterval(function () {
-    if (new Date().getSeconds() % 10 === 0) drawNew();
-    window.requestAnimationFrame(function () {
-        (0, _numerals.numerals)(timeOpts);
-    });
-}, 1000);
-
-/***/ }),
-
 /***/ 3:
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -1033,6 +889,150 @@ var drawHexagon = exports.drawHexagon = _drawPolygon(6, 1.05);
 /***/ }),
 
 /***/ 30:
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+__webpack_require__(5);
+
+var _noiseutils = __webpack_require__(1);
+
+var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _palettes = __webpack_require__(2);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
+var _colorbrewer = __webpack_require__(7);
+
+var _colorbrewer2 = _interopRequireDefault(_colorbrewer);
+
+var _truchet = __webpack_require__(17);
+
+var _numerals = __webpack_require__(31);
+
+var _utils = __webpack_require__(0);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+// Renderers
+var Renderer = _truchet.truchet;
+
+// TODO: put this into a resize handler and make it smart
+var COUNT = 16;
+
+// GUI controlled opts
+var visualOpts = {
+    container: document.querySelector('#truchet'),
+    clear: true,
+    dust: true,
+    skew: 1,
+    addNoise: 0.04,
+    noiseInput: _noiseutils2.default.createNoiseCanvas(0.04, 200),
+    count: COUNT
+};
+
+var artNode = document.getElementById('truchet');
+
+var timeOpts = {
+    container: document.querySelector('#time'),
+    clear: true,
+    dust: true,
+    skew: 1,
+    addNoise: false,
+    count: COUNT
+
+    // @fast skips re-rendering the canvas in place as an img,
+    // which makes for easy saving but slows down rendering
+};function loadOpts(opts, fast) {
+    visualOpts = Object.assign(visualOpts, opts);
+    // render art
+    (0, _truchet.truchet)(visualOpts);
+}
+
+// Handlers for redraw, batching, and manual saving
+
+function drawNew() {
+    requestAnimationFrame(loadOpts);
+}
+window.drawNew = drawNew;
+
+document.addEventListener('keydown', function (e) {
+    var kode = e.which || e.keyCode;
+    if (kode === 32) {
+        // space
+        drawNew();
+        e.preventDefault();
+        return false;
+    } else if (kode === 27) {
+        // ESC
+        removePreview();
+    }
+});
+
+var appPalettes = Object.assign({ default: null }, _palettes2.default);
+
+// create a batch from a colorbrewer name
+function setPalette(pname) {
+    if (!appPalettes[pname]) {
+        delete visualOpts.palette;
+    } else {
+        visualOpts.palette = appPalettes[pname];
+    }
+    return drawNew({});
+}
+window.setPalette = setPalette;
+
+var selectEl = document.querySelector('#paletteSelector');
+var pnames = Object.keys(appPalettes);
+pnames.forEach(function (pname) {
+    var option = document.createElement('option');
+    option.value = pname;
+    option.innerHTML = pname;
+    selectEl.appendChild(option);
+});
+
+function useCustomPalette(palette) {
+    if (palette && palette.length) {
+        visualOpts.palette = palette;
+        selectEl.value = 'custom';
+        Renderer(visualOpts);
+    }
+}
+
+var custom = document.querySelector('#customColors');
+custom.addEventListener('keypress', function (e) {
+    var hexPattern = /#?[0-9a-f]{3,6}/;
+    var palette = e.target.value.split(',');
+    palette = palette.map(function (s) {
+        s = s.trim().replace(/['"']/g, '');
+        if (hexPattern.test(s) && !s.startsWith('#')) {
+            s = '#' + s;
+        }
+        return s;
+    });
+    useCustomPalette(palette);
+});
+
+// expose for play
+window.visualOpts = visualOpts;
+
+setPalette('plum_sauce');
+
+// draw one to start, take renderer from hash if it is valid
+
+drawNew();
+setInterval(function () {
+    if (new Date().getSeconds() % 10 === 0) drawNew();
+    window.requestAnimationFrame(function () {
+        (0, _numerals.numerals)(timeOpts);
+    });
+}, 1000);
+
+/***/ }),
+
+/***/ 31:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

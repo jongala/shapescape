@@ -5469,6 +5469,8 @@ var _grid = __webpack_require__(16);
 
 var _truchet = __webpack_require__(17);
 
+var _grille = __webpack_require__(26);
+
 var _circles = __webpack_require__(18);
 
 var _mesh = __webpack_require__(19);
@@ -5479,11 +5481,11 @@ var _bands = __webpack_require__(21);
 
 var _field = __webpack_require__(22);
 
-var _trails = __webpack_require__(26);
+var _trails = __webpack_require__(27);
 
 var _fragments = __webpack_require__(23);
 
-var _clouds = __webpack_require__(27);
+var _clouds = __webpack_require__(28);
 
 var _utils = __webpack_require__(0);
 
@@ -5498,6 +5500,7 @@ var RENDERERS = {
     lines: _lines.lines,
     grid: _grid.grid,
     truchet: _truchet.truchet,
+    grille: _grille.grille,
     circles: _circles.circles,
     mesh: _mesh.mesh,
     walk: _walk.walk,
@@ -6053,6 +6056,607 @@ function duos(options) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.grille = grille;
+
+var _noiseutils = __webpack_require__(1);
+
+var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _palettes = __webpack_require__(2);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
+var _utils = __webpack_require__(0);
+
+var _shapes = __webpack_require__(3);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+var DEFAULTS = {
+    container: 'body',
+    palette: _palettes2.default.blush,
+    addNoise: 0.04,
+    noiseInput: null,
+    dust: false,
+    skew: 1, // normalized skew
+    clear: true,
+
+    inset: 'auto', // or truthy/falsy
+    mode: null,
+    count: 0, // 0 for auto, or an integer
+    weight: 0, // 0 for auto, or 1-10 for normalized weights
+    contrast: true
+};
+
+var PI = Math.PI;
+
+// Main function
+function grille(options) {
+    var opts = Object.assign({}, DEFAULTS, options);
+
+    var container = opts.container;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
+    var SCALE = Math.min(cw, ch);
+
+    // Find or create canvas child
+    var el = container.querySelector('canvas');
+    var newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        el.width = cw;
+        el.height = ch;
+    }
+
+    var ctx = el.getContext('2d');
+
+    // color funcs
+    var randomFill = function randomFill() {
+        return "#" + Math.random().toString(16).slice(2, 8);
+    };
+    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
+
+    // define grid
+    var count = Math.round(opts.count) || Math.round((0, _utils.randomInRange)(4, 9));
+    var w = Math.floor(cw / count);
+    var h = w;
+    var vcount = Math.ceil(ch / h);
+
+    // setup vars for each cell
+    var x = 0;
+    var y = 0;
+    var xnorm = 0;
+    var ynorm = 0;
+    var renderer = void 0;
+
+    // shared colors
+    var fg = void 0; // hold on…
+    var bg = getSolidFill(); // pick bg
+
+    // get palette of non-bg colors
+    var contrastPalette = [].concat(opts.palette);
+    contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
+    fg = getContrastColor(); // …now set fg in contrast to bg
+
+    // mode settings
+    // line weight
+    var WEIGHT = void 0;
+    if (opts.weight) {
+        WEIGHT = 1 + w / 250 * opts.weight;
+    } else {
+        WEIGHT = 1 + w / 250 * (0, _utils.randomInRange)(1, 10);
+    }
+    ctx.lineWidth = WEIGHT;
+
+    // Spacing and zoom
+    var INSET = void 0;
+    if (opts.inset === 'auto') {
+        INSET = Math.random() <= 0.5;
+    } else {
+        INSET = !!opts.inset;
+    }
+    var ZOOM = INSET ? 1 - 3 * WEIGHT / w : 1;
+
+    // util to draw a square and clip following rendering inside
+    function moveAndClip(ctx, x, y, size, color) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(ZOOM, ZOOM);
+        ctx.beginPath();
+        ctx.rect(-size / 2 - 0.5, -size / 2 - 0.5, size + 1, size + 1);
+        ctx.fillStyle = color;
+        ctx.closePath();
+        ctx.fill();
+        ctx.clip();
+    }
+
+    // convenience var for center-based boxes
+    var d = h / 2;
+
+    // box styles
+
+    var modes = {};
+
+    modes.diag = function () {
+        ctx.beginPath();
+
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(d, d);
+
+        ctx.moveTo(-d * .5, -d);
+        ctx.lineTo(-d, -d * .5);
+
+        ctx.moveTo(0, -d);
+        ctx.lineTo(-d, 0);
+
+        ctx.moveTo(d * .5, -d);
+        ctx.lineTo(-d, d * .5);
+
+        ctx.moveTo(d, -d);
+        ctx.lineTo(-d, d);
+
+        ctx.moveTo(d, -d * .5);
+        ctx.lineTo(-d * .5, d);
+
+        ctx.moveTo(d, 0);
+        ctx.lineTo(0, d);
+
+        ctx.moveTo(d, d * .5);
+        ctx.lineTo(d * .5, d);
+
+        ctx.stroke();
+    };
+
+    modes.fan = function () {
+        // straight or curved crosspiece?
+        var straight = Math.random() > 0.5;
+
+        ctx.beginPath();
+
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(-d, d);
+
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(-d / 2, d);
+
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(0, d);
+
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(d / 2, d);
+
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(d, d);
+
+        //
+
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(d, -d);
+
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(d, -d / 2);
+
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(d, 0);
+
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(d, d / 2);
+
+        if (straight) {
+            ctx.moveTo(d, -d);
+            ctx.lineTo(-d, d);
+        }
+
+        ctx.stroke();
+
+        if (!straight) {
+            (0, _shapes.drawCircle)(ctx, -d, -d, d * 3 / 2, { fill: 'transparent', stroke: fg });
+        }
+
+        (0, _shapes.drawCircle)(ctx, -d, -d, d / 2, { fill: bg, stroke: fg });
+    };
+
+    modes.cross = function () {
+        ctx.beginPath();
+
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(d, d);
+
+        ctx.moveTo(-d / 2, -d);
+        ctx.lineTo(d / 2, d);
+
+        ctx.moveTo(0, -d);
+        ctx.lineTo(0, d);
+
+        ctx.moveTo(d / 2, -d);
+        ctx.lineTo(-d / 2, d);
+
+        ctx.moveTo(d, -d);
+        ctx.lineTo(-d, d);
+
+        ctx.stroke();
+
+        (0, _shapes.drawCircle)(ctx, 0, 0, d / 4, { fill: bg, stroke: fg });
+    };
+
+    modes.sun = function () {
+        ctx.beginPath();
+
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(d, d);
+
+        ctx.moveTo(-d / 2, -d);
+        ctx.lineTo(d / 2, d);
+
+        ctx.moveTo(0, -d);
+        ctx.lineTo(0, d);
+
+        ctx.moveTo(d / 2, -d);
+        ctx.lineTo(-d / 2, d);
+
+        ctx.moveTo(d, -d);
+        ctx.lineTo(-d, d);
+
+        //
+
+        ctx.moveTo(-d, -d / 2);
+        ctx.lineTo(d, d / 2);
+
+        ctx.moveTo(-d, 0);
+        ctx.lineTo(d, 0);
+
+        ctx.moveTo(-d, d / 2);
+        ctx.lineTo(d, -d / 2);
+
+        ctx.stroke();
+
+        (0, _shapes.drawCircle)(ctx, 0, 0, d / 5, { fill: bg, stroke: fg });
+    };
+
+    modes.offset = function () {
+        ctx.beginPath();
+
+        var pts = [[-d, -d], [-d / 2, -d], [0, -d], [d / 2, -d],
+        //[d, -d],
+        [d, -d / 2], [d, 0], [d, d / 2],
+        //[d, d],
+        [d / 2, d], [0, d], [-d / 2, d],
+        //[-d, d],
+        [-d, d / 2], [-d, 0], [-d, -d / 2]];
+
+        var center = [-d / 3, -d / 3];
+
+        pts.forEach(function (p) {
+            ctx.moveTo.apply(ctx, center);
+            ctx.lineTo.apply(ctx, _toConsumableArray(p));
+        });
+
+        ctx.stroke();
+
+        (0, _shapes.drawCircle)(ctx, -d * 1.9, -d * 1.9, h * 1.5, { fill: null, stroke: fg });
+        _shapes.drawCircle.apply(undefined, [ctx].concat(center, [d / 4, { fill: bg, stroke: fg }]));
+    };
+
+    modes.bars = function () {
+        ctx.beginPath();
+
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(-d, d);
+
+        ctx.moveTo(-d / 2, -d);
+        ctx.lineTo(-d / 2, d);
+
+        ctx.moveTo(-0, -d);
+        ctx.lineTo(-0, d);
+
+        ctx.moveTo(d / 2, -d);
+        ctx.lineTo(d / 2, d);
+
+        ctx.moveTo(d, -d);
+        ctx.lineTo(d, d);
+
+        ctx.moveTo(-d, 0);
+        ctx.lineTo(d, 0);
+
+        ctx.stroke();
+
+        (0, _shapes.drawCircle)(ctx, -d * .75, 0, d / 4, { fill: 'transparent', stroke: fg });
+        (0, _shapes.drawCircle)(ctx, 0, 0, d / 2, { fill: 'transparent', stroke: fg });
+        (0, _shapes.drawCircle)(ctx, d * .75, 0, d / 4, { fill: 'transparent', stroke: fg });
+    };
+
+    modes.notes = function () {
+        ctx.beginPath();
+
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(-d, d);
+
+        ctx.moveTo(-d / 2, -d);
+        ctx.lineTo(-d / 2, d);
+
+        ctx.moveTo(-0, -d);
+        ctx.lineTo(-0, d);
+
+        ctx.moveTo(d / 2, -d);
+        ctx.lineTo(d / 2, d);
+
+        ctx.moveTo(d, -d);
+        ctx.lineTo(d, d);
+
+        ctx.stroke();
+
+        (0, _shapes.drawCircle)(ctx, -d * .75, -d * .75, d / 4, { fill: 'transparent', stroke: fg });
+        (0, _shapes.drawCircle)(ctx, -d * .25, -d * .25, d / 4, { fill: 'transparent', stroke: fg });
+        (0, _shapes.drawCircle)(ctx, d * .25, d * .25, d / 4, { fill: 'transparent', stroke: fg });
+        (0, _shapes.drawCircle)(ctx, d * .75, d * .75, d / 4, { fill: 'transparent', stroke: fg });
+    };
+
+    modes.circleSet = function () {
+        ctx.beginPath();
+
+        ctx.moveTo(-d * .5, -d);
+        ctx.lineTo(-d * .5, d);
+
+        ctx.moveTo(0, -d);
+        ctx.lineTo(0, d);
+
+        ctx.moveTo(d * .5, -d);
+        ctx.lineTo(d * .5, d);
+
+        ctx.moveTo(-d, -d * .5);
+        ctx.lineTo(d, -d * .5);
+
+        ctx.moveTo(-d, 0);
+        ctx.lineTo(d, 0);
+
+        ctx.moveTo(-d, d * .5);
+        ctx.lineTo(d, d * .5);
+
+        ctx.stroke();
+
+        var r = d / 5;
+
+        (0, _shapes.drawCircle)(ctx, d * -.5, -d * .5, r, { fill: bg, stroke: fg });
+        (0, _shapes.drawCircle)(ctx, d * 0, -d * .5, r, { fill: bg, stroke: fg });
+        (0, _shapes.drawCircle)(ctx, d * .5, -d * .5, r, { fill: bg, stroke: fg });
+
+        (0, _shapes.drawCircle)(ctx, d * -.5, 0, r, { fill: bg, stroke: fg });
+        (0, _shapes.drawCircle)(ctx, d * 0, 0, r, { fill: bg, stroke: fg });
+        (0, _shapes.drawCircle)(ctx, d * .5, 0, r, { fill: bg, stroke: fg });
+
+        (0, _shapes.drawCircle)(ctx, d * -.5, d * .5, r, { fill: bg, stroke: fg });
+        (0, _shapes.drawCircle)(ctx, d * 0, d * .5, r, { fill: bg, stroke: fg });
+        (0, _shapes.drawCircle)(ctx, d * .5, d * .5, r, { fill: bg, stroke: fg });
+    };
+
+    modes.standUps = function () {
+        ctx.beginPath();
+
+        var ringEdge = -d * .3;
+
+        ctx.moveTo(-d * .5, -d);
+        ctx.lineTo(-d * .5, -d * .5);
+
+        ctx.moveTo(0, -d);
+        ctx.lineTo(0, -d * .5);
+
+        ctx.moveTo(d * .5, -d);
+        ctx.lineTo(d * .5, -d * .5);
+
+        ctx.moveTo(-d, -d * .5);
+        ctx.lineTo(d, -d * .5);
+
+        if (Math.random() < 0.5) {
+            // criss cross
+
+            ctx.moveTo(-d, d);
+            ctx.lineTo(-d * .5, ringEdge);
+            ctx.lineTo(0, d);
+            ctx.lineTo(d * .5, ringEdge);
+            ctx.lineTo(d, d);
+
+            ctx.moveTo(-d, ringEdge);
+            ctx.lineTo(-d * .5, d);
+            ctx.lineTo(0, ringEdge);
+            ctx.lineTo(d * .5, d);
+            ctx.lineTo(d, ringEdge);
+        } else {
+            // zig zag
+
+            ctx.moveTo(-d, ringEdge);
+            ctx.lineTo(-d * .75, d);
+            ctx.lineTo(-d * .5, ringEdge);
+            ctx.lineTo(-d * .25, d);
+            ctx.lineTo(0, ringEdge);
+            ctx.lineTo(d * .25, d);
+            ctx.lineTo(d * .5, ringEdge);
+            ctx.lineTo(d * .75, d);
+            ctx.lineTo(d, ringEdge);
+        }
+
+        ctx.stroke();
+
+        // rings
+        (0, _shapes.drawCircle)(ctx, -d, -d * .5, d / 5, { fill: bg, stroke: fg });
+        (0, _shapes.drawCircle)(ctx, -d * .5, -d * .5, d / 5, { fill: bg, stroke: fg });
+        (0, _shapes.drawCircle)(ctx, 0, -d * .5, d / 5, { fill: bg, stroke: fg });
+        (0, _shapes.drawCircle)(ctx, d * .5, -d * .5, d / 5, { fill: bg, stroke: fg });
+        (0, _shapes.drawCircle)(ctx, d, -d * .5, d / 5, { fill: bg, stroke: fg });
+    };
+
+    modes.squares = function () {
+
+        (0, _shapes.drawSquare)(ctx, 0, 0, d, { fill: 'transparent', stroke: fg });
+        (0, _shapes.drawSquare)(ctx, 0, 0, d / (4 / 3), { fill: 'transparent', stroke: fg });
+        (0, _shapes.drawSquare)(ctx, 0, 0, d / 2, { fill: 'transparent', stroke: fg });
+        (0, _shapes.drawSquare)(ctx, 0, 0, d / 4, { fill: 'transparent', stroke: fg });
+
+        ctx.rotate(PI / 4);
+
+        var diag = d * 0.7071;
+
+        (0, _shapes.drawSquare)(ctx, 0, 0, diag * 1.5, { fill: 'transparent', stroke: fg });
+        (0, _shapes.drawSquare)(ctx, 0, 0, diag / 1, { fill: 'transparent', stroke: fg });
+        (0, _shapes.drawSquare)(ctx, 0, 0, diag / 2, { fill: 'transparent', stroke: fg });
+    };
+
+    modes.arcs = function () {
+
+        (0, _shapes.drawCircle)(ctx, -d, -d, h / 1, { fill: 'transparent', stroke: fg });
+        (0, _shapes.drawCircle)(ctx, -d, -d, h / 2, { fill: 'transparent', stroke: fg });
+        (0, _shapes.drawCircle)(ctx, -d, -d, h / (4 / 3), { fill: 'transparent', stroke: fg });
+        (0, _shapes.drawCircle)(ctx, -d, -d, h / 4, { fill: 'transparent', stroke: fg });
+
+        ctx.beginPath();
+        ctx.moveTo(-d, -d);
+        ctx.lineTo(d, d);
+        ctx.stroke();
+    };
+
+    modes.arcSide = function () {
+
+        (0, _shapes.drawCircle)(ctx, 0, -d, d / 2, { fill: null, stroke: fg });
+        (0, _shapes.drawCircle)(ctx, 0, -d, d / 1, { fill: null, stroke: fg });
+
+        (0, _shapes.drawCircle)(ctx, 0, d, d / 2, { fill: null, stroke: fg });
+        (0, _shapes.drawCircle)(ctx, 0, d, d / 1, { fill: null, stroke: fg });
+
+        (0, _shapes.drawCircle)(ctx, 0, 0, d / 2, { fill: null, stroke: fg });
+        (0, _shapes.drawCircle)(ctx, 0, 0, d / 1, { fill: null, stroke: fg });
+
+        ctx.beginPath();
+        ctx.moveTo(0, -d);
+        ctx.lineTo(0, d);
+        ctx.stroke();
+    };
+
+    modes.arcCorners = function () {
+        (0, _shapes.drawCircle)(ctx, -d, -d, h / 1, { fill: 'transparent', stroke: fg });
+        (0, _shapes.drawCircle)(ctx, -d, -d, h / 2, { fill: 'transparent', stroke: fg });
+        (0, _shapes.drawCircle)(ctx, -d, -d, h / (4 / 3), { fill: 'transparent', stroke: fg });
+        (0, _shapes.drawCircle)(ctx, -d, -d, h / 4, { fill: 'transparent', stroke: fg });
+
+        (0, _shapes.drawCircle)(ctx, d, d, h / 1, { fill: 'transparent', stroke: fg });
+        (0, _shapes.drawCircle)(ctx, d, d, h / 2, { fill: 'transparent', stroke: fg });
+        (0, _shapes.drawCircle)(ctx, d, d, h / (4 / 3), { fill: 'transparent', stroke: fg });
+        (0, _shapes.drawCircle)(ctx, d, d, h / 4, { fill: 'transparent', stroke: fg });
+    };
+
+    modes.flower = function () {
+        (0, _shapes.drawCircle)(ctx, 0, -d, d / 1, { fill: null, stroke: fg });
+        (0, _shapes.drawCircle)(ctx, 0, d, d / 1, { fill: null, stroke: fg });
+        (0, _shapes.drawCircle)(ctx, -d, 0, d / 1, { fill: null, stroke: fg });
+        (0, _shapes.drawCircle)(ctx, d, 0, d / 1, { fill: null, stroke: fg });
+
+        (0, _shapes.drawCircle)(ctx, 0, 0, d / 4, { fill: bg, stroke: fg });
+    };
+
+    modes.herringbone = function () {
+        function up(y) {
+            ctx.moveTo(-d, -d + y);
+            ctx.lineTo(0, -d + y - d);
+        }
+
+        function down(y) {
+            ctx.moveTo(d, -d + y);
+            ctx.lineTo(0, -d + y - d);
+        }
+
+        ctx.beginPath();
+
+        for (var i = 0; i <= 6; i++) {
+            up(i * d / 2);
+            down(i * d / 2);
+        }
+
+        ctx.moveTo(0, -d);
+        ctx.lineTo(0, d);
+
+        ctx.stroke();
+    };
+
+    // TESTING
+    //opts.mode = 'diag';
+
+
+    // mode
+    function main(background, double) {
+        background = background || bg;
+        ctx.strokeStyle = fg;
+        var px = void 0,
+            py = void 0;
+        ctx.fillStyle = background;
+        ctx.rect(0, 0, cw, ch);
+        ctx.fill();
+        for (var i = 0; i < vcount; i++) {
+            for (var j = 0; j < count; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * i;
+                xnorm = x / cw;
+                ynorm = y / ch;
+                // center point
+                px = x + w / 2;
+                py = y + h / 2;
+
+                // shift and clip at center point
+                moveAndClip(ctx, px, py, h, background);
+                // randomly rotate by 90 degree increment
+                ctx.rotate((0, _utils.randItem)([0, PI / 2, PI, PI * 3 / 2]));
+
+                // do art in this box
+                if (opts.mode && modes[opts.mode]) {
+                    modes[opts.mode]();
+                } else {
+                    modes[(0, _utils.randItem)(Object.keys(modes))]();
+                }
+
+                // unshift, unclip
+                ctx.restore();
+                (0, _utils.resetTransform)(ctx);
+
+                // draw border box after unclipping, to avoid aliasing
+                (0, _shapes.drawSquare)(ctx, px, py, h / 2 * ZOOM, { fill: null, stroke: fg });
+            }
+        }
+    }
+
+    main(bg);
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            // apply noise from supplied canvas
+            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            // create noise pattern and apply
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, w / 3);
+        }
+    }
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
+}
+
+/***/ }),
+/* 27 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 exports.trails = trails;
 
 var _noiseutils = __webpack_require__(1);
@@ -6583,7 +7187,7 @@ var DEFAULTS = {
 }
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
