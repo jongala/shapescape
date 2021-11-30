@@ -111,10 +111,33 @@ export function truchet_wire(options) {
 
     let modes = {};
 
-    let diag = function() {
+    modes.diag = function() {
         ctx.beginPath();
+
         ctx.moveTo(-d, -d);
         ctx.lineTo(d, d);
+
+        ctx.moveTo(-d * .5, -d);
+        ctx.lineTo(-d, -d * .5);
+
+        ctx.moveTo(0, -d);
+        ctx.lineTo(-d, 0);
+
+        ctx.moveTo(d * .5, -d);
+        ctx.lineTo(-d, d * .5);
+
+        ctx.moveTo(d, -d);
+        ctx.lineTo(-d, d);
+
+        ctx.moveTo(d, -d * .5);
+        ctx.lineTo(-d * .5, d);
+
+        ctx.moveTo(d, 0);
+        ctx.lineTo(0, d);
+
+        ctx.moveTo(d, d * .5);
+        ctx.lineTo(d * .5, d);
+
         ctx.stroke();
     }
 
@@ -501,7 +524,7 @@ export function truchet_wire(options) {
 
 
     // TESTING
-    //opts.mode = 'standUps';
+    //opts.mode = 'diag';
 
 
     // mode
