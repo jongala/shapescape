@@ -22,6 +22,15 @@ const LIGHTMODES = ['bloom', 'normal'];
 const GRIDMODES = ['normal', 'scatter', 'random'];
 const DENSITIES = ['coarse', 'fine'];
 
+
+let drawDash = (ctx, x, y, size, opts) => {
+    let angle = opts.angle || randomInRange(0, PI);
+    let d = size/2;
+    ctx.moveTo(x - d * Math.cos(angle), y - d * Math.sin(angle));
+    ctx.lineTo(x + d * Math.cos(angle), y + d * Math.sin(angle));
+    ctx.stroke();
+}
+
 // Main function
 export function doodle(options) {
     let opts = Object.assign({}, DEFAULTS, options);
@@ -89,12 +98,6 @@ export function doodle(options) {
     let fg = getContrastColor();
     let fg2 = getContrastColor();
 
-    // in bloom mode, we draw high-contrast grayscale, and layer
-    // palette colors on top
-    if (LIGHTMODE === 'bloom') {
-        bg = '#222222';
-        fg = fg2 = '#cccccc';
-    }
 
     // draw background
     ctx.fillStyle = bg;
@@ -168,13 +171,10 @@ export function doodle(options) {
 
     // a set of independent transforms to use while rendering
     let trans = {
-        xbase: createTransform(rateMax), // (x,y)=>0,//
-        ybase: createTransform(rateMax), // (x,y)=>0,//
-        xtail: createTransform(rateMax), // (x,y)=>0,//
-        ytail: createTransform(rateMax), // (x,y)=>0,//
-        angle: createTransform(rateMax),
-        color: createTransform(rateMax),
-        radius: createTransform(rateMax)
+        radius: createTransform(0, rateMax),
+        angle: createTransform(0, rateMax),
+        color: createTransform(0, rateMax / 4),
+
     }
 
     function randomScatter(size, w, h) {
@@ -193,7 +193,7 @@ export function doodle(options) {
     // If we are warping the grid, we should plot points outside of the canvas
     // bounds to avoid gaps at the edges. Shift them over below.
     let overscan = 1;
-    
+
 
     switch (GRIDMODE) {
         case 'random':
@@ -203,8 +203,10 @@ export function doodle(options) {
             pts = hexScatter(cellSize, cw * overscan, ch * overscan);
     }
 
-    let shapes = [drawCircle, drawTriangle, drawSquare, drawRect];
-    
+    let shapes = [drawDash, drawDash, drawCircle, drawTriangle, drawSquare, drawRect];
+
+    let colorCount = contrastPalette.length;
+
     // step thru points
     pts.forEach((p, i) => {
         x = p[0];
@@ -212,35 +214,21 @@ export function doodle(options) {
         xnorm = x/cw;
         ynorm = y/ch;
 
-        _x = trans.xtail(xnorm, ynorm);
-        _y = trans.ytail(xnorm, ynorm);
-        len = Math.sqrt(_x * _x + _y * _y);
+        let colorIndex = Math.round((trans.color(xnorm, ynorm)+1) * colorCount) % colorCount;
+        //colorIndex = Math.round(opacityFunc(xnorm, ynorm) * colorCount) % colorCount;;
 
-        // shift base points to their warped coordinates
-        x = x + cellSize * trans.xbase(xnorm, ynorm);
-        y = y + cellSize * trans.ybase(xnorm, ynorm);
-
-        ctx.globalAlpha = 1;
         randItem(shapes)(ctx,
             x,
             y,
-            (trans.radius(xnorm, ynorm) + 1) * dotScale,
+            (trans.radius(xnorm, ynorm) + randomInRange(0.8, 1.2)) * dotScale,
             {
                 fill: null,
-                stroke: contrastPalette[Math.round(trans.color(xnorm, ynorm) * (contrastPalette.length-1))],//fg2,
+                stroke: contrastPalette[colorIndex],//fg2,
                 angle: PI * trans.angle(xnorm, ynorm)
             }
         );
 
-        ctx.globalAlpha = opacityFunc(_x, _y);
-
-        /*ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(
-            x + cellSize * _x,
-            y + cellSize * _y
-        );
-        ctx.stroke();*/
+        //ctx.globalAlpha = opacityFunc(xnorm, ynorm);
     });
 
     ctx.globalAlpha = 1;
