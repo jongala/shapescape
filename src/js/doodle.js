@@ -6,7 +6,7 @@ import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, draw
 
 const DEFAULTS = {
     container: 'body',
-    palette: palettes.de_stijl,
+    palette: palettes.north_beach,
     addNoise: 0.04,
     noiseInput: null,
     dust: false,
@@ -23,13 +23,7 @@ const GRIDMODES = ['normal', 'scatter', 'random'];
 const DENSITIES = ['coarse', 'fine'];
 
 
-let drawDash = (ctx, x, y, size, opts) => {
-    let angle = opts.angle || randomInRange(0, PI);
-    let d = size/2;
-    ctx.moveTo(x - d * Math.cos(angle), y - d * Math.sin(angle));
-    ctx.lineTo(x + d * Math.cos(angle), y + d * Math.sin(angle));
-    ctx.stroke();
-}
+
 
 // Main function
 export function doodle(options) {
@@ -69,15 +63,15 @@ export function doodle(options) {
     // how many cells are in the grid?
     let countMin, countMax;
     if (DENSITY === 'coarse') {
-        countMin = 10;
-        countMax = 30;
+        countMin = 15;
+        countMax = 25;
     } else {
         countMin = 60;
         countMax = 100;
     }
 
     let cellSize = Math.round(SHORT / randomInRange( countMin, countMax ));
-    //console.log(`cellSize: ${cellSize}, ${GRIDMODE}, ${DENSITY}`);
+    //console.log(`cellSize: ${cellSize}, countMin:${countMin}, countMax:${countMax}, ${GRIDMODE}, ${DENSITY}`);
 
     // setup vars for each cell
     let x = 0;
@@ -119,12 +113,72 @@ export function doodle(options) {
 
     // dotScale will be multiplied by 2. Keep below .25 to avoid bleed.
     // Up to 0.5 will lead to full coverage.
-    let dotScale = cellSize * randomInRange(0.1, 0.2);
+    let dotScale = cellSize * randomInRange(0.15, 0.25);
     // line width
     let weight = cellSize * randomInRange(0.05, 0.15);
 
     ctx.lineWidth = weight;
     ctx.lineCap = 'round';
+
+    let drawDash2 = (ctx, x, y, size, opts) => {
+        let angle = opts.angle || randomInRange(0, PI);
+        let d = size * randomInRange(0.6, 1);
+        let gap = size / 2;
+        ctx.translate(x, y);
+        ctx.rotate(angle)
+
+        ctx.beginPath();
+
+        ctx.translate(weight * randomInRange(0, 1), weight * randomInRange(0, 1) );
+
+        ctx.moveTo(- d * Math.cos(angle), -gap);
+        ctx.lineTo(d * Math.cos(angle), -gap);
+
+        ctx.translate(weight * randomInRange(0, 1), weight * randomInRange(0, 1) );
+
+        ctx.moveTo(- d * Math.cos(angle), gap);
+        ctx.lineTo(d * Math.cos(angle), gap);
+
+        ctx.stroke();
+
+        resetTransform(ctx);
+    }
+
+    let drawDash3 = (ctx, x, y, size, opts) => {
+        let angle = opts.angle || randomInRange(0, PI);
+        let d = size * randomInRange(0.6, 1);
+        let gap = size / 3;
+        ctx.translate(x, y);
+        ctx.rotate(angle)
+
+        ctx.beginPath();
+
+        // randomize between strokes
+        ctx.translate(weight * randomInRange(0, 0.8), weight * randomInRange(0, 0.8) );
+        d *= randomInRange(0.9, 1.1);
+
+        ctx.moveTo(- d * Math.cos(angle), -gap);
+        ctx.lineTo(d * Math.cos(angle), -gap);
+
+        // randomize between strokes
+        ctx.translate(weight * randomInRange(0, 0.8), weight * randomInRange(0, 0.8) );
+        d *= randomInRange(0.9, 1.1);
+
+        ctx.moveTo(- d * Math.cos(angle), 0);
+        ctx.lineTo(d * Math.cos(angle), 0);
+
+        // randomize between strokes
+        ctx.translate(weight * randomInRange(0, 0.8), weight * randomInRange(0, 0.8) );
+        d *= randomInRange(0.9, 1.1);
+
+        ctx.moveTo(- d * Math.cos(angle), gap);
+        ctx.lineTo(d * Math.cos(angle), gap);
+
+        ctx.stroke();
+
+        resetTransform(ctx);
+    }
+
 
     // const used in normalizing transforms
     let maxLen = 2 * Math.sqrt(2);
@@ -203,7 +257,7 @@ export function doodle(options) {
             pts = hexScatter(cellSize, cw * overscan, ch * overscan);
     }
 
-    let shapes = [drawDash, drawDash, drawCircle, drawTriangle, drawSquare, drawRect];
+    let shapes = [drawDash2, drawDash2, drawDash3, drawCircle, drawTriangle, drawSquare, drawRect];
 
     let colorCount = contrastPalette.length;
 
@@ -220,7 +274,7 @@ export function doodle(options) {
         randItem(shapes)(ctx,
             x,
             y,
-            (trans.radius(xnorm, ynorm) + randomInRange(0.8, 1.2)) * dotScale,
+            (trans.radius(xnorm, ynorm) + randomInRange(1.0, 1.2)) * dotScale,
             {
                 fill: null,
                 stroke: contrastPalette[colorIndex],//fg2,
