@@ -288,7 +288,7 @@ export function doodle(options) {
 
     ctx.globalAlpha = 1;
 
-    roughen(el, 1);
+    roughen(el, 4);
 
     // add noise
     if (opts.addNoise) {
