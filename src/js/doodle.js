@@ -4,6 +4,8 @@ import hexScatter from './hexScatter';
 import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
+import roughen from './roughen';
+
 const DEFAULTS = {
     container: 'body',
     palette: palettes.north_beach,
@@ -228,7 +230,6 @@ export function doodle(options) {
         radius: createTransform(0, rateMax),
         angle: createTransform(0, rateMax),
         color: createTransform(0, rateMax / 4),
-
     }
 
     function randomScatter(size, w, h) {
@@ -287,6 +288,7 @@ export function doodle(options) {
 
     ctx.globalAlpha = 1;
 
+    roughen(el, 1);
 
     // add noise
     if (opts.addNoise) {
