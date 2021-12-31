@@ -4712,6 +4712,8 @@ var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
 var _palettes = __webpack_require__(2);
 
+var _palettes2 = _interopRequireDefault(_palettes);
+
 var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
@@ -4722,7 +4724,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
 var DEFAULTS = {
     container: 'body',
-    palette: _palettes.blush,
+    palette: _palettes2.default.blush,
     drawGrid: 'auto', // [true, false, 'auto']
     addNoise: false, //0.04,
     noiseInput: null,

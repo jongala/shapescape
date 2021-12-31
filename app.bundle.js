@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 24);
+/******/ 	return __webpack_require__(__webpack_require__.s = 25);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -5154,6 +5154,8 @@ var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
 var _palettes = __webpack_require__(2);
 
+var _palettes2 = _interopRequireDefault(_palettes);
+
 var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
@@ -5164,7 +5166,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
 var DEFAULTS = {
     container: 'body',
-    palette: _palettes.blush,
+    palette: _palettes2.default.blush,
     drawGrid: 'auto', // [true, false, 'auto']
     addNoise: false, //0.04,
     noiseInput: null,
@@ -5439,6 +5441,76 @@ function fragments(options) {
 "use strict";
 
 
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.default = roughen;
+
+var _utils = __webpack_require__(0);
+
+function roughen(canvas) {
+    var steps = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 3;
+
+    if (!steps) return;
+    var ctx = canvas.getContext('2d');
+    var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var px = imageData.data; // px to manipulate
+
+    var refCtx = canvas.getContext('2d');
+    var ref = refCtx.getImageData(0, 0, canvas.width, canvas.height).data; // reference copy
+
+    var n = px.length;
+    var w = canvas.width;
+    var h = canvas.height;
+    var newIdx = void 0;
+
+    var scratch = document.createElement('canvas');
+    scratch.width = w;
+    scratch.height = h;
+    var scratchCtx = scratch.getContext('2d');
+
+    var directions = [-1, 1, -w, w];
+    var distances = [1, 2, 3];
+
+    function shift_pixels(alpha) {
+        for (var i = 0; i <= n; i += 4) {
+            newIdx = 4 * (0, _utils.randItem)(directions) * (0, _utils.randItem)(distances);
+            newIdx += i;
+            if (newIdx > n) {
+                newIdx = newIdx % n;
+            }
+            if (newIdx < 0) {
+                newIdx = n - newIdx;
+            }
+            px[newIdx + 0] = ref[i + 0];
+            px[newIdx + 1] = ref[i + 1];
+            px[newIdx + 2] = ref[i + 2];
+            px[newIdx + 3] = ref[i + 3];
+        }
+
+        scratchCtx.putImageData(imageData, 0, 0);
+        ctx.globalAlpha = alpha;
+
+        ctx.fillStyle = ctx.createPattern(scratch, 'repeat');
+        ctx.fillRect(0, 0, w, h);
+    }
+
+    var eachAlpha = 1 / (steps + 2);
+    while (steps) {
+        shift_pixels(eachAlpha);
+        steps--;
+    }
+
+    ctx.globalAlpha = 1;
+}
+
+/***/ }),
+/* 25 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
 __webpack_require__(5);
 
 var _noiseutils = __webpack_require__(1);
@@ -5459,7 +5531,7 @@ var _shapestack = __webpack_require__(10);
 
 var _shapescape = __webpack_require__(13);
 
-var _duos = __webpack_require__(25);
+var _duos = __webpack_require__(26);
 
 var _lines = __webpack_require__(14);
 
@@ -5469,7 +5541,7 @@ var _grid = __webpack_require__(16);
 
 var _truchet = __webpack_require__(17);
 
-var _grille = __webpack_require__(26);
+var _grille = __webpack_require__(27);
 
 var _circles = __webpack_require__(18);
 
@@ -5481,13 +5553,17 @@ var _bands = __webpack_require__(21);
 
 var _field = __webpack_require__(22);
 
-var _trails = __webpack_require__(27);
+var _trails = __webpack_require__(28);
 
 var _fragments = __webpack_require__(23);
 
-var _clouds = __webpack_require__(28);
+var _clouds = __webpack_require__(29);
 
-var _doodle = __webpack_require__(29);
+var _doodle = __webpack_require__(30);
+
+var _roughen = __webpack_require__(24);
+
+var _roughen2 = _interopRequireDefault(_roughen);
 
 var _utils = __webpack_require__(0);
 
@@ -5727,6 +5803,9 @@ pnames.forEach(function (pname) {
     var option = document.createElement('option');
     option.value = pname;
     option.innerHTML = pname;
+    if (pname === "default") {
+        option.innerHTML = "default colors";
+    }
     selectEl.appendChild(option);
 });
 
@@ -5802,6 +5881,15 @@ document.querySelector('#saved').addEventListener('click', function (e) {
     }
 });
 
+function roughenMain() {
+    var canvas = document.querySelector('#example canvas');
+    var ctx = canvas.getContext('2d');
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
+    (0, _roughen2.default)(canvas, 3);
+}
+window.roughenMain = roughenMain;
+
 exampleNode.addEventListener('click', function (e) {
     renderCanvasToImg(exampleNode.querySelector('canvas'), document.querySelector('#saved'));
 });
@@ -5819,7 +5907,7 @@ showRenderPicker(RENDERERS, document.getElementById('renderPickers'));
 setRenderer(initRenderer, document.querySelector("[data-renderer='" + initRenderer + "']"));
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6050,7 +6138,7 @@ function duos(options) {
 }
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6651,7 +6739,7 @@ function grille(options) {
 }
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7139,7 +7227,7 @@ var DEFAULTS = {
 }
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7316,7 +7404,7 @@ function clouds(options) {
 }
 
 /***/ }),
-/* 29 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7343,7 +7431,7 @@ var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
 
-var _roughen = __webpack_require__(30);
+var _roughen = __webpack_require__(24);
 
 var _roughen2 = _interopRequireDefault(_roughen);
 
@@ -7640,76 +7728,6 @@ function doodle(options) {
     if (newEl) {
         container.appendChild(el);
     }
-}
-
-/***/ }),
-/* 30 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.default = roughen;
-
-var _utils = __webpack_require__(0);
-
-function roughen(canvas) {
-    var steps = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 3;
-
-    if (!steps) return;
-    var ctx = canvas.getContext('2d');
-    var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    var px = imageData.data; // px to manipulate
-
-    var refCtx = canvas.getContext('2d');
-    var ref = refCtx.getImageData(0, 0, canvas.width, canvas.height).data; // reference copy
-
-    var n = px.length;
-    var w = canvas.width;
-    var h = canvas.height;
-    var newIdx = void 0;
-
-    var scratch = document.createElement('canvas');
-    scratch.width = w;
-    scratch.height = h;
-    var scratchCtx = scratch.getContext('2d');
-
-    var directions = [-1, 1, -w, w];
-    var distances = [1, 2, 3];
-
-    function shift_pixels(alpha) {
-        for (var i = 0; i <= n; i += 4) {
-            newIdx = 4 * (0, _utils.randItem)(directions) * (0, _utils.randItem)(distances);
-            newIdx += i;
-            if (newIdx > n) {
-                newIdx = newIdx % n;
-            }
-            if (newIdx < 0) {
-                newIdx = n - newIdx;
-            }
-            px[newIdx + 0] = ref[i + 0];
-            px[newIdx + 1] = ref[i + 1];
-            px[newIdx + 2] = ref[i + 2];
-            px[newIdx + 3] = ref[i + 3];
-        }
-
-        scratchCtx.putImageData(imageData, 0, 0);
-        ctx.globalAlpha = alpha;
-
-        ctx.fillStyle = ctx.createPattern(scratch, 'repeat');
-        ctx.fillRect(0, 0, w, h);
-    }
-
-    var eachAlpha = 1 / (steps + 2);
-    while (steps) {
-        shift_pixels(eachAlpha);
-        steps--;
-    }
-
-    ctx.globalAlpha = 1;
 }
 
 /***/ })
