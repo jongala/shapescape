@@ -20,12 +20,12 @@ export default function roughen(canvas, steps=3) {
     let scratchCtx = scratch.getContext('2d');
 
 
-    let offsets = [-1, 1, -w, w];
-    let strength = [1, 2, 3];
+    let directions = [-1, 1, -w, w];
+    let distances = [1, 2, 3];
 
     function shift_pixels(alpha) {
         for (var i = 0; i<=n ; i+=4) {
-            newIdx = 4 * randItem(offsets) * randItem(strength);
+            newIdx = 4 * randItem(directions) * randItem(distances);
             newIdx += i;
             if (newIdx > n) {
                 newIdx = newIdx % n;
