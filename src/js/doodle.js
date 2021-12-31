@@ -14,17 +14,12 @@ const DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     clear: true,
-    lightMode: 'auto', // [auto, bloom, normal]
-    gridMode: 'scatter', // [auto, normal, scatter, random]
+    roughen: 4, // integer number of passes, or 0 for none
     density: 'coarse', // [auto, coarse, fine]
 }
 
 const PI = Math.PI;
-const LIGHTMODES = ['bloom', 'normal'];
-const GRIDMODES = ['normal', 'scatter', 'random'];
 const DENSITIES = ['coarse', 'fine'];
-
-
 
 
 // Main function
@@ -55,8 +50,6 @@ export function doodle(options) {
     let ctx = el.getContext('2d');
 
     // modes and styles
-    const LIGHTMODE = opts.lightMode === 'auto' ? randItem(LIGHTMODES) : opts.lightMode;
-    const GRIDMODE = opts.gridMode === 'auto' ? randItem(GRIDMODES) : opts.gridMode;
     const DENSITY = opts.density === 'auto' ? randItem(DENSITIES) : opts.density;
 
     // color funcs
@@ -249,14 +242,7 @@ export function doodle(options) {
     // bounds to avoid gaps at the edges. Shift them over below.
     let overscan = 1;
 
-
-    switch (GRIDMODE) {
-        case 'random':
-            pts = randomScatter(cellSize, cw  * overscan, ch * overscan);
-            break;
-        default:
-            pts = hexScatter(cellSize, cw * overscan, ch * overscan);
-    }
+    pts = hexScatter(cellSize, cw * overscan, ch * overscan);
 
     let shapes = [drawDash2, drawDash2, drawDash3, drawCircle, drawTriangle, drawSquare, drawRect];
 
@@ -288,7 +274,7 @@ export function doodle(options) {
 
     ctx.globalAlpha = 1;
 
-    roughen(el, 4);
+    roughen(el, opts.roughen);
 
     // add noise
     if (opts.addNoise) {

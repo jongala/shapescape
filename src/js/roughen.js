@@ -1,10 +1,11 @@
 import { randItem, randomInRange } from './utils';
 
 export default function roughen(canvas, steps=3) {
+    if (!steps) return;
     let ctx = canvas.getContext('2d');
     let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     let px = imageData.data; // px to manipulate
-    
+
     let refCtx = canvas.getContext('2d');
     let ref = refCtx.getImageData(0, 0, canvas.width, canvas.height).data; // reference copy
 
@@ -50,7 +51,6 @@ export default function roughen(canvas, steps=3) {
         shift_pixels(eachAlpha);
         steps--;
     }
-
 
     ctx.globalAlpha = 1;
 }
