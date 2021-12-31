@@ -5868,8 +5868,7 @@ function hideMain() {
 }
 
 function setSize(className) {
-    exampleNode.className = exampleNode.className.replace(/(wide|square|tall)/g, '');
-    exampleNode.className += ' ' + className + ' ';
+    exampleNode.className = className;
     drawNew();
 }
 window.setSize = setSize;
