@@ -21,6 +21,9 @@ import { trails } from './trails';
 import { fragments } from './fragments';
 import { clouds } from './clouds';
 import { doodle } from './doodle';
+
+import roughen from './roughen';
+
 import { setAttrs } from './utils';
 
 // Renderers
@@ -333,6 +336,15 @@ document.querySelector('#saved').addEventListener('click', function(e) {
         previewImage(e.target.parentNode.cloneNode(true));
     }
 });
+
+function roughenMain() {
+    var canvas = document.querySelector('#example canvas');
+    var ctx = canvas.getContext('2d');
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
+    roughen(canvas, 3);
+}
+window.roughenMain = roughenMain;
 
 exampleNode.addEventListener('click', function(e) {
     renderCanvasToImg(exampleNode.querySelector('canvas'), document.querySelector('#saved'));
