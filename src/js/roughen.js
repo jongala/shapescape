@@ -45,7 +45,7 @@ export default function roughen(canvas, steps=3) {
         ctx.fillRect(0, 0, w, h);
     }
 
-    var eachAlpha = 1/steps;
+    var eachAlpha = 1/(steps + 2);
     while (steps) {
         shift_pixels(eachAlpha);
         steps--;
