@@ -5487,6 +5487,8 @@ var _fragments = __webpack_require__(23);
 
 var _clouds = __webpack_require__(28);
 
+var _doodle = __webpack_require__(29);
+
 var _utils = __webpack_require__(0);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -5508,7 +5510,8 @@ var RENDERERS = {
     trails: _trails.trails,
     bands: _bands.bands,
     fragments: _fragments.fragments,
-    waves: _waves.waves
+    waves: _waves.waves,
+    doodle: _doodle.doodle
     //clouds: clouds
 };
 var initRenderer = 'waterline';
@@ -6680,7 +6683,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 var PI = Math.PI;
-var LIGHTMODES = ['bloom', 'normal'];
 var GRIDMODES = ['normal', 'scatter', 'random'];
 var COLORMODES = ['length', 'curve', 'change', /*'origin',*/'mono', 'duo', 'random'];
 var STYLES = ['round', 'square'];
@@ -6693,7 +6695,6 @@ var DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     clear: true,
-    lightMode: 'normal', // from LIGHTMODES
     gridMode: 'scatter', // from GRIDMODES
     colorMode: 'auto', // from COLORMODES
     style: 'auto', // from STYLES
@@ -6728,10 +6729,11 @@ var DEFAULTS = {
     var ctx = el.getContext('2d');
 
     // modes and styles
-    var LIGHTMODE = opts.lightMode === 'auto' ? (0, _utils.randItem)(LIGHTMODES) : opts.lightMode;
     var GRIDMODE = opts.gridMode === 'auto' ? (0, _utils.randItem)(GRIDMODES) : opts.gridMode;
     var COLORMODE = opts.colorMode === 'auto' ? (0, _utils.randItem)(COLORMODES) : opts.colorMode;
     var STYLE = opts.style === 'auto' ? (0, _utils.randItem)(STYLES) : opts.style;
+
+    console.log('Trails:', GRIDMODE, COLORMODE, STYLE);
 
     // color funcs
     var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
@@ -6764,13 +6766,6 @@ var DEFAULTS = {
     // shared foregrounds
     var fg = getContrastColor();
     var fg2 = getContrastColor();
-
-    // in bloom mode, we draw high-contrast grayscale, and layer
-    // palette colors on top
-    if (LIGHTMODE === 'bloom') {
-        bg = '#222222';
-        fg = fg2 = '#cccccc';
-    }
 
     // draw background
     ctx.fillStyle = bg;
@@ -7120,49 +7115,6 @@ var DEFAULTS = {
 
     ctx.globalAlpha = 1;
 
-    // in bloom mode, we draw a big colorful gradient over the grayscale
-    // background, using palette colors and nice blend modes
-    if (LIGHTMODE === 'bloom') {
-        ctx.globalCompositeOperation = 'color-dodge';
-
-        // bloom with linear gradient
-        ctx.fillStyle = (0, _utils.getGradientFunction)(opts.palette)(ctx, cw, ch); //getContrastColor();
-        ctx.fillRect(0, 0, cw, ch);
-
-        if (Math.random() < 0.5) {
-            // bloom with spot lights
-            var dodgeDot = function dodgeDot() {
-                var max = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1.5;
-
-                var gx = void 0,
-                    gy = void 0,
-                    gr1 = void 0,
-                    gr2 = void 0;
-                gx = (0, _utils.randomInRange)(0, cw);
-                gy = (0, _utils.randomInRange)(0, ch);
-                gr1 = (0, _utils.randomInRange)(0, 0.25);
-                gr2 = (0, _utils.randomInRange)(gr1, max);
-
-                var radial = ctx.createRadialGradient(gx, gy, gr1 * SCALE, gx, gy, gr2 * SCALE);
-                radial.addColorStop(0, (0, _utils.randItem)(opts.palette));
-                radial.addColorStop(1, '#000000');
-
-                ctx.fillStyle = radial;
-                ctx.fillRect(0, 0, cw, ch);
-            };
-            // try layering dots with varying coverage
-            ctx.globalAlpha = (0, _utils.randomInRange)(0.4, 0.7);
-            dodgeDot(1.5);
-            ctx.globalAlpha = (0, _utils.randomInRange)(0.4, 0.7);
-            dodgeDot(1.0);
-            ctx.globalAlpha = (0, _utils.randomInRange)(0.7, 0.9);
-            dodgeDot(0.5);
-            ctx.globalAlpha = 1;
-        }
-
-        ctx.globalCompositeOperation = 'normal';
-    }
-
     var tEnd = new Date().getTime();
 
     console.log('rendered in ' + (tEnd - tStart) + 'ms');
@@ -7361,6 +7313,403 @@ function clouds(options) {
     if (newEl) {
         container.appendChild(el);
     }
+}
+
+/***/ }),
+/* 29 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.doodle = doodle;
+
+var _noiseutils = __webpack_require__(1);
+
+var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _palettes = __webpack_require__(2);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
+var _hexScatter = __webpack_require__(6);
+
+var _hexScatter2 = _interopRequireDefault(_hexScatter);
+
+var _utils = __webpack_require__(0);
+
+var _shapes = __webpack_require__(3);
+
+var _roughen = __webpack_require__(30);
+
+var _roughen2 = _interopRequireDefault(_roughen);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var DEFAULTS = {
+    container: 'body',
+    palette: _palettes2.default.north_beach,
+    addNoise: 0.04,
+    noiseInput: null,
+    dust: false,
+    skew: 1, // normalized skew
+    clear: true,
+    roughen: 4, // integer number of passes, or 0 for none
+    density: 'coarse' // [auto, coarse, fine]
+};
+
+var PI = Math.PI;
+var DENSITIES = ['coarse', 'fine'];
+
+// Main function
+function doodle(options) {
+    var opts = Object.assign({}, DEFAULTS, options);
+
+    var container = opts.container;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
+    var SCALE = Math.min(cw, ch);
+    var LONG = Math.max(cw, ch);
+    var SHORT = Math.min(cw, ch);
+    var AREA = cw * ch;
+
+    // Find or create canvas child
+    var el = container.querySelector('canvas');
+    var newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        el.width = cw;
+        el.height = ch;
+    }
+
+    var ctx = el.getContext('2d');
+
+    // modes and styles
+    var DENSITY = opts.density === 'auto' ? (0, _utils.randItem)(DENSITIES) : opts.density;
+
+    // color funcs
+    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
+
+    // how many cells are in the grid?
+    var countMin = void 0,
+        countMax = void 0;
+    if (DENSITY === 'coarse') {
+        countMin = 15;
+        countMax = 25;
+    } else {
+        countMin = 60;
+        countMax = 100;
+    }
+
+    var cellSize = Math.round(SHORT / (0, _utils.randomInRange)(countMin, countMax));
+    //console.log(`cellSize: ${cellSize}, countMin:${countMin}, countMax:${countMax}, ${GRIDMODE}, ${DENSITY}`);
+
+    // setup vars for each cell
+    var x = 0;
+    var y = 0;
+    var xnorm = 0;
+    var ynorm = 0;
+    var renderer = void 0;
+
+    // shared colors
+    var bg = getSolidFill();
+
+    // get palette of non-bg colors
+    var contrastPalette = [].concat(opts.palette);
+    contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
+
+    // shared foregrounds
+    var fg = getContrastColor();
+    var fg2 = getContrastColor();
+
+    // draw background
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, cw, ch);
+    ctx.lineJoin = 'round';
+
+    ctx.strokeStyle = fg;
+
+    var cellCount = cw / cellSize;
+    var rateMax = 3;
+    if (DENSITY === 'fine' && Math.random() < 0.5) {
+        rateMax = 6;
+    }
+
+    // tail vars
+    var _x = void 0,
+        _y = void 0,
+        len = void 0;
+
+    // dotScale will be multiplied by 2. Keep below .25 to avoid bleed.
+    // Up to 0.5 will lead to full coverage.
+    var dotScale = cellSize * (0, _utils.randomInRange)(0.15, 0.25);
+    // line width
+    var weight = cellSize * (0, _utils.randomInRange)(0.05, 0.15);
+
+    ctx.lineWidth = weight;
+    ctx.lineCap = 'round';
+
+    var drawDash2 = function drawDash2(ctx, x, y, size, opts) {
+        var angle = opts.angle || (0, _utils.randomInRange)(0, PI);
+        var d = size * (0, _utils.randomInRange)(0.6, 1);
+        var gap = size / 2;
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+
+        ctx.beginPath();
+
+        ctx.translate(weight * (0, _utils.randomInRange)(0, 1), weight * (0, _utils.randomInRange)(0, 1));
+
+        ctx.moveTo(-d * Math.cos(angle), -gap);
+        ctx.lineTo(d * Math.cos(angle), -gap);
+
+        ctx.translate(weight * (0, _utils.randomInRange)(0, 1), weight * (0, _utils.randomInRange)(0, 1));
+
+        ctx.moveTo(-d * Math.cos(angle), gap);
+        ctx.lineTo(d * Math.cos(angle), gap);
+
+        ctx.stroke();
+
+        (0, _utils.resetTransform)(ctx);
+    };
+
+    var drawDash3 = function drawDash3(ctx, x, y, size, opts) {
+        var angle = opts.angle || (0, _utils.randomInRange)(0, PI);
+        var d = size * (0, _utils.randomInRange)(0.6, 1);
+        var gap = size / 3;
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+
+        ctx.beginPath();
+
+        // randomize between strokes
+        ctx.translate(weight * (0, _utils.randomInRange)(0, 0.8), weight * (0, _utils.randomInRange)(0, 0.8));
+        d *= (0, _utils.randomInRange)(0.9, 1.1);
+
+        ctx.moveTo(-d * Math.cos(angle), -gap);
+        ctx.lineTo(d * Math.cos(angle), -gap);
+
+        // randomize between strokes
+        ctx.translate(weight * (0, _utils.randomInRange)(0, 0.8), weight * (0, _utils.randomInRange)(0, 0.8));
+        d *= (0, _utils.randomInRange)(0.9, 1.1);
+
+        ctx.moveTo(-d * Math.cos(angle), 0);
+        ctx.lineTo(d * Math.cos(angle), 0);
+
+        // randomize between strokes
+        ctx.translate(weight * (0, _utils.randomInRange)(0, 0.8), weight * (0, _utils.randomInRange)(0, 0.8));
+        d *= (0, _utils.randomInRange)(0.9, 1.1);
+
+        ctx.moveTo(-d * Math.cos(angle), gap);
+        ctx.lineTo(d * Math.cos(angle), gap);
+
+        ctx.stroke();
+
+        (0, _utils.resetTransform)(ctx);
+    };
+
+    // const used in normalizing transforms
+    var maxLen = 2 * Math.sqrt(2);
+
+    // set of functions to transform opacity across grid
+    var opacityTransforms = [function () {
+        return 1;
+    }, function (_x, _y) {
+        return Math.abs(_y / _x) / maxLen;
+    }, function (_x, _y) {
+        return 1 - Math.abs(_y / _x) / maxLen;
+    }, function (_x, _y) {
+        return Math.abs(_x / _y);
+    }, // hides verticals
+    function (_x, _y) {
+        return Math.abs(_y / _x);
+    }, // hides horizontals
+    function (_x, _y) {
+        return _x / _y;
+    }, function (_x, _y) {
+        return _y / _x;
+    }, function (_x, _y) {
+        return _y - _x;
+    }, function (_x, _y) {
+        return _x - _y;
+    }];
+    // now pick one
+    var opacityFunc = (0, _utils.randItem)(opacityTransforms);
+
+    // Create a function which is a periodic transform of x, y
+    function createTransform() {
+        var rateMin = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+        var rateMax = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+
+        var rate1 = (0, _utils.randomInRange)(0, rateMax / 2);
+        var rate2 = (0, _utils.randomInRange)(0, rateMax / 2);
+        var rate3 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
+        var rate4 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
+
+        var phase1 = (0, _utils.randomInRange)(-PI, PI);
+        var phase2 = (0, _utils.randomInRange)(-PI, PI);
+        var phase3 = (0, _utils.randomInRange)(-PI, PI);
+        var phase4 = (0, _utils.randomInRange)(-PI, PI);
+
+        var c1 = (0, _utils.randomInRange)(0, 1);
+        var c2 = (0, _utils.randomInRange)(0, 1);
+        var c3 = (0, _utils.randomInRange)(0, 1);
+        var c4 = (0, _utils.randomInRange)(0, 1);
+        return function (xnorm, ynorm) {
+            var t1 = Math.sin(xnorm * rate1 * 2 * PI + phase1);
+            var t2 = Math.sin(ynorm * rate2 * 2 * PI + phase2);
+            var t3 = Math.sin(xnorm * rate3 * 2 * PI + phase3);
+            var t4 = Math.sin(ynorm * rate4 * 2 * PI + phase4);
+            return (c1 * t1 + c2 * t2 + c3 * t3 + c4 * t4) / (c1 + c2 + c3 + c4);
+        };
+    }
+
+    // a set of independent transforms to use while rendering
+    var trans = {
+        radius: createTransform(0, rateMax),
+        angle: createTransform(0, rateMax),
+        color: createTransform(0, rateMax / 4)
+    };
+
+    function randomScatter(size, w, h) {
+        var pts = [];
+        var xcount = Math.ceil(w / size);
+        var ycount = Math.ceil(h / size);
+        var count = xcount * ycount;
+        while (count--) {
+            pts.push([(0, _utils.randomInRange)(0, w), (0, _utils.randomInRange)(0, h)]);
+        }
+        return pts;
+    }
+
+    var pts = [];
+
+    // If we are warping the grid, we should plot points outside of the canvas
+    // bounds to avoid gaps at the edges. Shift them over below.
+    var overscan = 1;
+
+    pts = (0, _hexScatter2.default)(cellSize, cw * overscan, ch * overscan);
+
+    var shapes = [drawDash2, drawDash2, drawDash3, _shapes.drawCircle, _shapes.drawTriangle, _shapes.drawSquare, _shapes.drawRect];
+
+    var colorCount = contrastPalette.length;
+
+    // step thru points
+    pts.forEach(function (p, i) {
+        x = p[0];
+        y = p[1];
+        xnorm = x / cw;
+        ynorm = y / ch;
+
+        var colorIndex = Math.round((trans.color(xnorm, ynorm) + 1) * colorCount) % colorCount;
+        //colorIndex = Math.round(opacityFunc(xnorm, ynorm) * colorCount) % colorCount;;
+
+        (0, _utils.randItem)(shapes)(ctx, x, y, (trans.radius(xnorm, ynorm) + (0, _utils.randomInRange)(1.0, 1.2)) * dotScale, {
+            fill: null,
+            stroke: contrastPalette[colorIndex], //fg2,
+            angle: PI * trans.angle(xnorm, ynorm)
+        });
+
+        //ctx.globalAlpha = opacityFunc(xnorm, ynorm);
+    });
+
+    ctx.globalAlpha = 1;
+
+    (0, _roughen2.default)(el, opts.roughen);
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            // apply noise from supplied canvas
+            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            // create noise pattern and apply
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, cw / 3);
+        }
+    }
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
+}
+
+/***/ }),
+/* 30 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.default = roughen;
+
+var _utils = __webpack_require__(0);
+
+function roughen(canvas) {
+    var steps = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 3;
+
+    if (!steps) return;
+    var ctx = canvas.getContext('2d');
+    var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var px = imageData.data; // px to manipulate
+
+    var refCtx = canvas.getContext('2d');
+    var ref = refCtx.getImageData(0, 0, canvas.width, canvas.height).data; // reference copy
+
+    var n = px.length;
+    var w = canvas.width;
+    var h = canvas.height;
+    var newIdx = void 0;
+
+    var scratch = document.createElement('canvas');
+    scratch.width = w;
+    scratch.height = h;
+    var scratchCtx = scratch.getContext('2d');
+
+    var directions = [-1, 1, -w, w];
+    var distances = [1, 2, 3];
+
+    function shift_pixels(alpha) {
+        for (var i = 0; i <= n; i += 4) {
+            newIdx = 4 * (0, _utils.randItem)(directions) * (0, _utils.randItem)(distances);
+            newIdx += i;
+            if (newIdx > n) {
+                newIdx = newIdx % n;
+            }
+            if (newIdx < 0) {
+                newIdx = n - newIdx;
+            }
+            px[newIdx + 0] = ref[i + 0];
+            px[newIdx + 1] = ref[i + 1];
+            px[newIdx + 2] = ref[i + 2];
+            px[newIdx + 3] = ref[i + 3];
+        }
+
+        scratchCtx.putImageData(imageData, 0, 0);
+        ctx.globalAlpha = alpha;
+
+        ctx.fillStyle = ctx.createPattern(scratch, 'repeat');
+        ctx.fillRect(0, 0, w, h);
+    }
+
+    var eachAlpha = 1 / (steps + 2);
+    while (steps) {
+        shift_pixels(eachAlpha);
+        steps--;
+    }
+
+    ctx.globalAlpha = 1;
 }
 
 /***/ })
