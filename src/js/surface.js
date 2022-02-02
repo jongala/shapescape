@@ -109,22 +109,19 @@ export function surface(options) {
         rateMax = 6;
     }
 
-
     // tail vars
     let _x,_y,len;
 
-    // dotScale will be multiplied by 2. Keep below .25 to avoid bleed.
-    // Up to 0.5 will lead to full coverage.
-    let dotScale = cellSize * randomInRange(0.1, 0.25);
     // line width
-    let weight = cellSize * randomInRange(0.5, 1.2);
+    let weight = cellSize * randomInRange(0.25, .866);
 
     ctx.lineWidth = weight;
     ctx.lineCap = 'round';
 
-    // const used in normalizing transforms
-    let max = cellSize * randomInRange(2, 6);
+    // The max height of each column. Thinner cols can be taller.
+    let max = cellSize * randomInRange(0.5, 1 / (weight/cellSize));
 
+    // --------------------------------------
 
 
     // Create a function which is a periodic transform of x, y
@@ -185,12 +182,6 @@ export function surface(options) {
 
     pts = hexPack(cellSize, cw, ch);
 
-
-    let grad = ctx.createLinearGradient(0, 0, 0, -max);
-    grad.addColorStop(0, fg);
-    grad.addColorStop(1, fg2);
-
-    ctx.strokeStyle = grad;
     // step thru points
     pts.forEach((p, i) => {
         x = p[0];
@@ -199,12 +190,20 @@ export function surface(options) {
         ynorm = y/ch;
 
         _x = trans.x(xnorm, ynorm);
-        _y = (trans.y(xnorm, ynorm) + 1 ) * max;
+        _y = (trans.y(xnorm, ynorm) + 1 )/2 * max;
+
+        if(_y < 0) console.log('oh no', _y);
 
         // add jitter
-        _y += 0.15 * cellSize * randomInRange(-1, 1);
+        //_y += 0.15 * cellSize * randomInRange(-1, 1);
+        _y *= randomInRange(1, 1.15);
 
         ctx.translate(x, y);
+
+        let grad = ctx.createLinearGradient(0, -_y, 0, 2 * max - _y);
+        grad.addColorStop(0, fg);
+        grad.addColorStop(1, fg2);
+        ctx.strokeStyle = grad;
 
         ctx.beginPath();
         ctx.moveTo(0, 0);
@@ -214,9 +213,7 @@ export function surface(options) {
         );
         ctx.stroke();
 
-        //ctx.globalAlpha = 0.5;
         drawCircle(ctx, 0, -_y, (weight/2)-(weight/8), {fill: fg3});
-        //ctx.globalAlpha = 1;
 
         ctx.translate(-x, -y);
     });
