@@ -117,8 +117,7 @@ export function surface(options) {
     // Up to 0.5 will lead to full coverage.
     let dotScale = cellSize * randomInRange(0.1, 0.25);
     // line width
-    let weight = randomInRange(0.5, 3) * SCALE/800;
-    weight = cellSize * .8660;
+    let weight = cellSize * randomInRange(0.5, 1.2);
 
     ctx.lineWidth = weight;
     ctx.lineCap = 'round';
@@ -203,7 +202,7 @@ export function surface(options) {
         _y = (trans.y(xnorm, ynorm) + 1 ) * max;
 
         // add jitter
-        _y += 0.1 * cellSize * randomInRange(-1, 1);
+        _y += 0.15 * cellSize * randomInRange(-1, 1);
 
         ctx.translate(x, y);
 
@@ -216,7 +215,7 @@ export function surface(options) {
         ctx.stroke();
 
         //ctx.globalAlpha = 0.5;
-        drawCircle(ctx, 0, -_y, (cellSize/2)-(cellSize/8), {fill: fg3});
+        drawCircle(ctx, 0, -_y, (weight/2)-(weight/8), {fill: fg3});
         //ctx.globalAlpha = 1;
 
         ctx.translate(-x, -y);
