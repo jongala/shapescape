@@ -87,6 +87,7 @@ export function surface(options) {
     // shared foregrounds
     let fg = getContrastColor();
     let fg2 = getContrastColor();
+    let fg3 = getContrastColor();
 
     // in bloom mode, we draw high-contrast grayscale, and layer
     // palette colors on top
@@ -185,7 +186,12 @@ export function surface(options) {
 
     pts = hexPack(cellSize, cw, ch);
 
-    ctx.strokeStyle = fg;
+
+    let grad = ctx.createLinearGradient(0, 0, 0, cellSize * 2);
+    grad.addColorStop(0, fg);
+    grad.addColorStop(1, fg2);
+
+    ctx.strokeStyle = grad;
     // step thru points
     pts.forEach((p, i) => {
         x = p[0];
@@ -197,17 +203,21 @@ export function surface(options) {
         _y = trans.y(xnorm, ynorm);
         len = Math.sqrt(_x * _x + _y * _y);
 
+        ctx.translate(x, y);
+
         ctx.beginPath();
-        ctx.moveTo(x, y);
+        ctx.moveTo(0, 0);
         ctx.lineTo(
-            x,
-            y + (trans.h(xnorm, ynorm)+1) * cellSize * 0.866
+            0,
+            0 + (trans.h(xnorm, ynorm)+1) * cellSize * 0.866
         );
         ctx.stroke();
 
         //ctx.globalAlpha = 0.5;
-        drawCircle(ctx, x, y, (cellSize/2)-(cellSize/8), {fill: fg2});
+        drawCircle(ctx, 0, 0, (cellSize/2)-(cellSize/8), {fill: fg3});
         //ctx.globalAlpha = 1;
+
+        ctx.translate(-x, -y);
     });
 
     // add noise
