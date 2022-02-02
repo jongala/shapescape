@@ -124,7 +124,7 @@ export function surface(options) {
     ctx.lineCap = 'round';
 
     // const used in normalizing transforms
-    let maxLen = 2 * Math.sqrt(2);
+    let max = cellSize * randomInRange(2, 6);
 
 
 
@@ -163,7 +163,7 @@ export function surface(options) {
     function hexPack(size, w, h) {
         let pts = [];
         let xcount = Math.ceil(w / size) + 2;
-        let ycount = Math.ceil(h / (size * .8660)) + 2;
+        let ycount = Math.ceil(h / (size * .8660)) + 10; // extra rows
         let count = xcount * ycount;
         let x,y;
         let shift;
@@ -187,7 +187,7 @@ export function surface(options) {
     pts = hexPack(cellSize, cw, ch);
 
 
-    let grad = ctx.createLinearGradient(0, 0, 0, cellSize * 2);
+    let grad = ctx.createLinearGradient(0, 0, 0, -max);
     grad.addColorStop(0, fg);
     grad.addColorStop(1, fg2);
 
@@ -200,8 +200,10 @@ export function surface(options) {
         ynorm = y/ch;
 
         _x = trans.x(xnorm, ynorm);
-        _y = trans.y(xnorm, ynorm);
-        len = Math.sqrt(_x * _x + _y * _y);
+        _y = (trans.y(xnorm, ynorm) + 1 ) * max;
+
+        // add jitter
+        _y += 0.1 * cellSize * randomInRange(-1, 1);
 
         ctx.translate(x, y);
 
@@ -209,12 +211,12 @@ export function surface(options) {
         ctx.moveTo(0, 0);
         ctx.lineTo(
             0,
-            0 + (trans.h(xnorm, ynorm)+1) * cellSize * 0.866
+            -_y
         );
         ctx.stroke();
 
         //ctx.globalAlpha = 0.5;
-        drawCircle(ctx, 0, 0, (cellSize/2)-(cellSize/8), {fill: fg3});
+        drawCircle(ctx, 0, -_y, (cellSize/2)-(cellSize/8), {fill: fg3});
         //ctx.globalAlpha = 1;
 
         ctx.translate(-x, -y);
