@@ -182,6 +182,9 @@ export function surface(options) {
 
     pts = hexPack(cellSize, cw, ch);
 
+    let shadowAngle = randomInRange(0.2, 0.66) * randItem([-1,1]);
+    let shadowStrength = randomInRange(0.1, 0.3);
+
     // step thru points
     pts.forEach((p, i) => {
         x = p[0];
@@ -200,6 +203,20 @@ export function surface(options) {
 
         ctx.translate(x, y);
 
+        // draw shadow first
+        
+        ctx.strokeStyle = 'black';
+        ctx.globalAlpha = shadowStrength;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(
+            _y * shadowAngle,
+            _y
+        );
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+
+        // draw main post
         let grad = ctx.createLinearGradient(0, -_y, 0, 2 * max - _y);
         grad.addColorStop(0, fg);
         grad.addColorStop(1, fg2);
