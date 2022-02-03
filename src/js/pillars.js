@@ -13,7 +13,7 @@ const DEFAULTS = {
     clear: true,
     shadows: 'auto', // [auto, true, false] auto = 50/50
     gridMode: 'normal', // [auto, normal, scatter, random]
-    density: 'coarse', // [auto, coarse, fine]
+    density: 'auto', // [auto, coarse, fine]
 }
 
 const PI = Math.PI;
@@ -58,11 +58,11 @@ export function pillars(options) {
     // how many cells are in the grid?
     let countMin, countMax;
     if (DENSITY === 'coarse') {
-        countMin = 10;
-        countMax = 30;
+        countMin = 5;
+        countMax = 10;
     } else {
-        countMin = 60;
-        countMax = 100;
+        countMin = 10;
+        countMax = 25;
     }
 
     let cellSize = Math.round(SHORT / randomInRange( countMin, countMax ));
