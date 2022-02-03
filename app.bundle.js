@@ -5561,6 +5561,8 @@ var _clouds = __webpack_require__(29);
 
 var _doodle = __webpack_require__(30);
 
+var _pillars = __webpack_require__(31);
+
 var _roughen = __webpack_require__(24);
 
 var _roughen2 = _interopRequireDefault(_roughen);
@@ -5587,7 +5589,8 @@ var RENDERERS = {
     bands: _bands.bands,
     fragments: _fragments.fragments,
     waves: _waves.waves,
-    doodle: _doodle.doodle
+    doodle: _doodle.doodle,
+    pillars: _pillars.pillars
     //clouds: clouds
 };
 var initRenderer = 'waterline';
@@ -7711,6 +7714,273 @@ function doodle(options) {
     ctx.globalAlpha = 1;
 
     (0, _roughen2.default)(el, opts.roughen);
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            // apply noise from supplied canvas
+            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            // create noise pattern and apply
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, cw / 3);
+        }
+    }
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
+}
+
+/***/ }),
+/* 31 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.pillars = pillars;
+
+var _noiseutils = __webpack_require__(1);
+
+var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _palettes = __webpack_require__(2);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
+var _utils = __webpack_require__(0);
+
+var _shapes = __webpack_require__(3);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var DEFAULTS = {
+    container: 'body',
+    palette: _palettes2.default.de_stijl,
+    addNoise: 0.04,
+    noiseInput: null,
+    dust: false,
+    skew: 1, // normalized skew
+    clear: true,
+    shadows: 'auto', // [auto, true, false] auto = 50/50
+    gridMode: 'normal', // [auto, normal, scatter, random]
+    density: 'auto' // [auto, coarse, fine]
+};
+
+var PI = Math.PI;
+var GRIDMODES = ['normal', 'scatter', 'random'];
+var DENSITIES = ['coarse', 'fine'];
+
+// Main function
+function pillars(options) {
+    var opts = Object.assign({}, DEFAULTS, options);
+
+    var container = opts.container;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
+    var SCALE = Math.min(cw, ch);
+    var LONG = Math.max(cw, ch);
+    var SHORT = Math.min(cw, ch);
+    var AREA = cw * ch;
+
+    // Find or create canvas child
+    var el = container.querySelector('canvas');
+    var newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        el.width = cw;
+        el.height = ch;
+    }
+
+    var ctx = el.getContext('2d');
+
+    // modes and styles
+    var GRIDMODE = opts.gridMode === 'auto' ? (0, _utils.randItem)(GRIDMODES) : opts.gridMode;
+    var DENSITY = opts.density === 'auto' ? (0, _utils.randItem)(DENSITIES) : opts.density;
+    var SHADOWS = opts.shadows === 'auto' ? (0, _utils.randItem)([true, false]) : opts.shadows;
+
+    // color funcs
+    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
+
+    // how many cells are in the grid?
+    var countMin = void 0,
+        countMax = void 0;
+    if (DENSITY === 'coarse') {
+        countMin = 5;
+        countMax = 10;
+    } else {
+        countMin = 10;
+        countMax = 25;
+    }
+
+    var cellSize = Math.round(SHORT / (0, _utils.randomInRange)(countMin, countMax));
+    //console.log(`cellSize: ${cellSize}, ${GRIDMODE}, ${DENSITY}`);
+
+    // setup vars for each cell
+    var x = 0;
+    var y = 0;
+    var xnorm = 0;
+    var ynorm = 0;
+    var renderer = void 0;
+
+    // shared colors
+    var bg = getSolidFill();
+
+    // get palette of non-bg colors
+    var contrastPalette = [].concat(opts.palette);
+    contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
+
+    // shared foregrounds
+    var fg = getContrastColor();
+    var fg2 = getContrastColor();
+    var fg3 = getContrastColor();
+
+    // draw background
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, cw, ch);
+
+    ctx.strokeStyle = fg;
+
+    var cellCount = cw / cellSize;
+    var rateMax = 3;
+    if (DENSITY === 'fine' && Math.random() < 0.5) {
+        rateMax = 6;
+    }
+
+    // tail vars
+    var _x = void 0,
+        _y = void 0,
+        len = void 0;
+
+    // line width
+    var weight = cellSize * (0, _utils.randomInRange)(0.25, .866);
+
+    ctx.lineWidth = weight;
+    ctx.lineCap = 'round';
+
+    // The max height of each column. Thinner cols can be taller.
+    var max = cellSize * (0, _utils.randomInRange)(0.5, 1 / (weight / cellSize));
+
+    // --------------------------------------
+
+
+    // Create a function which is a periodic transform of x, y
+    function createTransform() {
+        var rateMin = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+        var rateMax = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+
+        var rate1 = (0, _utils.randomInRange)(0, rateMax / 2);
+        var rate2 = (0, _utils.randomInRange)(0, rateMax / 2);
+        var rate3 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
+        var rate4 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
+
+        var phase1 = (0, _utils.randomInRange)(-PI, PI);
+        var phase2 = (0, _utils.randomInRange)(-PI, PI);
+        var phase3 = (0, _utils.randomInRange)(-PI, PI);
+        var phase4 = (0, _utils.randomInRange)(-PI, PI);
+
+        var c1 = (0, _utils.randomInRange)(0, 1);
+        var c2 = (0, _utils.randomInRange)(0, 1);
+        var c3 = (0, _utils.randomInRange)(0, 1);
+        var c4 = (0, _utils.randomInRange)(0, 1);
+        return function (xnorm, ynorm) {
+            var t1 = Math.sin(xnorm * rate1 * 2 * PI + phase1);
+            var t2 = Math.sin(ynorm * rate2 * 2 * PI + phase2);
+            var t3 = Math.sin(xnorm * rate3 * 2 * PI + phase3);
+            var t4 = Math.sin(ynorm * rate4 * 2 * PI + phase4);
+            return (c1 * t1 + c2 * t2 + c3 * t3 + c4 * t4) / (c1 + c2 + c3 + c4);
+        };
+    }
+
+    // a set of independent transforms to use while rendering
+    var trans = {
+        x: createTransform(rateMax), // (x,y)=>0,//
+        y: createTransform(rateMax), // (x,y)=>0,//
+        h: createTransform(rateMax) // (x,y)=>0,//
+    };
+
+    function hexPack(size, w, h) {
+        var pts = [];
+        var xcount = Math.ceil(w / size) + 2;
+        var ycount = Math.ceil(h / (size * .8660)) + 10; // extra rows
+        var count = xcount * ycount;
+        var x = void 0,
+            y = void 0;
+        var shift = void 0;
+        for (var j = 0; j <= ycount; j++) {
+            shift = j % 2 ? size * .5 : 0;
+            for (var i = 0; i <= xcount; i++) {
+                x = size * i - shift;
+                y = size * j * .8660;
+                pts.push([x, y]);
+            }
+        }
+        return pts;
+    }
+
+    var pts = [];
+
+    // If we are warping the grid, we should plot points outside of the canvas
+    // bounds to avoid gaps at the edges. Shift them over below.
+    var overscan = 1;
+
+    pts = hexPack(cellSize, cw, ch);
+
+    var shadowAngle = (0, _utils.randomInRange)(0.2, 0.66) * (0, _utils.randItem)([-1, 1]);
+    var shadowStrength = (0, _utils.randomInRange)(0.1, 0.3);
+
+    // step thru points
+    pts.forEach(function (p, i) {
+        x = p[0];
+        y = p[1];
+        xnorm = x / cw;
+        ynorm = y / ch;
+
+        _x = trans.x(xnorm, ynorm);
+        _y = (trans.y(xnorm, ynorm) + 1) / 2 * max;
+
+        if (_y < 0) console.log('oh no', _y);
+
+        // add jitter
+        //_y += 0.15 * cellSize * randomInRange(-1, 1);
+        _y *= (0, _utils.randomInRange)(1, 1.15);
+
+        ctx.translate(x, y);
+
+        // draw shadow first
+
+        ctx.strokeStyle = 'black';
+        ctx.globalAlpha = shadowStrength;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(_y * shadowAngle, _y);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+
+        // draw main post
+        var grad = ctx.createLinearGradient(0, -_y, 0, 2 * max - _y);
+        grad.addColorStop(0, fg);
+        grad.addColorStop(1, fg2);
+        ctx.strokeStyle = grad;
+
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, -_y);
+        ctx.stroke();
+
+        (0, _shapes.drawCircle)(ctx, 0, -_y, weight / 2 - weight / 8, { fill: fg3 });
+
+        ctx.translate(-x, -y);
+    });
 
     // add noise
     if (opts.addNoise) {

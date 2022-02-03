@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 32);
+/******/ 	return __webpack_require__(__webpack_require__.s = 33);
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -888,7 +888,7 @@ var drawHexagon = exports.drawHexagon = _drawPolygon(6, 1.05);
 
 /***/ }),
 
-/***/ 32:
+/***/ 33:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -910,7 +910,7 @@ var _colorbrewer2 = _interopRequireDefault(_colorbrewer);
 
 var _truchet = __webpack_require__(17);
 
-var _numerals = __webpack_require__(33);
+var _numerals = __webpack_require__(34);
 
 var _utils = __webpack_require__(0);
 
@@ -1032,7 +1032,7 @@ setInterval(function () {
 
 /***/ }),
 
-/***/ 33:
+/***/ 34:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
