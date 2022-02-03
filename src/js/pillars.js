@@ -21,7 +21,7 @@ const GRIDMODES = ['normal', 'scatter', 'random'];
 const DENSITIES = ['coarse', 'fine'];
 
 // Main function
-export function surface(options) {
+export function pillars(options) {
     let opts = Object.assign({}, DEFAULTS, options);
 
     let container = opts.container;

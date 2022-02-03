@@ -21,7 +21,7 @@ import { trails } from './trails';
 import { fragments } from './fragments';
 import { clouds } from './clouds';
 import { doodle } from './doodle';
-import { surface } from './surface';
+import { pillars } from './pillars';
 
 import roughen from './roughen';
 
@@ -46,7 +46,7 @@ const RENDERERS = {
     fragments: fragments,
     waves: waves,
     doodle: doodle,
-    surface: surface,
+    pillars: pillars,
     //clouds: clouds
 };
 let initRenderer = 'waterline';
