@@ -11,13 +11,12 @@ const DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     clear: true,
-    lightMode: 'normal', // [auto, bloom, normal]
+    shadows: 'auto', // [auto, true, false] auto = 50/50
     gridMode: 'normal', // [auto, normal, scatter, random]
     density: 'coarse', // [auto, coarse, fine]
 }
 
 const PI = Math.PI;
-const LIGHTMODES = ['bloom', 'normal'];
 const GRIDMODES = ['normal', 'scatter', 'random'];
 const DENSITIES = ['coarse', 'fine'];
 
@@ -49,9 +48,9 @@ export function surface(options) {
     let ctx = el.getContext('2d');
 
     // modes and styles
-    const LIGHTMODE = opts.lightMode === 'auto' ? randItem(LIGHTMODES) : opts.lightMode;
     const GRIDMODE = opts.gridMode === 'auto' ? randItem(GRIDMODES) : opts.gridMode;
     const DENSITY = opts.density === 'auto' ? randItem(DENSITIES) : opts.density;
+    const SHADOWS = opts.shadows === 'auto' ? randItem([true, false]) : opts.shadows;
 
     // color funcs
     let getSolidFill = getSolidColorFunction(opts.palette);
@@ -88,13 +87,6 @@ export function surface(options) {
     let fg = getContrastColor();
     let fg2 = getContrastColor();
     let fg3 = getContrastColor();
-
-    // in bloom mode, we draw high-contrast grayscale, and layer
-    // palette colors on top
-    if (LIGHTMODE === 'bloom') {
-        bg = '#222222';
-        fg = fg2 = '#cccccc';
-    }
 
     // draw background
     ctx.fillStyle = bg;
