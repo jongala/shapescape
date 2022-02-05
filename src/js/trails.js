@@ -96,7 +96,7 @@ export function trails(options) {
     ctx.strokeStyle = fg;
 
     // trails:
-    let rateMax = randomInRange(1, 10); // this is a bit meta and silly
+    let rateMax = randomInRange(0.5, 5); // this is a bit meta and silly
 
     // tail vars
     let _x,_y,len;
