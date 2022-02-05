@@ -6864,7 +6864,7 @@ var DEFAULTS = {
     ctx.strokeStyle = fg;
 
     // trails:
-    var rateMax = (0, _utils.randomInRange)(1, 10); // this is a bit meta and silly
+    var rateMax = (0, _utils.randomInRange)(0.5, 5); // this is a bit meta and silly
 
     // tail vars
     var _x = void 0,
