@@ -7958,13 +7958,15 @@ function pillars(options) {
 
         // draw shadow first
 
-        ctx.strokeStyle = 'black';
-        ctx.globalAlpha = shadowStrength;
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(_y * shadowAngle, _y);
-        ctx.stroke();
-        ctx.globalAlpha = 1;
+        if (opts.shadows) {
+            ctx.strokeStyle = 'black';
+            ctx.globalAlpha = shadowStrength;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(_y * shadowAngle, _y);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+        }
 
         // draw main post
         var grad = ctx.createLinearGradient(0, -_y, 0, 2 * max - _y);
