@@ -60,6 +60,8 @@ export function lines(options) {
 
     ctx = el.getContext('2d');
 
+    let drawOpts = Object.assign({}, opts);
+
     // bg styles
     let BG;
     if (opts.bg === 'auto') {
@@ -68,6 +70,8 @@ export function lines(options) {
     } else {
         BG = opts.bg;
     }
+
+    drawOpts.bg = BG;
 
     // rendering styles
     let drawShapeMask = (Math.random() >= 0.3333); // should we draw a shape-masked line set?
@@ -78,18 +82,24 @@ export function lines(options) {
     // we set drawShapeMask and blendStyle now so we can apply the corresponding
     // overlay options when doing multi-section rendering below.
     if (drawShapeMask) {
-        if (blendSeed >= 0.75) {
+        if (blendSeed <= 0.25) {
             blendStyle = 'fg';
-        } else if (blendSeed >= 0.25) {
+        } else if (blendSeed <= 0.50) {
             blendStyle = 'bg';
         }
     }
 
-    if (blendStyle === 'bg') {
-        Object.assign(opts, {overlay: 'blend'});
+    // debug
+    //blendStyle = 'none';
+
+    if (drawOpts.bg === 'gradient') {
+        // if we will blend, specify a gradient now and re use it
+        drawOpts.blendColors = getGradientFunction(opts.palette)(ctx, cw, ch);
     }
 
-    let drawOpts = Object.assign({}, opts, {bg: BG});
+    if (blendStyle === 'bg') {
+        drawOpts.overlay = 'blend';
+    }
 
     // divide the canvas into multiple sections?
     let splitPoint;
@@ -120,9 +130,9 @@ export function lines(options) {
     // draw shapemask, if specified above
     if (drawShapeMask) {
         if (blendStyle === 'fg') {
-            Object.assign(opts, {overlay: 'blend'});
+            Object.assign(drawOpts, {overlay: 'blend'});
         } else {
-            Object.assign(opts, {overlay: 'none'});
+            Object.assign(drawOpts, {overlay: 'none'});
         }
 
         let maskScale = Math.min(cw, ch) * randomInRange(0.25, 0.6);
@@ -192,7 +202,7 @@ export function drawLines(ctx, p1, p2, opts) {
             ctx.fillStyle = randItem(opts.palette);
             break;
         case 'gradient':
-            ctx.fillStyle = getGradientFunction(opts.palette)(ctx, w, h);
+            ctx.fillStyle = opts.blendColors || getGradientFunction(opts.palette)(ctx, w, h);
             break;
         case 'white':
             ctx.fillStyle = 'white';
@@ -426,7 +436,7 @@ export function drawLines(ctx, p1, p2, opts) {
             break;
         case 'blend':
             ctx.globalCompositeOperation = 'screen';
-            ctx.fillStyle = getGradientFunction(opts.palette)(ctx, w, h);
+            ctx.fillStyle = opts.blendColors || getGradientFunction(opts.palette)(ctx, w, h);
             ctx.fillRect(0, 0, w, h);
             break;
     }
