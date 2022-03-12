@@ -67,40 +67,49 @@ export function grads(options) {
 
     // split into shapes
 
-    let slices = 8;
-    let sw = cw/slices;
+    let sliceCount = 8;
+    let sw = cw/sliceCount;
 
     let g;
 
     let colors = opts.palette.length
 
+    let slices = [];
 
-    for (var i =0; i <= slices; i++) {
+    let sliceGenerators = [
+        function() {
+            let slices = [];
+            for (var i =0; i <= sliceCount; i++) {
+                g = ctx.createLinearGradient(
+                    0,
+                    0 + 0.25 * randomInRange(-ch,ch),
+                    0,
+                    ch + 0.25 * randomInRange(-ch,ch)
+                );
+
+                for (var c = 0; c<= colors - 1 ; c++) {
+                    g.addColorStop(1/colors * c, opts.palette[c]);
+                }
+
+                slices.push(g);
+            }
+            return slices;
+        }
+    ];
+
+    slices = sliceGenerators[0]();
+
+    // draw in order
+    for (var i =0; i < slices.length; i++) {
         ctx.beginPath();
         ctx.fillStyle = getSolidFill();
-        //ctx.fillStyle = getGradientFunction(opts.palette)(ctx, sw, ch)
-        
-        g = ctx.createLinearGradient(
-            0,
-            0 + 0.25 * randomInRange(-ch,ch),
-            0,
-            ch + 0.25 * randomInRange(-ch,ch)
-        );
-        
-        //g.addColorStop(0, opts.palette[0]);
-        //g.addColorStop(1, opts.palette[1]);
 
-        for (var c = 0; c<= colors - 1 ; c++) {
-            g.addColorStop(1/colors * c, opts.palette[c]);
-        }   
+        ctx.fillStyle = slices[i];
 
-        ctx.fillStyle = g;
-        
         ctx.rect(i * sw, 0, (i+1) * sw, ch);
         ctx.closePath();
         ctx.fill();
     }
-
 
 
     // Add effect elements
