@@ -9,14 +9,21 @@
         <select onchange="setPalette(this.value)" id="paletteSelector"></select>
         <input type="text" id="customColors" placeholder="paste colors" />
         <span class="spacerSpan">|</span>
-        <button onClick="setSize('square')">square</button>
-        <button onClick="setSize('wide')">wide</button>
-        <button onClick="setSize('tall')">tall</button>
+        <select onchange="setSize(this.value)">
+            <option value="square">square</option>
+            <option value="wide">wide</option>
+            <option value="tall">tall</option>
+            <option value="p4x6">4 x 6</option>
+            <option value="p6x6">6 x 6</option>
+            <option value="p8x10">8 x 10</option>
+        </select>
         <span class="spacerSpan">|</span>
         <button onclick="drawNew()" id="newImageTrigger">New Image</button>
         <button onclick="createBatch()" id="newBatchTrigger">New Batch</button>
         <!--<button onclick="rerun()" id="rerunTrigger">ReRun</button>-->
         <a href="#" id="downloadExample" target="_blank">↓</a>
+        <span class="spacerSpan">|</span>
+        <button onclick="roughenMain()" id="roughenTrigger">Roughen</button>
     </div>
     <div id="example"></div>
     <div id="saved"><div id="instructions">[space] to redraw. Click image to add to tray. Click thumbnail to preview.</div></div>

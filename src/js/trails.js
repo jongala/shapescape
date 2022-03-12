@@ -5,7 +5,6 @@ import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunct
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
 const PI = Math.PI;
-const LIGHTMODES = ['bloom', 'normal'];
 const GRIDMODES = ['normal', 'scatter', 'random'];
 const COLORMODES = ['length', 'curve', 'change', /*'origin',*/ 'mono', 'duo', 'random' ];
 const STYLES = ['round', 'square'];
@@ -18,7 +17,6 @@ const DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     clear: true,
-    lightMode: 'normal', // from LIGHTMODES
     gridMode: 'scatter', // from GRIDMODES
     colorMode: 'auto', // from COLORMODES
     style: 'auto', // from STYLES
@@ -54,10 +52,11 @@ export function trails(options) {
     let ctx = el.getContext('2d');
 
     // modes and styles
-    const LIGHTMODE = opts.lightMode === 'auto' ? randItem(LIGHTMODES) : opts.lightMode;
     const GRIDMODE = opts.gridMode === 'auto' ? randItem(GRIDMODES) : opts.gridMode;
     const COLORMODE = opts.colorMode === 'auto' ? randItem(COLORMODES) : opts.colorMode;
     const STYLE = opts.style === 'auto' ? randItem(STYLES) : opts.style;
+
+    console.log('Trails:', GRIDMODE, COLORMODE, STYLE);
 
     // color funcs
     let getSolidFill = getSolidColorFunction(opts.palette);
@@ -90,13 +89,6 @@ export function trails(options) {
     let fg = getContrastColor();
     let fg2 = getContrastColor();
 
-    // in bloom mode, we draw high-contrast grayscale, and layer
-    // palette colors on top
-    if (LIGHTMODE === 'bloom') {
-        bg = '#222222';
-        fg = fg2 = '#cccccc';
-    }
-
     // draw background
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, cw, ch);
@@ -104,7 +96,7 @@ export function trails(options) {
     ctx.strokeStyle = fg;
 
     // trails:
-    let rateMax = randomInRange(1, 10); // this is a bit meta and silly
+    let rateMax = randomInRange(0.5, 5); // this is a bit meta and silly
 
     // tail vars
     let _x,_y,len;
@@ -433,51 +425,6 @@ export function trails(options) {
     });
 
     ctx.globalAlpha = 1;
-
-    // in bloom mode, we draw a big colorful gradient over the grayscale
-    // background, using palette colors and nice blend modes
-    if (LIGHTMODE === 'bloom') {
-        ctx.globalCompositeOperation = 'color-dodge';
-
-        // bloom with linear gradient
-        ctx.fillStyle = getGradientFunction(opts.palette)(ctx, cw, ch);//getContrastColor();
-        ctx.fillRect(0, 0, cw, ch);
-
-        if (Math.random() < 0.5) {
-            // bloom with spot lights
-            let dodgeDot = (max = 1.5) => {
-                let gx, gy, gr1, gr2;
-                gx = randomInRange(0, cw);
-                gy = randomInRange(0, ch);
-                gr1 = randomInRange(0, 0.25);
-                gr2 = randomInRange(gr1, max);
-
-                let radial = ctx.createRadialGradient(
-                    gx,
-                    gy,
-                    gr1 * SCALE,
-                    gx,
-                    gy,
-                    gr2 * SCALE
-                );
-                radial.addColorStop(0, randItem(opts.palette));
-                radial.addColorStop(1, '#000000');
-
-                ctx.fillStyle = radial;
-                ctx.fillRect(0, 0, cw, ch);
-            }
-            // try layering dots with varying coverage
-            ctx.globalAlpha = randomInRange(0.4, 0.7);
-            dodgeDot(1.5);
-            ctx.globalAlpha = randomInRange(0.4, 0.7);
-            dodgeDot(1.0);
-            ctx.globalAlpha = randomInRange(0.7, 0.9);
-            dodgeDot(0.5);
-            ctx.globalAlpha = 1;
-        }
-
-        ctx.globalCompositeOperation = 'normal';
-    }
 
     let tEnd = new Date().getTime();
 

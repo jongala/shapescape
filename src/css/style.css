@@ -86,6 +86,25 @@ button.activeRenderer {
     height: 1600px;
 }
 
+#example.p4x6 {
+    width: 1800px;
+    height: 1200px;
+    transform: scale(0.5);
+}
+
+#example.p6x6 {
+    width: 1800px;
+    height: 1800px;
+    transform: scale(0.50);
+}
+
+#example.p8x10 {
+    width: 2400px;
+    height: 3000px;
+    transform: scale(0.33);
+}
+
+
 .artContainer {
     position: relative;
 }

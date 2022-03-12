@@ -21,6 +21,9 @@ import { trails } from './trails';
 import { fragments } from './fragments';
 import { clouds } from './clouds';
 import { grads } from './grads';
+import { doodle } from './doodle';
+import { pillars } from './pillars';
+import roughen from './roughen';
 import { setAttrs } from './utils';
 
 // Renderers
@@ -42,6 +45,8 @@ const RENDERERS = {
     fragments: fragments,
     waves: waves,
     grads: grads,
+    doodle: doodle,
+    pillars: pillars,
     //clouds: clouds
 };
 let initRenderer = 'waterline';
@@ -261,6 +266,9 @@ pnames.forEach(function(pname) {
     var option = document.createElement('option');
     option.value = pname;
     option.innerHTML = pname;
+    if(pname === "default") {
+        option.innerHTML = "default colors";
+    }
     selectEl.appendChild(option);
 });
 
@@ -321,8 +329,7 @@ function hideMain() {
 }
 
 function setSize(className) {
-    exampleNode.className = exampleNode.className.replace(/(wide|square|tall)/g, '');
-    exampleNode.className += ` ${className} `;
+    exampleNode.className = className;
     drawNew();
 }
 window.setSize = setSize;
@@ -333,6 +340,15 @@ document.querySelector('#saved').addEventListener('click', function(e) {
         previewImage(e.target.parentNode.cloneNode(true));
     }
 });
+
+function roughenMain() {
+    var canvas = document.querySelector('#example canvas');
+    var ctx = canvas.getContext('2d');
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
+    roughen(canvas, 3);
+}
+window.roughenMain = roughenMain;
 
 exampleNode.addEventListener('click', function(e) {
     renderCanvasToImg(exampleNode.querySelector('canvas'), document.querySelector('#saved'));
