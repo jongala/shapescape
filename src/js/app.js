@@ -20,6 +20,7 @@ import { field } from './field';
 import { trails } from './trails';
 import { fragments } from './fragments';
 import { clouds } from './clouds';
+import { grads } from './grads';
 import { setAttrs } from './utils';
 
 // Renderers
@@ -40,6 +41,7 @@ const RENDERERS = {
     bands: bands,
     fragments: fragments,
     waves: waves,
+    grads: grads,
     //clouds: clouds
 };
 let initRenderer = 'waterline';
