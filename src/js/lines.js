@@ -81,25 +81,25 @@ export function lines(options) {
 
     // we set drawShapeMask and blendStyle now so we can apply the corresponding
     // overlay options when doing multi-section rendering below.
-    if (drawShapeMask) {
-        if (blendSeed <= 0.25) {
-            blendStyle = 'fg';
-        } else if (blendSeed <= 0.50) {
-            blendStyle = 'bg';
-        }
-    }
+    // if (drawShapeMask) {
+    //     if (blendSeed <= 0.25) {
+    //         blendStyle = 'fg';
+    //     } else if (blendSeed <= 0.50) {
+    //         blendStyle = 'bg';
+    //     }
+    // }
 
     // debug
-    //blendStyle = 'none';
+    blendStyle = 'none';
 
     if (drawOpts.bg === 'gradient') {
         // if we will blend, specify a gradient now and re use it
         drawOpts.blendColors = getGradientFunction(opts.palette)(ctx, cw, ch);
     }
 
-    if (blendStyle === 'bg') {
-        drawOpts.overlay = 'blend';
-    }
+    // if (blendStyle === 'bg') {
+    //     drawOpts.overlay = 'blend';
+    // }
 
     // divide the canvas into multiple sections?
     let splitPoint;
@@ -129,11 +129,11 @@ export function lines(options) {
 
     // draw shapemask, if specified above
     if (drawShapeMask) {
-        if (blendStyle === 'fg') {
-            Object.assign(drawOpts, {overlay: 'blend'});
-        } else {
+        // if (blendStyle === 'fg') {
+        //     Object.assign(drawOpts, {overlay: 'blend'});
+        // } else {
             Object.assign(drawOpts, {overlay: 'none'});
-        }
+        //}
 
         let maskScale = Math.min(cw, ch) * randomInRange(0.25, 0.6);
         // Get and use random shape for masking. No fill required.
