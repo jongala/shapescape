@@ -5,6 +5,9 @@ import { randItem, randomInRange, getGradientFunction, getSolidColorFunction } f
 
 const SILVERS = ['#ffffff','#f2f2f2','#eeeeee','#e7e7e7','#e0e0e0','#d7d7d7'];
 
+const PI = Math.PI;
+const TWOPI = PI * 2;
+
 // Tile the container
 export function grads(options) {
     var defaults = {
@@ -66,8 +69,8 @@ export function grads(options) {
     ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
 
     // split into shapes
-
-    let sliceCount = 8;
+    // add some slices, add more for high aspect ratios
+    let sliceCount = Math.round(randomInRange(6,10) * cw/ch);
     let sw = cw/sliceCount;
 
     let g;
@@ -76,10 +79,12 @@ export function grads(options) {
 
     let slices = [];
 
+    // Array of functions which will define slices. Slices are just arrays of gradients.
     let sliceGenerators = [
-        function() {
+        // random
+        function(count) {
             let slices = [];
-            for (var i =0; i <= sliceCount; i++) {
+            for (var i =0; i <= count; i++) {
                 g = ctx.createLinearGradient(
                     0,
                     0 + 0.25 * randomInRange(-ch,ch),
@@ -94,12 +99,36 @@ export function grads(options) {
                 slices.push(g);
             }
             return slices;
+        },
+        // sine
+        function(count) {
+            let slices = [];
+            let rate = randomInRange(0.5, 2);
+            let phase = randomInRange(0, PI);
+            let a1 = randomInRange(0.2, 1.5);
+            let a2 = randomInRange(0.2, 1.5);
+
+            for (var i =0; i <= count; i++) {
+                g = ctx.createLinearGradient(
+                    0,
+                    0 + 0.25 * a1 * ch * Math.sin(rate * (i/count * TWOPI + phase)),
+                    0,
+                    ch + 0.25 * a2 * ch * Math.sin(rate * (i/count * TWOPI + phase))
+                );
+
+                for (var c = 0; c<= colors - 1 ; c++) {
+                    g.addColorStop(1/colors * c, opts.palette[c]);
+                }
+
+                slices.push(g);
+            }
+            return slices;
         }
     ];
 
-    slices = sliceGenerators[0]();
+    slices = sliceGenerators[1](sliceCount);
 
-    // draw in order
+    // Step through the slices, and draw a rectangle with the gradient defined in each slice
     for (var i =0; i < slices.length; i++) {
         ctx.beginPath();
         ctx.fillStyle = getSolidFill();
