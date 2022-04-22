@@ -13,10 +13,10 @@ export function grads(options) {
     var defaults = {
         container: 'body',
         palette: palettes.terra_cotta_cactus,
+        middleOut: 'auto', // 'auto' 'true' 'false'
         drawShadows: false,
         addNoise: 0.04,
         noiseInput: null,
-        skew: 1, // normalized skew
         clear: true
     };
     var opts = {};
@@ -57,12 +57,18 @@ export function grads(options) {
 
     let getSolidFill = getSolidColorFunction(opts.palette);
 
-    /*let x = {
-        fill: getGradientFunction(opts.palette)(ctx, cw, ch)
-    }*/
+
+    // drawing order
+    let MIDDLEOUT;
+    if (opts.middleOut === 'auto') {
+        MIDDLEOUT = (Math.random() > 0.5);
+    } else if (opts.middleOut === 'false') {
+        MIDDLEOUT = false;
+    } else {
+        MIDDLEOUT = true;
+    }
 
     // shadows
-
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
     ctx.shadowBlur = 25 * Math.min(cw, ch) / 800;
@@ -71,6 +77,8 @@ export function grads(options) {
     // split into shapes
     // add some slices, add more for high aspect ratios
     let sliceCount = Math.round(randomInRange(6,10) * cw/ch);
+    if (sliceCount % 2 == 0) sliceCount++;
+
     let sw = cw/sliceCount;
 
     let g;
@@ -104,7 +112,7 @@ export function grads(options) {
         function(count) {
             let slices = [];
             let rate = randomInRange(0.5, 2);
-            let phase = randomInRange(0, PI);
+            let phase = randomInRange(-PI, PI);
             let a1 = randomInRange(0.2, 1.5);
             let a2 = randomInRange(0.2, 1.5);
 
@@ -129,17 +137,41 @@ export function grads(options) {
     slices = sliceGenerators[1](sliceCount);
 
     // Step through the slices, and draw a rectangle with the gradient defined in each slice
-    for (var i =0; i < slices.length; i++) {
+
+    // A utility function to draw a single slice
+    function drawSliceAtIndex(i) {
         ctx.beginPath();
         ctx.fillStyle = getSolidFill();
 
         ctx.fillStyle = slices[i];
 
-        ctx.rect(i * sw, 0, (i+1) * sw, ch);
+        ctx.rect(i * sw, 0, sw, ch);
         ctx.closePath();
         ctx.fill();
     }
 
+    // If middle out, alternate outward from the center slice, to get nice shadow stacking
+    // Otherwise just draw them in order
+    if (MIDDLEOUT) {
+        // start in the middle and alternate outward
+        let middle = Math.floor(sliceCount / 2);
+        let steps = 0;
+        let increment = 1;
+
+        drawSliceAtIndex(middle);
+        steps = 1;
+        while (steps < sliceCount) {
+            drawSliceAtIndex(middle + increment);
+            drawSliceAtIndex(middle - increment);
+            increment++;
+            steps += 2;
+        }
+    } else {
+        // draw each slice in order
+        for (var i =0; i < slices.length; i++) {
+            drawSliceAtIndex(i);
+        }
+    }
 
     // Add effect elements
     // ...
