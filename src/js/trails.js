@@ -21,7 +21,7 @@ const DEFAULTS = {
     colorMode: 'auto', // from COLORMODES
     style: 'auto', // from STYLES
     mixWeight: false,
-    isolate: false
+    isolate: true
 }
 
 // Main function
@@ -273,7 +273,7 @@ export function trails(options) {
     if (!opts.isolate) {
         ctx.globalAlpha = randomInRange(0.5, 0.75);
         //ctx.globalCompositeOperation = 'overlay';
-        stepBase = 30; // max of normal range. TODO make this more interesting
+        stepBase = randomInRange(20, 40); // near normal max. TODO make this more interesting
         weight = randomInRange(0.5, 1.5); // thinner lines
         ctx.lineWidth = weight;
     }
