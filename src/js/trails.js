@@ -21,7 +21,7 @@ const DEFAULTS = {
     colorMode: 'auto', // from COLORMODES
     style: 'auto', // from STYLES
     mixWeight: false,
-    isolate: true
+    isolate: false
 }
 
 // Main function
@@ -56,7 +56,7 @@ export function trails(options) {
     const COLORMODE = opts.colorMode === 'auto' ? randItem(COLORMODES) : opts.colorMode;
     const STYLE = opts.style === 'auto' ? randItem(STYLES) : opts.style;
 
-    console.log('Trails:', GRIDMODE, COLORMODE, STYLE);
+    console.log('==================================\nTrails:', GRIDMODE, COLORMODE, STYLE);
 
     // color funcs
     let getSolidFill = getSolidColorFunction(opts.palette);
@@ -152,6 +152,14 @@ export function trails(options) {
         let c2 = randomInRange(0, 1);
         let c3 = randomInRange(0, 1);
         let c4 = randomInRange(0, 1);
+
+        window.logs && console.log('Field scalars:',
+            `\nx1: ${c1.toPrecision(4)}  rate:${rate1.toPrecision(4)}  phase:${phase1.toPrecision(4)}`,
+            `\ny1: ${c2.toPrecision(4)}  rate:${rate2.toPrecision(4)}  phase:${phase2.toPrecision(4)}`,
+            `\nx2: ${c3.toPrecision(4)}  rate:${rate3.toPrecision(4)}  phase:${phase3.toPrecision(4)}`,
+            `\ny2: ${c4.toPrecision(4)}  rate:${rate4.toPrecision(4)}  phase:${phase4.toPrecision(4)}`,
+            `\nRatios: x1/y1:${(rate1/rate2).toPrecision(4)} x2/y2:${(rate3/rate4).toPrecision(4)} `
+        );
         return (xnorm, ynorm) => {
             let t1 = Math.sin(xnorm * rate1 * 2 * PI + phase1);
             let t2 = Math.sin(ynorm * rate2 * 2 * PI + phase2);
@@ -163,11 +171,11 @@ export function trails(options) {
 
     // a set of independent transforms to use while rendering
     let trans = {
-        xbase: createTransform(0, rateMax),
-        ybase: createTransform(0, rateMax),
+        //xbase: createTransform(0, rateMax),
+        //ybase: createTransform(0, rateMax),
         xtail: createTransform(0, rateMax),
         ytail: createTransform(0, rateMax),
-        radius: createTransform(0, rateMax),
+        //radius: createTransform(0, rateMax),
         color: createTransform(0, 5/SHORT) // change colors slowly
     }
 
@@ -262,6 +270,14 @@ export function trails(options) {
     // each step is too small to avoid colliding with the last.
     let trail = [];
 
+    if (!opts.isolate) {
+        ctx.globalAlpha = randomInRange(0.5, 0.75);
+        //ctx.globalCompositeOperation = 'overlay';
+        stepBase = 30; // max of normal range. TODO make this more interesting
+        weight = randomInRange(0.5, 1.5); // thinner lines
+        ctx.lineWidth = weight;
+    }
+
     pts.forEach((p, i) => {
         //ctx.strokeStyle = (i%2)? fg : fg2;
         //ctx.strokeStyle = (i%2)? 'white' : 'black';
@@ -349,6 +365,7 @@ export function trails(options) {
         let trailStart;
         let trailEnd;
 
+
         // Deferred drawing
         // foreach trail, render it
         if (trail.length) {
@@ -404,21 +421,23 @@ export function trails(options) {
             ctx.beginPath();
             ctx.moveTo(...trailStart);
 
-            rctx.beginPath();
-            rctx.moveTo(...trailStart);
+            if(opts.isolate) {
+                rctx.beginPath();
+                rctx.moveTo(...trailStart);
+            }
 
             trail.forEach((pt, i) => {
                 ctx.lineTo(
                     pt[0],
                     pt[1]
                 );
-                rctx.lineTo(
+                opts.isolate && rctx.lineTo(
                     pt[0],
                     pt[1]
                 );
             });
             ctx.stroke();
-            rctx.stroke();
+            opts.isolate && rctx.stroke();
             trail = [];
         }
 
