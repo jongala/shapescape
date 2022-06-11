@@ -208,7 +208,7 @@ export function field(options) {
                 sources.forEach((source) => {
                     let dx = xnorm - source.x;
                     let dy = ynorm - source.y;
-                    let _r = (dx * dx + dy * dy); // really r squared but that's what we want
+                    let _r = (dx * dx + dy * dy) + 0.005; // really r squared but that's what we want
                     let scalar = source.sign * source.strength/(_r);
                     let _x = scalar * (dx);
                     let _y = scalar * (dy);
@@ -282,7 +282,7 @@ export function field(options) {
         });
     }
 
-    let sourceTransform = createSourceSinkTransform(Math.round(randomInRange(3,9)));
+    let sourceTransform = createSourceSinkTransform(Math.round(randomInRange(5, 15)));
 
 
     ctx.strokeStyle = fg;
