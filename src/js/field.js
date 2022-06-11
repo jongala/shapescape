@@ -200,21 +200,24 @@ export function field(options) {
             });
         }
 
-        return (xnorm, ynorm) => {
-            let v = [0, 0]; // force vector to return
+        return {
+            sources: sources,
+            t: (xnorm, ynorm) => {
+                let v = [0, 0]; // force vector to return
 
-            sources.forEach((source) => {
-                let dx = xnorm - source.x;
-                let dy = ynorm - source.y;
-                let _r = (dx * dx + dy * dy); // really r squared but that's what we want
-                let scalar = source.sign * source.strength/(_r);
-                let _x = scalar * (dx);
-                let _y = scalar * (dy);
-                v[0] += _x;
-                v[1] += _y;
-            });
+                sources.forEach((source) => {
+                    let dx = xnorm - source.x;
+                    let dy = ynorm - source.y;
+                    let _r = (dx * dx + dy * dy); // really r squared but that's what we want
+                    let scalar = source.sign * source.strength/(_r);
+                    let _x = scalar * (dx);
+                    let _y = scalar * (dy);
+                    v[0] += _x;
+                    v[1] += _y;
+                });
 
-            return v;
+                return v;
+            }
         }
     }
 
@@ -284,7 +287,13 @@ export function field(options) {
 
     ctx.strokeStyle = fg;
 
-    lineScale = 10 / SCALE;
+    // source/sink stuff
+    let totalStrength = 0;
+    sourceTransform.sources.forEach((source) => {
+        totalStrength += source.strength;
+    });
+    lineScale = 0.75/totalStrength;
+    
 
     // step thru points
     pts.forEach((p, i) => {
@@ -296,8 +305,8 @@ export function field(options) {
         //_x = trans.xtail(xnorm, ynorm);
         //_y = trans.ytail(xnorm, ynorm);
 
-        _x = sourceTransform(xnorm, ynorm)[0];
-        _y = sourceTransform(xnorm, ynorm)[1];
+        _x = sourceTransform.t(xnorm, ynorm)[0];
+        _y = sourceTransform.t(xnorm, ynorm)[1];
 
 
         len = Math.sqrt(_x * _x + _y * _y);
