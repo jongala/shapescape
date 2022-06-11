@@ -87,6 +87,10 @@ export function grads(options) {
 
     let slices = [];
 
+    if (Math.random() > 0.5) {
+        opts.palette = opts.palette.reverse();
+    }
+
     // Array of functions which will define slices. Slices are just arrays of gradients.
     let sliceGenerators = [
         // random
