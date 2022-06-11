@@ -12,7 +12,7 @@ const DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     clear: true,
-    lightMode: 'auto', // [auto, bloom, normal]
+    lightMode: 'normal', // [auto, bloom, normal]
     gridMode: 'auto', // [auto, normal, scatter, random]
     density: 'auto', // [auto, coarse, fine]
 }
@@ -176,6 +176,38 @@ export function field(options) {
         }
     }
 
+    function createSourceSinkTransform (sources = 2, sinks = 2) {
+        let source1 = {
+            strength: randomInRange(5, 25),
+            x: randomInRange(0, 1),
+            y: randomInRange(0, 1)
+        }
+
+        let sink1 = {
+            r: randomInRange(1, 5),
+            x: randomInRange(0, 1),
+            y: randomInRange(0, 1)
+        }
+
+        drawCircle(ctx, source1.x, source1.y, source1.strength, {
+            fill: null,
+            stroke: 'green'
+        })
+
+        return (xnorm, ynorm) => {
+            let dx = xnorm - source1.x;
+            let dy = ynorm - source1.y;
+            let _r = (dx * dx + dy * dy); // really r squared but that's what we want
+            //console.log(_r);
+            let scalar = source1.strength/_r;
+            let _x = scalar * (dx); 
+            let _y = scalar * (dy);
+
+            //console.log(_x.toPrecision(4), _y.toPrecision(4), _r.toPrecision(4));
+            return [_x, _y];
+        }
+    }
+
     // a set of independent transforms to use while rendering
     let trans = {
         xbase: createTransform(rateMax), // (x,y)=>0,//
@@ -237,6 +269,13 @@ export function field(options) {
         });
     }
 
+    let sourceTransform = createSourceSinkTransform();
+
+
+    ctx.strokeStyle = fg;
+
+    lineScale = 10 / SCALE;
+
     // step thru points
     pts.forEach((p, i) => {
         x = p[0];
@@ -244,8 +283,13 @@ export function field(options) {
         xnorm = x/cw;
         ynorm = y/ch;
 
-        _x = trans.xtail(xnorm, ynorm);
-        _y = trans.ytail(xnorm, ynorm);
+        //_x = trans.xtail(xnorm, ynorm);
+        //_y = trans.ytail(xnorm, ynorm);
+
+        _x = sourceTransform(xnorm, ynorm)[0];
+        _y = sourceTransform(xnorm, ynorm)[1];
+
+
         len = Math.sqrt(_x * _x + _y * _y);
 
         // shift base points to their warped coordinates
