@@ -176,35 +176,45 @@ export function field(options) {
         }
     }
 
-    function createSourceSinkTransform (sources = 2, sinks = 2) {
-        let source1 = {
-            strength: randomInRange(5, 25),
-            x: randomInRange(0, 1),
-            y: randomInRange(0, 1)
-        }
+    function createSourceSinkTransform (count = 4) {
+        let sources = [];
+        let stroke = 'green';
 
-        let sink1 = {
-            r: randomInRange(1, 5),
-            x: randomInRange(0, 1),
-            y: randomInRange(0, 1)
+        while(count--) {
+            let src = {
+                strength: randomInRange(1, 10) * 2,
+                sign: 1,
+                x: randomInRange(-0.2, 1.2), // add some overscan
+                y: randomInRange(-0.2, 1.2)
+            }
+            if (Math.random() > 0.5) {
+                stroke = 'green';
+            } else {
+                stroke = 'red';
+                src.sign *= -1;
+            }
+            sources.push(src);
+                drawCircle(ctx, src.x * cw, src.y * ch, src.strength * 2, {
+                fill: null,
+                stroke: stroke
+            });
         }
-
-        drawCircle(ctx, source1.x, source1.y, source1.strength, {
-            fill: null,
-            stroke: 'green'
-        })
 
         return (xnorm, ynorm) => {
-            let dx = xnorm - source1.x;
-            let dy = ynorm - source1.y;
-            let _r = (dx * dx + dy * dy); // really r squared but that's what we want
-            //console.log(_r);
-            let scalar = source1.strength/_r;
-            let _x = scalar * (dx); 
-            let _y = scalar * (dy);
+            let v = [0, 0]; // force vector to return
 
-            //console.log(_x.toPrecision(4), _y.toPrecision(4), _r.toPrecision(4));
-            return [_x, _y];
+            sources.forEach((source) => {
+                let dx = xnorm - source.x;
+                let dy = ynorm - source.y;
+                let _r = (dx * dx + dy * dy); // really r squared but that's what we want
+                let scalar = source.sign * source.strength/(_r);
+                let _x = scalar * (dx);
+                let _y = scalar * (dy);
+                v[0] += _x;
+                v[1] += _y;
+            });
+
+            return v;
         }
     }
 
@@ -269,7 +279,7 @@ export function field(options) {
         });
     }
 
-    let sourceTransform = createSourceSinkTransform();
+    let sourceTransform = createSourceSinkTransform(Math.round(randomInRange(3,9)));
 
 
     ctx.strokeStyle = fg;
