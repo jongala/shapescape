@@ -108,7 +108,7 @@ export function doodle(options) {
 
     // dotScale will be multiplied by 2. Keep below .25 to avoid bleed.
     // Up to 0.5 will lead to full coverage.
-    let dotScale = cellSize * randomInRange(0.15, 0.25);
+    let dotScale = cellSize * randomInRange(0.1, 0.2);
     // line width
     let weight = cellSize * randomInRange(0.05, 0.15);
 
@@ -261,15 +261,13 @@ export function doodle(options) {
         randItem(shapes)(ctx,
             x,
             y,
-            (trans.radius(xnorm, ynorm) + randomInRange(1.0, 1.2)) * dotScale,
+            dotScale + (1 + trans.radius(xnorm, ynorm)) * (cellSize/2 - dotScale) / 2.5,
             {
                 fill: null,
                 stroke: contrastPalette[colorIndex],//fg2,
                 angle: PI * trans.angle(xnorm, ynorm)
             }
         );
-
-        //ctx.globalAlpha = opacityFunc(xnorm, ynorm);
     });
 
     ctx.globalAlpha = 1;
