@@ -5,6 +5,7 @@ import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunct
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
 const PI = Math.PI;
+const FIELDMODES = ['harmonic', 'flow'];
 const GRIDMODES = ['normal', 'scatter', 'random'];
 const COLORMODES = ['length', 'curve', 'change', /*'origin',*/ 'mono', 'duo', 'random' ];
 const STYLES = ['round', 'square'];
@@ -17,6 +18,7 @@ const DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     clear: true,
+    fieldMode: 'auto', // [auto, harmonic, flow]
     gridMode: 'scatter', // from GRIDMODES
     colorMode: 'auto', // from COLORMODES
     style: 'auto', // from STYLES
@@ -52,11 +54,12 @@ export function trails(options) {
     let ctx = el.getContext('2d');
 
     // modes and styles
+    const FIELDMODE = opts.fieldMode === 'auto' ? randItem(FIELDMODES) : opts.fieldMode;
     const GRIDMODE = opts.gridMode === 'auto' ? randItem(GRIDMODES) : opts.gridMode;
     const COLORMODE = opts.colorMode === 'auto' ? randItem(COLORMODES) : opts.colorMode;
     const STYLE = opts.style === 'auto' ? randItem(STYLES) : opts.style;
 
-    console.log('==================================\nTrails:', GRIDMODE, COLORMODE, STYLE);
+    console.log('==================================\nTrails:', FIELDMODE, GRIDMODE, COLORMODE, STYLE);
 
     // color funcs
     let getSolidFill = getSolidColorFunction(opts.palette);
@@ -179,6 +182,52 @@ export function trails(options) {
         color: createTransform(0, 5/SHORT) // change colors slowly
     }
 
+    function createSourceSinkTransform (count = 4) {
+        let sources = [];
+
+        while(count--) {
+            let src = {
+                strength: randomInRange(1, 20),
+                sign: 1,
+                x: randomInRange(-0.25, 1.25), // add some overscan
+                y: randomInRange(-0.25, 1.25)
+            }
+            if (Math.random() > 0.9) { // occasionally make sinks instead of sources
+                src.sign *= -1;
+            }
+            sources.push(src);
+        }
+
+        return {
+            sources: sources,
+            t: (xnorm, ynorm) => {
+                let v = [0, 0]; // force vector to return
+
+                sources.forEach((source) => {
+                    let rmin = source.strength / 1000; // magic number
+
+
+                    let dx = xnorm - source.x;
+                    let dy = ynorm - source.y;
+                    let _r = (dx * dx + dy * dy); // really r squared but that's what we want
+
+                    if(_r < rmin) {
+                        _r = rmin;
+                    }; // min r
+
+                    let scalar = source.sign * source.strength/(_r);
+
+                    let _x = scalar * (dx);
+                    let _y = scalar * (dy);
+                    v[0] += _x;
+                    v[1] += _y;
+                });
+
+                return v;
+            }
+        }
+    }
+
     function randomScatter(size, w, h) {
         let pts = [];
         let xcount = Math.ceil(w / size);
@@ -264,6 +313,17 @@ export function trails(options) {
 
     let tStart = new Date().getTime();
 
+    // source/sink stuff
+    let sourceTransform = createSourceSinkTransform(Math.round(randomInRange(5, 15)));
+    if (FIELDMODE === 'flow') {
+        let totalStrength = 0;
+        sourceTransform.sources.forEach((source) => {
+            totalStrength += source.strength;
+        });
+        lineScale = 1/totalStrength;
+    }
+
+
     // to avoid self blocking,
     // hold each trail and defer reference rendering till each is done.
     // This allows self intersection, but avoids self-interference when
@@ -313,8 +373,16 @@ export function trails(options) {
             xnorm = x/cw;
             ynorm = y/ch;
 
-            _x = trans.xtail(xnorm, ynorm);
-            _y = trans.ytail(xnorm, ynorm);
+            if (FIELDMODE === 'flow') {
+                // flow fields (source-sink)
+                let flow = sourceTransform.t(xnorm, ynorm);
+                _x = flow[0];
+                _y = flow[1];
+            } else {
+                // harmonic fields
+                _x = trans.xtail(xnorm, ynorm);
+                _y = trans.ytail(xnorm, ynorm);
+            }
 
             dx = cellSize * _x * lineScale;
             dy = cellSize * _y * lineScale
