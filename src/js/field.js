@@ -187,69 +187,31 @@ export function field(options) {
                 x: randomInRange(-0.25, 1.25), // add some overscan
                 y: randomInRange(-0.25, 1.25)
             }
-            if (Math.random() < 1.6666) {
-                stroke = 'green';
-            } else {
-                stroke = 'red';
+            if (Math.random() > 0.9) { // occasionally make sinks instead of sources
                 src.sign *= -1;
             }
             sources.push(src);
-                drawCircle(ctx, src.x * cw, src.y * ch, src.strength * 2, {
-                fill: null,
-                stroke: stroke
-            });
         }
-
-
-        let maxscalar = 250;
 
         return {
             sources: sources,
             t: (xnorm, ynorm) => {
                 let v = [0, 0]; // force vector to return
 
-                ctx.strokeStyle = 'white';
-
                 sources.forEach((source) => {
-                    let rmin = source.strength / 1000;
+                    let rmin = source.strength / 1000; // magic number
 
 
                     let dx = xnorm - source.x;
                     let dy = ynorm - source.y;
-                    let _r = (dx * dx + dy * dy);// + 0.001; // really r squared but that's what we want
+                    let _r = (dx * dx + dy * dy); // really r squared but that's what we want
 
                     if(_r < rmin) {
-                        //console.log('_r less than rmin', _r.toPrecision(4), rmin.toPrecision(4));
-                        //ctx.strokeStyle = '#ff0099';
                         _r = rmin;
                     }; // min r
 
                     let scalar = source.sign * source.strength/(_r);
-
-                    let revert = false;
-                    let oldstroke = ctx.strokeStyle;
-                    if(_r < rmin || Math.abs(scalar) > maxscalar) {
-                        console.log('--------------------');
-                        console.log((_r/rmin).toPrecision(4), (scalar/maxscalar).toPrecision(4));
-                        revert = true;
-                        //ctx.strokeStyle = '#0f0';
-                    }
                     
-
-                    if(Math.abs(scalar) > maxscalar) {
-                        //console.log('scalar too large', scalar.toPrecision(4), maxscalar);
-                        ctx.strokeStyle = '#fc0';
-                    }
-
-                    if(_r <= rmin) {
-                        //console.log('_r less than rmin', _r.toPrecision(4), rmin.toPrecision(4));
-                        ctx.strokeStyle = '#ff0099';
-                        //_r = rmin;
-                    }; // min r
-
-                    
-                    //if(scalar > maxscalar) {scalar = maxscalar}
-                    //if(scalar < -maxscalar) {scalar = -maxscalar}
                     let _x = scalar * (dx);
                     let _y = scalar * (dy);
                     v[0] += _x;
@@ -333,7 +295,6 @@ export function field(options) {
         totalStrength += source.strength;
     });
     lineScale = 1/totalStrength;
-    
 
     // step thru points
     pts.forEach((p, i) => {
@@ -349,23 +310,21 @@ export function field(options) {
         y = y + cellSize * trans.ybase(xnorm, ynorm) * warp;
 
         ctx.globalAlpha = 1;
-        /*drawCircle(ctx,
+        drawCircle(ctx,
             x,
             y,
             (trans.radius(xnorm, ynorm) + 1) * dotScale,
             {fill: fg2}
-        );*/
+        );
 
+        // if source-sink
         let flow = sourceTransform.t(xnorm, ynorm);
-
-        //_x = trans.xtail(xnorm, ynorm);
-        //_y = trans.ytail(xnorm, ynorm);
-
         _x = flow[0];
         _y = flow[1];
 
-
-        len = Math.sqrt(_x * _x + _y * _y);
+        // if flow fields
+        //_x = trans.xtail(xnorm, ynorm);
+        //_y = trans.ytail(xnorm, ynorm);
 
         ctx.globalAlpha = opacityFunc(_x, _y);
 
