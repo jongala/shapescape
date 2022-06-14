@@ -12,12 +12,14 @@ const DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     clear: true,
+    fieldMode: 'auto', // [auto, harmonic, flow]
     lightMode: 'normal', // [auto, bloom, normal]
     gridMode: 'auto', // [auto, normal, scatter, random]
     density: 'auto', // [auto, coarse, fine]
 }
 
 const PI = Math.PI;
+const FIELDMODES = ['harmonic', 'flow'];
 const LIGHTMODES = ['bloom', 'normal'];
 const GRIDMODES = ['normal', 'scatter', 'random'];
 const DENSITIES = ['coarse', 'fine'];
@@ -53,6 +55,7 @@ export function field(options) {
     const LIGHTMODE = opts.lightMode === 'auto' ? randItem(LIGHTMODES) : opts.lightMode;
     const GRIDMODE = opts.gridMode === 'auto' ? randItem(GRIDMODES) : opts.gridMode;
     const DENSITY = opts.density === 'auto' ? randItem(DENSITIES) : opts.density;
+    const FIELDMODE = opts.fieldMode === 'auto' ? randItem(FIELDMODES) : opts.fieldMode;
 
     // color funcs
     let getSolidFill = getSolidColorFunction(opts.palette);
@@ -68,7 +71,7 @@ export function field(options) {
     }
 
     let cellSize = Math.round(SHORT / randomInRange( countMin, countMax ));
-    //console.log(`cellSize: ${cellSize}, ${GRIDMODE}, ${DENSITY}`);
+    console.log(`cellSize: ${cellSize}, ${GRIDMODE}, ${DENSITY}, ${FIELDMODE}`);
 
     // setup vars for each cell
     let x = 0;
@@ -178,7 +181,6 @@ export function field(options) {
 
     function createSourceSinkTransform (count = 4) {
         let sources = [];
-        let stroke = 'green';
 
         while(count--) {
             let src = {
@@ -290,11 +292,13 @@ export function field(options) {
     ctx.strokeStyle = fg;
 
     // source/sink stuff
-    let totalStrength = 0;
-    sourceTransform.sources.forEach((source) => {
-        totalStrength += source.strength;
-    });
-    lineScale = 1/totalStrength;
+    if (FIELDMODE === 'flow') {
+        let totalStrength = 0;
+        sourceTransform.sources.forEach((source) => {
+            totalStrength += source.strength;
+        });
+        lineScale = 1/totalStrength;
+    }
 
     // step thru points
     pts.forEach((p, i) => {
@@ -317,14 +321,16 @@ export function field(options) {
             {fill: fg2}
         );
 
-        // if source-sink
-        let flow = sourceTransform.t(xnorm, ynorm);
-        _x = flow[0];
-        _y = flow[1];
-
-        // if flow fields
-        //_x = trans.xtail(xnorm, ynorm);
-        //_y = trans.ytail(xnorm, ynorm);
+        if (FIELDMODE === 'flow') {
+            // flow fields (source-sink)
+            let flow = sourceTransform.t(xnorm, ynorm);
+            _x = flow[0];
+            _y = flow[1];
+        } else {
+            // harmonic fields
+            _x = trans.xtail(xnorm, ynorm);
+            _y = trans.ytail(xnorm, ynorm);
+        }
 
         ctx.globalAlpha = opacityFunc(_x, _y);
 
