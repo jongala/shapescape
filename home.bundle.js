@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 32);
+/******/ 	return __webpack_require__(__webpack_require__.s = 33);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -324,7 +324,7 @@ var palettes = {
     metroid_fusion: ['#DBEED6', '#47BDC2', '#0A7DB8', '#1A3649', '#B24432'],
 
     candywafer: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
-    blush: ['#F8ADAA', '#F8E3AC', '#111111', '#ffffff', '#94552C'],
+    blush: ['#111111', '#94552C', '#F8ADAA', '#F8E3AC', '#ffffff'],
 
     magma: ['#000004', '#3b0f70', '#8c2981', '#de4968', '#fe9f6d', '#fcfdbf'],
     inferno: ['#000004', '#420a68', '#932667', '#dd513a', '#fca50a', '#fcffa4'],
@@ -4366,12 +4366,14 @@ var DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     clear: true,
-    lightMode: 'auto', // [auto, bloom, normal]
+    fieldMode: 'auto', // [auto, harmonic, flow]
+    lightMode: 'normal', // [auto, bloom, normal]
     gridMode: 'auto', // [auto, normal, scatter, random]
     density: 'auto' // [auto, coarse, fine]
 };
 
 var PI = Math.PI;
+var FIELDMODES = ['harmonic', 'flow'];
 var LIGHTMODES = ['bloom', 'normal'];
 var GRIDMODES = ['normal', 'scatter', 'random'];
 var DENSITIES = ['coarse', 'fine'];
@@ -4407,6 +4409,7 @@ function field(options) {
     var LIGHTMODE = opts.lightMode === 'auto' ? (0, _utils.randItem)(LIGHTMODES) : opts.lightMode;
     var GRIDMODE = opts.gridMode === 'auto' ? (0, _utils.randItem)(GRIDMODES) : opts.gridMode;
     var DENSITY = opts.density === 'auto' ? (0, _utils.randItem)(DENSITIES) : opts.density;
+    var FIELDMODE = opts.fieldMode === 'auto' ? (0, _utils.randItem)(FIELDMODES) : opts.fieldMode;
 
     // color funcs
     var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
@@ -4423,7 +4426,7 @@ function field(options) {
     }
 
     var cellSize = Math.round(SHORT / (0, _utils.randomInRange)(countMin, countMax));
-    //console.log(`cellSize: ${cellSize}, ${GRIDMODE}, ${DENSITY}`);
+    console.log('cellSize: ' + cellSize + ', ' + GRIDMODE + ', ' + DENSITY + ', ' + FIELDMODE);
 
     // setup vars for each cell
     var x = 0;
@@ -4544,6 +4547,55 @@ function field(options) {
         };
     }
 
+    function createSourceSinkTransform() {
+        var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 4;
+
+        var sources = [];
+
+        while (count--) {
+            var src = {
+                strength: (0, _utils.randomInRange)(1, 20),
+                sign: 1,
+                x: (0, _utils.randomInRange)(-0.25, 1.25), // add some overscan
+                y: (0, _utils.randomInRange)(-0.25, 1.25)
+            };
+            if (Math.random() > 0.9) {
+                // occasionally make sinks instead of sources
+                src.sign *= -1;
+            }
+            sources.push(src);
+        }
+
+        return {
+            sources: sources,
+            t: function t(xnorm, ynorm) {
+                var v = [0, 0]; // force vector to return
+
+                sources.forEach(function (source) {
+                    var rmin = source.strength / 1000; // magic number
+
+
+                    var dx = xnorm - source.x;
+                    var dy = ynorm - source.y;
+                    var _r = dx * dx + dy * dy; // really r squared but that's what we want
+
+                    if (_r < rmin) {
+                        _r = rmin;
+                    }; // min r
+
+                    var scalar = source.sign * source.strength / _r;
+
+                    var _x = scalar * dx;
+                    var _y = scalar * dy;
+                    v[0] += _x;
+                    v[1] += _y;
+                });
+
+                return v;
+            }
+        };
+    }
+
     // a set of independent transforms to use while rendering
     var trans = {
         xbase: createTransform(rateMax), // (x,y)=>0,//
@@ -4606,6 +4658,19 @@ function field(options) {
         });
     }
 
+    var sourceTransform = createSourceSinkTransform(Math.round((0, _utils.randomInRange)(5, 15)));
+
+    ctx.strokeStyle = fg;
+
+    // source/sink stuff
+    if (FIELDMODE === 'flow') {
+        var totalStrength = 0;
+        sourceTransform.sources.forEach(function (source) {
+            totalStrength += source.strength;
+        });
+        lineScale = 1 / totalStrength;
+    }
+
     // step thru points
     pts.forEach(function (p, i) {
         x = p[0];
@@ -4613,16 +4678,23 @@ function field(options) {
         xnorm = x / cw;
         ynorm = y / ch;
 
-        _x = trans.xtail(xnorm, ynorm);
-        _y = trans.ytail(xnorm, ynorm);
-        len = Math.sqrt(_x * _x + _y * _y);
-
         // shift base points to their warped coordinates
         x = x + cellSize * trans.xbase(xnorm, ynorm) * warp;
         y = y + cellSize * trans.ybase(xnorm, ynorm) * warp;
 
         ctx.globalAlpha = 1;
         (0, _shapes.drawCircle)(ctx, x, y, (trans.radius(xnorm, ynorm) + 1) * dotScale, { fill: fg2 });
+
+        if (FIELDMODE === 'flow') {
+            // flow fields (source-sink)
+            var flow = sourceTransform.t(xnorm, ynorm);
+            _x = flow[0];
+            _y = flow[1];
+        } else {
+            // harmonic fields
+            _x = trans.xtail(xnorm, ynorm);
+            _y = trans.ytail(xnorm, ynorm);
+        }
 
         ctx.globalAlpha = opacityFunc(_x, _y);
 
@@ -5001,7 +5073,8 @@ function fragments(options) {
 /* 29 */,
 /* 30 */,
 /* 31 */,
-/* 32 */
+/* 32 */,
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

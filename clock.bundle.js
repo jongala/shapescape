@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 33);
+/******/ 	return __webpack_require__(__webpack_require__.s = 34);
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -745,7 +745,7 @@ var palettes = {
     metroid_fusion: ['#DBEED6', '#47BDC2', '#0A7DB8', '#1A3649', '#B24432'],
 
     candywafer: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
-    blush: ['#F8ADAA', '#F8E3AC', '#111111', '#ffffff', '#94552C'],
+    blush: ['#111111', '#94552C', '#F8ADAA', '#F8E3AC', '#ffffff'],
 
     magma: ['#000004', '#3b0f70', '#8c2981', '#de4968', '#fe9f6d', '#fcfdbf'],
     inferno: ['#000004', '#420a68', '#932667', '#dd513a', '#fca50a', '#fcffa4'],
@@ -888,7 +888,7 @@ var drawHexagon = exports.drawHexagon = _drawPolygon(6, 1.05);
 
 /***/ }),
 
-/***/ 33:
+/***/ 34:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -910,7 +910,7 @@ var _colorbrewer2 = _interopRequireDefault(_colorbrewer);
 
 var _truchet = __webpack_require__(17);
 
-var _numerals = __webpack_require__(34);
+var _numerals = __webpack_require__(35);
 
 var _utils = __webpack_require__(0);
 
@@ -1032,7 +1032,7 @@ setInterval(function () {
 
 /***/ }),
 
-/***/ 34:
+/***/ 35:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
