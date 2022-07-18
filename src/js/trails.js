@@ -340,11 +340,10 @@ export function trails(options) {
 
 
     // Plotter element
-    //let plotter = document.createElement('svg');
     let plotter = document.querySelector('svg.plotter');
     plotter.innerHTML = '';
-    //plotter.className = 'plotter';
-    //plotter.setAttribute('xmlns',"http://www.w3.org/2000/svg");
+    //let plotter = document.createElementNS("http://www.w3.org/2000/svg",'svg');
+    //plotter.setAttribute('class','plotter');
     plotter.setAttribute('width', cw);
     plotter.setAttribute('height', ch);
     plotter.setAttribute(`viewBox`,`0 0 ${cw} ${ch}`);
