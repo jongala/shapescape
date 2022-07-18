@@ -338,6 +338,19 @@ export function trails(options) {
         ctx.lineWidth = weight;
     }
 
+
+    // Plotter element
+    //let plotter = document.createElement('svg');
+    let plotter = document.querySelector('svg.plotter');
+    plotter.innerHTML = '';
+    //plotter.className = 'plotter';
+    //plotter.setAttribute('xmlns',"http://www.w3.org/2000/svg");
+    plotter.setAttribute('width', cw);
+    plotter.setAttribute('height', ch);
+    plotter.setAttribute(`viewBox`,`0 0 ${cw} ${ch}`);
+    //document.querySelector('body').appendChild(plotter);
+    let allpaths = '';
+
     pts.forEach((p, i) => {
         //ctx.strokeStyle = (i%2)? fg : fg2;
         //ctx.strokeStyle = (i%2)? 'white' : 'black';
@@ -433,12 +446,18 @@ export function trails(options) {
         let trailStart;
         let trailEnd;
 
+        let plotpath;
+        
 
         // Deferred drawing
         // foreach trail, render it
         if (trail.length) {
             trailStart = trail.shift();
             trailEnd = trail[trail.length - 1];
+
+            plotpath  = `<path \
+            stroke-width="${weight}" \
+            stroke-linecap="${STYLE}" `;
 
             // Colors
 
@@ -488,6 +507,9 @@ export function trails(options) {
 
             ctx.beginPath();
             ctx.moveTo(...trailStart);
+            plotpath += ` stroke="${ctx.strokeStyle}" `;
+            plotpath += ` d="`;
+            plotpath += 'M' + trailStart[0].toPrecision(4) + ',' + trailStart[1].toPrecision(4);
 
             if(opts.isolate) {
                 rctx.beginPath();
@@ -503,13 +525,19 @@ export function trails(options) {
                     pt[0],
                     pt[1]
                 );
+                plotpath += 'L' + pt[0].toPrecision(4) + ',' + pt[1].toPrecision(4);
             });
             ctx.stroke();
             opts.isolate && rctx.stroke();
             trail = [];
+
+            plotpath += '" />';
+            allpaths += plotpath;
         }
 
     });
+
+    plotter.innerHTML += allpaths;
 
     ctx.globalAlpha = 1;
 
