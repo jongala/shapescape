@@ -88,6 +88,202 @@ function setRenderer(rname, ctrl) {
 }
 window.setRenderer = setRenderer;
 
+
+
+//======================================
+// DITHERING
+//======================================
+
+
+
+function flume(idata, i) {
+    return Math.sqrt(
+            (idata[i] * 0.299) * (idata[i] * 0.299) + 
+            (idata[i + 1] * 0.587) * (idata[i + 1] * 0.587) + 
+            (idata[i + 2] * 0.114) * (idata[i + 2] * 0.114)
+        );
+}
+
+function atkinson(image) {
+    let width = image.width;
+    let luminance = new Uint8ClampedArray(image.width * image.height);
+
+    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
+        //luminance[l] = (image.data[i] * 0.299) + (image.data[i + 1] * 0.587) + (image.data[i + 2] * 0.114);
+        luminance[l] = flume(image.data, i);
+    }
+
+    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
+        let value = luminance[l] < 129 ? 0 : 255;
+        let error = Math.floor((luminance[l] - value) / 8);
+        image.data.fill(value, i, i + 3);
+
+        luminance[l + 1] += error;
+        luminance[l + 2] += error;
+        luminance[l + width - 1] += error;
+        luminance[l + width] += error;
+        luminance[l + width + 1] += error;
+        luminance[l + 2 * width] += error;
+    }
+
+    return image;
+}
+
+function floydsteinberg(image) {
+    /*
+        X   7
+    3   5   1
+
+      (1/16)
+     */
+    let width = image.width;
+    let luminance = new Uint8ClampedArray(image.width * image.height);
+
+    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
+        //luminance[l] = (image.data[i] * 0.299) + (image.data[i + 1] * 0.587) + (image.data[i + 2] * 0.114);
+        luminance[l] = flume(image.data, i);
+    }
+
+    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
+        let value = luminance[l] < 129 ? 0 : 255;
+        let error = Math.floor((luminance[l] - value) / 16);
+        image.data.fill(value, i, i + 3);
+
+        luminance[l + 1] += error * 7;
+        luminance[l + width - 1] += error * 3;
+        luminance[l + width] += error * 5;
+        luminance[l + width + 1] += error * 1;
+    }
+
+    return image;
+}
+
+
+function burkes(image) {
+    /*
+            X   8   4 
+    2   4   8   4   2
+
+          (1/32)
+     */
+    let width = image.width;
+    let luminance = new Uint8ClampedArray(image.width * image.height);
+
+    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
+        //luminance[l] = (image.data[i] * 0.299) + (image.data[i + 1] * 0.587) + (image.data[i + 2] * 0.114);
+        luminance[l] = flume(image.data, i);
+    }
+
+    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
+        let value = luminance[l] < 129 ? 0 : 255;
+        let error = Math.floor((luminance[l] - value) / 32);
+        image.data.fill(value, i, i + 3);
+
+        luminance[l + 1] += error * 8;
+        luminance[l + 2] += error * 4;
+
+        luminance[l + width - 2] += error * 2;
+        luminance[l + width - 1] += error * 4;
+        luminance[l + width] += error * 8;
+        luminance[l + width + 1] += error * 4;
+        luminance[l + width + 2] += error * 2;
+    }
+
+    return image;
+}
+
+function sierra3(image) {
+    /*
+             X   5   3
+     2   4   5   4   2
+         2   3   2
+           (1/32)
+     */
+    let width = image.width;
+    let luminance = new Uint8ClampedArray(image.width * image.height);
+
+    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
+        //luminance[l] = (image.data[i] * 0.299) + (image.data[i + 1] * 0.587) + (image.data[i + 2] * 0.114);
+        luminance[l] = flume(image.data, i);
+    }
+
+    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
+        let value = luminance[l] < 129 ? 0 : 255;
+        let error = Math.floor((luminance[l] - value) / 32);
+        image.data.fill(value, i, i + 3);
+
+        luminance[l + 1] += error * 5;
+        luminance[l + 2] += error * 3;
+
+        luminance[l + width - 2] += error * 2;
+        luminance[l + width - 1] += error * 4;
+        luminance[l + width] += error * 5;
+        luminance[l + width + 1] += error * 4;
+        luminance[l + width + 2] += error * 2;
+
+        luminance[l + width * 2 - 1] += error * 2;
+        luminance[l + width * 2] += error * 3;
+        luminance[l + width * 2 + 1] += error * 2;
+    }
+
+    return image;
+}
+
+let ditherKernels = {
+    atkinson,
+    floydsteinberg,
+    burkes,
+    sierra3
+}
+
+function dither(canvas, kernelName='floydsteinberg') {
+    let ctx = canvas.getContext('2d');
+    let idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    // set kernel function from map
+    let kernel = ditherKernels[kernelName];    
+
+    let dithered = kernel(idata);
+
+    // directly draw dithered data to canvas
+    //ctx.putImageData(dithered, 0, 0);
+
+    // OR: draw dithered data to an offscreen canvas,
+    // then apply that to original image via 'overlay'
+    let ditherCanvas = document.createElement('canvas');
+    ditherCanvas.width = canvas.width;
+    ditherCanvas.height = canvas.height;
+    let ditherctx = ditherCanvas.getContext('2d');
+    ditherctx.putImageData(dithered, 0, 0);
+
+    ctx.globalAlpha = 0.5;
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.drawImage(ditherCanvas, 0, 0);
+    ctx.globalAlpha = 1;
+}
+
+function ditherMain(){
+    console.log('trigger DitherMain!');
+    var canvas = document.querySelector('#example canvas');
+    dither(canvas, 'sierra3');
+}
+window.ditherMain = ditherMain;
+
+
+
+
+/* ======================================
+END DITHERING
+====================================== */
+
+
+
+
+
+
+
+
+
 // GUI controlled opts
 var visualOpts = {
     container: document.querySelector('#example'),
