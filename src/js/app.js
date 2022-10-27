@@ -276,7 +276,7 @@ window.ditherMain = ditherMain;
 
 // Palette dithering:
 
-function colorDistance(c1, c2) {
+function colorDistance_simple(c1, c2) {
     let d;
     let dr, dg, db;
     dr = c2[0] - c1[0];
@@ -286,6 +286,21 @@ function colorDistance(c1, c2) {
     d = Math.sqrt(dr*dr + dg*dg + db*db);
 
     return d;
+}
+
+// Quick euclidian color distance, from wikipedia
+// https://en.wikipedia.org/wiki/Color_difference
+function colorDistance(c1, c2) {
+    let _r = (c1[0] + c2[0]) / 2;
+    let dr = c1[0] - c2[0];
+    let dg = c1[1] - c2[1];
+    let db = c1[2] - c2[2];
+    let dc = Math.sqrt(
+        dr * dr * (2 + _r/256) +
+        dg * dg * 4 +
+        db * db  * (2 + (255 - _r)/256)
+    );
+    return dc;
 }
 
 window.distances = [];
@@ -310,9 +325,6 @@ function floydsteinberg_palette(image, referenceColor) {
         // DEBUG: push nonzeros
         if (colorDistances[l] > 0) window.distances.push(colorDistances[l]);
     }
-
-    // DEBUG: postprocess colorDistances
-    //window.distances = colorDistances;
 
     // use colorDistances to get values
     for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
@@ -414,9 +426,11 @@ function ditherColor(canvas, palette, kernelName='floydsteinberg') {
     });
 
     
+    ctx.globalAlpha = 0.66; // TODO magic number
     ctx.fillStyle="white";
     ctx.rect(0, 0, canvas.width, canvas.height);
     ctx.fill();
+    ctx.globalAlpha = 1;
     layers.forEach((ditherCanvas)=>{
         ctx.drawImage(ditherCanvas, 0, 0);
     });
