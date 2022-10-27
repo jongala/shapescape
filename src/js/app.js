@@ -358,18 +358,20 @@ function ditherColor(canvas, palette, kernelName='floydsteinberg') {
 
 
     let ctx = canvas.getContext('2d');
-    let idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let idata;
 
     // set kernel function from map
     let kernel = floydsteinberg_palette;
 
     let dithered;
     let c;
-
+    let layers = [];
 
 
     palette.forEach(function(color, idx){
         c = hexToRgb(color);
+
+        idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
         dithered = kernel(idata, c);
 
         // directly draw dithered data to canvas
@@ -383,10 +385,41 @@ function ditherColor(canvas, palette, kernelName='floydsteinberg') {
         let ditherctx = ditherCanvas.getContext('2d');
         ditherctx.putImageData(dithered, 0, 0);
 
+        /*ditherctx.globalCompositeOperation = 'exclusion';
+        ditherctx.fillStyle = color;
+        console.log('dither fill style ', color);
+        ditherctx.rect(0, 0, canvas.width, canvas.height);
+        ditherctx.fill();*/
+        let ditherData = ditherctx.getImageData(0, 0, canvas.width, canvas.height);
+        let ditherpx = ditherData.data;
+        let n = ditherpx.length;
+        let i = 0;
+        while(i < n) {
+            if(ditherpx[i] === 0) {
+                // fill it
+                ditherpx[i] = c[0];
+                ditherpx[i + 1] = c[1];
+                ditherpx[i + 2] = c[2];
+            } else {
+                // blank it
+                ditherpx[i + 3] = 0; // no alpha
+            }
+
+            i += 4;
+        }
+        ditherctx.putImageData(ditherData, 0, 0);
+
+        layers.push(ditherCanvas);
         document.querySelector('body').appendChild(ditherCanvas);
     });
 
     
+    ctx.fillStyle="white";
+    ctx.rect(0, 0, canvas.width, canvas.height);
+    ctx.fill();
+    layers.forEach((ditherCanvas)=>{
+        ctx.drawImage(ditherCanvas, 0, 0);
+    });
 
     
 }
