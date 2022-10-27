@@ -104,6 +104,10 @@ function flume(idata, i) {
         );
 }
 
+
+// TODO: I think I rewrote these from tutorials but double check these
+// functions for licensing.
+
 function atkinson(image) {
     let width = image.width;
     let luminance = new Uint8ClampedArray(image.width * image.height);
@@ -265,10 +269,134 @@ function dither(canvas, kernelName='floydsteinberg') {
 function ditherMain(){
     console.log('trigger DitherMain!');
     var canvas = document.querySelector('#example canvas');
-    dither(canvas, 'sierra3');
+    dither(canvas, 'floydsteinberg');
 }
 window.ditherMain = ditherMain;
 
+
+// Palette dithering:
+
+function colorDistance(c1, c2) {
+    let d;
+    let dr, dg, db;
+    dr = c2[0] - c1[0];
+    dg = c2[1] - c1[1];
+    db = c2[2] - c1[2];
+
+    d = Math.sqrt(dr*dr + dg*dg + db*db);
+
+    return d;
+}
+
+window.distances = [];
+
+function floydsteinberg_palette(image, referenceColor) {
+    /*
+        X   7
+    3   5   1
+
+      (1/16)
+     */
+    let width = image.width;
+    let colorDistances = new Uint8ClampedArray(image.width * image.height);
+    let sampleColor = [0, 0, 0]; // r, g, b
+
+    // get list of pixel distances
+    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
+        sampleColor = [image.data[i], image.data[i+1], image.data[i+2]]
+        //colorDistances[l] = (image.data[i] * 0.299) + (image.data[i + 1] * 0.587) + (image.data[i + 2] * 0.114);
+        colorDistances[l] = colorDistance(sampleColor, referenceColor);
+
+        // DEBUG: push nonzeros
+        if (colorDistances[l] > 0) window.distances.push(colorDistances[l]);
+    }
+
+    // DEBUG: postprocess colorDistances
+    //window.distances = colorDistances;
+
+    // use colorDistances to get values
+    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
+        let value = colorDistances[l] < 129 ? 0 : 255;
+        let error = Math.floor((colorDistances[l] - value) / 16);
+        image.data.fill(value, i, i + 3);
+
+        colorDistances[l + 1] += error * 7;
+        colorDistances[l + width - 1] += error * 3;
+        colorDistances[l + width] += error * 5;
+        colorDistances[l + width + 1] += error * 1;
+    }
+
+    return image;
+}
+
+function hexToRgb(hex) {
+    if (hex[0] === '#') {
+        hex = hex.slice(1);
+    }
+    if (hex.length === 3) {
+        hex = '' + hex[0] + hex[0]
+            + hex[1] + hex[1]
+            + hex[2] + hex[2];
+    }
+    function toN(hexFrag) {
+        return parseInt(hexFrag, 16)
+    }
+    return [
+        toN(hex.slice(0,2)),
+        toN(hex.slice(2,4)),
+        toN(hex.slice(4,6))
+    ]
+    /*return {
+        r: toN(hex.slice(0,2)),
+        g: toN(hex.slice(2,4)),
+        b: toN(hex.slice(4,6))
+    }*/
+}
+
+function ditherColor(canvas, palette, kernelName='floydsteinberg') {
+    console.log('ditherColor', palette);
+
+
+    let ctx = canvas.getContext('2d');
+    let idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    // set kernel function from map
+    let kernel = floydsteinberg_palette;
+
+    let dithered;
+    let c;
+
+
+
+    palette.forEach(function(color, idx){
+        c = hexToRgb(color);
+        dithered = kernel(idata, c);
+
+        // directly draw dithered data to canvas
+        //ctx.putImageData(dithered, 0, 0);
+
+        // OR: draw dithered data to an offscreen canvas,
+        // then apply that to original image via 'overlay'
+        let ditherCanvas = document.createElement('canvas');
+        ditherCanvas.width = canvas.width;
+        ditherCanvas.height = canvas.height;
+        let ditherctx = ditherCanvas.getContext('2d');
+        ditherctx.putImageData(dithered, 0, 0);
+
+        document.querySelector('body').appendChild(ditherCanvas);
+    });
+
+    
+
+    
+}
+
+function ditherColorMain(){
+    console.log('Call DitherColorMain');
+    var canvas = document.querySelector('#example canvas');
+    ditherColor(canvas, visualOpts.palette, 'floydsteinberg');
+}
+window.ditherColorMain = ditherColorMain;
 
 
 
