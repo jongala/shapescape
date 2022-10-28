@@ -341,6 +341,107 @@ function floydsteinberg_palette(image, referenceColor) {
     return image;
 }
 
+// return r,g,b distance components and a scalar distance
+function colorDistanceArray(c1, c2) {
+    let dr, dg, db;
+    let _r = (c1[0] + c2[0]) / 2;
+    dr = c2[0] - c1[0];
+    dg = c2[1] - c1[1];
+    db = c2[2] - c1[2];
+    let dc = Math.sqrt(
+        dr * dr * (2 + _r/256) +
+        dg * dg * 4 +
+        db * db  * (2 + (255 - _r)/256)
+    );
+    return [dr, dg, db, dc];
+}
+
+// args are rgb in 8 bit array form
+// returns {diff, color}
+function closestColor (sample, palette) {
+    let diffs = palette.map((p)=>{
+        return {
+            diff: colorDistanceArray(sample, p),
+            color: p
+        }
+    });
+    diffs = diffs.sort((a, b) => {
+        return (a.diff[3] - b.diff[3]);
+    });
+    return diffs[0];
+}
+
+function scalarVec (vec, scalar) {
+    return vec.map((x) => x * scalar);
+}
+
+
+function ditherPalette(image, palette) {
+    /*
+        X   7
+    3   5   1
+
+      (1/16)
+     */
+    let width = image.width;
+    let colorDistances = new Uint8ClampedArray(image.width * image.height * 4);
+    let sampleColor = [0, 0, 0]; // r, g, b
+    let closest;// = [0, 0, 0]; {color, diff}
+    let diffs;
+
+
+    let px = image.data;
+
+    let rgbPalette = palette.map((p)=>hexToRgb(p));
+    console.log('rgbPalette', rgbPalette);
+
+    // use colorDistances to get values
+    for (let i = 0; i < image.data.length; i += 4) {
+        sampleColor = [px[i], px[i+1], px[i+2]];
+        
+        // check each pixel, find closest palette color. get error.
+        closest = closestColor(sampleColor, rgbPalette);
+        
+        // replace pixel with palette color
+        px[i] = closest.color[0];
+        px[i+1] = closest.color[1];
+        px[i+2] = closest.color[2];
+        px[i+3] = 255;
+
+        // add error to the neighboring pixel values.
+
+        // er = red error, etc
+        let er, eg, eb, es;
+        
+        [er, eg, eb, es] = scalarVec(closest.diff, 7/16);
+        px[i + (1) * 4 + 0] += er;
+        px[i + (1) * 4 + 1] += eg;
+        px[i + (1) * 4 + 2] += eb;
+        px[i + (1) * 4 + 3] += 0;
+        
+        [er, eg, eb, es] = scalarVec(closest.diff, 3/16);
+        px[i + (width - 1) * 4 + 0] += er;
+        px[i + (width - 1) * 4 + 1] += eg;
+        px[i + (width - 1) * 4 + 2] += eb;
+        px[i + (width - 1) * 4 + 3] += 0;
+
+        [er, eg, eb, es] = scalarVec(closest.diff, 5/16);
+        px[i + (width) * 4 + 0] += er;
+        px[i + (width) * 4 + 1] += eg;
+        px[i + (width) * 4 + 2] += eb;
+        px[i + (width) * 4 + 3] += 0;
+        
+        [er, eg, eb, es] = scalarVec(closest.diff, 1/16);
+        px[i + (width + 1) * 4 + 0] += er;
+        px[i + (width + 1) * 4 + 1] += eg;
+        px[i + (width + 1) * 4 + 2] += eb;
+        px[i + (width + 1) * 4 + 3] += 0;
+
+    }
+
+    return image;
+}
+
 function hexToRgb(hex) {
     if (hex[0] === '#') {
         hex = hex.slice(1);
@@ -441,7 +542,18 @@ function ditherColor(canvas, palette, kernelName='floydsteinberg') {
 function ditherColorMain(){
     console.log('Call DitherColorMain');
     var canvas = document.querySelector('#example canvas');
-    ditherColor(canvas, visualOpts.palette, 'floydsteinberg');
+    // Old call:
+    //ditherColor(canvas, visualOpts.palette, 'floydsteinberg');
+
+
+    // NEW for palette: do directly here
+    let ctx = canvas.getContext('2d');
+    let idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let dithered = ditherPalette(idata, visualOpts.palette);
+
+    // apply the dithered data back
+    ctx.putImageData(dithered, 0, 0);
+
 }
 window.ditherColorMain = ditherColorMain;
 
