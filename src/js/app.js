@@ -361,7 +361,7 @@ function colorDistanceArray(c1, c2) {
 function closestColor (sample, palette) {
     let diffs = palette.map((p)=>{
         return {
-            diff: colorDistanceArray(sample, p),
+            diff: colorDistanceArray(p, sample),
             color: p
         }
     });
@@ -375,6 +375,14 @@ function scalarVec (vec, scalar) {
     return vec.map((x) => x * scalar);
 }
 
+function addColors(c1, c2) {
+    return [
+        c1[0] + c2[0],
+        c1[1] + c2[1],
+        c1[2] + c2[2]
+    ];
+}
+
 
 function ditherPalette(image, palette) {
     /*
@@ -384,11 +392,10 @@ function ditherPalette(image, palette) {
       (1/16)
      */
     let width = image.width;
-    let colorDistances = new Uint8ClampedArray(image.width * image.height * 4);
+    let errors = new Uint8ClampedArray(image.width * image.height * 4);
     let sampleColor = [0, 0, 0]; // r, g, b
-    let closest;// = [0, 0, 0]; {color, diff}
-    let diffs;
-
+    let sampleError = [0, 0, 0];
+    let closest;
 
     let px = image.data;
 
@@ -398,9 +405,13 @@ function ditherPalette(image, palette) {
     // use colorDistances to get values
     for (let i = 0; i < image.data.length; i += 4) {
         sampleColor = [px[i], px[i+1], px[i+2]];
-        
+        sampleError = [errors[i], errors[i+1], errors[i+2]];
+
         // check each pixel, find closest palette color. get error.
-        closest = closestColor(sampleColor, rgbPalette);
+        closest = closestColor(
+            addColors(sampleColor, sampleError), // compare sample plus errors
+            rgbPalette // … to the palette colors
+        );
         
         // replace pixel with palette color
         px[i] = closest.color[0];
@@ -414,28 +425,28 @@ function ditherPalette(image, palette) {
         let er, eg, eb, es;
         
         [er, eg, eb, es] = scalarVec(closest.diff, 7/16);
-        px[i + (1) * 4 + 0] += er;
-        px[i + (1) * 4 + 1] += eg;
-        px[i + (1) * 4 + 2] += eb;
-        px[i + (1) * 4 + 3] += 0;
+        errors[i + (1) * 4 + 0] += er;
+        errors[i + (1) * 4 + 1] += eg;
+        errors[i + (1) * 4 + 2] += eb;
+        errors[i + (1) * 4 + 3] += 0;
         
         [er, eg, eb, es] = scalarVec(closest.diff, 3/16);
-        px[i + (width - 1) * 4 + 0] += er;
-        px[i + (width - 1) * 4 + 1] += eg;
-        px[i + (width - 1) * 4 + 2] += eb;
-        px[i + (width - 1) * 4 + 3] += 0;
+        errors[i + (width - 1) * 4 + 0] += er;
+        errors[i + (width - 1) * 4 + 1] += eg;
+        errors[i + (width - 1) * 4 + 2] += eb;
+        errors[i + (width - 1) * 4 + 3] += 0;
 
         [er, eg, eb, es] = scalarVec(closest.diff, 5/16);
-        px[i + (width) * 4 + 0] += er;
-        px[i + (width) * 4 + 1] += eg;
-        px[i + (width) * 4 + 2] += eb;
-        px[i + (width) * 4 + 3] += 0;
+        errors[i + (width) * 4 + 0] += er;
+        errors[i + (width) * 4 + 1] += eg;
+        errors[i + (width) * 4 + 2] += eb;
+        errors[i + (width) * 4 + 3] += 0;
         
         [er, eg, eb, es] = scalarVec(closest.diff, 1/16);
-        px[i + (width + 1) * 4 + 0] += er;
-        px[i + (width + 1) * 4 + 1] += eg;
-        px[i + (width + 1) * 4 + 2] += eb;
-        px[i + (width + 1) * 4 + 3] += 0;
+        errors[i + (width + 1) * 4 + 0] += er;
+        errors[i + (width + 1) * 4 + 1] += eg;
+        errors[i + (width + 1) * 4 + 2] += eb;
+        errors[i + (width + 1) * 4 + 3] += 0;
 
     }
 
@@ -547,9 +558,19 @@ function ditherColorMain(){
 
 
     // NEW for palette: do directly here
+    // Create a basic palette of black, gray, white for marks that aren't palette driven
+    let basePalette = ['#000000','#7d7d7d','#ffffff'];
+    let renderPalette = [].concat(basePalette);
+    if (visualOpts.palette && visualOpts.palette.length) {
+        renderPalette = renderPalette.concat(visualOpts.palette);
+    }
+    // draw directly to the active canvas with dithered data.
     let ctx = canvas.getContext('2d');
     let idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    let dithered = ditherPalette(idata, visualOpts.palette);
+    let dithered = ditherPalette(idata, renderPalette);
+    //let dithered = ditherPalette(idata, ['#000','#fff','#f00','#0f0','#00f','#ff0', '#f0f', '#0ff']);
+    //let dithered = ditherPalette(idata, ['#000000','#330000','#003300','#000033','#7d0000','#007d00','#00007d','#e70000','#00e700','#0000e7','#ff0000','#00ff00','#0000ff','#ffffff']);
+    //let dithered = ditherPalette(idata, ['#000','#fff']);
 
     // apply the dithered data back
     ctx.putImageData(dithered, 0, 0);
