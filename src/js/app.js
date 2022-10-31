@@ -98,8 +98,8 @@ window.setRenderer = setRenderer;
 
 function flume(idata, i) {
     return Math.sqrt(
-            (idata[i] * 0.299) * (idata[i] * 0.299) + 
-            (idata[i + 1] * 0.587) * (idata[i + 1] * 0.587) + 
+            (idata[i] * 0.299) * (idata[i] * 0.299) +
+            (idata[i + 1] * 0.587) * (idata[i + 1] * 0.587) +
             (idata[i + 2] * 0.114) * (idata[i + 2] * 0.114)
         );
 }
@@ -167,7 +167,7 @@ function floydsteinberg(image) {
 
 function burkes(image) {
     /*
-            X   8   4 
+            X   8   4
     2   4   8   4   2
 
           (1/32)
@@ -247,7 +247,7 @@ function dither(canvas, kernelName='floydsteinberg') {
     let idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
     // set kernel function from map
-    let kernel = ditherKernels[kernelName];    
+    let kernel = ditherKernels[kernelName];
 
     let dithered = kernel(idata);
 
@@ -385,15 +385,64 @@ function addColors(c1, c2) {
     ];
 }
 
+let kernelDefs = {
+    atkinson: [
+        [0 ,0, 1/8, 1/8],
+        [1/8, 1/8, 1/8, 0],
+        [0, 1/8, 0, 0]
+    ],
+    floydsteinberg: [
+        [0, 0, 7/16],
+        [3/16, 5/16, 1/16]
+    ],
+    burkes: [
+        [0, 0, 0, 8/32, 4/32],
+        [2/32, 4/32, 8/32, 4/32, 2/32]
+    ],
+    sierra3: [
+        [0, 0, 0, 5/32, 3/32],
+        [2/32, 4/32, 5/32, 4/32, 2/32],
+        [0/32, 2/32, 3/32, 2/32, 0/32]
+    ]
+}
+
+
+// use a set of arrays defining a dithering kernel as @kernel
+// to propagate errors into @px pixels at index @idx, using image
+// @width to set the row offsets.
+// This does full color dithering so uses an @errorArray of
+// r,g,b,x component errors. Where x is either alpha or, in this case,
+// a scalar of r,g,b used for sorting elsewhere.
+function propagate_errors(px, idx, errorArray, width, kernel){
+    // get an offset based on array length
+    let koffset = Math.ceil(kernel[0].length/2) - 1;
+    let rowOffset = 0;
+    let pxOffset = 0;
+    let er, eg, eb, es;
+
+    // index offset from half of width
+    // then step through each array
+    // each time add a width
+
+    kernel.forEach((row, j)=>{
+        rowOffset = j * width;
+        row.forEach((weight, i)=>{
+            [er, eg, eb, es] = scalarVec(errorArray, weight);
+
+            pxOffset = idx + (rowOffset + i - koffset) * 4;
+
+            px[pxOffset + 0] += er;
+            px[pxOffset + 1] += eg;
+            px[pxOffset + 2] += eb;
+            px[pxOffset + 3] += 0;
+        })
+    });
+}
+
 // Single pass function to dither an image using colors in @palette
 // Relies on closestColor() -> colorDistanceArray() and other utils above
-function ditherPalette(image, palette) {
-    /*
-        X   7
-    3   5   1
-
-      (1/16)
-     */
+function ditherPalette(image, palette, kernelName='burkes') {
+    let kernel = kernelDefs[kernelName] || kernelDefs['burkes'];
     let width = image.width;
     let sampleColor = [0, 0, 0]; // r, g, b
     let sampleError = [0, 0, 0];
@@ -412,42 +461,16 @@ function ditherPalette(image, palette) {
             sampleColor, // sample, which includes errors
             rgbPalette // … to the palette colors
         );
-        
+
         // replace pixel with palette color
         px[i] = closest.color[0];
         px[i+1] = closest.color[1];
         px[i+2] = closest.color[2];
         px[i+3] = 255;
 
-        // add error to the neighboring pixel values.
-
-        // er = red error, etc
-        let er, eg, eb, es;
-        
-        [er, eg, eb, es] = scalarVec(closest.diff, 7/16);
-        px[i + (1) * 4 + 0] += er;
-        px[i + (1) * 4 + 1] += eg;
-        px[i + (1) * 4 + 2] += eb;
-        px[i + (1) * 4 + 3] += 0;
-        
-        [er, eg, eb, es] = scalarVec(closest.diff, 3/16);
-        px[i + (width - 1) * 4 + 0] += er;
-        px[i + (width - 1) * 4 + 1] += eg;
-        px[i + (width - 1) * 4 + 2] += eb;
-        px[i + (width - 1) * 4 + 3] += 0;
-
-        [er, eg, eb, es] = scalarVec(closest.diff, 5/16);
-        px[i + (width) * 4 + 0] += er;
-        px[i + (width) * 4 + 1] += eg;
-        px[i + (width) * 4 + 2] += eb;
-        px[i + (width) * 4 + 3] += 0;
-        
-        [er, eg, eb, es] = scalarVec(closest.diff, 1/16);
-        px[i + (width + 1) * 4 + 0] += er;
-        px[i + (width + 1) * 4 + 1] += eg;
-        px[i + (width + 1) * 4 + 2] += eb;
-        px[i + (width + 1) * 4 + 3] += 0;
-
+        // Add error to the neighboring pixel values.
+        // Pass in the specified kernel
+        propagate_errors(px, i, closest.diff, width, kernel);
     }
 
     return image;
@@ -534,7 +557,7 @@ function ditherColor(canvas, palette, kernelName='floydsteinberg') {
         document.querySelector('body').appendChild(ditherCanvas);
     });
 
-    
+
     ctx.globalAlpha = 0.66; // TODO magic number
     ctx.fillStyle="white";
     ctx.rect(0, 0, canvas.width, canvas.height);
@@ -544,7 +567,7 @@ function ditherColor(canvas, palette, kernelName='floydsteinberg') {
         ctx.drawImage(ditherCanvas, 0, 0);
     });
 
-    
+
 }
 
 
@@ -555,19 +578,19 @@ function ditherColorMain(){
 
 
     // NEW for palette: do directly here
-    // Create a basic palette of black, gray, white for marks that aren't palette driven
-    let basePalette = ['#000000','#7d7d7d','#ffffff'];
+    // Create a basic palette of black and white if no palette exists
+    let basePalette = ['#000000','#ffffff'];
     let renderPalette = [].concat(basePalette);
     if (visualOpts.palette && visualOpts.palette.length) {
-        renderPalette = renderPalette.concat(visualOpts.palette);
+        // If we have a palette, add it to the black and white, and add gray
+        // for marks used in some renderers that aren't palette driven
+        renderPalette = renderPalette.concat(visualOpts.palette).concat(['#7d7d7d']);
     }
     // draw directly to the active canvas with dithered data.
     let ctx = canvas.getContext('2d');
     let idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    let dithered = ditherPalette(idata, renderPalette);
-    //let dithered = ditherPalette(idata, ['#000','#fff','#f00','#0f0','#00f','#ff0', '#f0f', '#0ff']);
-    //let dithered = ditherPalette(idata, ['#000000','#330000','#003300','#000033','#7d0000','#007d00','#00007d','#e70000','#00e700','#0000e7','#ff0000','#00ff00','#0000ff','#ffffff']);
-    //let dithered = ditherPalette(idata, ['#000','#fff']);
+    let dithered = ditherPalette(idata, renderPalette, 'atkinson');
+
 
     // apply the dithered data back
     ctx.putImageData(dithered, 0, 0);
