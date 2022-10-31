@@ -267,7 +267,6 @@ function dither(canvas, kernelName='floydsteinberg') {
 }
 
 function ditherMain(){
-    console.log('trigger DitherMain!');
     var canvas = document.querySelector('#example canvas');
     dither(canvas, 'floydsteinberg');
 }
@@ -303,7 +302,6 @@ function colorDistance(c1, c2) {
     return dc;
 }
 
-window.distances = [];
 
 function floydsteinberg_palette(image, referenceColor) {
     /*
@@ -371,10 +369,12 @@ function closestColor (sample, palette) {
     return diffs[0];
 }
 
+// util for ditherPalette
 function scalarVec (vec, scalar) {
     return vec.map((x) => x * scalar);
 }
 
+// little util for ditherPalette
 function addColors(c1, c2) {
     return [
         c1[0] + c2[0],
@@ -383,7 +383,8 @@ function addColors(c1, c2) {
     ];
 }
 
-
+// Single pass function to dither an image using colors in @palette
+// Relies on closestColor() -> colorDistanceArray() and other utils above
 function ditherPalette(image, palette) {
     /*
         X   7
@@ -400,7 +401,6 @@ function ditherPalette(image, palette) {
     let px = image.data;
 
     let rgbPalette = palette.map((p)=>hexToRgb(p));
-    console.log('rgbPalette', rgbPalette);
 
     // use colorDistances to get values
     for (let i = 0; i < image.data.length; i += 4) {
@@ -478,9 +478,6 @@ function hexToRgb(hex) {
 }
 
 function ditherColor(canvas, palette, kernelName='floydsteinberg') {
-    console.log('ditherColor', palette);
-
-
     let ctx = canvas.getContext('2d');
     let idata;
 
@@ -550,8 +547,8 @@ function ditherColor(canvas, palette, kernelName='floydsteinberg') {
     
 }
 
+
 function ditherColorMain(){
-    console.log('Call DitherColorMain');
     var canvas = document.querySelector('#example canvas');
     // Old call:
     //ditherColor(canvas, visualOpts.palette, 'floydsteinberg');
