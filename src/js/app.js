@@ -107,6 +107,8 @@ function flume(idata, i) {
 
 // TODO: I think I rewrote these from tutorials but double check these
 // functions for licensing.
+// From https://github.com/NielsLeenheer/CanvasDither
+// MIT License
 
 function atkinson(image) {
     let width = image.width;
@@ -393,7 +395,6 @@ function ditherPalette(image, palette) {
       (1/16)
      */
     let width = image.width;
-    let errors = new Uint8ClampedArray(image.width * image.height * 4);
     let sampleColor = [0, 0, 0]; // r, g, b
     let sampleError = [0, 0, 0];
     let closest;
@@ -405,11 +406,10 @@ function ditherPalette(image, palette) {
     // use colorDistances to get values
     for (let i = 0; i < image.data.length; i += 4) {
         sampleColor = [px[i], px[i+1], px[i+2]];
-        sampleError = [errors[i], errors[i+1], errors[i+2]];
 
         // check each pixel, find closest palette color. get error.
         closest = closestColor(
-            addColors(sampleColor, sampleError), // compare sample plus errors
+            sampleColor, // sample, which includes errors
             rgbPalette // … to the palette colors
         );
         
@@ -425,28 +425,28 @@ function ditherPalette(image, palette) {
         let er, eg, eb, es;
         
         [er, eg, eb, es] = scalarVec(closest.diff, 7/16);
-        errors[i + (1) * 4 + 0] += er;
-        errors[i + (1) * 4 + 1] += eg;
-        errors[i + (1) * 4 + 2] += eb;
-        errors[i + (1) * 4 + 3] += 0;
+        px[i + (1) * 4 + 0] += er;
+        px[i + (1) * 4 + 1] += eg;
+        px[i + (1) * 4 + 2] += eb;
+        px[i + (1) * 4 + 3] += 0;
         
         [er, eg, eb, es] = scalarVec(closest.diff, 3/16);
-        errors[i + (width - 1) * 4 + 0] += er;
-        errors[i + (width - 1) * 4 + 1] += eg;
-        errors[i + (width - 1) * 4 + 2] += eb;
-        errors[i + (width - 1) * 4 + 3] += 0;
+        px[i + (width - 1) * 4 + 0] += er;
+        px[i + (width - 1) * 4 + 1] += eg;
+        px[i + (width - 1) * 4 + 2] += eb;
+        px[i + (width - 1) * 4 + 3] += 0;
 
         [er, eg, eb, es] = scalarVec(closest.diff, 5/16);
-        errors[i + (width) * 4 + 0] += er;
-        errors[i + (width) * 4 + 1] += eg;
-        errors[i + (width) * 4 + 2] += eb;
-        errors[i + (width) * 4 + 3] += 0;
+        px[i + (width) * 4 + 0] += er;
+        px[i + (width) * 4 + 1] += eg;
+        px[i + (width) * 4 + 2] += eb;
+        px[i + (width) * 4 + 3] += 0;
         
         [er, eg, eb, es] = scalarVec(closest.diff, 1/16);
-        errors[i + (width + 1) * 4 + 0] += er;
-        errors[i + (width + 1) * 4 + 1] += eg;
-        errors[i + (width + 1) * 4 + 2] += eb;
-        errors[i + (width + 1) * 4 + 3] += 0;
+        px[i + (width + 1) * 4 + 0] += er;
+        px[i + (width + 1) * 4 + 1] += eg;
+        px[i + (width + 1) * 4 + 2] += eb;
+        px[i + (width + 1) * 4 + 3] += 0;
 
     }
 
