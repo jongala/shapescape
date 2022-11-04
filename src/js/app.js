@@ -23,8 +23,11 @@ import { clouds } from './clouds';
 import { grads } from './grads';
 import { doodle } from './doodle';
 import { pillars } from './pillars';
-import roughen from './roughen';
+// utils
 import { setAttrs } from './utils';
+// postprocess
+import roughen from './roughen';
+import dither from './postprocess/dither';
 
 // Renderers
 const RENDERERS = {
@@ -91,493 +94,36 @@ window.setRenderer = setRenderer;
 
 
 //======================================
-// DITHERING
+// POSTPROCESS
 //======================================
 
-
-
-function flume(idata, i) {
-    return Math.sqrt(
-            (idata[i] * 0.299) * (idata[i] * 0.299) +
-            (idata[i + 1] * 0.587) * (idata[i + 1] * 0.587) +
-            (idata[i + 2] * 0.114) * (idata[i + 2] * 0.114)
-        );
-}
-
-
-// TODO: I think I rewrote these from tutorials but double check these
-// functions for licensing.
-// From https://github.com/NielsLeenheer/CanvasDither
-// MIT License
-
-function atkinson(image) {
-    let width = image.width;
-    let luminance = new Uint8ClampedArray(image.width * image.height);
-
-    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
-        //luminance[l] = (image.data[i] * 0.299) + (image.data[i + 1] * 0.587) + (image.data[i + 2] * 0.114);
-        luminance[l] = flume(image.data, i);
-    }
-
-    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
-        let value = luminance[l] < 129 ? 0 : 255;
-        let error = Math.floor((luminance[l] - value) / 8);
-        image.data.fill(value, i, i + 3);
-
-        luminance[l + 1] += error;
-        luminance[l + 2] += error;
-        luminance[l + width - 1] += error;
-        luminance[l + width] += error;
-        luminance[l + width + 1] += error;
-        luminance[l + 2 * width] += error;
-    }
-
-    return image;
-}
-
-function floydsteinberg(image) {
-    /*
-        X   7
-    3   5   1
-
-      (1/16)
-     */
-    let width = image.width;
-    let luminance = new Uint8ClampedArray(image.width * image.height);
-
-    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
-        //luminance[l] = (image.data[i] * 0.299) + (image.data[i + 1] * 0.587) + (image.data[i + 2] * 0.114);
-        luminance[l] = flume(image.data, i);
-    }
-
-    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
-        let value = luminance[l] < 129 ? 0 : 255;
-        let error = Math.floor((luminance[l] - value) / 16);
-        image.data.fill(value, i, i + 3);
-
-        luminance[l + 1] += error * 7;
-        luminance[l + width - 1] += error * 3;
-        luminance[l + width] += error * 5;
-        luminance[l + width + 1] += error * 1;
-    }
-
-    return image;
-}
-
-
-function burkes(image) {
-    /*
-            X   8   4
-    2   4   8   4   2
-
-          (1/32)
-     */
-    let width = image.width;
-    let luminance = new Uint8ClampedArray(image.width * image.height);
-
-    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
-        //luminance[l] = (image.data[i] * 0.299) + (image.data[i + 1] * 0.587) + (image.data[i + 2] * 0.114);
-        luminance[l] = flume(image.data, i);
-    }
-
-    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
-        let value = luminance[l] < 129 ? 0 : 255;
-        let error = Math.floor((luminance[l] - value) / 32);
-        image.data.fill(value, i, i + 3);
-
-        luminance[l + 1] += error * 8;
-        luminance[l + 2] += error * 4;
-
-        luminance[l + width - 2] += error * 2;
-        luminance[l + width - 1] += error * 4;
-        luminance[l + width] += error * 8;
-        luminance[l + width + 1] += error * 4;
-        luminance[l + width + 2] += error * 2;
-    }
-
-    return image;
-}
-
-function sierra3(image) {
-    /*
-             X   5   3
-     2   4   5   4   2
-         2   3   2
-           (1/32)
-     */
-    let width = image.width;
-    let luminance = new Uint8ClampedArray(image.width * image.height);
-
-    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
-        //luminance[l] = (image.data[i] * 0.299) + (image.data[i + 1] * 0.587) + (image.data[i + 2] * 0.114);
-        luminance[l] = flume(image.data, i);
-    }
-
-    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
-        let value = luminance[l] < 129 ? 0 : 255;
-        let error = Math.floor((luminance[l] - value) / 32);
-        image.data.fill(value, i, i + 3);
-
-        luminance[l + 1] += error * 5;
-        luminance[l + 2] += error * 3;
-
-        luminance[l + width - 2] += error * 2;
-        luminance[l + width - 1] += error * 4;
-        luminance[l + width] += error * 5;
-        luminance[l + width + 1] += error * 4;
-        luminance[l + width + 2] += error * 2;
-
-        luminance[l + width * 2 - 1] += error * 2;
-        luminance[l + width * 2] += error * 3;
-        luminance[l + width * 2 + 1] += error * 2;
-    }
-
-    return image;
-}
-
-let ditherKernels = {
-    atkinson,
-    floydsteinberg,
-    burkes,
-    sierra3
-}
-
-function dither(canvas, kernelName='floydsteinberg') {
-    let ctx = canvas.getContext('2d');
-    let idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-    // set kernel function from map
-    let kernel = ditherKernels[kernelName];
-
-    let dithered = kernel(idata);
-
-    // directly draw dithered data to canvas
-    //ctx.putImageData(dithered, 0, 0);
-
-    // OR: draw dithered data to an offscreen canvas,
-    // then apply that to original image via 'overlay'
-    let ditherCanvas = document.createElement('canvas');
-    ditherCanvas.width = canvas.width;
-    ditherCanvas.height = canvas.height;
-    let ditherctx = ditherCanvas.getContext('2d');
-    ditherctx.putImageData(dithered, 0, 0);
-
-    ctx.globalAlpha = 0.5;
-    ctx.globalCompositeOperation = 'overlay';
-    ctx.drawImage(ditherCanvas, 0, 0);
-    ctx.globalAlpha = 1;
-}
-
-function ditherMain(){
+function roughenMain() {
     var canvas = document.querySelector('#example canvas');
-    dither(canvas, 'floydsteinberg');
+    var ctx = canvas.getContext('2d');
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
+    roughen(canvas, 3);
 }
-window.ditherMain = ditherMain;
+window.roughenMain = roughenMain;
 
 
-// Palette dithering:
 
-function colorDistance_simple(c1, c2) {
-    let d;
-    let dr, dg, db;
-    dr = c2[0] - c1[0];
-    dg = c2[1] - c1[1];
-    db = c2[2] - c1[2];
+//--------------------------------------
 
-    d = Math.sqrt(dr*dr + dg*dg + db*db);
-
-    return d;
-}
-
-// Quick euclidian color distance, from wikipedia
-// https://en.wikipedia.org/wiki/Color_difference
-function colorDistance(c1, c2) {
-    let _r = (c1[0] + c2[0]) / 2;
-    let dr = c1[0] - c2[0];
-    let dg = c1[1] - c2[1];
-    let db = c1[2] - c2[2];
-    let dc = Math.sqrt(
-        dr * dr * (2 + _r/256) +
-        dg * dg * 4 +
-        db * db  * (2 + (255 - _r)/256)
-    );
-    return dc;
-}
-
-
-function floydsteinberg_palette(image, referenceColor) {
-    /*
-        X   7
-    3   5   1
-
-      (1/16)
-     */
-    let width = image.width;
-    let colorDistances = new Uint8ClampedArray(image.width * image.height);
-    let sampleColor = [0, 0, 0]; // r, g, b
-
-    // get list of pixel distances
-    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
-        sampleColor = [image.data[i], image.data[i+1], image.data[i+2]]
-        //colorDistances[l] = (image.data[i] * 0.299) + (image.data[i + 1] * 0.587) + (image.data[i + 2] * 0.114);
-        colorDistances[l] = colorDistance(sampleColor, referenceColor);
-
-        // DEBUG: push nonzeros
-        if (colorDistances[l] > 0) window.distances.push(colorDistances[l]);
-    }
-
-    // use colorDistances to get values
-    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
-        let value = colorDistances[l] < 129 ? 0 : 255;
-        let error = Math.floor((colorDistances[l] - value) / 16);
-        image.data.fill(value, i, i + 3);
-
-        colorDistances[l + 1] += error * 7;
-        colorDistances[l + width - 1] += error * 3;
-        colorDistances[l + width] += error * 5;
-        colorDistances[l + width + 1] += error * 1;
-    }
-
-    return image;
-}
-
-// return r,g,b distance components and a scalar distance
-function colorDistanceArray(c1, c2) {
-    let dr, dg, db;
-    let _r = (c1[0] + c2[0]) / 2;
-    dr = c2[0] - c1[0];
-    dg = c2[1] - c1[1];
-    db = c2[2] - c1[2];
-    let dc = Math.sqrt(
-        dr * dr * (2 + _r/256) +
-        dg * dg * 4 +
-        db * db  * (2 + (255 - _r)/256)
-    );
-    return [dr, dg, db, dc];
-}
-
-// args are rgb in 8 bit array form
-// returns {diff, color}
-function closestColor (sample, palette) {
-    let diffs = palette.map((p)=>{
-        return {
-            diff: colorDistanceArray(p, sample),
-            color: p
-        }
-    });
-    diffs = diffs.sort((a, b) => {
-        return (a.diff[3] - b.diff[3]);
-    });
-    return diffs[0];
-}
-
-// util for ditherPalette
-function scalarVec (vec, scalar) {
-    return vec.map((x) => x * scalar);
-}
-
-// little util for ditherPalette
-function addColors(c1, c2) {
-    return [
-        c1[0] + c2[0],
-        c1[1] + c2[1],
-        c1[2] + c2[2]
-    ];
-}
-
-let kernelDefs = {
-    atkinson: [
-        [0 ,0, 1/8, 1/8],
-        [1/8, 1/8, 1/8, 0],
-        [0, 1/8, 0, 0]
-    ],
-    floydsteinberg: [
-        [0, 0, 7/16],
-        [3/16, 5/16, 1/16]
-    ],
-    burkes: [
-        [0, 0, 0, 8/32, 4/32],
-        [2/32, 4/32, 8/32, 4/32, 2/32]
-    ],
-    sierra3: [
-        [0, 0, 0, 5/32, 3/32],
-        [2/32, 4/32, 5/32, 4/32, 2/32],
-        [0/32, 2/32, 3/32, 2/32, 0/32]
-    ]
-}
-
-
-// use a set of arrays defining a dithering kernel as @kernel
-// to propagate errors into @px pixels at index @idx, using image
-// @width to set the row offsets.
-// This does full color dithering so uses an @errorArray of
-// r,g,b,x component errors. Where x is either alpha or, in this case,
-// a scalar of r,g,b used for sorting elsewhere.
-function propagate_errors(px, idx, errorArray, width, kernel){
-    // get an offset based on array length
-    let koffset = Math.ceil(kernel[0].length/2) - 1;
-    let rowOffset = 0;
-    let pxOffset = 0;
-    let er, eg, eb, es;
-
-    // index offset from half of width
-    // then step through each array
-    // each time add a width
-
-    kernel.forEach((row, j)=>{
-        rowOffset = j * width;
-        row.forEach((weight, i)=>{
-            [er, eg, eb, es] = scalarVec(errorArray, weight);
-
-            pxOffset = idx + (rowOffset + i - koffset) * 4;
-
-            px[pxOffset + 0] += er;
-            px[pxOffset + 1] += eg;
-            px[pxOffset + 2] += eb;
-            px[pxOffset + 3] += 0;
-        })
-    });
-}
-
-// Single pass function to dither an image using colors in @palette
-// Relies on closestColor() -> colorDistanceArray() and other utils above
-function ditherPalette(image, palette, kernelName='burkes') {
-    let kernel = kernelDefs[kernelName] || kernelDefs['burkes'];
-    let width = image.width;
-    let sampleColor = [0, 0, 0]; // r, g, b
-    let sampleError = [0, 0, 0];
-    let closest;
-
-    let px = image.data;
-
-    let rgbPalette = palette.map((p)=>hexToRgb(p));
-
-    // use colorDistances to get values
-    for (let i = 0; i < image.data.length; i += 4) {
-        sampleColor = [px[i], px[i+1], px[i+2]];
-
-        // check each pixel, find closest palette color. get error.
-        closest = closestColor(
-            sampleColor, // sample, which includes errors
-            rgbPalette // … to the palette colors
-        );
-
-        // replace pixel with palette color
-        px[i] = closest.color[0];
-        px[i+1] = closest.color[1];
-        px[i+2] = closest.color[2];
-        px[i+3] = 255;
-
-        // Add error to the neighboring pixel values.
-        // Pass in the specified kernel
-        propagate_errors(px, i, closest.diff, width, kernel);
-    }
-
-    return image;
-}
-
-function hexToRgb(hex) {
-    if (hex[0] === '#') {
-        hex = hex.slice(1);
-    }
-    if (hex.length === 3) {
-        hex = '' + hex[0] + hex[0]
-            + hex[1] + hex[1]
-            + hex[2] + hex[2];
-    }
-    function toN(hexFrag) {
-        return parseInt(hexFrag, 16)
-    }
-    return [
-        toN(hex.slice(0,2)),
-        toN(hex.slice(2,4)),
-        toN(hex.slice(4,6))
-    ]
-    /*return {
-        r: toN(hex.slice(0,2)),
-        g: toN(hex.slice(2,4)),
-        b: toN(hex.slice(4,6))
-    }*/
-}
-
-function ditherColor(canvas, palette, kernelName='floydsteinberg') {
-    let ctx = canvas.getContext('2d');
-    let idata;
-
-    // set kernel function from map
-    let kernel = floydsteinberg_palette;
-
-    let dithered;
-    let c;
-    let layers = [];
-
-
-    palette.forEach(function(color, idx){
-        c = hexToRgb(color);
-
-        idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        dithered = kernel(idata, c);
-
-        // directly draw dithered data to canvas
-        //ctx.putImageData(dithered, 0, 0);
-
-        // OR: draw dithered data to an offscreen canvas,
-        // then apply that to original image via 'overlay'
-        let ditherCanvas = document.createElement('canvas');
-        ditherCanvas.width = canvas.width;
-        ditherCanvas.height = canvas.height;
-        let ditherctx = ditherCanvas.getContext('2d');
-        ditherctx.putImageData(dithered, 0, 0);
-
-        /*ditherctx.globalCompositeOperation = 'exclusion';
-        ditherctx.fillStyle = color;
-        console.log('dither fill style ', color);
-        ditherctx.rect(0, 0, canvas.width, canvas.height);
-        ditherctx.fill();*/
-        let ditherData = ditherctx.getImageData(0, 0, canvas.width, canvas.height);
-        let ditherpx = ditherData.data;
-        let n = ditherpx.length;
-        let i = 0;
-        while(i < n) {
-            if(ditherpx[i] === 0) {
-                // fill it
-                ditherpx[i] = c[0];
-                ditherpx[i + 1] = c[1];
-                ditherpx[i + 2] = c[2];
-            } else {
-                // blank it
-                ditherpx[i + 3] = 0; // no alpha
-            }
-
-            i += 4;
-        }
-        ditherctx.putImageData(ditherData, 0, 0);
-
-        layers.push(ditherCanvas);
-        document.querySelector('body').appendChild(ditherCanvas);
-    });
-
-
-    ctx.globalAlpha = 0.66; // TODO magic number
-    ctx.fillStyle="white";
-    ctx.rect(0, 0, canvas.width, canvas.height);
-    ctx.fill();
-    ctx.globalAlpha = 1;
-    layers.forEach((ditherCanvas)=>{
-        ctx.drawImage(ditherCanvas, 0, 0);
-    });
-
-
-}
-
-
-function ditherColorMain(){
+function ditherToLuminosity(){
     var canvas = document.querySelector('#example canvas');
-    // Old call:
-    //ditherColor(canvas, visualOpts.palette, 'floydsteinberg');
+    dither.ditherLuminosity(canvas, 'floydsteinberg');
+}
+window.ditherToLuminosity = ditherToLuminosity;
 
 
-    // NEW for palette: do directly here
+//--------------------------------------
+
+
+
+function ditherToPalette(){
+    var canvas = document.querySelector('#example canvas');
+
     // Create a basic palette of black and white if no palette exists
     let basePalette = ['#000000','#ffffff'];
     let renderPalette = [].concat(basePalette);
@@ -589,26 +135,21 @@ function ditherColorMain(){
     // draw directly to the active canvas with dithered data.
     let ctx = canvas.getContext('2d');
     let idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    let dithered = ditherPalette(idata, renderPalette, 'atkinson');
+    let dithered = dither.ditherPalette(idata, renderPalette, 'atkinson');
 
 
     // apply the dithered data back
     ctx.putImageData(dithered, 0, 0);
 
 }
-window.ditherColorMain = ditherColorMain;
+
+window.ditherToPalette = ditherToPalette;
 
 
 
 /* ======================================
-END DITHERING
+END POSTPROCESS
 ====================================== */
-
-
-
-
-
-
 
 
 
@@ -865,14 +406,6 @@ document.querySelector('#saved').addEventListener('click', function(e) {
     }
 });
 
-function roughenMain() {
-    var canvas = document.querySelector('#example canvas');
-    var ctx = canvas.getContext('2d');
-    ctx.shadowBlur = 0;
-    ctx.shadowColor = 'transparent';
-    roughen(canvas, 3);
-}
-window.roughenMain = roughenMain;
 
 exampleNode.addEventListener('click', function(e) {
     renderCanvasToImg(exampleNode.querySelector('canvas'), document.querySelector('#saved'));
