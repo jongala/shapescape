@@ -112,7 +112,12 @@ window.roughenMain = roughenMain;
 
 function ditherToLuminosity(){
     var canvas = document.querySelector('#example canvas');
-    dither.ditherLuminosity(canvas, 'floydsteinberg');
+    let ctx = canvas.getContext('2d');
+    let idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let dithered = dither.ditherLuminosity(idata, 'floydsteinberg');
+
+    // apply the dithered data back
+    ctx.putImageData(dithered, 0, 0);
 }
 window.ditherToLuminosity = ditherToLuminosity;
 

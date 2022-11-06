@@ -88,6 +88,8 @@ function propagate_errors(px, idx, errorArray, width, kernel){
             px[pxOffset + 3] += 0;
         })
     });
+
+    return px;
 }
 
 
@@ -124,7 +126,7 @@ function ditherPalette(image, palette, kernelName='burkes') {
 
         // Add error to the neighboring pixel values.
         // Pass in the specified kernel
-        propagate_errors(px, i, closest.diff, width, kernel);
+        px = propagate_errors(px, i, closest.diff, width, kernel);
     }
 
     let tFinish = new Date().getTime();
@@ -134,10 +136,8 @@ function ditherPalette(image, palette, kernelName='burkes') {
 
 //--------------------------------------
 
-
-// TODO rewrite this junk to use the new error prop functions and kernel maps
-// but with simpler/faster? luminosity based pre-process?
-
+// from pixel data @idata at index @i return a basic rgb luminosity
+// using sqrt of rando c
 function flume(idata, i) {
     return Math.sqrt(
             (idata[i] * 0.299) * (idata[i] * 0.299) +
@@ -147,172 +147,63 @@ function flume(idata, i) {
 }
 
 
-// TODO: I think I rewrote these from tutorials but double check these
-// functions for licensing.
-// From https://github.com/NielsLeenheer/CanvasDither
-// MIT License
+// use a set of arrays defining a dithering kernel as @kernel
+// to propagate errors into @px, a SINGLE CHANNEL pixels array,
+// at index @idx, using image @width to set the row offsets.
+// This does luminosity dithering so uses a scalar @error
+function propagate_luminosity_errors(px, idx, error, width, kernel){
+    // get an offset based on array length
+    let koffset = Math.ceil(kernel[0].length/2) - 1;
+    let rowOffset = 0;
+    let pxOffset = 0;
+    let prop_error;
 
-function atkinson(image) {
-    let width = image.width;
-    let luminance = new Uint8ClampedArray(image.width * image.height);
+    // index offset from half of width
+    // then step through each array
+    // each time add a width
 
-    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
-        //luminance[l] = (image.data[i] * 0.299) + (image.data[i + 1] * 0.587) + (image.data[i + 2] * 0.114);
-        luminance[l] = flume(image.data, i);
-    }
+    kernel.forEach((row, j)=>{
+        rowOffset = j * width;
+        row.forEach((weight, i)=>{
+            prop_error = error * weight;
+            pxOffset = idx + (rowOffset + i - koffset);
+            px[pxOffset] += prop_error;
+        })
+    });
 
-    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
-        let value = luminance[l] < 129 ? 0 : 255;
-        let error = Math.floor((luminance[l] - value) / 8);
-        image.data.fill(value, i, i + 3);
-
-        luminance[l + 1] += error;
-        luminance[l + 2] += error;
-        luminance[l + width - 1] += error;
-        luminance[l + width] += error;
-        luminance[l + width + 1] += error;
-        luminance[l + 2 * width] += error;
-    }
-
-    return image;
-}
-
-function floydsteinberg(image) {
-    /*
-        X   7
-    3   5   1
-
-      (1/16)
-     */
-    let width = image.width;
-    let luminance = new Uint8ClampedArray(image.width * image.height);
-
-    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
-        //luminance[l] = (image.data[i] * 0.299) + (image.data[i + 1] * 0.587) + (image.data[i + 2] * 0.114);
-        luminance[l] = flume(image.data, i);
-    }
-
-    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
-        let value = luminance[l] < 129 ? 0 : 255;
-        let error = Math.floor((luminance[l] - value) / 16);
-        image.data.fill(value, i, i + 3);
-
-        luminance[l + 1] += error * 7;
-        luminance[l + width - 1] += error * 3;
-        luminance[l + width] += error * 5;
-        luminance[l + width + 1] += error * 1;
-    }
-
-    return image;
+    return px;
 }
 
 
-function burkes(image) {
-    /*
-            X   8   4
-    2   4   8   4   2
-
-          (1/32)
-     */
-    let width = image.width;
-    let luminance = new Uint8ClampedArray(image.width * image.height);
-
-    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
-        //luminance[l] = (image.data[i] * 0.299) + (image.data[i + 1] * 0.587) + (image.data[i + 2] * 0.114);
-        luminance[l] = flume(image.data, i);
-    }
-
-    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
-        let value = luminance[l] < 129 ? 0 : 255;
-        let error = Math.floor((luminance[l] - value) / 32);
-        image.data.fill(value, i, i + 3);
-
-        luminance[l + 1] += error * 8;
-        luminance[l + 2] += error * 4;
-
-        luminance[l + width - 2] += error * 2;
-        luminance[l + width - 1] += error * 4;
-        luminance[l + width] += error * 8;
-        luminance[l + width + 1] += error * 4;
-        luminance[l + width + 2] += error * 2;
-    }
-
-    return image;
-}
-
-function sierra3(image) {
-    /*
-             X   5   3
-     2   4   5   4   2
-         2   3   2
-           (1/32)
-     */
-    let width = image.width;
-    let luminance = new Uint8ClampedArray(image.width * image.height);
-
-    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
-        //luminance[l] = (image.data[i] * 0.299) + (image.data[i + 1] * 0.587) + (image.data[i + 2] * 0.114);
-        luminance[l] = flume(image.data, i);
-    }
-
-    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
-        let value = luminance[l] < 129 ? 0 : 255;
-        let error = Math.floor((luminance[l] - value) / 32);
-        image.data.fill(value, i, i + 3);
-
-        luminance[l + 1] += error * 5;
-        luminance[l + 2] += error * 3;
-
-        luminance[l + width - 2] += error * 2;
-        luminance[l + width - 1] += error * 4;
-        luminance[l + width] += error * 5;
-        luminance[l + width + 1] += error * 4;
-        luminance[l + width + 2] += error * 2;
-
-        luminance[l + width * 2 - 1] += error * 2;
-        luminance[l + width * 2] += error * 3;
-        luminance[l + width * 2 + 1] += error * 2;
-    }
-
-    return image;
-}
-
-let ditherKernelMap = {
-    atkinson,
-    floydsteinberg,
-    burkes,
-    sierra3
-}
-
-function ditherLuminosity(canvas, kernelName='floydsteinberg') {
+// Single pass function to dither an image using luminosity
+function ditherLuminosity(image, kernelName='burkes') {
     let tStart = new Date().getTime();
 
-    let ctx = canvas.getContext('2d');
-    let idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let kernel = kernelDefs[kernelName] || kernelDefs['burkes'];
+    let width = image.width;
 
-    // set kernel function from map
-    let kernel = ditherKernelMap[kernelName];
+    let luminance = new Uint8ClampedArray(image.width * image.height);
 
-    let dithered = kernel(idata);
+    // populate luminance array
+    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
+        luminance[l] = flume(image.data, i);
+    }
 
-    // directly draw dithered data to canvas
-    //ctx.putImageData(dithered, 0, 0);
+    // now step through the luminance, check threshold, and
+    // apply new b/w value to px. Record raw error and propagate
+    // through the luminance array.
+    for (let l = 0, i = 0; i < image.data.length; l++, i += 4) {
+        let value = luminance[l] < 129 ? 0 : 255;
+        let error = luminance[l] - value;
+        image.data.fill(value, i, i + 3);
 
-    // OR: draw dithered data to an offscreen canvas,
-    // then apply that to original image via 'overlay'
-    let ditherCanvas = document.createElement('canvas');
-    ditherCanvas.width = canvas.width;
-    ditherCanvas.height = canvas.height;
-    let ditherctx = ditherCanvas.getContext('2d');
-    ditherctx.putImageData(dithered, 0, 0);
-
-    ctx.globalAlpha = 0.5;
-    ctx.globalCompositeOperation = 'overlay';
-    ctx.drawImage(ditherCanvas, 0, 0);
-    ctx.globalAlpha = 1;
+        // propagate errors into luminance
+        luminance = propagate_luminosity_errors(luminance, l, error, width, kernel);
+    }
 
     let tFinish = new Date().getTime();
-    console.log(`Dithered luminosity with ${kernelName} in ${tFinish - tStart}ms`);
+    console.log(`Dithered to luminosity with ${kernelName} in ${tFinish - tStart}ms`);
+    return image;
 }
 
 
