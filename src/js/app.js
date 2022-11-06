@@ -114,10 +114,25 @@ function ditherToLuminosity(){
     var canvas = document.querySelector('#example canvas');
     let ctx = canvas.getContext('2d');
     let idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    let dithered = dither.ditherLuminosity(idata, 'floydsteinberg');
+    let dithered = dither.ditherLuminosity(idata, 'atkinson');
 
     // apply the dithered data back
-    ctx.putImageData(dithered, 0, 0);
+    //ctx.putImageData(dithered, 0, 0);
+
+    // OR: draw dithered data to an offscreen canvas,
+    // then apply that to original image via 'overlay'
+    let ditherCanvas = document.createElement('canvas');
+    ditherCanvas.width = canvas.width;
+    ditherCanvas.height = canvas.height;
+    let ditherctx = ditherCanvas.getContext('2d');
+    ditherctx.putImageData(dithered, 0, 0);
+
+    ctx.globalAlpha = 0.5;
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.drawImage(ditherCanvas, 0, 0);
+    ctx.globalAlpha = 1;
+
+    ctx.globalCompositeOperation = 'normal';
 }
 window.ditherToLuminosity = ditherToLuminosity;
 
