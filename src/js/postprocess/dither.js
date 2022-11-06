@@ -140,9 +140,9 @@ function ditherPalette(image, palette, kernelName='burkes') {
 // using sqrt of rando c
 function flume(idata, i) {
     return Math.sqrt(
-            (idata[i] * 0.299) * (idata[i] * 0.299) +
-            (idata[i + 1] * 0.587) * (idata[i + 1] * 0.587) +
-            (idata[i + 2] * 0.114) * (idata[i + 2] * 0.114)
+            0.299 * idata[i] * idata[i] +
+            0.587 * idata[i + 1] * idata[i + 1] +
+            0.114 * idata[i + 2] * idata[i + 2]
         );
 }
 
