@@ -1,26 +1,4 @@
-// Dithering
-
-
-
-// converts @hex to 8-bit array [r, g, b]
-function hexToRgb(hex) {
-    if (hex[0] === '#') {
-        hex = hex.slice(1);
-    }
-    if (hex.length === 3) {
-        hex = '' + hex[0] + hex[0]
-            + hex[1] + hex[1]
-            + hex[2] + hex[2];
-    }
-    function toN(hexFrag) {
-        return parseInt(hexFrag, 16)
-    }
-    return [
-        toN(hex.slice(0,2)),
-        toN(hex.slice(2,4)),
-        toN(hex.slice(4,6))
-    ]
-}
+import {hexToRgb, scalarVec} from '../utils';
 
 
 // Supply @c1, @c2 as [r,g,b] colors.
@@ -39,6 +17,7 @@ function colorDistanceArray(c1, c2) {
     return [dr, dg, db, dc];
 }
 
+
 // args are rgb in 8 bit array form
 // returns {diff, color}
 function closestColor (sample, palette) {
@@ -55,12 +34,8 @@ function closestColor (sample, palette) {
 }
 
 
-// util for ditherPalette
-function scalarVec (vec, scalar) {
-    return vec.map((x) => x * scalar);
-}
-
-
+// Nested arrays of error coefs. Use zeroes up to the "current" px
+// which means they imply forward-only propagation.
 const kernelDefs = {
     atkinson: [
         [0 ,0, 1/8, 1/8],
@@ -81,6 +56,7 @@ const kernelDefs = {
         [0/32, 2/32, 3/32, 2/32, 0/32]
     ]
 }
+
 
 // use a set of arrays defining a dithering kernel as @kernel
 // to propagate errors into @px pixels at index @idx, using image

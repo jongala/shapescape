@@ -91,3 +91,30 @@ export function getSolidColorFunction(palette) {
         return p.pop();
     };
 }
+
+
+// converts @hex to 8-bit array [r, g, b]
+export function hexToRgb(hex) {
+    if (hex[0] === '#') {
+        hex = hex.slice(1);
+    }
+    if (hex.length === 3) {
+        hex = '' + hex[0] + hex[0]
+            + hex[1] + hex[1]
+            + hex[2] + hex[2];
+    }
+    function toN(hexFrag) {
+        return parseInt(hexFrag, 16)
+    }
+    return [
+        toN(hex.slice(0,2)),
+        toN(hex.slice(2,4)),
+        toN(hex.slice(4,6))
+    ]
+}
+
+
+// util for scaling color errors in dithering, but could be useful
+export function scalarVec (vec, scalar) {
+    return vec.map((x) => x * scalar);
+}
