@@ -7,7 +7,7 @@
     <h1 id="renderPickers"></h1>
     <div id="controls">
         <select onchange="setPalette(this.value)" id="paletteSelector"></select>
-        <input type="text" id="customColors" placeholder="paste colors" />
+        <input type="text" id="customColors" placeholder="enter colors…" />
         <span class="spacerSpan">|</span>
         <select onchange="setSize(this.value)">
             <option value="square">square</option>
@@ -21,11 +21,12 @@
         <button onclick="drawNew()" id="newImageTrigger">New Image</button>
         <button onclick="createBatch()" id="newBatchTrigger">New Batch</button>
         <!--<button onclick="rerun()" id="rerunTrigger">ReRun</button>-->
-        <a href="#" id="downloadExample" target="_blank">↓</a>
+        <a href="#" id="downloadExample" target="_blank" title="download image">↓</a>
         <span class="spacerSpan">|</span>
-        <button onclick="ditherToLuminosity()" id="ditherLumeTrigger">Dither Lume</button>
-        <button onclick="ditherToPalette()" id="ditherColorTrigger">Dither Color</button>
-        <button onclick="roughenMain()" id="roughenTrigger">Roughen</button>
+        <button onclick="ditherToLuminosity()" id="ditherLumeTrigger" title="Add luminosity-based dithering to base image">
+        Soft Dither</button>
+        <button onclick="ditherToPalette()" id="ditherColorTrigger" title="Dither image strictly to selected palette">Hard Dither</button>
+        <button onclick="roughenMain()" id="roughenTrigger" title="Push pixels around">Roughen</button>
     </div>
     <div id="example"></div>
     <div id="saved"><div id="instructions">[space] to redraw. Click image to add to tray. Click thumbnail to preview.</div></div>
