@@ -148,7 +148,7 @@ function ditherPalette(image, palette, kernelName='burkes') {
 //--------------------------------------
 
 // from pixel data @idata at index @i return a basic rgb luminosity
-// using sqrt of rando c
+// using sqrt of color components using "standard" perceptual coefs
 function flume(idata, i) {
     return Math.sqrt(
             0.299 * idata[i] * idata[i] +
