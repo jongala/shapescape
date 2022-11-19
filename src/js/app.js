@@ -300,18 +300,18 @@ function halftoneCMYK() {
                     var rate = sum / count;
                     rate = Math.max(0, rate);
                     // clipping only needed with multiply blend
-                    layerCtx.save();
+                    /*layerCtx.save();
                     layerCtx.beginPath();
                     layerCtx.moveTo(x, y);
                     layerCtx.lineTo(x + interval, y);
                     layerCtx.lineTo(x + interval, y + interval);
                     layerCtx.lineTo(x, y + interval);
-                    layerCtx.clip();
+                    layerCtx.clip();*/
                     // end clipping
                     layerCtx.beginPath();
                     layerCtx.arc(x + (interval / 2), y + (interval / 2), Math.SQRT1_2 * interval * rate, 0, Math.PI * 2, true);
                     layerCtx.fill();
-                    layerCtx.restore();
+                    //layerCtx.restore();
                 }
             }
 
