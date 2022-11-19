@@ -171,7 +171,6 @@ window.ditherToPalette = ditherToPalette;
 // Adapted from https://gist.github.com/ucnv/249486
 function halftoneCMYK() {
     var tStart = new Date().getTime();
-    var interval = 6;
 
     var canvas = document.querySelector('#example canvas');
     canvas.setAttribute('willReadFrequently', true);
@@ -180,6 +179,12 @@ function halftoneCMYK() {
     var w = canvas.width;
     var h = canvas.height;
 
+    var interval;
+    let dim = Math.min(w, h);
+    // adjust scaling of screen interval based on image size
+    let dotFactor = 100 + dim/800 * 33;
+    interval = Math.round(dim/dotFactor);
+
     let alpha = 0.66;
     alpha = 1;
 
@@ -187,17 +192,17 @@ function halftoneCMYK() {
         {
             name: 'y',
             color: `rgba(255,255,0,${alpha})`,
-            angle: 108
+            angle: 0
         },
         {
             name: 'm',
             color: `rgba(255,0,255,${alpha})`,
-            angle: 162
+            angle: 75
         },
         {
             name: 'c',
             color: `rgba(0,255,255,${alpha})`,
-            angle: 90
+            angle: 15
         },
         {
             name: 'k',
@@ -259,6 +264,7 @@ function halftoneCMYK() {
 
             // rotate the scratch canvas to the screen angle, draw the source img
             var scratch = c.getContext('2d');
+            scratch.willReadFrequently = true;
             scratch.translate(0, w * sinr);
             scratch.rotate(-rad);
             scratch.drawImage(source, 0, 0);
