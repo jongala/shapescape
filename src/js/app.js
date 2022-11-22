@@ -319,6 +319,8 @@ function halftoneCMYK() {
             layerCtx.rotate(-rad);
             layerCtx.translate(-w * sinr * sinr, w * sinr * cosr);
 
+            // clear DOM element
+            c = null;
         } // drawColor()
 
         // step through palette, drawing colors to layers
@@ -331,6 +333,7 @@ function halftoneCMYK() {
         display.globalAlpha = 0.8086;
         layers.forEach((layer, i) => {
             display.drawImage(layer, 0, 0);
+            layer = null; // clear DOM element
         });
         display.globalCompositeOperation = 'normal';
 
@@ -338,6 +341,7 @@ function halftoneCMYK() {
     } // halftone()
 
     halftone(cmyk, ctx);
+    source = null; // clear DOM element
 
     var tEnd = new Date().getTime();
     console.log(`Ran halftoneCMYK in ${tEnd - tStart}ms`);
