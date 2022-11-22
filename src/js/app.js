@@ -175,58 +175,70 @@ function halftoneCMYK() {
     var canvas = document.querySelector('#example canvas');
     canvas.setAttribute('willReadFrequently', true);
 
-    var ctx = canvas.getContext('2d');
-    var w = canvas.width;
-    var h = canvas.height;
-
-    var interval;
-    let dim = Math.min(w, h);
-    // adjust scaling of screen interval based on image size
-    let dotFactor = 100 + dim/800 * 33;
-    interval = Math.round(dim/dotFactor);
-
-    let alpha = 0.66;
-    alpha = 1;
-
     let cmyk = [
         {
             name: 'y',
-            color: `rgba(255,255,0,${alpha})`,
+            color: `rgba(255,255,0)`,
             angle: 0
         },
         {
             name: 'm',
-            color: `rgba(255,0,255,${alpha})`,
+            color: `rgba(255,0,255)`,
             angle: 75
         },
         {
             name: 'c',
-            color: `rgba(0,255,255,${alpha})`,
+            color: `rgba(0,255,255)`,
             angle: 15
         },
         {
             name: 'k',
-            color: `rgba(0,0,0,${alpha})`,
+            color: `rgba(0,0,0)`,
             angle: 45
         }
     ];
 
-    // The source canvas takes a snapshot of the input/output canvas,
-    // which will be re-applied to the scratch canvas at different
-    // angles for each color to be applied
-    let source = document.createElement('canvas');
-    source.width = w;
-    source.height = h;
-    let sourceCtx = source.getContext('2d');
-    // capture the image once onto the offscreen source canvas;
-    sourceCtx.drawImage(canvas, 0, 0);
 
-    // Blank the output canvas after copying it out, so we draw halftones
-    // on a clean canvas, instead of on top of the original.
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, w, h);
+    // adaptive @dotSize, 1 is small, 2 is med,  3 is large
+    function halftone(canvas, dotSize=2, palette) {
 
-    function halftone(palette, display) {
+        // get context and dims for input/output canvas
+        var display = canvas.getContext('2d');
+        var w = canvas.width;
+        var h = canvas.height;
+
+        // capture and remove shadow settings
+        let canvasShadowBlur = display.shadowBlur;
+        let canvasShadowColor = display.shadowColor;
+        display.shadowBlur = 0;
+        display.shadowColor = 'transparent';
+
+
+        let dim = Math.min(w, h);
+
+        // calculate the actual dot size
+        // add a sqrt factor normalized to an 800px canvas, to grow the dots
+        // somewhat with canvas size.
+        let interval = (3 + dotSize * 2) * Math.sqrt(dim/800);
+        interval = Math.round(interval);
+        // console.log(`dotSize = ${dotSize}, interval=${interval}`);
+
+        // The source canvas takes a snapshot of the input/output canvas,
+        // which will be re-applied to the scratch canvas at different
+        // angles for each color to be applied
+        let source = document.createElement('canvas');
+        source.width = w;
+        source.height = h;
+        let sourceCtx = source.getContext('2d');
+        // capture the image once onto the offscreen source canvas;
+        sourceCtx.drawImage(canvas, 0, 0);
+
+        // Blank the output canvas after copying it out, so we draw halftones
+        // on a clean canvas, instead of on top of the original.
+        display.fillStyle = '#fff';
+        display.fillRect(0, 0, w, h);
+
+
 
         // For each color in the palette, create an offscreen canvas.
         // We will draw directly to these layers, then composite them
@@ -300,18 +312,18 @@ function halftoneCMYK() {
                     var rate = sum / count;
                     rate = Math.max(0, rate);
                     // clipping only needed with multiply blend
-                    /*layerCtx.save();
+                    layerCtx.save();
                     layerCtx.beginPath();
                     layerCtx.moveTo(x, y);
                     layerCtx.lineTo(x + interval, y);
                     layerCtx.lineTo(x + interval, y + interval);
                     layerCtx.lineTo(x, y + interval);
-                    layerCtx.clip();*/
+                    layerCtx.clip();
                     // end clipping
                     layerCtx.beginPath();
                     layerCtx.arc(x + (interval / 2), y + (interval / 2), Math.SQRT1_2 * interval * rate, 0, Math.PI * 2, true);
                     layerCtx.fill();
-                    //layerCtx.restore();
+                    layerCtx.restore();
                 }
             }
 
@@ -337,11 +349,14 @@ function halftoneCMYK() {
         });
         display.globalCompositeOperation = 'normal';
 
+        source = null; // clear DOM element
 
+        // re-apply shadow settings
+        display.shadowBlur = canvasShadowBlur;
+        display.shadowColor = canvasShadowColor;
     } // halftone()
 
-    halftone(cmyk, ctx);
-    source = null; // clear DOM element
+    halftone(canvas, 2, cmyk);
 
     var tEnd = new Date().getTime();
     console.log(`Ran halftoneCMYK in ${tEnd - tStart}ms`);
