@@ -28,7 +28,7 @@ import { setAttrs, hexToRgb, scalarVec } from './utils';
 // postprocess
 import roughen from './roughen';
 import dither from './postprocess/dither';
-import halftoneCMYK from './postprocess/halftone';
+import { halftoneCMYK } from './postprocess/halftone';
 
 // Renderers
 const RENDERERS = {
@@ -198,7 +198,7 @@ function halftoneProcess() {
         }
     ];
 
-    halftone(canvas, 2, cmyk);
+    halftoneCMYK(canvas, 2, cmyk);
 
     var tEnd = new Date().getTime();
     console.log(`Ran halftoneProcess in ${tEnd - tStart}ms`);
