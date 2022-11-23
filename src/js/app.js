@@ -24,10 +24,11 @@ import { grads } from './grads';
 import { doodle } from './doodle';
 import { pillars } from './pillars';
 // utils
-import { setAttrs } from './utils';
+import { setAttrs, hexToRgb, scalarVec } from './utils';
 // postprocess
 import roughen from './roughen';
 import dither from './postprocess/dither';
+import halftoneCMYK from './postprocess/halftone';
 
 // Renderers
 const RENDERERS = {
@@ -168,8 +169,7 @@ window.ditherToPalette = ditherToPalette;
 //--------------------------------------
 
 // Halftone
-// Adapted from https://gist.github.com/ucnv/249486
-function halftoneCMYK() {
+function halftoneProcess() {
     var tStart = new Date().getTime();
 
     var canvas = document.querySelector('#example canvas');
@@ -198,8 +198,60 @@ function halftoneCMYK() {
         }
     ];
 
+    halftone(canvas, 2, cmyk);
 
-    // adaptive @dotSize, 1 is small, 2 is med,  3 is large
+    var tEnd = new Date().getTime();
+    console.log(`Ran halftoneProcess in ${tEnd - tStart}ms`);
+}
+
+window.halftoneProcess = halftoneProcess;
+
+
+
+// Supply @c1, @c2 as [r,g,b] colors.
+// Return r,g,b distance components, and a scalar distance as [r,b,g,distance]
+function colorDistanceArray(c1, c2) {
+    let dr, dg, db;
+    let _r = (c1[0] + c2[0]) / 2;
+    dr = c2[0] - c1[0];
+    dg = c2[1] - c1[1];
+    db = c2[2] - c1[2];
+    let dc = Math.sqrt(
+        dr * dr * (2 + _r/256) +
+        dg * dg * 4 +
+        db * db  * (2 + (255 - _r)/256)
+    );
+    return [dr, dg, db, dc];
+}
+
+
+// args are rgb in 8 bit array form
+// returns {diff, color}
+function closestColor (sample, palette) {
+    let diffs = palette.map((p)=>{
+        return {
+            diff: colorDistanceArray(p, sample),
+            color: p
+        }
+    });
+    diffs = diffs.sort((a, b) => {
+        return (a.diff[3] - b.diff[3]);
+    });
+    return diffs[0];
+}
+
+
+
+function halftoneSpot() {
+    var tStart = new Date().getTime();
+
+    var canvas = document.querySelector('#example canvas');
+    canvas.setAttribute('willReadFrequently', true);
+
+    let angles = [45, 75, 30, 85, 22.5, 62.5, 15, 0];
+    let cmyk = ['#000000', '#ff00ff', '#00ffff', '#ffff00'];
+
+
     function halftone(canvas, dotSize=2, palette) {
 
         // get context and dims for input/output canvas
@@ -239,7 +291,6 @@ function halftoneCMYK() {
         display.fillRect(0, 0, w, h);
 
 
-
         // For each color in the palette, create an offscreen canvas.
         // We will draw directly to these layers, then composite them
         // to the output canvas later. This lets us use the 'multiply'
@@ -255,15 +306,17 @@ function halftoneCMYK() {
 
 
         // draw the color to the layer
-        var drawColor = function(interval, colorObj, layer) {
+        var drawColor = function(interval, hex, angle, layer) {
 
             // console.log('drawColor', colorObj);
+            let color = hexToRgb(hex);
 
             // get an offscreen layer to draw to
             let layerCtx = layer.getContext('2d');
 
             // set transform for angle of color screen
-            var rad = (colorObj.angle % 90) * Math.PI / 180;
+
+            var rad = (angle % 90) * Math.PI / 180;
             var sinr = Math.sin(rad), cosr = Math.cos(rad);
             var ow = w * cosr + h * sinr;
             var oh = h * cosr + w * sinr;
@@ -284,7 +337,7 @@ function halftoneCMYK() {
             // position the rendering layer to match screen angle
             layerCtx.translate(w * sinr * sinr, -w * sinr * cosr);
             layerCtx.rotate(rad);
-            layerCtx.fillStyle = colorObj.color;
+            layerCtx.fillStyle = hex;
 
             // Loop through @interval pixels, width and height.
             // Keep a running tally of color diffs from the palette reference
@@ -293,23 +346,28 @@ function halftoneCMYK() {
                 for(var x = 0; x < ow; x += interval) {
                     var pixels = scratch.getImageData(x, y, interval, interval).data;
                     var sum = 0, count = 0;
+                    let agg = [0, 0, 0];
                     for(var i = 0; i < pixels.length; i += 4) {
                         if(pixels[i + 3] == 0) continue;
-                        var r = 255 - pixels[i];
-                        var g = 255 - pixels[i + 1];
-                        var b = 255 - pixels[i + 2];
-                        var k = Math.min(r, g, b);
 
-                        if(colorObj.name != 'k' && k == 255) sum += 0; // avoid divide by zero
-                        else if(colorObj.name == 'k') sum += k / 255;
-                        else if(colorObj.name == 'c') sum += (r - k) / (255 - k);
-                        else if(colorObj.name == 'm') sum += (g - k) / (255 - k);
-                        else if(colorObj.name == 'y') sum += (b - k) / (255 - k);
+                        agg[0] += pixels[i + 0];
+                        agg[1] += pixels[i + 1];
+                        agg[2] += pixels[i + 2];
+                        
                         count++;
                     }
 
                     if(count == 0) continue;
-                    var rate = sum / count;
+                    agg = scalarVec(agg, 1/count);
+
+                    let closest = closestColor(agg, palette);
+                    let diff = colorDistanceArray(agg, color);
+
+                    var rate = diff[3]/255;// * (1 - closest.diff)/diff;
+                    if (x > 400 && x < 410 && y > 400 && y < 410) {
+                        console.log(agg, closest, diff);
+                    }
+
                     rate = Math.max(0, rate);
                     // clipping only needed with multiply blend
                     layerCtx.save();
@@ -336,33 +394,34 @@ function halftoneCMYK() {
         } // drawColor()
 
         // step through palette, drawing colors to layers
-        palette.forEach((colorObj, i) => {
-            drawColor(interval, colorObj, layers[i]);
+        palette.forEach((hex, i) => {
+            drawColor(interval, hex, angles[i], layers[i]);
         });
 
         // step through layers, and composite them onto the output canvas
-        display.globalCompositeOperation = 'multiply';
-        display.globalAlpha = 0.8086;
+        //display.globalCompositeOperation = 'multiply';
+        //display.globalAlpha = 0.8086;
         layers.forEach((layer, i) => {
             display.drawImage(layer, 0, 0);
             layer = null; // clear DOM element
         });
-        display.globalCompositeOperation = 'normal';
+        //display.globalCompositeOperation = 'normal';
 
         source = null; // clear DOM element
 
         // re-apply shadow settings
         display.shadowBlur = canvasShadowBlur;
         display.shadowColor = canvasShadowColor;
-    } // halftone()
+    } // halftoneCMYK()
 
     halftone(canvas, 2, cmyk);
 
     var tEnd = new Date().getTime();
-    console.log(`Ran halftoneCMYK in ${tEnd - tStart}ms`);
+    console.log(`Ran halftoneSpot in ${tEnd - tStart}ms`);
+
 }
 
-window.halftoneCMYK = halftoneCMYK;
+window.halftoneSpot = halftoneSpot;
 
 
 /* ======================================
