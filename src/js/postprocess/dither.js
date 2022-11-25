@@ -3,12 +3,14 @@ import {hexToRgb, scalarVec} from '../utils';
 
 // Supply @c1, @c2 as [r,g,b] colors.
 // Return r,g,b distance components, and a scalar distance as [r,b,g,distance]
+// Scalar diff is 0-765
 function colorDistanceArray(c1, c2) {
     let dr, dg, db;
     let _r = (c1[0] + c2[0]) / 2;
     dr = c2[0] - c1[0];
     dg = c2[1] - c1[1];
     db = c2[2] - c1[2];
+    // dc = scalar diff
     let dc = Math.sqrt(
         dr * dr * (2 + _r/256) +
         dg * dg * 4 +

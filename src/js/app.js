@@ -241,15 +241,16 @@ function closestColor (sample, palette) {
 }
 
 
-
 function halftoneSpot() {
     var tStart = new Date().getTime();
 
     var canvas = document.querySelector('#example canvas');
-    canvas.setAttribute('willReadFrequently', true);
 
     let angles = [45, 75, 30, 85, 22.5, 62.5, 15, 0];
     let cmyk = ['#000000', '#ff00ff', '#00ffff', '#ffff00'];
+    let palette = cmyk;
+    // rgb
+    palette = ['#ff0000', '#00ff00', '#0000ff', '#000000'];
 
 
     function halftone(canvas, dotSize=2, palette) {
@@ -265,6 +266,8 @@ function halftoneSpot() {
         display.shadowBlur = 0;
         display.shadowColor = 'transparent';
 
+
+        let hexPalette = palette.map(hexToRgb);
 
         let dim = Math.min(w, h);
 
@@ -353,19 +356,40 @@ function halftoneSpot() {
                         agg[0] += pixels[i + 0];
                         agg[1] += pixels[i + 1];
                         agg[2] += pixels[i + 2];
-                        
+
                         count++;
                     }
 
                     if(count == 0) continue;
                     agg = scalarVec(agg, 1/count);
+                    agg = agg.map(Math.round);
 
-                    let closest = closestColor(agg, palette);
-                    let diff = colorDistanceArray(agg, color);
-
-                    var rate = diff[3]/255;// * (1 - closest.diff)/diff;
                     if (x > 400 && x < 410 && y > 400 && y < 410) {
-                        console.log(agg, closest, diff);
+                        //debugger;
+                    }
+
+                    // get closest color in the palette. Includes closest.diff
+                    let closest = closestColor(agg, hexPalette);
+                    let closestNorm = closest.diff[3]/765;
+
+                    // get diff from current color and sample
+                    let diff = colorDistanceArray(color, agg);
+                    let diffNorm = diff[3]/765;
+
+                    // calc the ink rate from the distance in the current color diff
+                    var rate = 1 - diffNorm;// * (1 - closest.diff)/diff;
+
+
+                    // Renormalize the dot size based on closeness to the closest
+                    // This way if there is an exact match, only the close color
+                    // is printed, and others aren't needlessly mixed in
+                    rate = rate * (closestNorm/diffNorm);
+
+                    // debug
+                    if (x > 400 && x < 410 && y > 400 && y < 410) {
+                        console.log(agg, closest, diff,
+                            `closestNorm: ${closestNorm}, diffNorm: ${diffNorm}, rate: ${rate}`
+                        );
                     }
 
                     rate = Math.max(0, rate);
@@ -414,7 +438,7 @@ function halftoneSpot() {
         display.shadowColor = canvasShadowColor;
     } // halftoneCMYK()
 
-    halftone(canvas, 2, cmyk);
+    halftone(canvas, 2, palette);
 
     var tEnd = new Date().getTime();
     console.log(`Ran halftoneSpot in ${tEnd - tStart}ms`);
