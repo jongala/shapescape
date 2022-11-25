@@ -6,7 +6,7 @@ body {
     background: #f0f0f0;
 }
 h1 {
-    margin: 20px;
+    margin: 20px 20px 10px;
     font-size: 16px;
     line-height: 20px;
     font-weight: 300;
@@ -87,6 +87,12 @@ button.activeRenderer {
 }
 
 #example.p4x6 {
+    width: 1200px;
+    height: 1800px;
+    transform: scale(0.5);
+}
+
+#example.p6x4 {
     width: 1800px;
     height: 1200px;
     transform: scale(0.5);
@@ -101,6 +107,24 @@ button.activeRenderer {
 #example.p8x10 {
     width: 2400px;
     height: 3000px;
+    transform: scale(0.33);
+}
+
+#example.p10x8 {
+    width: 3000px;
+    height: 2400px;
+    transform: scale(0.33);
+}
+
+#example.sWQXGA {
+    width: 2560px;
+    height: 1600px;
+    transform: scale(0.33);
+}
+
+#example.s4KUHD {
+    width: 3840px;
+    height: 2160px;
     transform: scale(0.33);
 }
 
@@ -206,7 +230,7 @@ button.activeRenderer {
 }
 
 #instructions {
-    margin: 20px;
+    margin: 10px 20px;
     color: #999;
 }
 
@@ -215,6 +239,19 @@ button.activeRenderer {
     --bottom: 0;
     --left: 0;
     padding: 0.5em 20px;
+}
+
+#controls fieldset {
+    display: inline-block;
+    color: #7d7d7d;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#controls fieldset legend {
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
 }
 
 #controls button,
