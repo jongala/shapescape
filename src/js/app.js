@@ -249,9 +249,13 @@ function halftoneSpot() {
     let angles = [45, 75, 30, 85, 22.5, 62.5, 15, 0];
     let cmyk = ['#000000', '#ff00ff', '#00ffff', '#ffff00'];
     let palette = cmyk;
-    // rgb
-    palette = ['#ff0000', '#00ff00', '#0000ff', '#000000'];
 
+    // use working palette, or fall back to rgb + black
+    if (visualOpts.palette && visualOpts.palette.length) {
+        palette = visualOpts.palette;
+    } else {
+        palette = ['#ff0000', '#00ff00', '#0000ff', '#000000'];
+    }
 
     function halftone(canvas, dotSize=2, palette) {
 
