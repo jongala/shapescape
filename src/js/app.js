@@ -28,7 +28,7 @@ import { setAttrs, hexToRgb, scalarVec } from './utils';
 // postprocess
 import roughen from './roughen';
 import dither from './postprocess/dither';
-import { halftoneCMYK } from './postprocess/halftone';
+import { halftoneCMYK, halftoneSpotColors } from './postprocess/halftone';
 
 // Renderers
 const RENDERERS = {
@@ -207,242 +207,23 @@ function halftoneProcess() {
 window.halftoneProcess = halftoneProcess;
 
 
-
-// Supply @c1, @c2 as [r,g,b] colors.
-// Return r,g,b distance components, and a scalar distance as [r,b,g,distance]
-function colorDistanceArray(c1, c2) {
-    let dr, dg, db;
-    let _r = (c1[0] + c2[0]) / 2;
-    dr = c2[0] - c1[0];
-    dg = c2[1] - c1[1];
-    db = c2[2] - c1[2];
-    let dc = Math.sqrt(
-        dr * dr * (2 + _r/256) +
-        dg * dg * 4 +
-        db * db  * (2 + (255 - _r)/256)
-    );
-    return [dr, dg, db, dc];
-}
-
-
-// args are rgb in 8 bit array form
-// returns {diff, color}
-function closestColor (sample, palette) {
-    let diffs = palette.map((p)=>{
-        return {
-            diff: colorDistanceArray(p, sample),
-            color: p
-        }
-    });
-    diffs = diffs.sort((a, b) => {
-        return (a.diff[3] - b.diff[3]);
-    });
-    return diffs[0];
-}
-
-
 function halftoneSpot() {
     var tStart = new Date().getTime();
 
     var canvas = document.querySelector('#example canvas');
-
-    let angles = [45, 75, 30, 85, 22.5, 62.5, 15, 0];
-    let cmyk = ['#000000', '#ff00ff', '#00ffff', '#ffff00'];
-    let palette = cmyk;
+    let palette = [];
 
     // use working palette, or fall back to rgb + black
     if (visualOpts.palette && visualOpts.palette.length) {
         palette = visualOpts.palette;
     } else {
+        // cmyk: ['#000000', '#ff00ff', '#00ffff', '#ffff00'];
         palette = ['#ff0000', '#00ff00', '#0000ff', '#000000'];
     }
 
-    function halftone(canvas, dotSize=2, palette) {
+    //palette.push('#e7e7e7');
 
-        // get context and dims for input/output canvas
-        var display = canvas.getContext('2d');
-        var w = canvas.width;
-        var h = canvas.height;
-
-        // capture and remove shadow settings
-        let canvasShadowBlur = display.shadowBlur;
-        let canvasShadowColor = display.shadowColor;
-        display.shadowBlur = 0;
-        display.shadowColor = 'transparent';
-
-
-        let hexPalette = palette.map(hexToRgb);
-
-        let dim = Math.min(w, h);
-
-        // calculate the actual dot size
-        // add a sqrt factor normalized to an 800px canvas, to grow the dots
-        // somewhat with canvas size.
-        let interval = (3 + dotSize * 2) * Math.sqrt(dim/800);
-        interval = Math.round(interval);
-        // console.log(`dotSize = ${dotSize}, interval=${interval}`);
-
-        // The source canvas takes a snapshot of the input/output canvas,
-        // which will be re-applied to the scratch canvas at different
-        // angles for each color to be applied
-        let source = document.createElement('canvas');
-        source.width = w;
-        source.height = h;
-        let sourceCtx = source.getContext('2d');
-        // capture the image once onto the offscreen source canvas;
-        sourceCtx.drawImage(canvas, 0, 0);
-
-        // Blank the output canvas after copying it out, so we draw halftones
-        // on a clean canvas, instead of on top of the original.
-        display.fillStyle = '#fff';
-        display.fillRect(0, 0, w, h);
-
-
-        // For each color in the palette, create an offscreen canvas.
-        // We will draw directly to these layers, then composite them
-        // to the output canvas later. This lets us use the 'multiply'
-        // globalCompositeOperation (or another) without the big
-        // performance penalty that seems to come from making many draw calls
-        // in non-"normal" composite modes
-        let layers = palette.map((c, i) => {
-            let layer = document.createElement('canvas');
-            layer.width = w;
-            layer.height = h;
-            return layer;
-        });
-
-
-        // draw the color to the layer
-        var drawColor = function(interval, hex, angle, layer) {
-
-            // console.log('drawColor', colorObj);
-            let color = hexToRgb(hex);
-
-            // get an offscreen layer to draw to
-            let layerCtx = layer.getContext('2d');
-
-            // set transform for angle of color screen
-
-            var rad = (angle % 90) * Math.PI / 180;
-            var sinr = Math.sin(rad), cosr = Math.cos(rad);
-            var ow = w * cosr + h * sinr;
-            var oh = h * cosr + w * sinr;
-
-            // scratch canvas
-            var c = document.createElement('canvas');
-            c.width = ow + interval;
-            c.height = oh + interval;  // add margins to avoid getImageData's out of range errors
-            c.setAttribute('willReadFrequently', true);
-
-            // rotate the scratch canvas to the screen angle, draw the source img
-            var scratch = c.getContext('2d');
-            scratch.willReadFrequently = true;
-            scratch.translate(0, w * sinr);
-            scratch.rotate(-rad);
-            scratch.drawImage(source, 0, 0);
-
-            // position the rendering layer to match screen angle
-            layerCtx.translate(w * sinr * sinr, -w * sinr * cosr);
-            layerCtx.rotate(rad);
-            layerCtx.fillStyle = hex;
-
-            // Loop through @interval pixels, width and height.
-            // Keep a running tally of color diffs from the palette reference
-            // for the whole block. At the end, divide by number of px.
-            for(var y = 0; y < oh; y += interval) {
-                for(var x = 0; x < ow; x += interval) {
-                    var pixels = scratch.getImageData(x, y, interval, interval).data;
-                    var sum = 0, count = 0;
-                    let agg = [0, 0, 0];
-                    for(var i = 0; i < pixels.length; i += 4) {
-                        if(pixels[i + 3] == 0) continue;
-
-                        agg[0] += pixels[i + 0];
-                        agg[1] += pixels[i + 1];
-                        agg[2] += pixels[i + 2];
-
-                        count++;
-                    }
-
-                    if(count == 0) continue;
-                    agg = scalarVec(agg, 1/count);
-                    agg = agg.map(Math.round);
-
-                    if (x > 400 && x < 410 && y > 400 && y < 410) {
-                        //debugger;
-                    }
-
-                    // get closest color in the palette. Includes closest.diff
-                    let closest = closestColor(agg, hexPalette);
-                    let closestNorm = closest.diff[3]/765;
-
-                    // get diff from current color and sample
-                    let diff = colorDistanceArray(color, agg);
-                    let diffNorm = diff[3]/765;
-
-                    // calc the ink rate from the distance in the current color diff
-                    var rate = 1 - diffNorm;// * (1 - closest.diff)/diff;
-
-
-                    // Renormalize the dot size based on closeness to the closest
-                    // This way if there is an exact match, only the close color
-                    // is printed, and others aren't needlessly mixed in
-                    rate = rate * (closestNorm/diffNorm);
-
-                    // debug
-                    if (x > 400 && x < 410 && y > 400 && y < 410) {
-                        console.log(agg, closest, diff,
-                            `closestNorm: ${closestNorm}, diffNorm: ${diffNorm}, rate: ${rate}`
-                        );
-                    }
-
-                    rate = Math.max(0, rate);
-                    // clipping only needed with multiply blend
-                    layerCtx.save();
-                    layerCtx.beginPath();
-                    layerCtx.moveTo(x, y);
-                    layerCtx.lineTo(x + interval + 0.5, y);
-                    layerCtx.lineTo(x + interval + 0.5, y + interval + 0.5);
-                    layerCtx.lineTo(x, y + interval + 0.5);
-                    layerCtx.clip();
-                    // end clipping
-                    layerCtx.beginPath();
-                    layerCtx.arc(x + (interval / 2), y + (interval / 2), Math.SQRT1_2 * interval * rate, 0, Math.PI * 2, true);
-                    layerCtx.fill();
-                    layerCtx.restore();
-                }
-            }
-
-            // reset
-            layerCtx.rotate(-rad);
-            layerCtx.translate(-w * sinr * sinr, w * sinr * cosr);
-
-            // clear DOM element
-            c = null;
-        } // drawColor()
-
-        // step through palette, drawing colors to layers
-        palette.forEach((hex, i) => {
-            drawColor(interval, hex, angles[i], layers[i]);
-        });
-
-        // step through layers, and composite them onto the output canvas
-        //display.globalCompositeOperation = 'multiply';
-        //display.globalAlpha = 0.8086;
-        layers.forEach((layer, i) => {
-            display.drawImage(layer, 0, 0);
-            layer = null; // clear DOM element
-        });
-        //display.globalCompositeOperation = 'normal';
-
-        source = null; // clear DOM element
-
-        // re-apply shadow settings
-        display.shadowBlur = canvasShadowBlur;
-        display.shadowColor = canvasShadowColor;
-    } // halftoneCMYK()
-
-    halftone(canvas, 2, palette);
+    halftoneSpotColors(canvas, 2, palette);
 
     var tEnd = new Date().getTime();
     console.log(`Ran halftoneSpot in ${tEnd - tStart}ms`);
