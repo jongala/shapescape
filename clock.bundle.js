@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 34);
+/******/ 	return __webpack_require__(__webpack_require__.s = 36);
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -82,6 +82,10 @@ exports.resetTransform = resetTransform;
 exports.rotateCanvas = rotateCanvas;
 exports.getGradientFunction = getGradientFunction;
 exports.getSolidColorFunction = getSolidColorFunction;
+exports.hexToRgb = hexToRgb;
+exports.colorDistanceArray = colorDistanceArray;
+exports.closestColor = closestColor;
+exports.scalarVec = scalarVec;
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
@@ -172,6 +176,58 @@ function getSolidColorFunction(palette) {
         // otherwise pop a color
         return p.pop();
     };
+}
+
+// converts @hex to 8-bit array [r, g, b]
+function hexToRgb(hex) {
+    if (hex[0] === '#') {
+        hex = hex.slice(1);
+    }
+    if (hex.length === 3) {
+        hex = '' + hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    }
+    function toN(hexFrag) {
+        return parseInt(hexFrag, 16);
+    }
+    return [toN(hex.slice(0, 2)), toN(hex.slice(2, 4)), toN(hex.slice(4, 6))];
+}
+
+// Supply @c1, @c2 as [r,g,b] colors.
+// Return r,g,b distance components, and a scalar distance as [r,b,g,distance]
+// Scalar diff is 0-765
+function colorDistanceArray(c1, c2) {
+    var dr = void 0,
+        dg = void 0,
+        db = void 0;
+    var _r = (c1[0] + c2[0]) / 2;
+    dr = c2[0] - c1[0];
+    dg = c2[1] - c1[1];
+    db = c2[2] - c1[2];
+    // dc = scalar diff
+    var dc = Math.sqrt(dr * dr * (2 + _r / 256) + dg * dg * 4 + db * db * (2 + (255 - _r) / 256));
+    return [dr, dg, db, dc];
+}
+
+// args are rgb in 8 bit array form
+// returns {diff, color}
+function closestColor(sample, palette) {
+    var diffs = palette.map(function (p) {
+        return {
+            diff: colorDistanceArray(p, sample),
+            color: p
+        };
+    });
+    diffs = diffs.sort(function (a, b) {
+        return a.diff[3] - b.diff[3];
+    });
+    return diffs[0];
+}
+
+// util for scaling color errors in dithering, but could be useful
+function scalarVec(vec, scalar) {
+    return vec.map(function (x) {
+        return x * scalar;
+    });
 }
 
 /***/ }),
@@ -888,7 +944,7 @@ var drawHexagon = exports.drawHexagon = _drawPolygon(6, 1.05);
 
 /***/ }),
 
-/***/ 34:
+/***/ 36:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -910,7 +966,7 @@ var _colorbrewer2 = _interopRequireDefault(_colorbrewer);
 
 var _truchet = __webpack_require__(17);
 
-var _numerals = __webpack_require__(35);
+var _numerals = __webpack_require__(37);
 
 var _utils = __webpack_require__(0);
 
@@ -1032,7 +1088,7 @@ setInterval(function () {
 
 /***/ }),
 
-/***/ 35:
+/***/ 37:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

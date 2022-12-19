@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 33);
+/******/ 	return __webpack_require__(__webpack_require__.s = 35);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -81,6 +81,10 @@ exports.resetTransform = resetTransform;
 exports.rotateCanvas = rotateCanvas;
 exports.getGradientFunction = getGradientFunction;
 exports.getSolidColorFunction = getSolidColorFunction;
+exports.hexToRgb = hexToRgb;
+exports.colorDistanceArray = colorDistanceArray;
+exports.closestColor = closestColor;
+exports.scalarVec = scalarVec;
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
@@ -171,6 +175,58 @@ function getSolidColorFunction(palette) {
         // otherwise pop a color
         return p.pop();
     };
+}
+
+// converts @hex to 8-bit array [r, g, b]
+function hexToRgb(hex) {
+    if (hex[0] === '#') {
+        hex = hex.slice(1);
+    }
+    if (hex.length === 3) {
+        hex = '' + hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    }
+    function toN(hexFrag) {
+        return parseInt(hexFrag, 16);
+    }
+    return [toN(hex.slice(0, 2)), toN(hex.slice(2, 4)), toN(hex.slice(4, 6))];
+}
+
+// Supply @c1, @c2 as [r,g,b] colors.
+// Return r,g,b distance components, and a scalar distance as [r,b,g,distance]
+// Scalar diff is 0-765
+function colorDistanceArray(c1, c2) {
+    var dr = void 0,
+        dg = void 0,
+        db = void 0;
+    var _r = (c1[0] + c2[0]) / 2;
+    dr = c2[0] - c1[0];
+    dg = c2[1] - c1[1];
+    db = c2[2] - c1[2];
+    // dc = scalar diff
+    var dc = Math.sqrt(dr * dr * (2 + _r / 256) + dg * dg * 4 + db * db * (2 + (255 - _r) / 256));
+    return [dr, dg, db, dc];
+}
+
+// args are rgb in 8 bit array form
+// returns {diff, color}
+function closestColor(sample, palette) {
+    var diffs = palette.map(function (p) {
+        return {
+            diff: colorDistanceArray(p, sample),
+            color: p
+        };
+    });
+    diffs = diffs.sort(function (a, b) {
+        return a.diff[3] - b.diff[3];
+    });
+    return diffs[0];
+}
+
+// util for scaling color errors in dithering, but could be useful
+function scalarVec(vec, scalar) {
+    return vec.map(function (x) {
+        return x * scalar;
+    });
 }
 
 /***/ }),
@@ -2140,6 +2196,8 @@ function lines(options) {
 
     ctx = el.getContext('2d');
 
+    var drawOpts = Object.assign({}, opts);
+
     // bg styles
     var BG = void 0;
     if (opts.bg === 'auto') {
@@ -2148,6 +2206,8 @@ function lines(options) {
     } else {
         BG = opts.bg;
     }
+
+    drawOpts.bg = BG;
 
     // rendering styles
     var drawShapeMask = Math.random() >= 0.3333; // should we draw a shape-masked line set?
@@ -2158,18 +2218,24 @@ function lines(options) {
     // we set drawShapeMask and blendStyle now so we can apply the corresponding
     // overlay options when doing multi-section rendering below.
     if (drawShapeMask) {
-        if (blendSeed >= 0.75) {
+        if (blendSeed <= 0.25) {
             blendStyle = 'fg';
-        } else if (blendSeed >= 0.25) {
+        } else if (blendSeed <= 0.50) {
             blendStyle = 'bg';
         }
     }
 
-    if (blendStyle === 'bg') {
-        Object.assign(opts, { overlay: 'blend' });
+    // debug
+    //blendStyle = 'none';
+
+    if (drawOpts.bg === 'gradient') {
+        // if we will blend, specify a gradient now and re use it
+        drawOpts.blendColors = (0, _utils.getGradientFunction)(opts.palette)(ctx, cw, ch);
     }
 
-    var drawOpts = Object.assign({}, opts, { bg: BG });
+    if (blendStyle === 'bg') {
+        drawOpts.overlay = 'blend';
+    }
 
     // divide the canvas into multiple sections?
     var splitPoint = void 0;
@@ -2188,9 +2254,9 @@ function lines(options) {
     // draw shapemask, if specified above
     if (drawShapeMask) {
         if (blendStyle === 'fg') {
-            Object.assign(opts, { overlay: 'blend' });
+            Object.assign(drawOpts, { overlay: 'blend' });
         } else {
-            Object.assign(opts, { overlay: 'none' });
+            Object.assign(drawOpts, { overlay: 'none' });
         }
 
         var maskScale = Math.min(cw, ch) * (0, _utils.randomInRange)(0.25, 0.6);
@@ -2254,7 +2320,7 @@ function drawLines(ctx, p1, p2, opts) {
             ctx.fillStyle = (0, _utils.randItem)(opts.palette);
             break;
         case 'gradient':
-            ctx.fillStyle = (0, _utils.getGradientFunction)(opts.palette)(ctx, w, h);
+            ctx.fillStyle = opts.blendColors || (0, _utils.getGradientFunction)(opts.palette)(ctx, w, h);
             break;
         case 'white':
             ctx.fillStyle = 'white';
@@ -2473,7 +2539,7 @@ function drawLines(ctx, p1, p2, opts) {
             break;
         case 'blend':
             ctx.globalCompositeOperation = 'screen';
-            ctx.fillStyle = (0, _utils.getGradientFunction)(opts.palette)(ctx, w, h);
+            ctx.fillStyle = opts.blendColors || (0, _utils.getGradientFunction)(opts.palette)(ctx, w, h);
             ctx.fillRect(0, 0, w, h);
             break;
     }
@@ -5074,7 +5140,9 @@ function fragments(options) {
 /* 30 */,
 /* 31 */,
 /* 32 */,
-/* 33 */
+/* 33 */,
+/* 34 */,
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

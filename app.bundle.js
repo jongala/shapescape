@@ -81,6 +81,10 @@ exports.resetTransform = resetTransform;
 exports.rotateCanvas = rotateCanvas;
 exports.getGradientFunction = getGradientFunction;
 exports.getSolidColorFunction = getSolidColorFunction;
+exports.hexToRgb = hexToRgb;
+exports.colorDistanceArray = colorDistanceArray;
+exports.closestColor = closestColor;
+exports.scalarVec = scalarVec;
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
@@ -171,6 +175,58 @@ function getSolidColorFunction(palette) {
         // otherwise pop a color
         return p.pop();
     };
+}
+
+// converts @hex to 8-bit array [r, g, b]
+function hexToRgb(hex) {
+    if (hex[0] === '#') {
+        hex = hex.slice(1);
+    }
+    if (hex.length === 3) {
+        hex = '' + hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    }
+    function toN(hexFrag) {
+        return parseInt(hexFrag, 16);
+    }
+    return [toN(hex.slice(0, 2)), toN(hex.slice(2, 4)), toN(hex.slice(4, 6))];
+}
+
+// Supply @c1, @c2 as [r,g,b] colors.
+// Return r,g,b distance components, and a scalar distance as [r,b,g,distance]
+// Scalar diff is 0-765
+function colorDistanceArray(c1, c2) {
+    var dr = void 0,
+        dg = void 0,
+        db = void 0;
+    var _r = (c1[0] + c2[0]) / 2;
+    dr = c2[0] - c1[0];
+    dg = c2[1] - c1[1];
+    db = c2[2] - c1[2];
+    // dc = scalar diff
+    var dc = Math.sqrt(dr * dr * (2 + _r / 256) + dg * dg * 4 + db * db * (2 + (255 - _r) / 256));
+    return [dr, dg, db, dc];
+}
+
+// args are rgb in 8 bit array form
+// returns {diff, color}
+function closestColor(sample, palette) {
+    var diffs = palette.map(function (p) {
+        return {
+            diff: colorDistanceArray(p, sample),
+            color: p
+        };
+    });
+    diffs = diffs.sort(function (a, b) {
+        return a.diff[3] - b.diff[3];
+    });
+    return diffs[0];
+}
+
+// util for scaling color errors in dithering, but could be useful
+function scalarVec(vec, scalar) {
+    return vec.map(function (x) {
+        return x * scalar;
+    });
 }
 
 /***/ }),
@@ -2166,6 +2222,8 @@ function lines(options) {
 
     ctx = el.getContext('2d');
 
+    var drawOpts = Object.assign({}, opts);
+
     // bg styles
     var BG = void 0;
     if (opts.bg === 'auto') {
@@ -2174,6 +2232,8 @@ function lines(options) {
     } else {
         BG = opts.bg;
     }
+
+    drawOpts.bg = BG;
 
     // rendering styles
     var drawShapeMask = Math.random() >= 0.3333; // should we draw a shape-masked line set?
@@ -2184,18 +2244,24 @@ function lines(options) {
     // we set drawShapeMask and blendStyle now so we can apply the corresponding
     // overlay options when doing multi-section rendering below.
     if (drawShapeMask) {
-        if (blendSeed >= 0.75) {
+        if (blendSeed <= 0.25) {
             blendStyle = 'fg';
-        } else if (blendSeed >= 0.25) {
+        } else if (blendSeed <= 0.50) {
             blendStyle = 'bg';
         }
     }
 
-    if (blendStyle === 'bg') {
-        Object.assign(opts, { overlay: 'blend' });
+    // debug
+    //blendStyle = 'none';
+
+    if (drawOpts.bg === 'gradient') {
+        // if we will blend, specify a gradient now and re use it
+        drawOpts.blendColors = (0, _utils.getGradientFunction)(opts.palette)(ctx, cw, ch);
     }
 
-    var drawOpts = Object.assign({}, opts, { bg: BG });
+    if (blendStyle === 'bg') {
+        drawOpts.overlay = 'blend';
+    }
 
     // divide the canvas into multiple sections?
     var splitPoint = void 0;
@@ -2214,9 +2280,9 @@ function lines(options) {
     // draw shapemask, if specified above
     if (drawShapeMask) {
         if (blendStyle === 'fg') {
-            Object.assign(opts, { overlay: 'blend' });
+            Object.assign(drawOpts, { overlay: 'blend' });
         } else {
-            Object.assign(opts, { overlay: 'none' });
+            Object.assign(drawOpts, { overlay: 'none' });
         }
 
         var maskScale = Math.min(cw, ch) * (0, _utils.randomInRange)(0.25, 0.6);
@@ -2280,7 +2346,7 @@ function drawLines(ctx, p1, p2, opts) {
             ctx.fillStyle = (0, _utils.randItem)(opts.palette);
             break;
         case 'gradient':
-            ctx.fillStyle = (0, _utils.getGradientFunction)(opts.palette)(ctx, w, h);
+            ctx.fillStyle = opts.blendColors || (0, _utils.getGradientFunction)(opts.palette)(ctx, w, h);
             break;
         case 'white':
             ctx.fillStyle = 'white';
@@ -2499,7 +2565,7 @@ function drawLines(ctx, p1, p2, opts) {
             break;
         case 'blend':
             ctx.globalCompositeOperation = 'screen';
-            ctx.fillStyle = (0, _utils.getGradientFunction)(opts.palette)(ctx, w, h);
+            ctx.fillStyle = opts.blendColors || (0, _utils.getGradientFunction)(opts.palette)(ctx, w, h);
             ctx.fillRect(0, 0, w, h);
             break;
     }
@@ -5637,15 +5703,23 @@ var _doodle = __webpack_require__(31);
 
 var _pillars = __webpack_require__(32);
 
+var _utils = __webpack_require__(0);
+
 var _roughen = __webpack_require__(24);
 
 var _roughen2 = _interopRequireDefault(_roughen);
 
-var _utils = __webpack_require__(0);
+var _dither = __webpack_require__(33);
+
+var _dither2 = _interopRequireDefault(_dither);
+
+var _halftone = __webpack_require__(34);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Renderers
+
+// utils
 var RENDERERS = {
     waterline: _waterline.waterline,
     shapestack: _shapestack.shapestack,
@@ -5668,6 +5742,8 @@ var RENDERERS = {
     pillars: _pillars.pillars
     //clouds: clouds
 };
+// postprocess
+
 var initRenderer = 'waterline';
 
 var rendererName;
@@ -5706,6 +5782,135 @@ function setRenderer(rname, ctrl) {
     drawNew();
 }
 window.setRenderer = setRenderer;
+
+//======================================
+// POSTPROCESS
+//======================================
+
+function roughenMain() {
+    var canvas = document.querySelector('#example canvas');
+    var ctx = canvas.getContext('2d');
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
+    (0, _roughen2.default)(canvas, 3);
+}
+window.roughenMain = roughenMain;
+
+//--------------------------------------
+
+function ditherToLuminosity() {
+    var canvas = document.querySelector('#example canvas');
+    var ctx = canvas.getContext('2d');
+    var idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var dithered = _dither2.default.ditherLuminosity(idata, 'atkinson');
+
+    // apply the dithered data back
+    //ctx.putImageData(dithered, 0, 0);
+
+    // OR: draw dithered data to an offscreen canvas,
+    // then apply that to original image via 'overlay'
+    var ditherCanvas = document.createElement('canvas');
+    ditherCanvas.width = canvas.width;
+    ditherCanvas.height = canvas.height;
+    var ditherctx = ditherCanvas.getContext('2d');
+    ditherctx.putImageData(dithered, 0, 0);
+
+    ctx.globalAlpha = 0.5;
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.drawImage(ditherCanvas, 0, 0);
+    ctx.globalAlpha = 1;
+
+    ctx.globalCompositeOperation = 'normal';
+}
+window.ditherToLuminosity = ditherToLuminosity;
+
+//--------------------------------------
+
+
+function ditherToPalette() {
+    var canvas = document.querySelector('#example canvas');
+
+    // Create a basic palette of black and white if no palette exists
+    var basePalette = ['#000000', '#ffffff'];
+    var renderPalette = [].concat(basePalette);
+    if (visualOpts.palette && visualOpts.palette.length) {
+        // If we have a palette, add it to the black and white, and add gray
+        // for marks used in some renderers that aren't palette driven
+        renderPalette = renderPalette.concat(visualOpts.palette).concat(['#7d7d7d']);
+    }
+    // draw directly to the active canvas with dithered data.
+    var ctx = canvas.getContext('2d');
+    var idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    var dithered = _dither2.default.ditherPalette(idata, renderPalette, 'atkinson');
+
+    // apply the dithered data back
+    ctx.putImageData(dithered, 0, 0);
+}
+
+window.ditherToPalette = ditherToPalette;
+
+//--------------------------------------
+
+// Halftone
+function halftoneProcess() {
+    var tStart = new Date().getTime();
+
+    var canvas = document.querySelector('#example canvas');
+    canvas.setAttribute('willReadFrequently', true);
+
+    var cmyk = [{
+        name: 'y',
+        color: 'rgba(255,255,0)',
+        angle: 0
+    }, {
+        name: 'm',
+        color: 'rgba(255,0,255)',
+        angle: 75
+    }, {
+        name: 'c',
+        color: 'rgba(0,255,255)',
+        angle: 15
+    }, {
+        name: 'k',
+        color: 'rgba(0,0,0)',
+        angle: 45
+    }];
+
+    (0, _halftone.halftoneCMYK)(canvas, 2, cmyk);
+
+    var tEnd = new Date().getTime();
+    console.log('Ran halftoneProcess in ' + (tEnd - tStart) + 'ms');
+}
+
+window.halftoneProcess = halftoneProcess;
+
+function halftoneSpot() {
+    var tStart = new Date().getTime();
+
+    var canvas = document.querySelector('#example canvas');
+    var palette = [];
+
+    // use working palette, or fall back to rgb + black
+    if (visualOpts.palette && visualOpts.palette.length) {
+        palette = visualOpts.palette;
+    } else {
+        // cmyk: ['#000000', '#ff00ff', '#00ffff', '#ffff00'];
+        palette = ['#ff0000', '#00ff00', '#0000ff', '#000000'];
+    }
+
+    //palette.push('#e7e7e7');
+
+    (0, _halftone.halftoneSpotColors)(canvas, 2, palette);
+
+    var tEnd = new Date().getTime();
+    console.log('Ran halftoneSpot in ' + (tEnd - tStart) + 'ms');
+}
+
+window.halftoneSpot = halftoneSpot;
+
+/* ======================================
+END POSTPROCESS
+====================================== */
 
 // GUI controlled opts
 var visualOpts = {
@@ -5957,15 +6162,6 @@ document.querySelector('#saved').addEventListener('click', function (e) {
         previewImage(e.target.parentNode.cloneNode(true));
     }
 });
-
-function roughenMain() {
-    var canvas = document.querySelector('#example canvas');
-    var ctx = canvas.getContext('2d');
-    ctx.shadowBlur = 0;
-    ctx.shadowColor = 'transparent';
-    (0, _roughen2.default)(canvas, 3);
-}
-window.roughenMain = roughenMain;
 
 exampleNode.addEventListener('click', function (e) {
     renderCanvasToImg(exampleNode.querySelector('canvas'), document.querySelector('#saved'));
@@ -8362,6 +8558,563 @@ function pillars(options) {
         container.appendChild(el);
     }
 }
+
+/***/ }),
+/* 33 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _utils = __webpack_require__(0);
+
+// Nested arrays of error coefs. Use zeroes up to the "current" px
+// which means they imply forward-only propagation.
+var kernelDefs = {
+    atkinson: [[0, 0, 1 / 8, 1 / 8], [1 / 8, 1 / 8, 1 / 8, 0], [0, 1 / 8, 0, 0]],
+    floydsteinberg: [[0, 0, 7 / 16], [3 / 16, 5 / 16, 1 / 16]],
+    burkes: [[0, 0, 0, 8 / 32, 4 / 32], [2 / 32, 4 / 32, 8 / 32, 4 / 32, 2 / 32]],
+    sierra3: [[0, 0, 0, 5 / 32, 3 / 32], [2 / 32, 4 / 32, 5 / 32, 4 / 32, 2 / 32], [0 / 32, 2 / 32, 3 / 32, 2 / 32, 0 / 32]],
+    // jarvice judice ninke
+    jjn: [[0, 0, 0, 7 / 48, 5 / 48], [3 / 48, 5 / 48, 7 / 48, 5 / 48, 3 / 48], [1 / 48, 3 / 48, 5 / 48, 3 / 48, 1 / 48]],
+    stucki: [[0, 0, 0, 8 / 42, 4 / 42], [2 / 42, 4 / 42, 8 / 42, 4 / 42, 2 / 42], [1 / 42, 2 / 42, 4 / 42, 2 / 42, 1 / 42]]
+
+    // use a set of arrays defining a dithering kernel as @kernel
+    // to propagate errors into @px pixels at index @idx, using image
+    // @width to set the row offsets.
+    // This does full color dithering so uses an @errorArray of
+    // r,g,b,x component errors. Where x is either alpha or, in this case,
+    // a scalar of r,g,b used for sorting elsewhere.
+};function propagate_errors(px, idx, errorArray, width, kernel) {
+    // get an offset based on array length
+    var koffset = Math.ceil(kernel[0].length / 2) - 1;
+    var rowOffset = 0;
+    var pxOffset = 0;
+    var er = void 0,
+        eg = void 0,
+        eb = void 0,
+        es = void 0;
+
+    // index offset from half of width
+    // then step through each array
+    // each time add a width
+
+    kernel.forEach(function (row, j) {
+        rowOffset = j * width;
+        row.forEach(function (weight, i) {
+            var _scalarVec = (0, _utils.scalarVec)(errorArray, weight);
+
+            var _scalarVec2 = _slicedToArray(_scalarVec, 4);
+
+            er = _scalarVec2[0];
+            eg = _scalarVec2[1];
+            eb = _scalarVec2[2];
+            es = _scalarVec2[3];
+
+
+            pxOffset = idx + (rowOffset + i - koffset) * 4;
+
+            px[pxOffset + 0] += er;
+            px[pxOffset + 1] += eg;
+            px[pxOffset + 2] += eb;
+            px[pxOffset + 3] += 0;
+        });
+    });
+
+    return px;
+}
+
+// Single pass function to dither an image using colors in @palette
+// Relies on closestColor() -> colorDistanceArray() and other utils above
+function ditherPalette(image, palette) {
+    var kernelName = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'burkes';
+
+    var tStart = new Date().getTime();
+
+    var kernel = kernelDefs[kernelName] || kernelDefs['burkes'];
+    var width = image.width;
+    var sampleColor = [0, 0, 0]; // r, g, b
+    var sampleError = [0, 0, 0];
+    var closest = void 0;
+
+    var px = image.data;
+
+    var rgbPalette = palette.map(function (p) {
+        return (0, _utils.hexToRgb)(p);
+    });
+
+    // use colorDistances to get values
+    for (var i = 0; i < image.data.length; i += 4) {
+        sampleColor = [px[i], px[i + 1], px[i + 2]];
+
+        // check each pixel, find closest palette color. get error.
+        closest = (0, _utils.closestColor)(sampleColor, // sample, which includes errors
+        rgbPalette // … to the palette colors
+        );
+
+        // replace pixel with palette color
+        px[i] = closest.color[0];
+        px[i + 1] = closest.color[1];
+        px[i + 2] = closest.color[2];
+        px[i + 3] = 255;
+
+        // Add error to the neighboring pixel values.
+        // Pass in the specified kernel
+        px = propagate_errors(px, i, closest.diff, width, kernel);
+    }
+
+    var tFinish = new Date().getTime();
+    console.log('Dithered to palette with ' + kernelName + ' in ' + (tFinish - tStart) + 'ms');
+    return image;
+}
+
+//--------------------------------------
+
+// from pixel data @idata at index @i return a basic rgb luminosity
+// using sqrt of color components using "standard" perceptual coefs
+function flume(idata, i) {
+    return Math.sqrt(0.299 * idata[i] * idata[i] + 0.587 * idata[i + 1] * idata[i + 1] + 0.114 * idata[i + 2] * idata[i + 2]);
+}
+
+// use a set of arrays defining a dithering kernel as @kernel
+// to propagate errors into @px, a SINGLE CHANNEL pixels array,
+// at index @idx, using image @width to set the row offsets.
+// This does luminosity dithering so uses a scalar @error
+function propagate_luminosity_errors(px, idx, error, width, kernel) {
+    // get an offset based on array length
+    var koffset = Math.ceil(kernel[0].length / 2) - 1;
+    var rowOffset = 0;
+    var pxOffset = 0;
+    var prop_error = void 0;
+
+    // index offset from half of width
+    // then step through each array
+    // each time add a width
+
+    kernel.forEach(function (row, j) {
+        rowOffset = j * width;
+        row.forEach(function (weight, i) {
+            prop_error = error * weight;
+            pxOffset = idx + (rowOffset + i - koffset);
+            px[pxOffset] += prop_error;
+        });
+    });
+
+    return px;
+}
+
+// Single pass function to dither an image using luminosity
+function ditherLuminosity(image) {
+    var kernelName = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'burkes';
+
+    var tStart = new Date().getTime();
+
+    var kernel = kernelDefs[kernelName] || kernelDefs['burkes'];
+    var width = image.width;
+
+    var luminance = new Uint8ClampedArray(image.width * image.height);
+
+    // populate luminance array
+    for (var l = 0, i = 0; i < image.data.length; l++, i += 4) {
+        luminance[l] = flume(image.data, i);
+    }
+
+    // now step through the luminance, check threshold, and
+    // apply new b/w value to px. Record raw error and propagate
+    // through the luminance array.
+    for (var _l = 0, _i = 0; _i < image.data.length; _l++, _i += 4) {
+        var value = luminance[_l] < 129 ? 0 : 255;
+        var error = luminance[_l] - value;
+        image.data.fill(value, _i, _i + 3);
+
+        // propagate errors into luminance
+        luminance = propagate_luminosity_errors(luminance, _l, error, width, kernel);
+    }
+
+    var tFinish = new Date().getTime();
+    console.log('Dithered to luminosity with ' + kernelName + ' in ' + (tFinish - tStart) + 'ms');
+    return image;
+}
+
+//--------------------------------------
+
+exports.default = {
+    kernelDefs: kernelDefs,
+    ditherPalette: ditherPalette,
+    ditherLuminosity: ditherLuminosity
+};
+
+/***/ }),
+/* 34 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.halftoneCMYK = halftoneCMYK;
+exports.halftoneSpotColors = halftoneSpotColors;
+
+var _utils = __webpack_require__(0);
+
+// Adapted from https://gist.github.com/ucnv/249486
+// Use an adaptive @dotSize, 1 is small, 2 is med,  3 is large
+function halftoneCMYK(canvas) {
+    var dotSize = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 2;
+    var palette = arguments[2];
+
+
+    // get context and dims for input/output canvas
+    var display = canvas.getContext('2d');
+    var w = canvas.width;
+    var h = canvas.height;
+
+    // capture and remove shadow settings
+    var canvasShadowBlur = display.shadowBlur;
+    var canvasShadowColor = display.shadowColor;
+    display.shadowBlur = 0;
+    display.shadowColor = 'transparent';
+
+    var dim = Math.min(w, h);
+
+    // calculate the actual dot size
+    // add a sqrt factor normalized to an 800px canvas, to grow the dots
+    // somewhat with canvas size.
+    var interval = (3 + dotSize * 2) * Math.sqrt(dim / 800);
+    interval = Math.round(interval);
+    // console.log(`dotSize = ${dotSize}, interval=${interval}`);
+
+    // The source canvas takes a snapshot of the input/output canvas,
+    // which will be re-applied to the scratch canvas at different
+    // angles for each color to be applied
+    var source = document.createElement('canvas');
+    source.width = w;
+    source.height = h;
+    var sourceCtx = source.getContext('2d');
+    // capture the image once onto the offscreen source canvas;
+    sourceCtx.drawImage(canvas, 0, 0);
+
+    // Blank the output canvas after copying it out, so we draw halftones
+    // on a clean canvas, instead of on top of the original.
+    display.fillStyle = '#fff';
+    display.fillRect(0, 0, w, h);
+
+    // For each color in the palette, create an offscreen canvas.
+    // We will draw directly to these layers, then composite them
+    // to the output canvas later. This lets us use the 'multiply'
+    // globalCompositeOperation (or another) without the big
+    // performance penalty that seems to come from making many draw calls
+    // in non-"normal" composite modes
+    var layers = palette.map(function (c, i) {
+        var layer = document.createElement('canvas');
+        layer.width = w;
+        layer.height = h;
+        return layer;
+    });
+
+    // draw the color to the layer
+    var drawColor = function drawColor(interval, colorObj, layer) {
+
+        // console.log('drawColor', colorObj);
+
+        // get an offscreen layer to draw to
+        var layerCtx = layer.getContext('2d');
+
+        // set transform for angle of color screen
+        var rad = colorObj.angle % 90 * Math.PI / 180;
+        var sinr = Math.sin(rad),
+            cosr = Math.cos(rad);
+        var ow = w * cosr + h * sinr;
+        var oh = h * cosr + w * sinr;
+
+        // scratch canvas
+        var c = document.createElement('canvas');
+        c.width = ow + interval;
+        c.height = oh + interval; // add margins to avoid getImageData's out of range errors
+        c.setAttribute('willReadFrequently', true);
+
+        // rotate the scratch canvas to the screen angle, draw the source img
+        var scratch = c.getContext('2d');
+        scratch.willReadFrequently = true;
+        scratch.translate(0, w * sinr);
+        scratch.rotate(-rad);
+        scratch.drawImage(source, 0, 0);
+
+        // position the rendering layer to match screen angle
+        layerCtx.translate(w * sinr * sinr, -w * sinr * cosr);
+        layerCtx.rotate(rad);
+        layerCtx.fillStyle = colorObj.color;
+
+        // Loop through @interval pixels, width and height.
+        // Keep a running tally of color diffs from the palette reference
+        // for the whole block. At the end, divide by number of px.
+        for (var y = 0; y < oh; y += interval) {
+            for (var x = 0; x < ow; x += interval) {
+                var pixels = scratch.getImageData(x, y, interval, interval).data;
+                var sum = 0,
+                    count = 0;
+                for (var i = 0; i < pixels.length; i += 4) {
+                    if (pixels[i + 3] == 0) continue;
+                    var r = 255 - pixels[i];
+                    var g = 255 - pixels[i + 1];
+                    var b = 255 - pixels[i + 2];
+                    var k = Math.min(r, g, b);
+
+                    if (colorObj.name != 'k' && k == 255) sum += 0; // avoid divide by zero
+                    else if (colorObj.name == 'k') sum += k / 255;else if (colorObj.name == 'c') sum += (r - k) / (255 - k);else if (colorObj.name == 'm') sum += (g - k) / (255 - k);else if (colorObj.name == 'y') sum += (b - k) / (255 - k);
+                    count++;
+                }
+
+                if (count == 0) continue;
+                var rate = sum / count;
+                rate = Math.max(0, rate);
+                // clipping only needed with multiply blend
+                layerCtx.save();
+                layerCtx.beginPath();
+                layerCtx.moveTo(x, y);
+                layerCtx.lineTo(x + interval, y);
+                layerCtx.lineTo(x + interval, y + interval);
+                layerCtx.lineTo(x, y + interval);
+                layerCtx.clip();
+                // end clipping
+                layerCtx.beginPath();
+                layerCtx.arc(x + interval / 2, y + interval / 2, Math.SQRT1_2 * interval * rate, 0, Math.PI * 2, true);
+                layerCtx.fill();
+                layerCtx.restore();
+            }
+        }
+
+        // reset
+        layerCtx.rotate(-rad);
+        layerCtx.translate(-w * sinr * sinr, w * sinr * cosr);
+
+        // clear DOM element
+        c = null;
+    }; // drawColor()
+
+    // step through palette, drawing colors to layers
+    palette.forEach(function (colorObj, i) {
+        drawColor(interval, colorObj, layers[i]);
+    });
+
+    // step through layers, and composite them onto the output canvas
+    display.globalCompositeOperation = 'multiply';
+    display.globalAlpha = 0.8086;
+    layers.forEach(function (layer, i) {
+        display.drawImage(layer, 0, 0);
+        layer = null; // clear DOM element
+    });
+    display.globalCompositeOperation = 'normal';
+
+    source = null; // clear DOM element
+
+    // re-apply shadow settings
+    display.shadowBlur = canvasShadowBlur;
+    display.shadowColor = canvasShadowColor;
+} // halftoneCMYK()
+
+
+// halftone version that takes a custom palette
+// scale colors according to best match, so close colors
+// work alone, and don't get over-printed by other nearby colors
+function halftoneSpotColors(canvas) {
+    var dotSize = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 2;
+    var palette = arguments[2];
+
+    var angles = [45, 75, 30, 85, 22.5, 62.5, 15, 0];
+
+    // get context and dims for input/output canvas
+    var display = canvas.getContext('2d');
+    var w = canvas.width;
+    var h = canvas.height;
+
+    // capture and remove shadow settings
+    var canvasShadowBlur = display.shadowBlur;
+    var canvasShadowColor = display.shadowColor;
+    display.shadowBlur = 0;
+    display.shadowColor = 'transparent';
+
+    var hexPalette = palette.map(_utils.hexToRgb);
+
+    var dim = Math.min(w, h);
+
+    // calculate the actual dot size
+    // add a sqrt factor normalized to an 800px canvas, to grow the dots
+    // somewhat with canvas size.
+    var interval = (3 + dotSize * 2) * Math.sqrt(dim / 800);
+    interval = Math.round(interval);
+    // console.log(`dotSize = ${dotSize}, interval=${interval}`);
+
+    // The source canvas takes a snapshot of the input/output canvas,
+    // which will be re-applied to the scratch canvas at different
+    // angles for each color to be applied
+    var source = document.createElement('canvas');
+    source.width = w;
+    source.height = h;
+    var sourceCtx = source.getContext('2d');
+    // capture the image once onto the offscreen source canvas;
+    sourceCtx.drawImage(canvas, 0, 0);
+
+    // Blank the output canvas after copying it out, so we draw halftones
+    // on a clean canvas, instead of on top of the original.
+    display.fillStyle = '#fff';
+    display.fillRect(0, 0, w, h);
+
+    // For each color in the palette, create an offscreen canvas.
+    // We will draw directly to these layers, then composite them
+    // to the output canvas later. This lets us use the 'multiply'
+    // globalCompositeOperation (or another) without the big
+    // performance penalty that seems to come from making many draw calls
+    // in non-"normal" composite modes
+    var layers = palette.map(function (c, i) {
+        var layer = document.createElement('canvas');
+        layer.width = w;
+        layer.height = h;
+        return layer;
+    });
+
+    // draw the color to the layer
+    var drawColor = function drawColor(interval, hex, angle, layer) {
+
+        // console.log('drawColor', colorObj);
+        var color = (0, _utils.hexToRgb)(hex);
+
+        // get an offscreen layer to draw to
+        var layerCtx = layer.getContext('2d');
+
+        // set transform for angle of color screen
+
+        var rad = angle % 90 * Math.PI / 180;
+        var sinr = Math.sin(rad),
+            cosr = Math.cos(rad);
+        var ow = w * cosr + h * sinr;
+        var oh = h * cosr + w * sinr;
+
+        // scratch canvas
+        var c = document.createElement('canvas');
+        c.width = ow + interval;
+        c.height = oh + interval; // add margins to avoid getImageData's out of range errors
+        c.setAttribute('willReadFrequently', true);
+
+        // rotate the scratch canvas to the screen angle, draw the source img
+        var scratch = c.getContext('2d');
+        scratch.willReadFrequently = true;
+        scratch.translate(0, w * sinr);
+        scratch.rotate(-rad);
+        scratch.drawImage(source, 0, 0);
+
+        // position the rendering layer to match screen angle
+        layerCtx.translate(w * sinr * sinr, -w * sinr * cosr);
+        layerCtx.rotate(rad);
+        layerCtx.fillStyle = hex;
+
+        // Loop through @interval pixels, width and height.
+        // Keep a running tally of color diffs from the palette reference
+        // for the whole block. At the end, divide by number of px.
+        for (var y = 0; y < oh; y += interval) {
+            for (var x = 0; x < ow; x += interval) {
+                var pixels = scratch.getImageData(x, y, interval, interval).data;
+                var sum = 0,
+                    count = 0;
+                var agg = [0, 0, 0];
+                for (var i = 0; i < pixels.length; i += 4) {
+                    if (pixels[i + 3] == 0) continue;
+
+                    agg[0] += pixels[i + 0];
+                    agg[1] += pixels[i + 1];
+                    agg[2] += pixels[i + 2];
+
+                    count++;
+                }
+
+                if (count == 0) continue;
+                agg = (0, _utils.scalarVec)(agg, 1 / count);
+                agg = agg.map(Math.round);
+
+                // get closest color in the palette. Includes closest.diff
+                var closest = (0, _utils.closestColor)(agg, hexPalette);
+                var closestNorm = closest.diff[3] / 765;
+
+                // get diff from current color and sample
+                var diff = (0, _utils.colorDistanceArray)(color, agg);
+                var diffNorm = diff[3] / 765;
+
+                // calc the ink rate from the distance in the current color diff
+                var rate = 1 - diffNorm; // * (1 - closest.diff)/diff;
+
+                /*let thresh = 220;
+                if (agg[0] > thresh && agg[1] > thresh && agg[2] > thresh) {
+                    //continue;
+                    rate = 0;
+                }*/
+
+                // Renormalize the dot size based on closeness to the closest
+                // This way if there is an exact match, only the close color
+                // is printed, and others aren't needlessly mixed in
+                if (diffNorm > 0) {
+                    rate = rate * (closestNorm / diffNorm);
+                } else {
+                    rate = 2;
+                }
+
+                // debug
+                if (x > 400 && x < 410 && y > 400 && y < 410) {
+                    console.log(agg, closest, diff, 'closestNorm: ' + closestNorm + ', diffNorm: ' + diffNorm + ', rate: ' + rate);
+                }
+
+                rate = Math.max(0, rate);
+                // clipping only needed with multiply blend
+                layerCtx.save();
+                layerCtx.beginPath();
+                layerCtx.moveTo(x, y);
+                layerCtx.lineTo(x + interval + 0.5, y);
+                layerCtx.lineTo(x + interval + 0.5, y + interval + 0.5);
+                layerCtx.lineTo(x, y + interval + 0.5);
+                layerCtx.clip();
+                // end clipping
+                layerCtx.beginPath();
+                layerCtx.arc(x + interval / 2, y + interval / 2, Math.SQRT1_2 * interval * rate, 0, Math.PI * 2, true);
+                layerCtx.fill();
+                layerCtx.restore();
+            }
+        }
+
+        // reset
+        layerCtx.rotate(-rad);
+        layerCtx.translate(-w * sinr * sinr, w * sinr * cosr);
+
+        // clear DOM element
+        c = null;
+    }; // drawColor()
+
+    // step through palette, drawing colors to layers
+    palette.forEach(function (hex, i) {
+        drawColor(interval, hex, angles[i], layers[i]);
+    });
+
+    // step through layers, and composite them onto the output canvas
+    //display.globalCompositeOperation = 'multiply';
+    //display.globalAlpha = 0.8086;
+    layers.forEach(function (layer, i) {
+        display.drawImage(layer, 0, 0);
+        layer = null; // clear DOM element
+    });
+    display.globalCompositeOperation = 'normal';
+
+    source = null; // clear DOM element
+
+    // re-apply shadow settings
+    display.shadowBlur = canvasShadowBlur;
+    display.shadowColor = canvasShadowColor;
+} // halftoneCMYK()
 
 /***/ })
 /******/ ]);
