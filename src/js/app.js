@@ -401,9 +401,9 @@ function halftoneSpot() {
                     layerCtx.save();
                     layerCtx.beginPath();
                     layerCtx.moveTo(x, y);
-                    layerCtx.lineTo(x + interval, y);
-                    layerCtx.lineTo(x + interval, y + interval);
-                    layerCtx.lineTo(x, y + interval);
+                    layerCtx.lineTo(x + interval + 0.5, y);
+                    layerCtx.lineTo(x + interval + 0.5, y + interval + 0.5);
+                    layerCtx.lineTo(x, y + interval + 0.5);
                     layerCtx.clip();
                     // end clipping
                     layerCtx.beginPath();
