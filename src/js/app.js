@@ -23,8 +23,12 @@ import { clouds } from './clouds';
 import { grads } from './grads';
 import { doodle } from './doodle';
 import { pillars } from './pillars';
+// utils
+import { setAttrs, hexToRgb, scalarVec } from './utils';
+// postprocess
 import roughen from './roughen';
-import { setAttrs } from './utils';
+import dither from './postprocess/dither';
+import { halftoneCMYK, halftoneSpotColors } from './postprocess/halftone';
 
 // Renderers
 const RENDERERS = {
@@ -87,6 +91,153 @@ function setRenderer(rname, ctrl) {
     drawNew();
 }
 window.setRenderer = setRenderer;
+
+
+
+//======================================
+// POSTPROCESS
+//======================================
+
+function roughenMain() {
+    var canvas = document.querySelector('#example canvas');
+    var ctx = canvas.getContext('2d');
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
+    roughen(canvas, 3);
+}
+window.roughenMain = roughenMain;
+
+
+
+//--------------------------------------
+
+function ditherToLuminosity(){
+    var canvas = document.querySelector('#example canvas');
+    let ctx = canvas.getContext('2d');
+    let idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let dithered = dither.ditherLuminosity(idata, 'atkinson');
+
+    // apply the dithered data back
+    //ctx.putImageData(dithered, 0, 0);
+
+    // OR: draw dithered data to an offscreen canvas,
+    // then apply that to original image via 'overlay'
+    let ditherCanvas = document.createElement('canvas');
+    ditherCanvas.width = canvas.width;
+    ditherCanvas.height = canvas.height;
+    let ditherctx = ditherCanvas.getContext('2d');
+    ditherctx.putImageData(dithered, 0, 0);
+
+    ctx.globalAlpha = 0.5;
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.drawImage(ditherCanvas, 0, 0);
+    ctx.globalAlpha = 1;
+
+    ctx.globalCompositeOperation = 'normal';
+}
+window.ditherToLuminosity = ditherToLuminosity;
+
+
+//--------------------------------------
+
+
+
+function ditherToPalette(){
+    var canvas = document.querySelector('#example canvas');
+
+    // Create a basic palette of black and white if no palette exists
+    let basePalette = ['#000000','#ffffff'];
+    let renderPalette = [].concat(basePalette);
+    if (visualOpts.palette && visualOpts.palette.length) {
+        // If we have a palette, add it to the black and white, and add gray
+        // for marks used in some renderers that aren't palette driven
+        renderPalette = renderPalette.concat(visualOpts.palette).concat(['#7d7d7d']);
+    }
+    // draw directly to the active canvas with dithered data.
+    let ctx = canvas.getContext('2d');
+    let idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let dithered = dither.ditherPalette(idata, renderPalette, 'atkinson');
+
+
+    // apply the dithered data back
+    ctx.putImageData(dithered, 0, 0);
+
+}
+
+window.ditherToPalette = ditherToPalette;
+
+//--------------------------------------
+
+// Halftone
+function halftoneProcess() {
+    var tStart = new Date().getTime();
+
+    var canvas = document.querySelector('#example canvas');
+    canvas.setAttribute('willReadFrequently', true);
+
+    let cmyk = [
+        {
+            name: 'y',
+            color: `rgba(255,255,0)`,
+            angle: 0
+        },
+        {
+            name: 'm',
+            color: `rgba(255,0,255)`,
+            angle: 75
+        },
+        {
+            name: 'c',
+            color: `rgba(0,255,255)`,
+            angle: 15
+        },
+        {
+            name: 'k',
+            color: `rgba(0,0,0)`,
+            angle: 45
+        }
+    ];
+
+    halftoneCMYK(canvas, 2, cmyk);
+
+    var tEnd = new Date().getTime();
+    console.log(`Ran halftoneProcess in ${tEnd - tStart}ms`);
+}
+
+window.halftoneProcess = halftoneProcess;
+
+
+function halftoneSpot() {
+    var tStart = new Date().getTime();
+
+    var canvas = document.querySelector('#example canvas');
+    let palette = [];
+
+    // use working palette, or fall back to rgb + black
+    if (visualOpts.palette && visualOpts.palette.length) {
+        palette = visualOpts.palette;
+    } else {
+        // cmyk: ['#000000', '#ff00ff', '#00ffff', '#ffff00'];
+        palette = ['#ff0000', '#00ff00', '#0000ff', '#000000'];
+    }
+
+    //palette.push('#e7e7e7');
+
+    halftoneSpotColors(canvas, 2, palette);
+
+    var tEnd = new Date().getTime();
+    console.log(`Ran halftoneSpot in ${tEnd - tStart}ms`);
+
+}
+
+window.halftoneSpot = halftoneSpot;
+
+
+/* ======================================
+END POSTPROCESS
+====================================== */
+
+
 
 // GUI controlled opts
 var visualOpts = {
@@ -341,14 +492,6 @@ document.querySelector('#saved').addEventListener('click', function(e) {
     }
 });
 
-function roughenMain() {
-    var canvas = document.querySelector('#example canvas');
-    var ctx = canvas.getContext('2d');
-    ctx.shadowBlur = 0;
-    ctx.shadowColor = 'transparent';
-    roughen(canvas, 3);
-}
-window.roughenMain = roughenMain;
 
 exampleNode.addEventListener('click', function(e) {
     renderCanvasToImg(exampleNode.querySelector('canvas'), document.querySelector('#saved'));

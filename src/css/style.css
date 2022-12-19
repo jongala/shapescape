@@ -6,7 +6,7 @@ body {
     background: #f0f0f0;
 }
 h1 {
-    margin: 20px;
+    margin: 20px 20px 10px;
     font-size: 16px;
     line-height: 20px;
     font-weight: 300;
@@ -27,6 +27,7 @@ h1 button {
 }
 h1 button:hover {
     color: #333;
+    cursor: pointer;
 }
 h1 button:after {
     content: '|';
@@ -87,6 +88,12 @@ button.activeRenderer {
 }
 
 #example.p4x6 {
+    width: 1200px;
+    height: 1800px;
+    transform: scale(0.5);
+}
+
+#example.p6x4 {
     width: 1800px;
     height: 1200px;
     transform: scale(0.5);
@@ -101,6 +108,24 @@ button.activeRenderer {
 #example.p8x10 {
     width: 2400px;
     height: 3000px;
+    transform: scale(0.33);
+}
+
+#example.p10x8 {
+    width: 3000px;
+    height: 2400px;
+    transform: scale(0.33);
+}
+
+#example.sWQXGA {
+    width: 2560px;
+    height: 1600px;
+    transform: scale(0.33);
+}
+
+#example.s4KUHD {
+    width: 3840px;
+    height: 2160px;
     transform: scale(0.33);
 }
 
@@ -206,7 +231,7 @@ button.activeRenderer {
 }
 
 #instructions {
-    margin: 20px;
+    margin: 10px 20px;
     color: #999;
 }
 
@@ -217,21 +242,49 @@ button.activeRenderer {
     padding: 0.5em 20px;
 }
 
+#controls fieldset {
+    display: inline-block;
+    color: #7d7d7d;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#controls fieldset legend {
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.10em;
+}
+
 #controls button,
 #controls select,
 #controls input,
 #controls a {
     display: inline-block;
-    padding: 0 1em;
+    padding: 0 0.75em;
     font-size: 1.0rem;
-    line-height: 2.5em;
-    height: 2.5em;
+    line-height: 2.0em;
+    height: 2.0em;
     color: #000;
     text-decoration: none;
     background: rgba(255, 255, 255, 0.25);
     border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 0.2em;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+}
+
+#controls button:hover,
+#controls select:hover,
+#controls a:hover {
+    background: rgba(255, 255, 255, 0.75);
+    border: 1px solid rgba(255, 255, 255, 1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+}
+
+#controls input:hover {
+    background: rgba(255, 255, 255, 1);
+    border: 1px solid rgba(0, 0, 0, 0.5);
 }
 
 .spacerSpan {
