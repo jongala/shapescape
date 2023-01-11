@@ -79,7 +79,7 @@ export function rings(options) {
 
     // rings
 
-    const MAXWEIGHT = SCALE / 50;
+    const MAXWEIGHT = SCALE / (50 + LONG/100);
     ctx.lineWidth = MAXWEIGHT;
 
     console.log('max thickness', MAXWEIGHT);
@@ -96,32 +96,31 @@ export function rings(options) {
 
     let r = 0; // radius to step outward, intial value
 
+
+
     // center vars
-    let cx = cw/2;
-    let cy = ch/2;
-    let cr = SCALE/4; // default val
-    let cOffset = randomInRange(0, PI);
 
-    // Create the center points roughly in a ring around the canvas center
-    // to keep them nicely spaced: away from each other,
-    // away from center and edges
-    let centerIdx = centerCount;
-    while (centerIdx) {
-        // create a center point, push to centers
+    // Scatter points coarsely
+    // These numbers aren't great
+    const MARGIN = SHORT/12;
+    let pts = hexScatter(SHORT * 0.5, cw - MARGIN * 2, ch - MARGIN * 2);
 
-        // adjust the radius for each point
-        cr = SCALE / randomInRange(3, 6);
-        let _x = cx + Math.cos(cOffset + centerIdx * TWOPI/centerCount) * cr;
-        let _y = cy + Math.sin(cOffset + centerIdx * TWOPI/centerCount) * cr;
+    pts.forEach((p, i) => {
+        p[0] += MARGIN;
+        p[1] += MARGIN;
+        // The scatter algo will place points out of bounds or near edges.
+        // Discard those points.
+        let bounds = true;
+        if (p[0] > (cw - MARGIN)) bounds = false;
+        if (p[0] < MARGIN) bounds = false;
+        if (p[1] > (ch - MARGIN)) bounds = false;
+        if (p[1] < MARGIN) bounds = false;
 
-        centers.push({
-            x: _x,
-            y: _y
-        });
-
-        //drawCircle(ctx, _x, _y, 30, {fill:'red'});
-        centerIdx--;
-    }
+        if (bounds) {
+            centers.push({x:p[0], y:p[1]});
+            //drawCircle(ctx,p[0], p[1], 30, {fill:'red'});
+        }
+    });
 
 
     centers.forEach((center, i)=> {
