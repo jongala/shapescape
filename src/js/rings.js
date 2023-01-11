@@ -92,15 +92,35 @@ export function rings(options) {
     //  pick a few center points
     let centerCount = randomInt(2, 2 + SCALE/400);
     let ringsPerGroup = randomInt(15, 30);
-    let spacing = 3;
+    let spacing = 3; // between rings
 
     let r = 0; // radius to step outward, intial value
-    while (centerCount--) {
+
+    // center vars
+    let cx = cw/2;
+    let cy = ch/2;
+    let cr = SCALE/4; // default val
+    let cOffset = randomInRange(0, PI);
+
+    // Create the center points roughly in a ring around the canvas center
+    // to keep them nicely spaced: away from each other,
+    // away from center and edges
+    let centerIdx = centerCount;
+    while (centerIdx) {
         // create a center point, push to centers
+
+        // adjust the radius for each point
+        cr = SCALE / randomInRange(3, 6);
+        let _x = cx + Math.cos(cOffset + centerIdx * TWOPI/centerCount) * cr;
+        let _y = cy + Math.sin(cOffset + centerIdx * TWOPI/centerCount) * cr;
+
         centers.push({
-            x: randomInRange(0, cw),
-            y: randomInRange(0, ch)
+            x: _x,
+            y: _y
         });
+
+        //drawCircle(ctx, _x, _y, 30, {fill:'red'});
+        centerIdx--;
     }
 
 
