@@ -23,6 +23,7 @@ import { clouds } from './clouds';
 import { grads } from './grads';
 import { doodle } from './doodle';
 import { pillars } from './pillars';
+import { rings } from './rings';
 // utils
 import { setAttrs, hexToRgb, scalarVec } from './utils';
 // postprocess
@@ -51,6 +52,7 @@ const RENDERERS = {
     grads: grads,
     doodle: doodle,
     pillars: pillars,
+    rings: rings,
     //clouds: clouds
 };
 let initRenderer = 'waterline';

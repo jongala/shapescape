@@ -4,7 +4,15 @@ export function randItem(arr) {
 }
 
 export function randomInRange(min, max) {
+    if (max === undefined) {
+        max = min;
+        min = 0;
+    }
     return min + (max - min) * Math.random();
+}
+
+export function randomInt(min, max) {
+    return Math.round(randomInRange(min, max));
 }
 
 // fisher-yates, from https://bost.ocks.org/mike/shuffle/
