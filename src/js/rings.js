@@ -84,6 +84,8 @@ export function rings(options) {
 
     console.log('max thickness', MAXWEIGHT);
 
+    ctx.lineCap = randItem(['round','square']);
+
     let centers = []; // array of center points
     let rings = []; // array of all rings
 
@@ -120,13 +122,11 @@ export function rings(options) {
             if (Math.random() < 0.75) {
                 // incomplete vary from 1/4 to 3/4 turn
                 arcLength = randomInRange(TWOPI * 1/3, TWOPI * 5/7);
-                arcOffset = randomInRange(0, PI * 2);     
+                arcOffset = randomInRange(0, PI * 2);
             } else {
                 arcLength = PI * 2;
                 arcOffset = 0;
             }
-
-            
 
             let ring = {
                 x: center.x,
@@ -154,8 +154,6 @@ export function rings(options) {
     rings = shuffle(rings);
 
 
-    ctx.lineCap = 'butt';
-
     // for each ring, draw it
     rings.forEach((ring, i) => {
         // draw this ring
@@ -164,11 +162,12 @@ export function rings(options) {
 
         // sometimes set dashes, others do continuous lines
         if (Math.random() < 0.5) {
-            ctx.setLineDash([dash, dash * randomInRange(0, 3)]);    
+            ctx.setLineDash([dash, dash * randomInRange(0, 3) + ring.thickness]);
+            ctx.lineDashOffset = -spacing;
         } else {
             ctx.setLineDash([]);
         }
-        
+
 
         // draw a shadow with bg color and extra thickness
         /*ctx.beginPath();
@@ -177,9 +176,10 @@ export function rings(options) {
         ctx.lineWidth = ring.thickness + 2 * spacing;
         ctx.strokeStyle = bg;
         ctx.stroke();*/
-        
+
 
         // draw the fg ring with a rando color
+        ctx.lineDashOffset = 0;
         ctx.beginPath();
         ctx.arc(ring.x, ring.y, ring.r, ring.start, ring.end, ring.reverse);
         ctx.lineWidth = ring.thickness;
