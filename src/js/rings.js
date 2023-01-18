@@ -176,6 +176,39 @@ export function rings(options) {
 
     console.log(rings.length + ' rings around ' + centers.length + ' centers' );
 
+
+    // draw rays
+    // start from the last incremented value of r
+    let rayStart = r * 1.05;
+    let maxRayLength = rayStart * randomInRange(1.1, 2);
+
+    // bigger circle = room for more rays
+    let rayCount = 80;
+    let rays = [];
+    // use the last center, because that corresponds to the r value we are using
+    let rayCenter = centers[centers.length - 1];
+    //drawCircle(ctx, rayCenter.x, rayCenter.y, r, {stroke:'black', fill:'transparent'});
+
+
+    ctx.strokeStyle = getContrastColor();
+
+    // step through the rays
+    for (var i = 0; i < rayCount; i++) {
+        ctx.lineWidth = randomInRange(1, MAXWEIGHT);
+        ctx.strokeStyle = getContrastColor();
+
+        let theta = i * TWOPI/rayCount;
+        let rayLength = rayStart * randomInRange(1.1, 2);
+        let _cos, _sin;
+        _cos = Math.cos(theta);
+        _sin = Math.sin(theta);
+        ctx.beginPath();
+        ctx.moveTo(rayCenter.x + _cos * rayStart, rayCenter.y + _sin * rayStart);
+        ctx.lineTo(rayCenter.x + _cos * rayLength, rayCenter.y + _sin * rayLength);
+        ctx.stroke();
+    }
+
+
     // then shuffle rings to interleave
     rings = shuffle(rings);
 
@@ -196,12 +229,12 @@ export function rings(options) {
 
 
         // draw a shadow with bg color and extra thickness
-        /*ctx.beginPath();
+        ctx.beginPath();
         let cap = spacing/ring.r; // extend the shadow a bit around the end
         ctx.arc(ring.x, ring.y, ring.r, ring.start - cap, ring.end + cap, ring.reverse);
         ctx.lineWidth = ring.thickness + 2 * spacing;
         ctx.strokeStyle = bg;
-        ctx.stroke();*/
+        ctx.stroke();
 
 
         // draw the fg ring with a rando color
