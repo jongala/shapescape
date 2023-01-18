@@ -32,6 +32,7 @@ export function rings(options) {
     let LONG = Math.max(cw, ch);
     let SHORT = Math.min(cw, ch);
     const AREA = cw * ch;
+    const ASPECT = LONG/SHORT;
 
     // Find or create canvas child
     let el = container.querySelector('canvas');
@@ -84,14 +85,14 @@ export function rings(options) {
 
     console.log('max thickness', MAXWEIGHT);
 
-    ctx.lineCap = randItem(['round','square']);
+    ctx.lineCap = randItem(['round','square','square','square','square']);
 
     let centers = []; // array of center points
     let rings = []; // array of all rings
 
     //  pick a few center points
     let centerCount = randomInt(2, 2 + SCALE/400);
-    let ringsPerGroup = randomInt(15, 30);
+    let ringsPerGroup = [10 + Math.round(SCALE/150), 10 + Math.round(ASPECT * 20)];
     let spacing = 3; // between rings
 
     let r = 0; // radius to step outward, intial value
@@ -122,12 +123,18 @@ export function rings(options) {
         }
     });
 
+    // limit centers
+    centers = shuffle(centers);
+    let maxCenters = Math.ceil(ASPECT);
+    //console.log('maxCenters', maxCenters + 1);
+    centers = centers.slice(0, maxCenters);
+
 
     centers.forEach((center, i)=> {
         // intial r
         r = SCALE / 20;
 
-        let ringCount = ringsPerGroup;
+        let ringCount = randomInt(...ringsPerGroup);
         // make several rings
         while (ringCount--) {
             // create a ring
