@@ -85,7 +85,6 @@ export function rings(options) {
 
     console.log('max thickness', MAXWEIGHT);
 
-    ctx.lineCap = randItem(['round','square','square','square','square']);
 
     let centers = []; // array of center points
     let rings = []; // array of all rings
@@ -95,7 +94,6 @@ export function rings(options) {
     let centerCount = randomInt(2, 2 + SCALE/400);
     // more rings per group in large and stretched layouts
     let ringsPerGroup = [5 + Math.round(SCALE/150), 10 + Math.round(ASPECT * 20)];
-    console.log('rings per group', ringsPerGroup);
     let spacing = 3; // between rings
 
     let r = 0; // radius to step outward, intial value
@@ -182,12 +180,21 @@ export function rings(options) {
 
     // draw rays
     // start from the last incremented value of r
-    let minRayRadius = r * 1.05;
+    let minRayRadius = r + MAXWEIGHT;
     let maxRayLength = rayStart * randomInRange(1.1, 2);
     let rayStart, rayEnd;
 
     // bigger circle = room for more rays
-    let rayCount = 80;
+    let rayStyle = randItem(['INNER', 'OUTER']);
+
+    let rayCount;
+    if (rayStyle === 'OUTER') {
+        rayCount = randomInt(60, 120);
+    } else {
+        rayCount = randomInt(40, 80);
+    }
+
+    console.log(`${rayCount} rays`);
     let rays = [];
     // use the last center, because that corresponds to the r value we are using
     let rayCenter = centers[centers.length - 1];
@@ -196,7 +203,8 @@ export function rings(options) {
 
     ctx.strokeStyle = getContrastColor();
 
-    let rayStyle = randItem(['INNER', 'OUTER']);
+    // linecap for rays is always butt for precise origin
+    ctx.lineCap = 'butt';
 
     // step through the rays
     for (var i = 0; i < rayCount; i++) {
@@ -209,19 +217,31 @@ export function rings(options) {
         _cos = Math.cos(theta);
         _sin = Math.sin(theta);
 
-        
+        let _start, _end;
+        if (rayStyle === 'INNER') {
+            _start = minRayRadius;
+            _end = rayLength;
+        } else if (rayStyle === 'OUTER') {
+            _start = rayLength;
+            _end = LONG * 2;
+        } else {
+            return;
+        }
 
         ctx.beginPath();
         ctx.moveTo(
-            rayCenter.x + _cos * rayLength,
-            rayCenter.y + _sin * rayLength
+            rayCenter.x + _cos * _start,
+            rayCenter.y + _sin * _start
         );
         ctx.lineTo(
-            rayCenter.x + _cos * minRayRadius * SHORT,
-            rayCenter.y + _sin * minRayRadius * SHORT
+            rayCenter.x + _cos * _end,
+            rayCenter.y + _sin * _end
         );
         ctx.stroke();
     }
+
+    // prepare linecap for rings
+    ctx.lineCap = randItem(['round','square','square','square','square']);
 
 
     // then shuffle rings to interleave
