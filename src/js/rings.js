@@ -90,9 +90,12 @@ export function rings(options) {
     let centers = []; // array of center points
     let rings = []; // array of all rings
 
-    //  pick a few center points
+    // pick a few center points
+    // more for large layouts
     let centerCount = randomInt(2, 2 + SCALE/400);
-    let ringsPerGroup = [10 + Math.round(SCALE/150), 10 + Math.round(ASPECT * 20)];
+    // more rings per group in large and stretched layouts
+    let ringsPerGroup = [5 + Math.round(SCALE/150), 10 + Math.round(ASPECT * 20)];
+    console.log('rings per group', ringsPerGroup);
     let spacing = 3; // between rings
 
     let r = 0; // radius to step outward, intial value
@@ -179,8 +182,9 @@ export function rings(options) {
 
     // draw rays
     // start from the last incremented value of r
-    let rayStart = r * 1.05;
+    let minRayRadius = r * 1.05;
     let maxRayLength = rayStart * randomInRange(1.1, 2);
+    let rayStart, rayEnd;
 
     // bigger circle = room for more rays
     let rayCount = 80;
@@ -192,19 +196,30 @@ export function rings(options) {
 
     ctx.strokeStyle = getContrastColor();
 
+    let rayStyle = randItem(['INNER', 'OUTER']);
+
     // step through the rays
     for (var i = 0; i < rayCount; i++) {
         ctx.lineWidth = randomInRange(1, MAXWEIGHT);
         ctx.strokeStyle = getContrastColor();
 
         let theta = i * TWOPI/rayCount;
-        let rayLength = rayStart * randomInRange(1.1, 2);
+        let rayLength = minRayRadius * randomInRange(1.1, 2);
         let _cos, _sin;
         _cos = Math.cos(theta);
         _sin = Math.sin(theta);
+
+        
+
         ctx.beginPath();
-        ctx.moveTo(rayCenter.x + _cos * rayStart, rayCenter.y + _sin * rayStart);
-        ctx.lineTo(rayCenter.x + _cos * rayLength, rayCenter.y + _sin * rayLength);
+        ctx.moveTo(
+            rayCenter.x + _cos * rayLength,
+            rayCenter.y + _sin * rayLength
+        );
+        ctx.lineTo(
+            rayCenter.x + _cos * minRayRadius * SHORT,
+            rayCenter.y + _sin * minRayRadius * SHORT
+        );
         ctx.stroke();
     }
 
