@@ -80,9 +80,24 @@ export function rings(options) {
 
     // rings
 
+    /*
+    Approach:
+    - choose some center points
+    - define a set of widening rings around each center point
+    - each ring is solid or dashed, and of varying length and offset
+    - all ring defs are in a common array, which we shuffle so they will
+      be drawn interleaved if ring clusters overlap
+    - around the last center point, draw radial rays, either starting at
+      ring edge going outward, or at outer perimeter coming inward.
+    - on top of this, draw rings twice: once with extra thickness in the
+      background color, then again with a random foreground color.
+      This leaves a cutout/outline where they overlap.
+    */
+
+
+    // max line weight depends on canvas size
     const MAXWEIGHT = SCALE / (50 + LONG/100);
     ctx.lineWidth = MAXWEIGHT;
-
     console.log('max thickness', MAXWEIGHT);
 
 
@@ -96,12 +111,11 @@ export function rings(options) {
     let ringsPerGroup = [5 + Math.round(SCALE/150), 10 + Math.round(ASPECT * 20)];
     let spacing = 3; // between rings
 
-    let r = 0; // radius to step outward, intial value
-
-
+    // Radius to step outward, intial value. Keep in outer scope because
+    // rays will rely on this for drawing too.
+    let r = 0;
 
     // center vars
-
     // Scatter points coarsely
     // These numbers aren't great
     const MARGIN = SHORT/12;
@@ -124,13 +138,14 @@ export function rings(options) {
         }
     });
 
-    // limit centers
+    // Limit centers, since hexscatter has a lot of overscan and does
+    // poorly when cell size is large compared to container.
+    // Allow more centers for stretched layouts.
     centers = shuffle(centers);
     let maxCenters = Math.ceil(ASPECT);
-    //console.log('maxCenters', maxCenters + 1);
     centers = centers.slice(0, maxCenters);
 
-
+    // Step through the centers and create ring clusters for each
     centers.forEach((center, i)=> {
         // intial r
         r = SCALE / 20;
@@ -151,10 +166,12 @@ export function rings(options) {
                 arcLength = randomInRange(TWOPI * 1/3, TWOPI * 5/7);
                 arcOffset = randomInRange(0, PI * 2);
             } else {
+                // complete circle
                 arcLength = PI * 2;
                 arcOffset = 0;
             }
 
+            // define the ring
             let ring = {
                 x: center.x,
                 y: center.y,
@@ -235,12 +252,13 @@ export function rings(options) {
     // draw rays
     // start from the last incremented value of r
     let minRayRadius = r + MAXWEIGHT;
-    let maxRayLength = rayStart * randomInRange(1.1, 2);
+    let maxrayEnd = rayStart * randomInRange(1.1, 2);
     let rayStart, rayEnd;
 
-    // bigger circle = room for more rays
+
     let rayStyle = randItem(['INNER', 'OUTER']);
 
+    // bigger circle = room for more rays
     let rayCount;
     if (rayStyle === 'OUTER') {
         rayCount = randomInt(60, 120);
@@ -252,22 +270,17 @@ export function rings(options) {
     let rays = [];
     // use the last center, because that corresponds to the r value we are using
     let rayCenter = centers[centers.length - 1];
-    //drawCircle(ctx, rayCenter.x, rayCenter.y, r, {stroke:'black', fill:'transparent'});
 
-
-    ctx.strokeStyle = getContrastColor();
-
-    // linecap for rays is always butt for precise origin
+    // linecap for rays is always butt, for precise origin
     ctx.lineCap = 'butt';
-    let dottedFraction = (rayStyle === 'OUTER') ? 0.2 : 0.3;
+    let dottedFraction; // will pass to dottedLine with various values
 
     // step through the rays
     for (var i = 0; i < rayCount; i++) {
-        ctx.lineWidth = randomInRange(1, MAXWEIGHT);
         ctx.strokeStyle = getContrastColor();
 
         let theta = i * TWOPI/rayCount;
-        let rayLength = minRayRadius * randomInRange(1.1, 2);
+        let rayEnd = minRayRadius * randomInRange(1.1, 2);
         let _cos, _sin;
         _cos = Math.cos(theta);
         _sin = Math.sin(theta);
@@ -275,14 +288,26 @@ export function rings(options) {
         let _start, _end;
         if (rayStyle === 'INNER') {
             _start = minRayRadius;
-            _end = rayLength;
+            _end = rayEnd;
         } else if (rayStyle === 'OUTER') {
             _start = LONG * 1.44;
-            _end = rayLength;
+            _end = rayEnd;
         } else {
             return;
         }
 
+        let rayWidth;
+
+        // rays have alternating thickness and dottedness
+        if (i % 2) {
+            dottedFraction = 0;
+            rayWidth = randomInRange(1, MAXWEIGHT);
+        } else {
+            dottedFraction = randomInRange(0.15, 0.33);
+            rayWidth = randomInRange(1, MAXWEIGHT/2);
+        }
+
+        // draw with dotted line util
         dottedLine([
             rayCenter.x + _cos * _start,
             rayCenter.y + _sin * _start
@@ -290,24 +315,13 @@ export function rings(options) {
             rayCenter.x + _cos * _end,
             rayCenter.y + _sin * _end
             ],
-            ctx.lineWidth,
-            (i % 2) ? 0 : dottedFraction
+            rayWidth,
+            dottedFraction
         );
-
-
-        /*ctx.beginPath();
-        ctx.moveTo(
-            rayCenter.x + _cos * _start,
-            rayCenter.y + _sin * _start
-        );
-        ctx.lineTo(
-            rayCenter.x + _cos * _end,
-            rayCenter.y + _sin * _end
-        );
-        ctx.stroke();*/
     }
 
     // prepare linecap for rings
+    // prefer square, use round sometimes
     ctx.lineCap = randItem(['round','square','square','square','square']);
 
 
@@ -324,7 +338,7 @@ export function rings(options) {
         // sometimes set dashes, others do continuous lines
         if (Math.random() < 0.5) {
             ctx.setLineDash([dash, dash * randomInRange(0, 3) + ring.thickness]);
-            ctx.lineDashOffset = -spacing;
+            ctx.lineDashOffset = -spacing; // to get shadow around dashes
         } else {
             ctx.setLineDash([]);
         }
@@ -348,8 +362,9 @@ export function rings(options) {
         ctx.stroke();
     });
 
-    // clear dash setting
+    // clear dash settings
     ctx.setLineDash([]);
+    ctx.lineDashOffset = 0;
 
 
     // add noise
