@@ -178,6 +178,60 @@ export function rings(options) {
     console.log(rings.length + ' rings around ' + centers.length + ' centers' );
 
 
+    /**
+     * util for drawing rays
+     * from @p1 to @p2, at thickness @weight.
+     * Start solid and draws the last @dottedFraction dotted or dashed,
+     * depending on weight.
+     * Relies on a global context ctx;
+     * */
+    function dottedLine(p1, p2, weight, dottedFraction = 0.33) {
+        ctx.lineWidth = weight;
+
+        let [x1, y1] = p1;
+        let [x2, y2] = p2;
+        let dx = x2 - x1;
+        let dy = y2 - y1;
+
+        let d = Math.sqrt(dx * dx + dy * dy);
+
+        let t = Math.atan(dy / dx);
+        if (x2 < x1) t += PI;
+
+        let mx = x1 + Math.cos(t) * d * (1 - dottedFraction);
+        let my = y1 + Math.sin(t) * d * (1 - dottedFraction);
+
+        // start solid
+        ctx.lineCap = 'butt';
+        ctx.setLineDash([]);
+        ctx.lineDashOffset = 0;
+        // draw solid segment
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(mx, my);
+        ctx.stroke();
+
+        // dotted portion:
+        ctx.beginPath();
+        ctx.lineCap = 'round';
+        if (weight <= 4) {
+            // thin strokes
+            ctx.setLineDash([weight, weight * 4]);
+            ctx.lineDashOffset = 0;
+        } else {
+            // thick strokes
+            ctx.setLineDash([0, weight * 2]);
+            ctx.lineDashOffset = weight * 1;
+        }
+        ctx.moveTo(mx, my);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+
+        // reset dashes for any following drawing
+        ctx.setLineDash([]);
+        ctx.lineDashOffset = 0;
+    }
+
     // draw rays
     // start from the last incremented value of r
     let minRayRadius = r + MAXWEIGHT;
@@ -205,6 +259,7 @@ export function rings(options) {
 
     // linecap for rays is always butt for precise origin
     ctx.lineCap = 'butt';
+    let dottedFraction = (rayStyle === 'OUTER') ? 0.2 : 0.3;
 
     // step through the rays
     for (var i = 0; i < rayCount; i++) {
@@ -222,13 +277,25 @@ export function rings(options) {
             _start = minRayRadius;
             _end = rayLength;
         } else if (rayStyle === 'OUTER') {
-            _start = rayLength;
-            _end = LONG * 2;
+            _start = LONG * 1.44;
+            _end = rayLength;
         } else {
             return;
         }
 
-        ctx.beginPath();
+        dottedLine([
+            rayCenter.x + _cos * _start,
+            rayCenter.y + _sin * _start
+            ], [
+            rayCenter.x + _cos * _end,
+            rayCenter.y + _sin * _end
+            ],
+            ctx.lineWidth,
+            (i % 2) ? 0 : dottedFraction
+        );
+
+
+        /*ctx.beginPath();
         ctx.moveTo(
             rayCenter.x + _cos * _start,
             rayCenter.y + _sin * _start
@@ -237,7 +304,7 @@ export function rings(options) {
             rayCenter.x + _cos * _end,
             rayCenter.y + _sin * _end
         );
-        ctx.stroke();
+        ctx.stroke();*/
     }
 
     // prepare linecap for rings
