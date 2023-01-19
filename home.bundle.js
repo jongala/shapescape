@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 35);
+/******/ 	return __webpack_require__(__webpack_require__.s = 36);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -75,6 +75,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.randItem = randItem;
 exports.randomInRange = randomInRange;
+exports.randomInt = randomInt;
 exports.shuffle = shuffle;
 exports.setAttrs = setAttrs;
 exports.resetTransform = resetTransform;
@@ -94,7 +95,15 @@ function randItem(arr) {
 }
 
 function randomInRange(min, max) {
+    if (max === undefined) {
+        max = min;
+        min = 0;
+    }
     return min + (max - min) * Math.random();
+}
+
+function randomInt(min, max) {
+    return Math.round(randomInRange(min, max));
 }
 
 // fisher-yates, from https://bost.ocks.org/mike/shuffle/
@@ -659,12 +668,6 @@ function expandFill(ctx, fill, w, h, scale) {
 
 /***/ }),
 /* 5 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -927,6 +930,12 @@ function hexScatter(spacing, w, h, loosen) {
 
     return out;
 }
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
 
 /***/ }),
 /* 7 */,
@@ -4414,7 +4423,7 @@ var _palettes = __webpack_require__(2);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
-var _hexScatter = __webpack_require__(6);
+var _hexScatter = __webpack_require__(5);
 
 var _hexScatter2 = _interopRequireDefault(_hexScatter);
 
@@ -5142,13 +5151,14 @@ function fragments(options) {
 /* 32 */,
 /* 33 */,
 /* 34 */,
-/* 35 */
+/* 35 */,
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-__webpack_require__(5);
+__webpack_require__(6);
 
 var _noiseutils = __webpack_require__(1);
 

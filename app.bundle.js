@@ -75,6 +75,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.randItem = randItem;
 exports.randomInRange = randomInRange;
+exports.randomInt = randomInt;
 exports.shuffle = shuffle;
 exports.setAttrs = setAttrs;
 exports.resetTransform = resetTransform;
@@ -94,7 +95,15 @@ function randItem(arr) {
 }
 
 function randomInRange(min, max) {
+    if (max === undefined) {
+        max = min;
+        min = 0;
+    }
     return min + (max - min) * Math.random();
+}
+
+function randomInt(min, max) {
+    return Math.round(randomInRange(min, max));
 }
 
 // fisher-yates, from https://bost.ocks.org/mike/shuffle/
@@ -659,12 +668,6 @@ function expandFill(ctx, fill, w, h, scale) {
 
 /***/ }),
 /* 5 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -927,6 +930,12 @@ function hexScatter(spacing, w, h, loosen) {
 
     return out;
 }
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
 
 /***/ }),
 /* 7 */
@@ -4856,7 +4865,7 @@ var _palettes = __webpack_require__(2);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
-var _hexScatter = __webpack_require__(6);
+var _hexScatter = __webpack_require__(5);
 
 var _hexScatter2 = _interopRequireDefault(_hexScatter);
 
@@ -5649,7 +5658,7 @@ function roughen(canvas) {
 "use strict";
 
 
-__webpack_require__(5);
+__webpack_require__(6);
 
 var _noiseutils = __webpack_require__(1);
 
@@ -5703,17 +5712,19 @@ var _doodle = __webpack_require__(31);
 
 var _pillars = __webpack_require__(32);
 
+var _rings = __webpack_require__(33);
+
 var _utils = __webpack_require__(0);
 
 var _roughen = __webpack_require__(24);
 
 var _roughen2 = _interopRequireDefault(_roughen);
 
-var _dither = __webpack_require__(33);
+var _dither = __webpack_require__(34);
 
 var _dither2 = _interopRequireDefault(_dither);
 
-var _halftone = __webpack_require__(34);
+var _halftone = __webpack_require__(35);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -5739,7 +5750,8 @@ var RENDERERS = {
     waves: _waves.waves,
     grads: _grads.grads,
     doodle: _doodle.doodle,
-    pillars: _pillars.pillars
+    pillars: _pillars.pillars,
+    rings: _rings.rings
     //clouds: clouds
 };
 // postprocess
@@ -7031,7 +7043,7 @@ var _palettes = __webpack_require__(2);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
-var _hexScatter = __webpack_require__(6);
+var _hexScatter = __webpack_require__(5);
 
 var _hexScatter2 = _interopRequireDefault(_hexScatter);
 
@@ -7985,7 +7997,7 @@ var _palettes = __webpack_require__(2);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
-var _hexScatter = __webpack_require__(6);
+var _hexScatter = __webpack_require__(5);
 
 var _hexScatter2 = _interopRequireDefault(_hexScatter);
 
@@ -8572,6 +8584,409 @@ Object.defineProperty(exports, "__esModule", {
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
+exports.rings = rings;
+
+var _noiseutils = __webpack_require__(1);
+
+var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _palettes = __webpack_require__(2);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
+var _hexScatter = __webpack_require__(5);
+
+var _hexScatter2 = _interopRequireDefault(_hexScatter);
+
+var _utils = __webpack_require__(0);
+
+var _shapes = __webpack_require__(3);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var PI = Math.PI;
+var TWOPI = PI * 2;
+var STYLES = ['normal']; // TODO
+
+var DEFAULTS = {
+    container: 'body',
+    palette: _palettes2.default.plum_sauce,
+    addNoise: 0.04,
+    noiseInput: null,
+    dust: false,
+    skew: 1, // normalized skew
+    clear: true,
+    style: 'auto', // from STYLES
+    mixWeight: false,
+    isolate: true
+
+    // Main function
+};function rings(options) {
+    var opts = Object.assign({}, DEFAULTS, options);
+
+    var container = opts.container;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
+    var SCALE = Math.min(cw, ch);
+    var LONG = Math.max(cw, ch);
+    var SHORT = Math.min(cw, ch);
+    var AREA = cw * ch;
+    var ASPECT = LONG / SHORT;
+
+    // Find or create canvas child
+    var el = container.querySelector('canvas');
+    var newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        el.width = cw;
+        el.height = ch;
+    }
+
+    var ctx = el.getContext('2d');
+
+    // modes and styles
+    var STYLE = opts.style === 'auto' ? (0, _utils.randItem)(STYLES) : opts.style;
+
+    console.log('==================================\nRings:', STYLE);
+
+    // color funcs
+    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
+
+    // setup
+
+    var xnorm = 0;
+    var ynorm = 0;
+    var renderer = void 0;
+
+    // shared colors
+    var bg = getSolidFill();
+
+    // get palette of non-bg colors
+    var contrastPalette = [].concat(opts.palette);
+    contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    //contrastPalette.sort(()=>(randomInRange(-1, 1)));
+    var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
+    var colorCount = contrastPalette.length;
+
+    // draw background
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, cw, ch);
+
+    // rings
+
+    /*
+    Approach:
+    - choose some center points
+    - define a set of widening rings around each center point
+    - each ring is solid or dashed, and of varying length and offset
+    - all ring defs are in a common array, which we shuffle so they will
+      be drawn interleaved if ring clusters overlap
+    - around the last center point, draw radial rays, either starting at
+      ring edge going outward, or at outer perimeter coming inward.
+    - on top of this, draw rings twice: once with extra thickness in the
+      background color, then again with a random foreground color.
+      This leaves a cutout/outline where they overlap.
+    */
+
+    // max line weight depends on canvas size
+    var MAXWEIGHT = SCALE / (50 + LONG / 100);
+    ctx.lineWidth = MAXWEIGHT;
+    console.log('max thickness', MAXWEIGHT);
+
+    var centers = []; // array of center points
+    var rings = []; // array of all rings
+
+    // pick a few center points
+    // more for large layouts
+    var centerCount = (0, _utils.randomInt)(2, 2 + SCALE / 400);
+    // more rings per group in large and stretched layouts
+    var ringsPerGroup = [5 + Math.round(SCALE / 150), 10 + Math.round(ASPECT * 20)];
+    var spacing = 3; // between rings
+
+    // Radius to step outward, intial value. Keep in outer scope because
+    // rays will rely on this for drawing too.
+    var r = 0;
+
+    // center vars
+    // Scatter points coarsely
+    // These numbers aren't great
+    var MARGIN = SHORT / 12;
+    var pts = (0, _hexScatter2.default)(SHORT * 0.5, cw - MARGIN * 2, ch - MARGIN * 2);
+
+    pts.forEach(function (p, i) {
+        p[0] += MARGIN;
+        p[1] += MARGIN;
+        // The scatter algo will place points out of bounds or near edges.
+        // Discard those points.
+        var bounds = true;
+        if (p[0] > cw - MARGIN) bounds = false;
+        if (p[0] < MARGIN) bounds = false;
+        if (p[1] > ch - MARGIN) bounds = false;
+        if (p[1] < MARGIN) bounds = false;
+
+        if (bounds) {
+            centers.push({ x: p[0], y: p[1] });
+            //drawCircle(ctx,p[0], p[1], 30, {fill:'red'});
+        }
+    });
+
+    // Limit centers, since hexscatter has a lot of overscan and does
+    // poorly when cell size is large compared to container.
+    // Allow more centers for stretched layouts.
+    centers = (0, _utils.shuffle)(centers);
+    var maxCenters = Math.ceil(ASPECT);
+    centers = centers.slice(0, maxCenters);
+
+    // Step through the centers and create ring clusters for each
+    centers.forEach(function (center, i) {
+        // intial r
+        r = SCALE / 20;
+
+        var ringCount = _utils.randomInt.apply(undefined, ringsPerGroup);
+        // make several rings
+        while (ringCount--) {
+            // create a ring
+            var thickness = (0, _utils.randomInRange)(MAXWEIGHT / 4, MAXWEIGHT);
+            r += thickness / 2 + spacing;
+
+            var arcLength = void 0;
+            var arcOffset = void 0;
+
+            // choose between incomplete or complete rings
+            if (Math.random() < 0.75) {
+                // incomplete vary from 1/4 to 3/4 turn
+                arcLength = (0, _utils.randomInRange)(TWOPI * 1 / 3, TWOPI * 5 / 7);
+                arcOffset = (0, _utils.randomInRange)(0, PI * 2);
+            } else {
+                // complete circle
+                arcLength = PI * 2;
+                arcOffset = 0;
+            }
+
+            // define the ring
+            var ring = {
+                x: center.x,
+                y: center.y,
+                r: r,
+                start: arcOffset,
+                end: arcOffset + arcLength,
+                reverse: 0, //(Math.random() > 0.5),
+                thickness: thickness,
+                color: getContrastColor(),
+                dashes: ''
+
+                // push it to rings[]
+            };rings.push(ring);
+
+            // increment r by ring thickness + spacing
+            r += ring.thickness / 2 + spacing;
+        }
+    });
+
+    console.log(rings.length + ' rings around ' + centers.length + ' centers');
+
+    /**
+     * util for drawing rays
+     * from @p1 to @p2, at thickness @weight.
+     * Start solid and draws the last @dottedFraction dotted or dashed,
+     * depending on weight.
+     * Relies on a global context ctx;
+     * */
+    function dottedLine(p1, p2, weight) {
+        var dottedFraction = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0.33;
+
+        ctx.lineWidth = weight;
+
+        var _p = _slicedToArray(p1, 2),
+            x1 = _p[0],
+            y1 = _p[1];
+
+        var _p2 = _slicedToArray(p2, 2),
+            x2 = _p2[0],
+            y2 = _p2[1];
+
+        var dx = x2 - x1;
+        var dy = y2 - y1;
+
+        var d = Math.sqrt(dx * dx + dy * dy);
+
+        var t = Math.atan(dy / dx);
+        if (x2 < x1) t += PI;
+
+        var mx = x1 + Math.cos(t) * d * (1 - dottedFraction);
+        var my = y1 + Math.sin(t) * d * (1 - dottedFraction);
+
+        // start solid
+        ctx.lineCap = 'butt';
+        ctx.setLineDash([]);
+        ctx.lineDashOffset = 0;
+        // draw solid segment
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(mx, my);
+        ctx.stroke();
+
+        // dotted portion:
+        ctx.beginPath();
+        ctx.lineCap = 'round';
+        if (weight <= 4) {
+            // thin strokes
+            ctx.setLineDash([weight, weight * 4]);
+            ctx.lineDashOffset = 0;
+        } else {
+            // thick strokes
+            ctx.setLineDash([0, weight * 2]);
+            ctx.lineDashOffset = weight * 1;
+        }
+        ctx.moveTo(mx, my);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+
+        // reset dashes for any following drawing
+        ctx.setLineDash([]);
+        ctx.lineDashOffset = 0;
+    }
+
+    // draw rays
+    // start from the last incremented value of r
+    var minRayRadius = r + MAXWEIGHT;
+    var maxrayEnd = rayStart * (0, _utils.randomInRange)(1.1, 2);
+    var rayStart = void 0,
+        rayEnd = void 0;
+
+    var rayStyle = (0, _utils.randItem)(['INNER', 'OUTER']);
+
+    // bigger circle = room for more rays
+    var rayCount = void 0;
+    if (rayStyle === 'OUTER') {
+        rayCount = (0, _utils.randomInt)(60, 120);
+    } else {
+        rayCount = (0, _utils.randomInt)(40, 80);
+    }
+
+    console.log(rayCount + ' rays');
+    var rays = [];
+    // use the last center, because that corresponds to the r value we are using
+    var rayCenter = centers[centers.length - 1];
+
+    // linecap for rays is always butt, for precise origin
+    ctx.lineCap = 'butt';
+    var dottedFraction = void 0; // will pass to dottedLine with various values
+
+    // step through the rays
+    for (var i = 0; i < rayCount; i++) {
+        ctx.strokeStyle = getContrastColor();
+
+        var theta = i * TWOPI / rayCount;
+        var _rayEnd = minRayRadius * (0, _utils.randomInRange)(1.1, 2);
+        var _cos = void 0,
+            _sin = void 0;
+        _cos = Math.cos(theta);
+        _sin = Math.sin(theta);
+
+        var _start = void 0,
+            _end = void 0;
+        if (rayStyle === 'INNER') {
+            _start = minRayRadius;
+            _end = _rayEnd;
+        } else if (rayStyle === 'OUTER') {
+            _start = LONG * 1.44;
+            _end = _rayEnd;
+        } else {
+            return;
+        }
+
+        var rayWidth = void 0;
+
+        // rays have alternating thickness and dottedness
+        if (i % 2) {
+            dottedFraction = 0;
+            rayWidth = (0, _utils.randomInRange)(1, MAXWEIGHT);
+        } else {
+            dottedFraction = (0, _utils.randomInRange)(0.15, 0.33);
+            rayWidth = (0, _utils.randomInRange)(1, MAXWEIGHT / 2);
+        }
+
+        // draw with dotted line util
+        dottedLine([rayCenter.x + _cos * _start, rayCenter.y + _sin * _start], [rayCenter.x + _cos * _end, rayCenter.y + _sin * _end], rayWidth, dottedFraction);
+    }
+
+    // prepare linecap for rings
+    // prefer square, use round sometimes
+    ctx.lineCap = (0, _utils.randItem)(['round', 'square', 'square', 'square', 'square']);
+
+    // then shuffle rings to interleave
+    rings = (0, _utils.shuffle)(rings);
+
+    // for each ring, draw it
+    rings.forEach(function (ring, i) {
+        // draw this ring
+
+        var dash = ring.thickness * (0, _utils.randomInRange)(0.5, 5);
+
+        // sometimes set dashes, others do continuous lines
+        if (Math.random() < 0.5) {
+            ctx.setLineDash([dash, dash * (0, _utils.randomInRange)(0, 3) + ring.thickness]);
+            ctx.lineDashOffset = -spacing; // to get shadow around dashes
+        } else {
+            ctx.setLineDash([]);
+        }
+
+        // draw a shadow with bg color and extra thickness
+        ctx.beginPath();
+        var cap = spacing / ring.r; // extend the shadow a bit around the end
+        ctx.arc(ring.x, ring.y, ring.r, ring.start - cap, ring.end + cap, ring.reverse);
+        ctx.lineWidth = ring.thickness + 2 * spacing;
+        ctx.strokeStyle = bg;
+        ctx.stroke();
+
+        // draw the fg ring with a rando color
+        ctx.lineDashOffset = 0;
+        ctx.beginPath();
+        ctx.arc(ring.x, ring.y, ring.r, ring.start, ring.end, ring.reverse);
+        ctx.lineWidth = ring.thickness;
+        ctx.strokeStyle = ring.color;
+        ctx.stroke();
+    });
+
+    // clear dash settings
+    ctx.setLineDash([]);
+    ctx.lineDashOffset = 0;
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            // apply noise from supplied canvas
+            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            // create noise pattern and apply
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, cw / 3);
+        }
+    }
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
+}
+
+/***/ }),
+/* 34 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
 var _utils = __webpack_require__(0);
 
 // Nested arrays of error coefs. Use zeroes up to the "current" px
@@ -8751,7 +9166,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 34 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

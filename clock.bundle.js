@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 36);
+/******/ 	return __webpack_require__(__webpack_require__.s = 37);
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -76,6 +76,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.randItem = randItem;
 exports.randomInRange = randomInRange;
+exports.randomInt = randomInt;
 exports.shuffle = shuffle;
 exports.setAttrs = setAttrs;
 exports.resetTransform = resetTransform;
@@ -95,7 +96,15 @@ function randItem(arr) {
 }
 
 function randomInRange(min, max) {
+    if (max === undefined) {
+        max = min;
+        min = 0;
+    }
     return min + (max - min) * Math.random();
+}
+
+function randomInt(min, max) {
+    return Math.round(randomInRange(min, max));
 }
 
 // fisher-yates, from https://bost.ocks.org/mike/shuffle/
@@ -944,13 +953,13 @@ var drawHexagon = exports.drawHexagon = _drawPolygon(6, 1.05);
 
 /***/ }),
 
-/***/ 36:
+/***/ 37:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-__webpack_require__(5);
+__webpack_require__(6);
 
 var _noiseutils = __webpack_require__(1);
 
@@ -966,7 +975,7 @@ var _colorbrewer2 = _interopRequireDefault(_colorbrewer);
 
 var _truchet = __webpack_require__(17);
 
-var _numerals = __webpack_require__(37);
+var _numerals = __webpack_require__(38);
 
 var _utils = __webpack_require__(0);
 
@@ -1088,7 +1097,7 @@ setInterval(function () {
 
 /***/ }),
 
-/***/ 37:
+/***/ 38:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1433,7 +1442,7 @@ function numerals(options) {
 
 /***/ }),
 
-/***/ 5:
+/***/ 6:
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
