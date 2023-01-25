@@ -1,4 +1,4 @@
-import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
+import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
 const DEFAULTS = {
@@ -67,14 +67,37 @@ function wavepath(ctx, x, y, w, h, count, amp, options) {
     ctx.stroke();
 }
 
+
+// a series of smooth curves with a filled base layer, and then
+// variants of the path.
+// @w: width
+// @h: height
+// @count: the number of peaks
+// @depth: the number of variant lines
+// @amp: amplitude of the wave/trough
+
 function waveband(ctx, x, y, w, h, count, amp, depth, options) {
     let opts = Object.assign({}, options);
     let _lineWidth = ctx.lineWidth;
-    ctx.lineWidth *= randomInRange(1.5, 2); // start thicc
+    let _yoffset = 0;
     for (let i = 0; i < depth; i++) {
-        wavepath(ctx, x, y + i * amp/depth, w, h, count, amp, opts);
-        opts.fill = null; // after the first pass, remove the fill, so lines overlap
-        ctx.lineWidth = _lineWidth; // reset linewidth
+        if (i === 0) {
+            // start with a thick solid line
+            ctx.setLineDash([]);
+            ctx.lineWidth = _lineWidth * randomInRange(1.5, 2);
+        } else {
+            // after, go thinner, and sometimes dotted
+            ctx.lineWidth = _lineWidth;
+            if (Math.random() < 0) {
+                // dotted lines. should switch this at top level
+                ctx.setLineDash([_lineWidth, _lineWidth * 2]);
+            }
+            opts.fill = null; // after the first pass, remove the fill, so lines overlap
+        }
+
+        _yoffset = i * amp/depth;
+        wavepath(ctx, x, y + _yoffset, w, h - amp/depth * i, count, amp, opts);
+
     }
 }
 
@@ -86,6 +109,7 @@ const WAVELET_DEFAULTS = {
     skew: 0.5
 }
 
+// a peaky little wavelet shape, stands alone
 function wavelet(ctx, x, y, options) {
     let {width, rise, dip, skew} = Object.assign({}, WAVELET_DEFAULTS, options);
 
@@ -125,6 +149,7 @@ const WAVES_DEFAULTS = {
 };
 
 
+// a pattern of wavelet() renderings
 function waveset(ctx, x, y, width, height, opts) {
     opts = Object.assign({}, WAVES_DEFAULTS, opts);
     opts.dense = Math.max(opts.dense, 0.1);
@@ -154,6 +179,9 @@ export function waves(options) {
     var container = opts.container;
     var cw = container.offsetWidth;
     var ch = container.offsetHeight;
+    let SCALE = Math.min(cw, ch);
+    let LONG = Math.max(cw, ch);
+    let SHORT = Math.min(cw, ch);
 
     // Find or create canvas child
     var el = container.querySelector('canvas');
@@ -178,7 +206,11 @@ export function waves(options) {
     // setup
     let getSolidFill = getSolidColorFunction(opts.palette);
 
+    let fg = getSolidFill();
 
+
+
+    drawCircle(ctx, cw/2, ch/3, ch/5, {fill:'red'});
 
     //wavecurve(ctx, 200, 200, 100, 100, {depth: 5});
 
@@ -187,7 +219,7 @@ export function waves(options) {
     //waveset(ctx, 0, 0, 800, 800, {wl: 120, wh: 60, dense: 0.35, skew: 0.65});
 
     //waveband(ctx, 0, 100, cw, 60, 4, 50, 5, {fill: getSolidFill(opts.palette)});
-    //waveband(ctx, 0, 150, cw, 60, 3, 50, 5, {fill: getSolidFill(opts.palette)});
+    //waveband(ctx, 0, 150, cw, 120, 3, 50, 5, {fill: getSolidFill(opts.palette)});
 
 
     function simpleCover() {
@@ -219,12 +251,18 @@ export function waves(options) {
             h_shift = randomInRange(0, 0.1);
             x = - h_shift * cw;
 
+            if (Math.random() < 0.3) {
+                let _size = SCALE/8;
+                drawCircle(ctx, x + cw * randomInRange(0, 1), y + randomInRange(_size/4, _size), _size, {stroke:strokeColor, fill:getSolidFill()});
+            }
+
+
             // ctx, x, y, w, h, wavecount, amp, stackdepth, opts
             waveband(ctx, x, y,
                 cw * (1+h_shift), h,
                 count, amp, 5,
                 {
-                    fill: getSolidFill(opts.palette),
+                    fill: fg,
                     stroke: strokeColor,
                     jitter: 0.2
                 }
@@ -242,14 +280,17 @@ export function waves(options) {
         let amp;
         let h;
         let count;
-        let steps = 14;
+        let steps = 34;
         let interval = ch/steps;
 
         for(let i=0; i<steps; i++) {
             count = Math.max(randomInRange(steps - 2 - i, steps + 2 -i), 0.5);
-            amp = 10 + 75/count;
-            y += amp;
-            h = amp * 3;
+            //count = steps/2 + steps/2 - (i/2) + randomInt(0, 3);
+            count = steps - i;
+            count = Math.ceil(count);
+            amp = 55/count + i * 1;
+            y += amp * 1;
+            h = amp * 9;
 
             // horizontal offsets for natural appearance
             h_shift = randomInRange(0, 0.1);
