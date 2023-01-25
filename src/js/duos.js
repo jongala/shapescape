@@ -1,7 +1,7 @@
 import noiseUtils from './noiseutils';
 import palettes from './palettes';
 import { drawCircle, drawRing, drawExactTriangle, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
-import { randItem, randomInRange, getGradientFunction } from './utils';
+import { randItem, randomInRange, getGradientFunction, getLocalGradientFunction } from './utils';
 
 const SILVERS = ['#ffffff','#f2f2f2','#eeeeee','#e7e7e7','#e0e0e0','#d7d7d7'];
 
@@ -108,7 +108,7 @@ export function duos(options) {
         r1,
         {
             angle: a1,
-            fill: getGradientFunction(opts.palette)(ctx, cw, ch)
+            fill: getLocalGradientFunction(opts.palette)(ctx, x1, y1, r1 * randomInRange(0.75, 2))
         }
     );
 
@@ -122,7 +122,7 @@ export function duos(options) {
         r2,
         {
             angle: a2,
-            fill: getGradientFunction(opts.palette)(ctx, cw, ch)
+            fill: getLocalGradientFunction(opts.palette)(ctx, x2, y2, r2 * randomInRange(0.75, 2))
         }
     );
 
@@ -133,7 +133,7 @@ export function duos(options) {
         r2,
         {
             angle: a2,
-            fill: getGradientFunction(opts.palette)(ctx, cw, ch)
+            fill: getLocalGradientFunction(opts.palette)(ctx, x2, y2, r2 * randomInRange(0.75, 2))
         }
     );
 
