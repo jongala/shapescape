@@ -1,7 +1,7 @@
 import noiseUtils from './noiseutils';
 import palettes from './palettes';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
-import { randItem, randomInRange, getGradientFunction } from './utils';
+import { randItem, randomInRange, getGradientFunction, getLocalGradientFunction } from './utils';
 
 /**
  * Get a fill, either in solid or gradients
@@ -44,8 +44,11 @@ export function shapescape(options) {
 
     var container = options.container;
 
-    var w = container.offsetWidth;
-    var h = container.offsetHeight;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
+    let SCALE = Math.min(cw, ch);
+    let LONG = Math.max(cw, ch);
+    let SHORT = Math.min(cw, ch);
 
     // Find or create canvas child
     var el = container.querySelector('canvas');
@@ -56,8 +59,8 @@ export function shapescape(options) {
         newEl = true;
     }
     if (newEl || opts.clear) {
-        el.width = w;
-        el.height = h;
+        el.width = cw;
+        el.height = ch;
     }
 
     var ctx; // canvas ctx or svg tag
@@ -68,7 +71,7 @@ export function shapescape(options) {
     if (opts.clear) {
         el.width = container.offsetWidth;
         el.height = container.offsetHeight;
-        ctx.clearRect(0, 0, w, h);
+        ctx.clearRect(0, 0, cw, ch);
     }
 
     var renderer;
@@ -86,35 +89,37 @@ export function shapescape(options) {
 
     if (opts.drawShadows) {
         ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 3 * Math.min(w, h) / 400;
-        ctx.shadowBlur = 10 * Math.min(w, h) / 400;
+        ctx.shadowOffsetY = 3 * SCALE / 400;
+        ctx.shadowBlur = 10 * SCALE / 400;
         ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
     }
 
     let shapeOpts = {};
 
-    // sometimes, lock them to centerline. Else, nudge each left or right
+    // mostly, lock them to centerline. Else, nudge each left or right
     let centers = [];
-    if (Math.random() < 0.99933) {
-        centers = [w/2, w/2, w/2];
+    if (Math.random() < 0.66) {
+        centers = [cw/2, cw/2, cw/2];
         shapeOpts.angle = 0;
     } else {
         centers = [
-            w * randomInRange(0.4, 0.6), // shape 1
-            w * randomInRange(0.4, 0.6), // shape 2
-            w * randomInRange(0.2, 0.8), // bg block
+            cw * randomInRange(0.4, 0.6), // shape 1
+            cw * randomInRange(0.4, 0.6), // shape 2
+            cw * randomInRange(0.2, 0.8), // bg block
         ];
         shapeOpts.angle = randomInRange(-1,1) * Math.PI/2;
     }
 
+    // Fill utilties
+    let getGradientFill = getLocalGradientFunction(opts.palette);
+
     // add one or two bg blocks
-    ctx.fillStyle = getFill(ctx, opts.palette, 0, 0, h, opts.skew);
-    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = getGradientFill(ctx, cw/2, ch/2, LONG);
+    ctx.fillRect(0, 0, cw, ch);
     if (Math.random() < 0.5) {
-        var hr = randomInRange(3, 12) * w;
-        var hy = hr + randomInRange(0.5, 0.85) * h;
-        //drawCircle(ctx, w / 2, hy, hr, getFill(ctx, opts.palette, w / 2, hy, hr, opts.skew));
-        drawCircle(ctx, centers[2], hy, hr, {fill: getGradientFunction(opts.palette)(ctx, w, h)})
+        var hr = randomInRange(3, 12) * cw;
+        var hy = hr + randomInRange(0.5, 0.85) * ch;
+        drawCircle(ctx, centers[2], hy, hr, {fill: getGradientFunction(opts.palette)(ctx, cw, ch)})
     }
 
     // draw two shape layers in some order:
@@ -124,22 +129,30 @@ export function shapescape(options) {
     });
 
     // pop a renderer name, get render func and execute X 2
+    let _y;
+    let _size;
+
+    _y = ch * randomInRange(0.3, 0.7);
+    _size = cw * randomInRange(0.25, 0.35);
     renderMap[shapes.pop()](ctx,
         centers[0],
-        h * randomInRange(0.3, 0.7),
-        w * randomInRange(0.25, 0.35),
+        _y,
+        _size,
         {
             angle: shapeOpts.angle,
-            fill: getGradientFunction(opts.palette)(ctx, w, h)
+            fill: getGradientFill(ctx, centers[0], _y, _size)
         }
     );
+
+    _y = ch * randomInRange(0.3, 0.7);
+    _size = cw * randomInRange(0.25, 0.35);
     renderMap[shapes.pop()](ctx,
         centers[1],
-        h * randomInRange(0.3, 0.7),
-        w * randomInRange(0.25, 0.35),
+        _y,
+        _size,
         {
             angle: shapeOpts.angle,
-            fill: getGradientFunction(opts.palette)(ctx, w, h)
+            fill: getGradientFill(ctx, centers[1], _y, _size)
         }
     );
 
@@ -151,7 +164,7 @@ export function shapescape(options) {
         if (opts.noiseInput) {
             noiseUtils.applyNoiseCanvas(el, opts.noiseInput);
         } else {
-            noiseUtils.addNoiseFromPattern(el, opts.addNoise, w / 3);
+            noiseUtils.addNoiseFromPattern(el, opts.addNoise, cw / 3);
         }
     }
 
