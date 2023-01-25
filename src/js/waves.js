@@ -1,4 +1,4 @@
-import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
+import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getLocalGradientFunction, getSolidColorFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
 const DEFAULTS = {
@@ -208,6 +208,8 @@ export function waves(options) {
 
     let fg = getSolidFill();
 
+    let getGradientFill = getLocalGradientFunction(opts.palette);
+
 
 
     drawCircle(ctx, cw/2, ch/3, ch/5, {fill:'red'});
@@ -253,7 +255,12 @@ export function waves(options) {
 
             if (Math.random() < 0.3) {
                 let _size = SCALE/8;
-                drawCircle(ctx, x + cw * randomInRange(0, 1), y + randomInRange(_size/4, _size), _size, {stroke:strokeColor, fill:getSolidFill()});
+                let _x = x + cw * randomInRange(0, 1);
+                let _y = y + randomInRange(_size/4, _size);
+                drawCircle(ctx, _x, _y, _size, {
+                        stroke:strokeColor,
+                        fill:getGradientFill(ctx, _x, _y, _size)
+                    });
             }
 
 

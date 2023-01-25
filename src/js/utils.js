@@ -80,6 +80,29 @@ export function getGradientFunction(palette) {
     }
 }
 
+export function getLocalGradientFunction(palette) {
+    let p = [].concat(palette);
+    return function(ctx, x, y, size) {
+        let bias = Math.random() - 0.5;
+        let coords = [];
+        if (bias) {
+            coords = [
+                randomInRange(x - size, x + size), y - size,
+                randomInRange(x - size, x + size), y + size
+            ]
+        } else {
+            coords = [
+                x - size, randomInRange(y - size, y + size),
+                x + size, randomInRange(y - size, y + size)
+            ]
+        }
+        let grad =  ctx.createLinearGradient(...coords);
+        grad.addColorStop(0, randItem(p));
+        grad.addColorStop(1, randItem(p));
+        return grad;
+    }
+}
+
 // Creates a function that returns a different random entry
 // from @palette each time it is called.
 export function getSolidColorFunction(palette) {
