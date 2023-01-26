@@ -19,6 +19,7 @@ const DEFAULTS = {
 }
 
 const PI = Math.PI;
+const TWOPI = Math.PI;
 const DENSITIES = ['coarse', 'fine'];
 
 
@@ -117,7 +118,7 @@ export function doodle(options) {
 
     let drawDash2 = (ctx, x, y, size, opts) => {
         let angle = opts.angle || randomInRange(0, PI);
-        let d = size * randomInRange(0.6, 1);
+        let d = size * randomInRange(0.75, 1);
         let gap = size / 2;
         ctx.translate(x, y);
         ctx.rotate(angle)
@@ -126,13 +127,13 @@ export function doodle(options) {
 
         ctx.translate(weight * randomInRange(0, 1), weight * randomInRange(0, 1) );
 
-        ctx.moveTo(- d * Math.cos(angle), -gap);
-        ctx.lineTo(d * Math.cos(angle), -gap);
+        ctx.moveTo(- d, -gap);
+        ctx.lineTo(d, -gap);
 
         ctx.translate(weight * randomInRange(0, 1), weight * randomInRange(0, 1) );
 
-        ctx.moveTo(- d * Math.cos(angle), gap);
-        ctx.lineTo(d * Math.cos(angle), gap);
+        ctx.moveTo(- d, gap);
+        ctx.lineTo(d, gap);
 
         ctx.stroke();
 
@@ -141,7 +142,7 @@ export function doodle(options) {
 
     let drawDash3 = (ctx, x, y, size, opts) => {
         let angle = opts.angle || randomInRange(0, PI);
-        let d = size * randomInRange(0.6, 1);
+        let d = size * randomInRange(0.75, 1);
         let gap = size / 3;
         ctx.translate(x, y);
         ctx.rotate(angle)
@@ -152,26 +153,70 @@ export function doodle(options) {
         ctx.translate(weight * randomInRange(0, 0.8), weight * randomInRange(0, 0.8) );
         d *= randomInRange(0.9, 1.1);
 
-        ctx.moveTo(- d * Math.cos(angle), -gap);
-        ctx.lineTo(d * Math.cos(angle), -gap);
+        ctx.moveTo(- d, -gap);
+        ctx.lineTo(d, -gap);
 
         // randomize between strokes
         ctx.translate(weight * randomInRange(0, 0.8), weight * randomInRange(0, 0.8) );
         d *= randomInRange(0.9, 1.1);
 
-        ctx.moveTo(- d * Math.cos(angle), 0);
-        ctx.lineTo(d * Math.cos(angle), 0);
+        ctx.moveTo(- d, 0);
+        ctx.lineTo(d, 0);
 
         // randomize between strokes
         ctx.translate(weight * randomInRange(0, 0.8), weight * randomInRange(0, 0.8) );
         d *= randomInRange(0.9, 1.1);
 
-        ctx.moveTo(- d * Math.cos(angle), gap);
-        ctx.lineTo(d * Math.cos(angle), gap);
+        ctx.moveTo(- d, gap);
+        ctx.lineTo(d, gap);
 
         ctx.stroke();
 
         resetTransform(ctx);
+    }
+
+    let drawHash2 = (ctx, x, y, size, opts) => {
+        let angle = opts.angle || randomInRange(0, PI);
+        drawDash2(ctx, x, y, size, {angle:angle});
+        drawDash2(ctx, x, y, size, {angle:angle + PI/2});
+    }
+
+    let drawHash3 = (ctx, x, y, size, opts) => {
+        let angle = opts.angle || randomInRange(0, PI);
+        drawDash3(ctx, x, y, size, {angle:angle});
+        drawDash3(ctx, x, y, size, {angle:angle + PI/2});
+    }
+
+    let drawSpiral = (ctx, x, y, size, opts) => {
+        let count = 30; // points
+
+        let t = randomInRange(0, TWOPI);
+        let arc = TWOPI * randomInRange(3, 5);
+
+        let direction = randItem([-1, 1]);
+
+
+        // func to return an x,y point for theta, r
+        // bake in offset t and the direction
+        let f = (theta, r) => {
+            return [
+                Math.cos(t + theta * direction) * r,
+                Math.sin(t + theta * direction) * r
+            ]
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+
+        for (var i = 0; i < count; i++) {
+            // r scaling is magic number, I don't know why the scaling to
+            // count isn't working
+            let [_x, _y] = f(i * arc/count, i * size/count * 0.6);
+            x += _x;
+            y += _y;
+            ctx.lineTo(x, y);
+        }
+        ctx.stroke();
     }
 
 
@@ -244,7 +289,8 @@ export function doodle(options) {
 
     pts = hexScatter(cellSize, cw * overscan, ch * overscan);
 
-    let shapes = [drawDash2, drawDash2, drawDash3, drawCircle, drawTriangle, drawSquare, drawRect];
+    let shapes = [drawDash2, drawDash2, drawDash3, drawCircle, drawTriangle, drawSquare, drawRect, drawSpiral, drawHash2, drawHash3];
+    //shapes = [drawCircle, drawSpiral];
 
     let colorCount = contrastPalette.length;
 
