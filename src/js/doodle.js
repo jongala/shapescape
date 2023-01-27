@@ -1,7 +1,7 @@
 import noiseUtils from './noiseutils';
 import palettes from './palettes';
 import hexScatter from './hexScatter';
-import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
+import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
 import roughen from './roughen';
@@ -220,6 +220,31 @@ export function doodle(options) {
     }
 
 
+
+
+    let drawSquiggle = (ctx, x, y, size, opts) => {
+        let _x = x - size/2;
+        let _y = y - size/2;
+
+        let steps = randomInt(3, 5);
+
+        ctx.beginPath();
+        ctx.moveTo(_x, _y);
+
+        for (var i = 0 ; i < steps ; i++) {
+            let dir = (i%2) ? 1 : -1;
+            ctx.quadraticCurveTo(
+              _x, _y + size/2 * dir,
+              _x + size/steps, _y + size * dir
+            );
+            _x = _x + size/steps;
+            _y = _y + size * dir;
+        }
+
+        ctx.stroke();
+    }
+
+
     // const used in normalizing transforms
     let maxLen = 2 * Math.sqrt(2);
 
@@ -290,7 +315,7 @@ export function doodle(options) {
     pts = hexScatter(cellSize, cw * overscan, ch * overscan);
 
     let shapes = [drawDash2, drawDash2, drawDash3, drawCircle, drawTriangle, drawSquare, drawRect, drawSpiral, drawHash2, drawHash3];
-    //shapes = [drawCircle, drawSpiral];
+    shapes = [drawSquiggle];
 
     let colorCount = contrastPalette.length;
 
