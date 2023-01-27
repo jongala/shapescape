@@ -223,10 +223,18 @@ export function doodle(options) {
 
 
     let drawSquiggle = (ctx, x, y, size, opts) => {
-        let _x = x - size/2;
-        let _y = y - size/2;
+        let angle = opts.angle || randomInRange(0, PI);
 
-        let steps = randomInt(3, 5);
+        ctx.translate(x, y);
+        ctx.rotate(angle)
+
+        ctx.beginPath();
+
+
+        let _x = -size/2;
+        let _y = -size/2;
+
+        let steps = randomInt(3, 6);
 
         ctx.beginPath();
         ctx.moveTo(_x, _y);
@@ -242,6 +250,8 @@ export function doodle(options) {
         }
 
         ctx.stroke();
+
+        resetTransform(ctx);
     }
 
 
@@ -314,8 +324,8 @@ export function doodle(options) {
 
     pts = hexScatter(cellSize, cw * overscan, ch * overscan);
 
-    let shapes = [drawDash2, drawDash2, drawDash3, drawCircle, drawTriangle, drawSquare, drawRect, drawSpiral, drawHash2, drawHash3];
-    shapes = [drawSquiggle];
+    let shapes = [drawDash2, drawDash3, drawCircle, drawTriangle, drawSquare, drawRect, drawSpiral, drawHash2, drawHash3, drawSquiggle];
+    //shapes = [drawSquiggle];
 
     let colorCount = contrastPalette.length;
 
