@@ -1,3 +1,4 @@
+import noiseUtils from './noiseutils';
 import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getLocalGradientFunction, getSolidColorFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
@@ -211,9 +212,6 @@ export function waves(options) {
     let getGradientFill = getLocalGradientFunction(opts.palette);
 
 
-
-    drawCircle(ctx, cw/2, ch/3, ch/5, {fill:'red'});
-
     //wavecurve(ctx, 200, 200, 100, 100, {depth: 5});
 
     //wavelet(ctx, 200, 400, 100, 100, {depth: 5, sign: 1})
@@ -231,28 +229,35 @@ export function waves(options) {
         let amp;
         let h;
         let count;
-        let steps = randomInRange(10, 40);
-        let interval = ch/steps;
+        let bandCount = randomInRange(10, 40); // number of horizontal bands
+        let interval = ch/(bandCount - 1); // px per stripe
 
-        let baseCount = randomInRange(20, 50); // low or high number of peaks
 
-        ctx.lineWidth = 0.5 + interval/50;
+        // low or high number of peaks
+        // magic number: pleasing waves are about twice as long as they are high
+        // this is the max frequency or count to use.
+        let baseCount = bandCount * (cw / ch) * 0.5;
+
+        // actual baseCount should be lower
+        baseCount *= randomInRange(0.2, 0.75);
+
+
+
+        let weight = SCALE/1600 * randomInRange(1, 3) + interval/50;
+        ctx.lineWidth = weight;
+
 
         let strokeColor = (Math.random() > 0.5) ? 'white' : 'black';
 
         y = -interval; // start above the top
 
-        for(let i=0; i<steps; i++) {
+        let max_shift = cw/baseCount;
+
+        for(let i=0; i<bandCount; i++) {
             amp = interval;
             h = amp * 3;
 
-            // variation in wave count based on amplitude
-            count = baseCount * randomInRange(3, 5) / amp;
-
-            // horizontal offsets for natural appearance
-            h_shift = randomInRange(0, 0.1);
-            x = - h_shift * cw;
-
+            // Floating shapes!
             if (Math.random() < 0.3) {
                 let _size = SCALE/8;
                 let _x = x + cw * randomInRange(0, 1);
@@ -263,10 +268,15 @@ export function waves(options) {
                     });
             }
 
+            // variation in wave count between bands
+            count = Math.ceil(baseCount * randomInRange(1, 1.33));
+
+            // horizontal offsets for natural appearance
+            x = -randomInRange(0, max_shift);
 
             // ctx, x, y, w, h, wavecount, amp, stackdepth, opts
             waveband(ctx, x, y,
-                cw * (1+h_shift), h,
+                cw + max_shift, h,
                 count, amp, 5,
                 {
                     fill: fg,
@@ -287,13 +297,13 @@ export function waves(options) {
         let amp;
         let h;
         let count;
-        let steps = 34;
-        let interval = ch/steps;
+        let bandCount = 34;
+        let interval = ch/bandCount;
 
-        for(let i=0; i<steps; i++) {
-            count = Math.max(randomInRange(steps - 2 - i, steps + 2 -i), 0.5);
-            //count = steps/2 + steps/2 - (i/2) + randomInt(0, 3);
-            count = steps - i;
+        for(let i=0; i<bandCount; i++) {
+            count = Math.max(randomInRange(bandCount - 2 - i, bandCount + 2 -i), 0.5);
+            //count = bandCount/2 + bandCount/2 - (i/2) + randomInt(0, 3);
+            count = bandCount - i;
             count = Math.ceil(count);
             amp = 55/count + i * 1;
             y += amp * 1;
@@ -314,6 +324,17 @@ export function waves(options) {
     simpleCover();
     //nearFar();
 
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            // apply noise from supplied canvas
+            noiseUtils.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            // create noise pattern and apply
+            noiseUtils.addNoiseFromPattern(el, opts.addNoise, cw / 3);
+        }
+    }
 
 
     // if new canvas child was created, append it
