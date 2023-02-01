@@ -222,6 +222,8 @@ export function waves(options) {
     //waveband(ctx, 0, 150, cw, 120, 3, 50, 5, {fill: getSolidFill(opts.palette)});
 
 
+    let strokeColor = (Math.random() > 0.5) ? 'white' : 'black';
+
     function simpleCover() {
         let y = 0;
         let x = 0;
@@ -247,15 +249,18 @@ export function waves(options) {
         ctx.lineWidth = weight;
 
 
-        let strokeColor = (Math.random() > 0.5) ? 'white' : 'black';
+
 
         y = -interval; // start above the top
 
         let max_shift = cw/baseCount;
 
         for(let i=0; i<bandCount; i++) {
-            amp = interval;
-            h = amp * 3;
+            amp = interval * randomInRange(0.75, 1);
+            h = interval * 3;
+
+            // shift down if amplitude is less than interval
+            y += (interval - amp) / 2;
 
             // Floating shapes!
             if (Math.random() < 0.3) {
@@ -269,7 +274,8 @@ export function waves(options) {
             }
 
             // variation in wave count between bands
-            count = Math.ceil(baseCount * randomInRange(1, 1.33));
+            count = Math.ceil(baseCount * randomInRange(1, 1.2));
+            //count = baseCount;
 
             // horizontal offsets for natural appearance
             x = -randomInRange(0, max_shift);
@@ -286,7 +292,7 @@ export function waves(options) {
             );
 
             // step down
-            y += amp;
+            y += interval;
         }
     }
 
