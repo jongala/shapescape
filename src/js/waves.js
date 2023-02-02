@@ -2,6 +2,8 @@ import noiseUtils from './noiseutils';
 import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getLocalGradientFunction, getSolidColorFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
+const PI = Math.PI;
+
 const DETAILS = ['coarse', 'fine'];
 const STYLES = ['solid', 'dotted', 'dashed'];
 
@@ -251,6 +253,25 @@ export function waves(options) {
     ctx.fillStyle = 'red';
     ctx.fillRect(0, 0, cw, ch);
 
+
+    var renderer;
+    var renderMap = {
+        circle: drawCircle,
+        //triangle: drawTriangle,
+        //square: drawSquare,
+        rectangle: drawRect,
+        //box: drawBox,
+        //ring: drawRing,
+        //pentagon: drawPentagon,
+        //hexagon: drawHexagon
+    };
+    var shapes = Object.keys(renderMap);
+
+
+    // test bands
+    // --------------------------------------
+
+
     //wavecurve(ctx, 200, 200, 100, 100, {depth: 5});
 
     //wavelet(ctx, 200, 400, 100, 100, {depth: 5, sign: 1})
@@ -306,9 +327,10 @@ export function waves(options) {
                 let _size = SCALE/8;
                 let _x = x + cw * randomInRange(0, 1);
                 let _y = y + randomInRange(_size/4, _size);
-                drawCircle(ctx, _x, _y, _size, {
+                renderMap[randItem(shapes)](ctx, _x, _y, _size, {
                         stroke:strokeColor,
-                        fill:getGradientFill(ctx, _x, _y, _size)
+                        fill:getGradientFill(ctx, _x, _y, _size),
+                        angle: randomInRange(-PI/4, PI/4)
                     });
             }
 
