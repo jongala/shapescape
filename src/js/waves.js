@@ -2,9 +2,14 @@ import noiseUtils from './noiseutils';
 import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getLocalGradientFunction, getSolidColorFunction } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
+const DETAILS = ['coarse', 'fine'];
+const STYLES = ['solid', 'dotted', 'dashed'];
+
 const DEFAULTS = {
     container: 'body',
     palette: ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'],
+    detail: 'auto', // enum from DETAILS
+    style: 'auto', // enum from STYLES
     addNoise: 0.04,
     noiseInput: null,
     dust: false,
@@ -93,10 +98,19 @@ function waveband(ctx, x, y, w, h, count, amp, depth, options) {
             ctx.lineWidth = _lineWidth * randomInRange(1.5, 2);
         } else {
             // after, go thinner, and sometimes dotted
-            ctx.lineWidth = _lineWidth;
-            if (Math.random() < 0) {
-                // dotted lines. should switch this at top level
-                ctx.setLineDash([_lineWidth, _lineWidth * 2]);
+
+            if (opts.style === 'dotted') {
+                // dotted lines. keep thicker line weight
+                ctx.lineWidth = _lineWidth *
+                 1.5;
+                ctx.lineCap = 'round';
+                ctx.setLineDash([0, _lineWidth * (1 + i)]);
+            } else if (opts.style === 'dashed') {
+                // dashed lines, which should be thinner
+                ctx.lineWidth = _lineWidth;
+                ctx.setLineDash([_lineWidth * (depth - i + 1), _lineWidth * 2]);
+            } else {
+                ctx.lineWidth = _lineWidth;
             }
             opts.fill = null; // after the first pass, remove the fill, so lines overlap
         }
@@ -106,6 +120,7 @@ function waveband(ctx, x, y, w, h, count, amp, depth, options) {
     }
     // reset lineWidth in case depth = 0;
     ctx.lineWidth = _lineWidth;
+    ctx.setLineDash([]);
 }
 
 
@@ -204,8 +219,22 @@ export function waves(options) {
     }
 
     var ctx; // canvas ctx or svg tag
-
     ctx = el.getContext('2d');
+
+    // Options
+    const DETAIL = opts.detail === 'auto' ? randItem(DETAILS) : opts.detail;
+    const STYLE = opts.style === 'auto' ? randItem(STYLES) : opts.style;
+
+    console.log('==================================\nWaves:', DETAIL, STYLE);
+
+
+    let depthRange = [5, 5];
+    if (DETAIL === 'coarse') {
+        depthRange = [4, 6];
+    } else if (DETAIL === 'fine') {
+        depthRange = [7, 14];
+    }
+
 
     ctx.strokeStyle = "black";
     ctx.fillStyle = "#" + Math.random().toString(16).slice(2,8);
@@ -297,11 +326,12 @@ export function waves(options) {
                 h,
                 count,
                 amp,
-                randomInt(4, 6),
+                randomInt(...depthRange),
                 {
                     fill: fg,
                     stroke: strokeColor,
-                    jitter: 0.2
+                    jitter: 0.2,
+                    style: STYLE
                 }
             );
 
