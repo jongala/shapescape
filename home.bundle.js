@@ -81,6 +81,7 @@ exports.setAttrs = setAttrs;
 exports.resetTransform = resetTransform;
 exports.rotateCanvas = rotateCanvas;
 exports.getGradientFunction = getGradientFunction;
+exports.getLocalGradientFunction = getLocalGradientFunction;
 exports.getSolidColorFunction = getSolidColorFunction;
 exports.hexToRgb = hexToRgb;
 exports.colorDistanceArray = colorDistanceArray;
@@ -159,6 +160,23 @@ function getGradientFunction(palette) {
             coords = [randomInRange(0, w), 0, randomInRange(0, w), h];
         } else {
             coords = [0, randomInRange(0, h), w, randomInRange(0, h)];
+        }
+        var grad = ctx.createLinearGradient.apply(ctx, _toConsumableArray(coords));
+        grad.addColorStop(0, randItem(p));
+        grad.addColorStop(1, randItem(p));
+        return grad;
+    };
+}
+
+function getLocalGradientFunction(palette) {
+    var p = [].concat(palette);
+    return function (ctx, x, y, size) {
+        var bias = Math.random() - 0.5;
+        var coords = [];
+        if (bias) {
+            coords = [randomInRange(x - size, x + size), y - size, randomInRange(x - size, x + size), y + size];
+        } else {
+            coords = [x - size, randomInRange(y - size, y + size), x + size, randomInRange(y - size, y + size)];
         }
         var grad = ctx.createLinearGradient.apply(ctx, _toConsumableArray(coords));
         grad.addColorStop(0, randItem(p));
@@ -491,11 +509,13 @@ var drawBox = exports.drawBox = _makeRenderer(function (ctx, x, y, d, opts) {
     ctx.lineTo(+d, -d);
     ctx.lineTo(+d, +d);
     ctx.lineTo(-d, +d);
+    ctx.lineTo(-d, -d);
     // cutout
     ctx.moveTo(-r, -r);
     ctx.lineTo(-r, +r);
     ctx.lineTo(+r, +r);
     ctx.lineTo(+r, -r);
+    ctx.lineTo(-r, -r);
 });
 
 // Generate drawing functions for polygons
@@ -2015,8 +2035,11 @@ function shapescape(options) {
 
     var container = options.container;
 
-    var w = container.offsetWidth;
-    var h = container.offsetHeight;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
+    var SCALE = Math.min(cw, ch);
+    var LONG = Math.max(cw, ch);
+    var SHORT = Math.min(cw, ch);
 
     // Find or create canvas child
     var el = container.querySelector('canvas');
@@ -2027,8 +2050,8 @@ function shapescape(options) {
         newEl = true;
     }
     if (newEl || opts.clear) {
-        el.width = w;
-        el.height = h;
+        el.width = cw;
+        el.height = ch;
     }
 
     var ctx; // canvas ctx or svg tag
@@ -2039,7 +2062,7 @@ function shapescape(options) {
     if (opts.clear) {
         el.width = container.offsetWidth;
         el.height = container.offsetHeight;
-        ctx.clearRect(0, 0, w, h);
+        ctx.clearRect(0, 0, cw, ch);
     }
 
     var renderer;
@@ -2057,33 +2080,35 @@ function shapescape(options) {
 
     if (opts.drawShadows) {
         ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 3 * Math.min(w, h) / 400;
-        ctx.shadowBlur = 10 * Math.min(w, h) / 400;
+        ctx.shadowOffsetY = 3 * SCALE / 400;
+        ctx.shadowBlur = 10 * SCALE / 400;
         ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
     }
 
     var shapeOpts = {};
 
-    // sometimes, lock them to centerline. Else, nudge each left or right
+    // mostly, lock them to centerline. Else, nudge each left or right
     var centers = [];
-    if (Math.random() < 0.99933) {
-        centers = [w / 2, w / 2, w / 2];
+    if (Math.random() < 0.66) {
+        centers = [cw / 2, cw / 2, cw / 2];
         shapeOpts.angle = 0;
     } else {
-        centers = [w * (0, _utils.randomInRange)(0.4, 0.6), // shape 1
-        w * (0, _utils.randomInRange)(0.4, 0.6), // shape 2
-        w * (0, _utils.randomInRange)(0.2, 0.8)];
+        centers = [cw * (0, _utils.randomInRange)(0.4, 0.6), // shape 1
+        cw * (0, _utils.randomInRange)(0.4, 0.6), // shape 2
+        cw * (0, _utils.randomInRange)(0.2, 0.8)];
         shapeOpts.angle = (0, _utils.randomInRange)(-1, 1) * Math.PI / 2;
     }
 
+    // Fill utilties
+    var getGradientFill = (0, _utils.getLocalGradientFunction)(opts.palette);
+
     // add one or two bg blocks
-    ctx.fillStyle = getFill(ctx, opts.palette, 0, 0, h, opts.skew);
-    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = getGradientFill(ctx, cw / 2, ch / 2, LONG);
+    ctx.fillRect(0, 0, cw, ch);
     if (Math.random() < 0.5) {
-        var hr = (0, _utils.randomInRange)(3, 12) * w;
-        var hy = hr + (0, _utils.randomInRange)(0.5, 0.85) * h;
-        //drawCircle(ctx, w / 2, hy, hr, getFill(ctx, opts.palette, w / 2, hy, hr, opts.skew));
-        (0, _shapes.drawCircle)(ctx, centers[2], hy, hr, { fill: (0, _utils.getGradientFunction)(opts.palette)(ctx, w, h) });
+        var hr = (0, _utils.randomInRange)(3, 12) * cw;
+        var hy = hr + (0, _utils.randomInRange)(0.5, 0.85) * ch;
+        (0, _shapes.drawCircle)(ctx, centers[2], hy, hr, { fill: (0, _utils.getGradientFunction)(opts.palette)(ctx, cw, ch) });
     }
 
     // draw two shape layers in some order:
@@ -2093,13 +2118,21 @@ function shapescape(options) {
     });
 
     // pop a renderer name, get render func and execute X 2
-    renderMap[shapes.pop()](ctx, centers[0], h * (0, _utils.randomInRange)(0.3, 0.7), w * (0, _utils.randomInRange)(0.25, 0.35), {
+    var _y = void 0;
+    var _size = void 0;
+
+    _y = ch * (0, _utils.randomInRange)(0.3, 0.7);
+    _size = cw * (0, _utils.randomInRange)(0.25, 0.35);
+    renderMap[shapes.pop()](ctx, centers[0], _y, _size, {
         angle: shapeOpts.angle,
-        fill: (0, _utils.getGradientFunction)(opts.palette)(ctx, w, h)
+        fill: getGradientFill(ctx, centers[0], _y, _size)
     });
-    renderMap[shapes.pop()](ctx, centers[1], h * (0, _utils.randomInRange)(0.3, 0.7), w * (0, _utils.randomInRange)(0.25, 0.35), {
+
+    _y = ch * (0, _utils.randomInRange)(0.3, 0.7);
+    _size = cw * (0, _utils.randomInRange)(0.25, 0.35);
+    renderMap[shapes.pop()](ctx, centers[1], _y, _size, {
         angle: shapeOpts.angle,
-        fill: (0, _utils.getGradientFunction)(opts.palette)(ctx, w, h)
+        fill: getGradientFill(ctx, centers[1], _y, _size)
     });
 
     // Add effect elements
@@ -2110,7 +2143,7 @@ function shapescape(options) {
         if (opts.noiseInput) {
             _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
         } else {
-            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, w / 3);
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, cw / 3);
         }
     }
 
@@ -2574,17 +2607,37 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.waves = waves;
 
+var _noiseutils = __webpack_require__(1);
+
+var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _palettes = __webpack_require__(2);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
 var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
 
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+var PI = Math.PI;
+
+var DETAILS = ['coarse', 'fine'];
+var STYLES = ['solid', 'dotted', 'dashed'];
+var COLORMODES = ['solid', 'gradient'];
+
 var DEFAULTS = {
     container: 'body',
-    palette: ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'],
+    palette: _palettes2.default.south_beach,
+    detail: 'auto', // enum from DETAILS
+    style: 'auto', // enum from STYLES
+    colorMode: 'auto', // from FILLS
     addNoise: 0.04,
     noiseInput: null,
     dust: false,
-    skew: 1, // normalized skew
     clear: true
 };
 
@@ -2641,15 +2694,52 @@ function wavepath(ctx, x, y, w, h, count, amp, options) {
     ctx.stroke();
 }
 
+// a series of smooth curves with a filled base layer, and then
+// variants of the path.
+// @w: width
+// @h: height
+// @count: the number of peaks
+// @depth: the number of variant lines
+// @amp: amplitude of the wave/trough
+
 function waveband(ctx, x, y, w, h, count, amp, depth, options) {
     var opts = Object.assign({}, options);
     var _lineWidth = ctx.lineWidth;
-    ctx.lineWidth *= (0, _utils.randomInRange)(1.5, 2); // start thicc
-    for (var i = 0; i < depth; i++) {
-        wavepath(ctx, x, y + i * amp / depth, w, h, count, amp, opts);
-        opts.fill = null; // after the first pass, remove the fill, so lines overlap
-        ctx.lineWidth = _lineWidth; // reset linewidth
+    var _yoffset = 0;
+    var depthStep = amp / (depth + 1);
+    if (depth > 5) {
+        depthStep += amp / depth;
+        //depthStep = depthStep * Math.pow(1.1, depthStep - 5);
     }
+    for (var i = 0; i < depth; i++) {
+        if (i === 0) {
+            // start with a thick solid line
+            ctx.setLineDash([]);
+            ctx.lineWidth = _lineWidth * (0, _utils.randomInRange)(1.5, 2);
+        } else {
+            // after, go thinner, and sometimes dotted
+
+            if (opts.style === 'dotted') {
+                // dotted lines. keep thicker line weight
+                ctx.lineWidth = _lineWidth * 1.5;
+                ctx.lineCap = 'round';
+                ctx.setLineDash([0, _lineWidth * (1 + i) + _lineWidth * .5]);
+            } else if (opts.style === 'dashed') {
+                // dashed lines, which should be thinner
+                ctx.lineWidth = _lineWidth;
+                ctx.setLineDash([_lineWidth * (depth - i + 1), _lineWidth * 2]);
+            } else {
+                ctx.lineWidth = _lineWidth;
+            }
+            opts.fill = null; // after the first pass, remove the fill, so lines overlap
+        }
+
+        _yoffset = i * depthStep;
+        wavepath(ctx, x, y + _yoffset, w, h - depthStep * i, count, amp, opts);
+    }
+    // reset lineWidth in case depth = 0;
+    ctx.lineWidth = _lineWidth;
+    ctx.setLineDash([]);
 }
 
 var WAVELET_DEFAULTS = {
@@ -2657,9 +2747,9 @@ var WAVELET_DEFAULTS = {
     rise: 60,
     dip: 30,
     skew: 0.5
-};
 
-function wavelet(ctx, x, y, options) {
+    // a peaky little wavelet shape, stands alone
+};function wavelet(ctx, x, y, options) {
     var _Object$assign = Object.assign({}, WAVELET_DEFAULTS, options),
         width = _Object$assign.width,
         rise = _Object$assign.rise,
@@ -2684,6 +2774,7 @@ var WAVES_DEFAULTS = {
     skew: 0.5
 };
 
+// a pattern of wavelet() renderings
 function waveset(ctx, x, y, width, height, opts) {
     opts = Object.assign({}, WAVES_DEFAULTS, opts);
     opts.dense = Math.max(opts.dense, 0.1);
@@ -2708,6 +2799,9 @@ function waves(options) {
     var container = opts.container;
     var cw = container.offsetWidth;
     var ch = container.offsetHeight;
+    var SCALE = Math.min(cw, ch);
+    var LONG = Math.max(cw, ch);
+    var SHORT = Math.min(cw, ch);
 
     // Find or create canvas child
     var el = container.querySelector('canvas');
@@ -2723,14 +2817,56 @@ function waves(options) {
     }
 
     var ctx; // canvas ctx or svg tag
-
     ctx = el.getContext('2d');
+
+    // Options
+    var DETAIL = opts.detail === 'auto' ? (0, _utils.randItem)(DETAILS) : opts.detail;
+    var STYLE = opts.style === 'auto' ? (0, _utils.randItem)(STYLES) : opts.style;
+    var COLORMODE = opts.colorMode === 'auto' ? (0, _utils.randItem)(COLORMODES) : opts.colorMode;
+    var JITTER = (0, _utils.randomInRange)(0.05, 0.25);
+
+    console.log('==================================\nWaves:', DETAIL, STYLE, COLORMODE, JITTER.toPrecision(2));
+
+    var depthRange = [5, 5];
+    if (DETAIL === 'coarse') {
+        depthRange = [4, 6];
+    } else if (DETAIL === 'fine') {
+        depthRange = [7, 14];
+    }
 
     ctx.strokeStyle = "black";
     ctx.fillStyle = "#" + Math.random().toString(16).slice(2, 8);
 
     // setup
-    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
+
+    var contrastPalette = [].concat(opts.palette);
+    contrastPalette = (0, _utils.shuffle)(contrastPalette);
+    var bg = contrastPalette.pop();
+
+    var getSolidFill = (0, _utils.getSolidColorFunction)(contrastPalette);
+    var getGradientFill = (0, _utils.getLocalGradientFunction)(contrastPalette);
+
+    var fg = getSolidFill();
+
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, cw, ch);
+
+    var renderer;
+    var renderMap = {
+        circle: _shapes.drawCircle,
+        //triangle: drawTriangle,
+        //square: drawSquare,
+        rectangle: _shapes.drawRect
+        //box: drawBox,
+        //ring: drawRing,
+        //pentagon: drawPentagon,
+        //hexagon: drawHexagon
+    };
+    var shapes = Object.keys(renderMap);
+
+    // test bands
+    // --------------------------------------
+
 
     //wavecurve(ctx, 200, 200, 100, 100, {depth: 5});
 
@@ -2739,9 +2875,29 @@ function waves(options) {
     //waveset(ctx, 0, 0, 800, 800, {wl: 120, wh: 60, dense: 0.35, skew: 0.65});
 
     //waveband(ctx, 0, 100, cw, 60, 4, 50, 5, {fill: getSolidFill(opts.palette)});
-    //waveband(ctx, 0, 150, cw, 60, 3, 50, 5, {fill: getSolidFill(opts.palette)});
+
+    //waveband(ctx, 0, 100, cw, 120, 3, 50, 3, {fill: getSolidFill(opts.palette)});
+    //waveband(ctx, 0, 300, cw, 120, 3, 50, 5, {fill: getSolidFill(opts.palette)});
+    //waveband(ctx, 0, 500, cw, 120, 3, 50, 10, {fill: getSolidFill(opts.palette)});
 
 
+    var strokeColor = Math.random() > 0.5 ? 'white' : 'black';
+
+    var waveStart = void 0,
+        waveEnd = void 0;
+    waveStart = waveEnd = cw / 2;
+    if (Math.random < 0.99995) {
+        waveStart *= (0, _utils.randomInRange)(0.8, 1.2);
+        waveEnd *= (0, _utils.randomInRange)(0.8, 1.2);
+    }
+    var waveGradient = function waveGradient(y1, y2) {
+        var grad = ctx.createLinearGradient(waveStart, y1, waveEnd, y2);
+        grad.addColorStop(0, fg);
+        grad.addColorStop(1, bg);
+        return grad;
+    };
+
+    // cover the canvas in a stack of bands of similar waves
     function simpleCover() {
         var y = 0;
         var x = 0;
@@ -2749,37 +2905,66 @@ function waves(options) {
         var amp = void 0;
         var h = void 0;
         var count = void 0;
-        var steps = (0, _utils.randomInRange)(10, 40);
-        var interval = ch / steps;
+        var bandCount = (0, _utils.randomInRange)(10, 40); // number of horizontal bands
+        var interval = ch / (bandCount - 1); // px per stripe
 
-        var baseCount = (0, _utils.randomInRange)(20, 50); // low or high number of peaks
 
-        ctx.lineWidth = 0.5 + interval / 50;
+        // low or high number of peaks
+        // magic number: pleasing waves are about twice as long as they are high
+        // this is the max frequency or count to use.
+        var baseCount = bandCount * (cw / ch) * 0.5;
 
-        var strokeColor = Math.random() > 0.5 ? 'white' : 'black';
+        // actual baseCount should be lower
+        baseCount *= (0, _utils.randomInRange)(0.2, 0.75);
+
+        // pick line weight from canvas size and number of bands
+        var weight = SCALE / 1600 * (0, _utils.randomInRange)(1, 3) + interval / 50;
+        ctx.lineWidth = weight;
 
         y = -interval; // start above the top
+        var max_shift = cw / baseCount; // max left offset is one wave
 
-        for (var i = 0; i < steps; i++) {
-            amp = interval;
-            h = amp * 3;
+        for (var i = 0; i < bandCount; i++) {
+            amp = interval * (0, _utils.randomInRange)(0.75, 1);
+            h = interval * 3;
 
-            // variation in wave count based on amplitude
-            count = baseCount * (0, _utils.randomInRange)(3, 5) / amp;
+            // shift down if amplitude is less than interval
+            y += (interval - amp) / 2;
+
+            // Floating shapes!
+            if (Math.random() < 0.3) {
+                var _size = SCALE / 8;
+                var _x = x + cw * (0, _utils.randomInRange)(0, 1);
+                var _y = y + (0, _utils.randomInRange)(_size / 4, _size);
+                renderMap[(0, _utils.randItem)(shapes)](ctx, _x, _y, _size, {
+                    stroke: strokeColor,
+                    fill: getGradientFill(ctx, _x, _y, _size),
+                    angle: (0, _utils.randomInRange)(-PI / 4, PI / 4)
+                });
+            }
+
+            // variation in wave count between bands
+            count = Math.ceil(baseCount * (0, _utils.randomInRange)(1, 1.2));
+            //count = baseCount;
 
             // horizontal offsets for natural appearance
-            h_shift = (0, _utils.randomInRange)(0, 0.1);
-            x = -h_shift * cw;
+            x = -(0, _utils.randomInRange)(0, max_shift);
+
+            var waveFill = bg;
+            if (COLORMODE === 'gradient') {
+                waveFill = waveGradient(y, y + h * (0, _utils.randomInRange)(1, 2));
+            }
 
             // ctx, x, y, w, h, wavecount, amp, stackdepth, opts
-            waveband(ctx, x, y, cw * (1 + h_shift), h, count, amp, 5, {
-                fill: getSolidFill(opts.palette),
+            waveband(ctx, x, y, cw + max_shift, h, count, amp, _utils.randomInt.apply(undefined, _toConsumableArray(depthRange)), {
+                fill: waveFill,
                 stroke: strokeColor,
-                jitter: 0.2
+                jitter: JITTER,
+                style: STYLE
             });
 
             // step down
-            y += amp;
+            y += interval;
         }
     }
 
@@ -2790,14 +2975,17 @@ function waves(options) {
         var amp = void 0;
         var h = void 0;
         var count = void 0;
-        var steps = 14;
-        var interval = ch / steps;
+        var bandCount = 34;
+        var interval = ch / bandCount;
 
-        for (var i = 0; i < steps; i++) {
-            count = Math.max((0, _utils.randomInRange)(steps - 2 - i, steps + 2 - i), 0.5);
-            amp = 10 + 75 / count;
-            y += amp;
-            h = amp * 3;
+        for (var i = 0; i < bandCount; i++) {
+            count = Math.max((0, _utils.randomInRange)(bandCount - 2 - i, bandCount + 2 - i), 0.5);
+            //count = bandCount/2 + bandCount/2 - (i/2) + randomInt(0, 3);
+            count = bandCount - i;
+            count = Math.ceil(count);
+            amp = 55 / count + i * 1;
+            y += amp * 1;
+            h = amp * 9;
 
             // horizontal offsets for natural appearance
             h_shift = (0, _utils.randomInRange)(0, 0.1);
@@ -2814,6 +3002,17 @@ function waves(options) {
     simpleCover();
     //nearFar();
 
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            // apply noise from supplied canvas
+            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            // create noise pattern and apply
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, cw / 3);
+        }
+    }
 
     // if new canvas child was created, append it
     if (newEl) {

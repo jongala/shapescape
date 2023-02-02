@@ -82,6 +82,7 @@ exports.setAttrs = setAttrs;
 exports.resetTransform = resetTransform;
 exports.rotateCanvas = rotateCanvas;
 exports.getGradientFunction = getGradientFunction;
+exports.getLocalGradientFunction = getLocalGradientFunction;
 exports.getSolidColorFunction = getSolidColorFunction;
 exports.hexToRgb = hexToRgb;
 exports.colorDistanceArray = colorDistanceArray;
@@ -160,6 +161,23 @@ function getGradientFunction(palette) {
             coords = [randomInRange(0, w), 0, randomInRange(0, w), h];
         } else {
             coords = [0, randomInRange(0, h), w, randomInRange(0, h)];
+        }
+        var grad = ctx.createLinearGradient.apply(ctx, _toConsumableArray(coords));
+        grad.addColorStop(0, randItem(p));
+        grad.addColorStop(1, randItem(p));
+        return grad;
+    };
+}
+
+function getLocalGradientFunction(palette) {
+    var p = [].concat(palette);
+    return function (ctx, x, y, size) {
+        var bias = Math.random() - 0.5;
+        var coords = [];
+        if (bias) {
+            coords = [randomInRange(x - size, x + size), y - size, randomInRange(x - size, x + size), y + size];
+        } else {
+            coords = [x - size, randomInRange(y - size, y + size), x + size, randomInRange(y - size, y + size)];
         }
         var grad = ctx.createLinearGradient.apply(ctx, _toConsumableArray(coords));
         grad.addColorStop(0, randItem(p));
@@ -913,11 +931,13 @@ var drawBox = exports.drawBox = _makeRenderer(function (ctx, x, y, d, opts) {
     ctx.lineTo(+d, -d);
     ctx.lineTo(+d, +d);
     ctx.lineTo(-d, +d);
+    ctx.lineTo(-d, -d);
     // cutout
     ctx.moveTo(-r, -r);
     ctx.lineTo(-r, +r);
     ctx.lineTo(+r, +r);
     ctx.lineTo(+r, -r);
+    ctx.lineTo(-r, -r);
 });
 
 // Generate drawing functions for polygons
