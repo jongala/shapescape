@@ -76,11 +76,13 @@ export const drawBox = _makeRenderer(function(ctx, x, y, d, opts) {
     ctx.lineTo(+d, -d);
     ctx.lineTo(+d, +d);
     ctx.lineTo(-d, +d);
+    ctx.lineTo(-d, -d);
     // cutout
     ctx.moveTo(-r, -r);
     ctx.lineTo(-r, +r);
     ctx.lineTo(+r, +r);
     ctx.lineTo(+r, -r);
+    ctx.lineTo(-r, -r);
 });
 
 // Generate drawing functions for polygons
