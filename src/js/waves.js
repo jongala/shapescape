@@ -7,16 +7,17 @@ const PI = Math.PI;
 
 const DETAILS = ['coarse', 'fine'];
 const STYLES = ['solid', 'dotted', 'dashed'];
+const COLORMODES = ['solid', 'gradient'];
 
 const DEFAULTS = {
     container: 'body',
     palette: palettes.south_beach,
     detail: 'auto', // enum from DETAILS
     style: 'auto', // enum from STYLES
+    colorMode: 'auto' , // from FILLS
     addNoise: 0.04,
     noiseInput: null,
     dust: false,
-    skew: 1, // normalized skew
     clear: true
 }
 
@@ -227,9 +228,10 @@ export function waves(options) {
     // Options
     const DETAIL = opts.detail === 'auto' ? randItem(DETAILS) : opts.detail;
     const STYLE = opts.style === 'auto' ? randItem(STYLES) : opts.style;
+    const COLORMODE = opts.colorMode === 'auto' ? randItem(COLORMODES) : opts.colorMode;
     const JITTER = randomInRange(0.05, 0.25);
 
-    console.log('==================================\nWaves:', DETAIL, STYLE, JITTER.toPrecision(2));
+    console.log('==================================\nWaves:', DETAIL, STYLE, COLORMODE, JITTER.toPrecision(2));
 
 
     let depthRange = [5, 5];
@@ -252,6 +254,7 @@ export function waves(options) {
     let getSolidFill = getSolidColorFunction(contrastPalette);
     let getGradientFill = getLocalGradientFunction(contrastPalette);
 
+    let fg = getSolidFill();
 
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, cw, ch);
@@ -289,6 +292,19 @@ export function waves(options) {
 
 
     let strokeColor = (Math.random() > 0.5) ? 'white' : 'black';
+
+    let waveStart, waveEnd;
+    waveStart = waveEnd = cw/2;
+    if (Math.random < 0.99995) {
+        waveStart *= randomInRange(0.8, 1.2);
+        waveEnd   *= randomInRange(0.8, 1.2);
+    }
+    let waveGradient = function(y1, y2) {
+        let grad =  ctx.createLinearGradient(waveStart, y1, waveEnd, y2);
+        grad.addColorStop(0, fg);
+        grad.addColorStop(1, bg);
+        return grad;
+    }
 
 
     // cover the canvas in a stack of bands of similar waves
@@ -344,6 +360,11 @@ export function waves(options) {
             // horizontal offsets for natural appearance
             x = -randomInRange(0, max_shift);
 
+            let waveFill = bg;
+            if (COLORMODE === 'gradient') {
+                waveFill = waveGradient(y, y + h * randomInRange(1, 2));
+            }
+
             // ctx, x, y, w, h, wavecount, amp, stackdepth, opts
             waveband(ctx,
                 x,
@@ -354,7 +375,7 @@ export function waves(options) {
                 amp,
                 randomInt(...depthRange),
                 {
-                    fill: bg,
+                    fill: waveFill,
                     stroke: strokeColor,
                     jitter: JITTER,
                     style: STYLE
