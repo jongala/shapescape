@@ -81,6 +81,11 @@ function waveband(ctx, x, y, w, h, count, amp, depth, options) {
     let opts = Object.assign({}, options);
     let _lineWidth = ctx.lineWidth;
     let _yoffset = 0;
+    let depthStep = amp/(depth + 1);
+    if (depth > 5) {
+        depthStep += amp/(depth);
+        //depthStep = depthStep * Math.pow(1.1, depthStep - 5);
+    }
     for (let i = 0; i < depth; i++) {
         if (i === 0) {
             // start with a thick solid line
@@ -96,10 +101,11 @@ function waveband(ctx, x, y, w, h, count, amp, depth, options) {
             opts.fill = null; // after the first pass, remove the fill, so lines overlap
         }
 
-        _yoffset = i * amp/depth;
-        wavepath(ctx, x, y + _yoffset, w, h - amp/depth * i, count, amp, opts);
-
+        _yoffset = i * depthStep;
+        wavepath(ctx, x, y + _yoffset, w, h - depthStep * i, count, amp, opts);
     }
+    // reset lineWidth in case depth = 0;
+    ctx.lineWidth = _lineWidth;
 }
 
 
@@ -212,6 +218,9 @@ export function waves(options) {
     let getGradientFill = getLocalGradientFunction(opts.palette);
 
 
+    ctx.fillStyle = 'red';
+    ctx.fillRect(0, 0, cw, ch);
+
     //wavecurve(ctx, 200, 200, 100, 100, {depth: 5});
 
     //wavelet(ctx, 200, 400, 100, 100, {depth: 5, sign: 1})
@@ -219,11 +228,16 @@ export function waves(options) {
     //waveset(ctx, 0, 0, 800, 800, {wl: 120, wh: 60, dense: 0.35, skew: 0.65});
 
     //waveband(ctx, 0, 100, cw, 60, 4, 50, 5, {fill: getSolidFill(opts.palette)});
-    //waveband(ctx, 0, 150, cw, 120, 3, 50, 5, {fill: getSolidFill(opts.palette)});
+
+    //waveband(ctx, 0, 100, cw, 120, 3, 50, 3, {fill: getSolidFill(opts.palette)});
+    //waveband(ctx, 0, 300, cw, 120, 3, 50, 5, {fill: getSolidFill(opts.palette)});
+    //waveband(ctx, 0, 500, cw, 120, 3, 50, 10, {fill: getSolidFill(opts.palette)});
 
 
     let strokeColor = (Math.random() > 0.5) ? 'white' : 'black';
 
+
+    // cover the canvas in a stack of bands of similar waves
     function simpleCover() {
         let y = 0;
         let x = 0;
@@ -243,17 +257,12 @@ export function waves(options) {
         // actual baseCount should be lower
         baseCount *= randomInRange(0.2, 0.75);
 
-
-
+        // pick line weight from canvas size and number of bands
         let weight = SCALE/1600 * randomInRange(1, 3) + interval/50;
         ctx.lineWidth = weight;
 
-
-
-
         y = -interval; // start above the top
-
-        let max_shift = cw/baseCount;
+        let max_shift = cw/baseCount; // max left offset is one wave
 
         for(let i=0; i<bandCount; i++) {
             amp = interval * randomInRange(0.75, 1);
@@ -281,9 +290,14 @@ export function waves(options) {
             x = -randomInRange(0, max_shift);
 
             // ctx, x, y, w, h, wavecount, amp, stackdepth, opts
-            waveband(ctx, x, y,
-                cw + max_shift, h,
-                count, amp, 5,
+            waveband(ctx,
+                x,
+                y,
+                cw + max_shift,
+                h,
+                count,
+                amp,
+                randomInt(4, 6),
                 {
                     fill: fg,
                     stroke: strokeColor,
