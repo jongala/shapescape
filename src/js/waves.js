@@ -104,7 +104,7 @@ function waveband(ctx, x, y, w, h, count, amp, depth, options) {
                 ctx.lineWidth = _lineWidth *
                  1.5;
                 ctx.lineCap = 'round';
-                ctx.setLineDash([0, _lineWidth * (1 + i)]);
+                ctx.setLineDash([0, _lineWidth * (1 + i) + _lineWidth * .5]);
             } else if (opts.style === 'dashed') {
                 // dashed lines, which should be thinner
                 ctx.lineWidth = _lineWidth;
@@ -224,8 +224,9 @@ export function waves(options) {
     // Options
     const DETAIL = opts.detail === 'auto' ? randItem(DETAILS) : opts.detail;
     const STYLE = opts.style === 'auto' ? randItem(STYLES) : opts.style;
+    const JITTER = randomInRange(0.05, 0.25);
 
-    console.log('==================================\nWaves:', DETAIL, STYLE);
+    console.log('==================================\nWaves:', DETAIL, STYLE, JITTER.toPrecision(2));
 
 
     let depthRange = [5, 5];
@@ -330,7 +331,7 @@ export function waves(options) {
                 {
                     fill: fg,
                     stroke: strokeColor,
-                    jitter: 0.2,
+                    jitter: JITTER,
                     style: STYLE
                 }
             );
