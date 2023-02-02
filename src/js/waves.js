@@ -1,5 +1,6 @@
 import noiseUtils from './noiseutils';
-import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getLocalGradientFunction, getSolidColorFunction } from './utils';
+import palettes from './palettes';
+import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getLocalGradientFunction, getSolidColorFunction, shuffle } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
 const PI = Math.PI;
@@ -9,7 +10,7 @@ const STYLES = ['solid', 'dotted', 'dashed'];
 
 const DEFAULTS = {
     container: 'body',
-    palette: ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'],
+    palette: palettes.south_beach,
     detail: 'auto', // enum from DETAILS
     style: 'auto', // enum from STYLES
     addNoise: 0.04,
@@ -243,14 +244,16 @@ export function waves(options) {
     ctx.fillStyle = "#" + Math.random().toString(16).slice(2,8);
 
     // setup
-    let getSolidFill = getSolidColorFunction(opts.palette);
 
-    let fg = getSolidFill();
+    let contrastPalette = [].concat(opts.palette);
+    contrastPalette = shuffle(contrastPalette);
+    let bg = contrastPalette.pop();
 
-    let getGradientFill = getLocalGradientFunction(opts.palette);
+    let getSolidFill = getSolidColorFunction(contrastPalette);
+    let getGradientFill = getLocalGradientFunction(contrastPalette);
 
 
-    ctx.fillStyle = 'red';
+    ctx.fillStyle = bg;
     ctx.fillRect(0, 0, cw, ch);
 
 
@@ -351,7 +354,7 @@ export function waves(options) {
                 amp,
                 randomInt(...depthRange),
                 {
-                    fill: fg,
+                    fill: bg,
                     stroke: strokeColor,
                     jitter: JITTER,
                     style: STYLE
