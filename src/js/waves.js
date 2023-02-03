@@ -103,16 +103,21 @@ function waveband(ctx, x, y, w, h, count, amp, depth, options) {
         } else {
             // after, go thinner, and sometimes dotted
 
+            let dashLength;
+
             if (opts.style === 'dotted') {
                 // dotted lines. keep thicker line weight
                 ctx.lineWidth = _lineWidth *
                  1.5;
                 ctx.lineCap = 'round';
-                ctx.setLineDash([0, _lineWidth * (1 + i) + _lineWidth * .5]);
+                dashLength = _lineWidth * (1 + i) + _lineWidth * .5;
+                ctx.setLineDash([0, dashLength]);
+                ctx.lineDashOffset = randomInRange(-dashLength, 0);
             } else if (opts.style === 'dashed') {
                 // dashed lines, which should be thinner
                 ctx.lineWidth = _lineWidth;
                 ctx.setLineDash([_lineWidth * (depth - i + 1), _lineWidth * 2]);
+                ctx.lineDashOffset = randomInRange(-_lineWidth * 2, 0);
             } else {
                 ctx.lineWidth = _lineWidth;
             }
@@ -125,6 +130,7 @@ function waveband(ctx, x, y, w, h, count, amp, depth, options) {
     // reset lineWidth in case depth = 0;
     ctx.lineWidth = _lineWidth;
     ctx.setLineDash([]);
+    ctx.lineDashOffset = 0;
 }
 
 
