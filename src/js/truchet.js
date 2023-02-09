@@ -292,6 +292,7 @@ export function truchet(options) {
 
 
     //mode
+    // arcs around opposite corners, other corners blank
     function arcs(background, weight) {
         background = background || bg;
         ctx.lineWidth = weight;
@@ -323,6 +324,8 @@ export function truchet(options) {
     }
 
     // mode
+    // any combination of opposite corners or single corners,
+    // with terminals in remaining corners
     function arcs2(background, weight) {
         background = background || bg;
         ctx.lineWidth = weight;
@@ -380,8 +383,43 @@ export function truchet(options) {
         }
     }
 
+    // mode
+    // any permutation of arcs or terminals at each corner;
+    function arcs3(background, weight) {
+        background = background || bg;
+        ctx.lineWidth = weight;
+
+        for (let i = 0; i < vcount; i++) {
+            for (let j = 0; j < count; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * i;
+                xnorm = x/cw;
+                ynorm = y/ch;
+
+                // shift and clip
+                ctx.translate(x, y);
+                clipSquare(ctx, w, h, background);
+
+                for (var c = 0; c < 4; c++) {
+                    // for each corner, randomly choose to either
+                    // arc or terminal
+                    if (Math.random() < 0.5) {
+                        _arc(c, fg);
+                    } else {
+                        _terminal(weight/2, c, fg);
+                    }
+                }
+
+                // unshift, unclip
+                ctx.restore();
+                resetTransform(ctx);
+            }
+        }
+    }
+
     // gather our modes
-    let modes = [circles, triangles, mixed, arcs, arcs2];
+    let modes = [circles, triangles, mixed, arcs, arcs2, arcs3];
 
     // do the loop with one of our modes
     renderer = randItem(modes);
