@@ -17,6 +17,7 @@ const DEFAULTS = {
 }
 
 const PI = Math.PI;
+const TWOPI = PI * 2;
 
 
 // Main function
@@ -104,38 +105,109 @@ export function clouds(options) {
     let bubbleSize;
     let bubbleMax = ch/4;
 
+    let cloudSize;
+    let cloudSizeMax;
+
     let xnorm, ynorm;
     let countNorm;
 
     ctx.lineCap = 'round';
 
-    for (let i = 0; i<=pointCount; i++) {
-        countNorm = i/pointCount;
-        x = i * cw/(pointCount);
+
+
+    // test seeds
+    let cx = randomInRange(cw * .25, cw * .75);
+    let cy = randomInRange(ch * .25, ch * .75);
+    let cr = SCALE / 6;
+
+
+    // elliptical cluster func
+    let drawCluster = function(ctx, cx, cy, size) {
+        let maxSize = size;
+        let eccentricity = 0.618;
+
+        let pointCount;
+
+
+        // ellipse constraints:
+        // x = a * cos(t);
+        // y = b * sin(t);
+        // native func:
+        // ctx.ellipse(x, y, 2a, 2b, rotation, startAngle, endAngle);
+
+        pointCount = 6;
+        //pointCount = 12;
+        //pointCount = 24;
+
+        // ideally we draw a main large ellipse
+        // then draw medium ellipses near the lower corners,
+        // then a few mixed in the primary axes and upper corners.
+
+        let theta;
+
+        for (let i = 0; i <= pointCount; i++) {
+
+            //theta = TWOPI/pointCount * i;
+            theta = PI * randomInRange(0, 1);
+
+            r = randomInRange(maxSize/4, maxSize);
+
+            x = r * Math.cos(theta);
+            y = r * eccentricity * Math.sin(theta);
+
+            size = maxSize * (1 - r/size) + maxSize/4;
+            size = maxSize/4 + 0.75 * maxSize * (Math.cos(2 * theta) + 1)/2;
+
+            ctx.fillStyle = 'white';
+            ctx.strokeStyle = 'black';
+
+            ctx.beginPath();
+            ctx.ellipse(cx + x, cy + y, size, size * eccentricity, 0, 0, TWOPI);
+            ctx.fill();
+            //ctx.stroke();
+        }
+
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, maxSize, maxSize * eccentricity, 0, 0, TWOPI);
+        ctx.stroke();
+        ctx.fill();
+    }
+
+    //drawCluster(ctx, cx, cy, cr);
+
+    let clusterCount = 3;
+    clusterCount = Math.round(cw/250);
+
+    // now draw many clusters
+
+    cloudSizeMax = SCALE/4;
+
+    for (let i = 0; i<clusterCount; i++) {
+        countNorm = i/clusterCount;
+        x = i * cw/(clusterCount) + cw/clusterCount * .5;
         y = wave(countNorm, 0) * waveScale; // input a normalized value
         y += ch/2; // center, roughly
 
-        r = 5;
-
+        cloudSize = randomInRange(0.5, 1) * cloudSizeMax;
         r_seed = Math.random();
-        bubbleSize = randomInRange(10, bubbleMax);
-        r = Math.pow(r_seed, 6) * bubbleSize + 20;
 
-        y -= randomInRange(0, bubbleSize);
+        console.log('cloudSize', cloudSize, cloudSizeMax);
+
+        y -= randomInRange(0, waveScale);
+
+
+        drawCluster(ctx, x, y, cloudSize);
+
 
         /*drawCircle(ctx, x, y , harmScale, {
-            fill: null,
-            stroke: fg
+           fill: null,
+           stroke: fg
         });*/
 
-        drawCircle(ctx, x, y, r, {
-            fill: 'white',//getCloudFill(y - r, ch, bg),
-            stroke: null
-        });
+
 
     }
-
-
 
 
     // add noise
