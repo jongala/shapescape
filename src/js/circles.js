@@ -72,7 +72,7 @@ export function circles(options) {
     let getSolidFill = getSolidColorFunction(opts.palette);
 
     // define grid
-    let count = Math.round(randomInRange(4, 9));
+    let count = Math.round(randomInRange(SCALE/200, SCALE/80));
     let w = Math.ceil(cw/count);
     let h = w;
     let vcount = Math.ceil(ch/h);
@@ -212,6 +212,7 @@ export function circles(options) {
         ctx.stroke();
     }
 
+    // mode
     function rings () {
         ctx.lineCap = 'round';
         ctx.fillStyle = bg;
@@ -232,6 +233,7 @@ export function circles(options) {
         let centers = [];
         let r;
 
+        // threshold to draw or not draw at a given cell
         let threshold = (0.5 - .25 * (count/10));
         console.log('count:', count, 'threshold:', threshold);
 
@@ -248,7 +250,7 @@ export function circles(options) {
                 ynorm = py/ch;
 
                 let start = Math.round(randomInRange(0,4));
-                let segments = Math.round(randomInRange(1,3));
+                let segments = randItem([1,1,1,2,2,2,3,3,3,4]);
                 r = w/2 * Math.round(randomInRange(1,3));
 
                 ctx.strokeStyle = fg;
@@ -396,6 +398,7 @@ export function circles(options) {
 
     // gather our modes
     let modes = [snakes, rings, pattern];
+    //modes = [rings];
 
     // do the loop with one of our modes
     randItem(modes)();
