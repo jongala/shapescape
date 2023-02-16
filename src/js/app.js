@@ -11,6 +11,7 @@ import { lines } from './lines';
 import { waves } from './waves';
 import { grid } from './grid';
 import { truchet } from './truchet';
+import { truchetCurves } from './truchetCurves';
 import { grille } from './grille';
 import { circles } from './circles';
 import { mesh } from './mesh';
@@ -40,6 +41,7 @@ const RENDERERS = {
     lines: lines,
     grid: grid,
     truchet: truchet,
+    "truchet-Curves": truchetCurves,
     grille: grille,
     circles: circles,
     mesh: mesh,
@@ -61,6 +63,16 @@ var rendererName;
 var Renderer;
 var activeButton;
 
+// util to format renderer names for display
+function formatRendererName (inputName) {
+    let formattedName = inputName.slice(0,1).toUpperCase() + inputName.slice(1);
+    formattedName = formattedName.replace('-',' ');
+    return formattedName;
+}
+
+// generate a series of buttons for each renderer in @renderers
+// format their names using formatRendererNAme
+// append the buttons to @el
 function showRenderPicker (renderers, el) {
     let button;
     let makeHandler = (r, button) => {
@@ -74,12 +86,13 @@ function showRenderPicker (renderers, el) {
             'data-renderer': r,
             'class': 'renderPicker'
         })
-        button.innerHTML = r.slice(0,1).toUpperCase() + r.slice(1);
+        button.innerHTML = formatRendererName(r);
         button.onclick = makeHandler(r, button);
         el.appendChild(button);
     }
 }
 
+// select a renderer to use, update the window hash, and draw it
 function setRenderer(rname, ctrl) {
     rendererName = rname;
     Renderer = RENDERERS[rendererName];

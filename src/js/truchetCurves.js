@@ -21,7 +21,7 @@ const DEFAULTS = {
 const PI = Math.PI;
 
 // Main function
-export function truchet(options) {
+export function truchetCurves(options) {
     let opts = Object.assign({}, DEFAULTS, options);
 
     let container = opts.container;
@@ -101,58 +101,48 @@ export function truchet(options) {
 
 
     // component utils
-
-    // draw a triangle at anchor corner
-    function _triangle(anchor, fill) {
+    // draw an arc around anchor corner
+    function _arc(anchor, color) {
         let corners = [[0, 0], [w, 0], [w, h], [0, h]];
-        let drawCorners = [];
-        fill = fill || getSolidFill();
-        if (anchor === undefined) anchor = Math.round(randomInRange(0,3));
-        drawCorners = [].concat(corners);
-        drawCorners.splice(anchor, 1);
-
-        // draw a triangle with the remaining 3 points
-        ctx.beginPath();
-        ctx.moveTo(...drawCorners[0]);
-        ctx.lineTo(...drawCorners[1]);
-        ctx.lineTo(...drawCorners[2]);
-        ctx.closePath();
-        ctx.fillStyle = fill;
-        ctx.fill();
-    }
-
-    // draw a circle at anchor corner
-    function _circle(anchor, fill) {
-        let corners = [[0, 0], [w, 0], [w, h], [0, h]];
-        let drawCorners = [];
-        fill = fill || getSolidFill();
         if (anchor === undefined) anchor = Math.round(randomInRange(0,3));
 
         drawCircle(ctx,
             corners[anchor][0],
             corners[anchor][1],
-            w,
+            w/2,
             {
-                fill: fill
-            }
-        );
+                stroke: color
+            });
     }
 
-    // fill cell
-    // first arg is for parity with _triangle and _circle
-    function _square(_, fill) {
-        fill = fill || getSolidFill();
-        ctx.rect(0,0, w, h);
-        ctx.fillStyle = fill;
-        ctx.closePath();
-        ctx.fill();
+    // draw arc terminals for anchor corner
+    function _terminal(size, anchor, color) {
+        let corners = [[w/2, 0], [w, h/2], [w/2, h], [0, h/2]];
+        if (anchor === undefined) anchor = Math.round(randomInRange(0,3));
+        let a = (anchor) % corners.length;
+        let b = (anchor + 3) % corners.length;
+
+        drawCircle(ctx,
+            corners[a][0],
+            corners[a][1],
+            size,
+            {
+                fill: color
+            });
+        drawCircle(ctx,
+            corners[b][0],
+            corners[b][1],
+            size,
+            {
+                fill: color
+            });
     }
 
-
-    // mode
-    function circles (background) {
+    //mode
+    // arcs around opposite corners, other corners blank
+    function arcs(background, weight) {
         background = background || bg;
-        let px, py;
+        ctx.lineWidth = weight;
         for (let i = 0; i < vcount; i++) {
             for (let j = 0; j < count; j++) {
                 // convenience vars
@@ -165,7 +155,13 @@ export function truchet(options) {
                 ctx.translate(x, y);
                 clipSquare(ctx, w, h, background);
 
-                _circle();
+                if (Math.random() < 0.5) {
+                    _arc(0, fg);
+                    _arc(2, fg);
+                } else {
+                    _arc(1, fg);
+                    _arc(3, fg);
+                }
 
                 // unshift, unclip
                 ctx.restore();
@@ -174,44 +170,12 @@ export function truchet(options) {
         }
     }
 
-
-
     // mode
-    function triangles (background) {
+    // any combination of opposite corners or single corners,
+    // with terminals in remaining corners
+    function arcs2(background, weight) {
         background = background || bg;
-        for (let i = 0; i < vcount; i++) {
-            for (let j = 0; j < count; j++) {
-                // convenience vars
-                x = w * j;
-                y = h * i;
-                xnorm = x/cw;
-                ynorm = y/ch;
-
-                // shift and clip
-                ctx.translate(x, y);
-                clipSquare(ctx, w, h, background);
-
-                _triangle();
-
-                // unshift, unclip
-                ctx.restore();
-                resetTransform(ctx);
-            }
-        }
-    }
-
-
-    // mode
-    function mixed (background) {
-        background = background || bg;
-        let px, py, seed;
-        let styles = [
-            ()=>{
-                renderer = drawCircle;
-                px = 0;
-                py = 0;
-            }
-        ];
+        ctx.lineWidth = weight;
 
         for (let i = 0; i < vcount; i++) {
             for (let j = 0; j < count; j++) {
@@ -225,25 +189,73 @@ export function truchet(options) {
                 ctx.translate(x, y);
                 clipSquare(ctx, w, h, background);
 
-                switch (Math.round(randomInRange(1, 12))){
+                switch (Math.round(randomInRange(1, 9))){
                     case 1:
                     case 2:
+                        _arc(0,fg);
+                        _arc(2,fg);
+                        break;
                     case 3:
                     case 4:
-                        _circle();
+                        _arc(1, fg);
+                        _arc(3, fg);
                         break;
                     case 5:
+                        _arc(0, fg);
+                        _terminal(weight/2, 2, fg);
+                        break;
                     case 6:
+                        _arc(1, fg);
+                        _terminal(weight/2, 3, fg);
+                        break;
                     case 7:
+                        _arc(2, fg);
+                        _terminal(weight/2, 0, fg);
+                        break;
                     case 8:
-                        _square();
+                        _arc(3, fg);
+                        _terminal(weight/2, 1, fg);
                         break;
                     case 9:
-                    case 10:
-                    case 11:
-                    case 12:
-                        _triangle();
+                        _terminal(weight/2, 0, fg);
+                        _terminal(weight/2, 2, fg);
                         break;
+                }
+
+
+                // unshift, unclip
+                ctx.restore();
+                resetTransform(ctx);
+            }
+        }
+    }
+
+    // mode
+    // any permutation of arcs or terminals at each corner;
+    function arcs3(background, weight) {
+        background = background || bg;
+        ctx.lineWidth = weight;
+
+        for (let i = 0; i < vcount; i++) {
+            for (let j = 0; j < count; j++) {
+                // convenience vars
+                x = w * j;
+                y = h * i;
+                xnorm = x/cw;
+                ynorm = y/ch;
+
+                // shift and clip
+                ctx.translate(x, y);
+                clipSquare(ctx, w, h, background);
+
+                for (var c = 0; c < 4; c++) {
+                    // for each corner, randomly choose to either
+                    // arc or terminal
+                    if (Math.random() < 0.5) {
+                        _arc(c, fg);
+                    } else {
+                        _terminal(weight/2, c, fg);
+                    }
                 }
 
                 // unshift, unclip
@@ -254,7 +266,7 @@ export function truchet(options) {
     }
 
     // gather our modes
-    let modes = [circles, triangles, mixed];
+    let modes = [arcs, arcs2, arcs3];
 
     // do the loop with one of our modes
     renderer = randItem(modes);
