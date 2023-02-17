@@ -92,6 +92,8 @@ export function circles(options) {
 
     // shared colors
     let bg = getSolidFill();
+    //bg = 'white';
+
 
     // get palette of non-bg colors
     let contrastPalette = [].concat(opts.palette);
@@ -315,23 +317,32 @@ export function circles(options) {
 
     // mode
     function pattern () {
-        let c1 = randomInRange(0.125, 0.5);
-        let c2 = randomInRange(.5, 1);
+        let c1 = randomInRange(0.125, 0.25);
+        let c2 = randomInRange(.4, 0.8);
+
+        //c1 = 0.00025;
+        //c2 = 0.8;
+
+        //c2 = 10;
 
         let dotScale = randomInRange(0.1, 0.5);
         let dotMin = randomInRange(0, 0.5 - dotScale);
         let dotFill = getContrastColor();
         let dotSign = Math.random() < 0.5;
 
+        //dotFill = '#ffcc00';
+        //dotFill = '#2222aa';
+
         let xref = Math.random();
         let yref = Math.random();
-        if (Math.random() < 0.5) {
+        if (Math.random() < 0.9999995) {
             xref = yref = 0.5;
         }
 
         let crossDots = true;//Math.random() < 0.5;
         let crossFill =  Math.random() < 0.5 ? fg : bg;
-        let crossScale = randomInRange(0.25, .3);
+        crossFill = bg;
+        let crossScale = randomInRange(0.25, .3) * w;
 
         let cr;
 
@@ -343,7 +354,17 @@ export function circles(options) {
             drawCircle(ctx, w/2, -h * (r - 1), h * r, {fill: null, stroke: fg});
         }
 
-        ctx.lineWidth = randomInRange(1, w/30);
+
+        // base line weight
+        let weight = randomInRange(1, w/60);
+        let gridWeight =  weight * randItem([1,1.5,2]);
+        let crossWeight = weight * randItem([1,1.5,2]);
+
+        ctx.lineWidth = weight;
+        console.log('cell width', w, 'line', weight);
+
+        let gridR = w/2;
+        gridR = w * randomInRange(0.125, 0.5);
 
         for (let i = 0; i < vcount; i++) {
             for (let j = 0; j < count; j++) {
@@ -357,16 +378,25 @@ export function circles(options) {
                 ctx.translate(x, y);
                 clipSquare(ctx, w, h, bg);
 
-                drawCircle(ctx, 0, 0, w/2, {fill: null, stroke: fg});
-                drawCircle(ctx, w, 0, w/2, {fill: null, stroke: fg});
-                drawCircle(ctx, w, h, w/2, {fill: null, stroke: fg});
-                drawCircle(ctx, 0, h, w/2, {fill: null, stroke: fg});
+                ctx.lineWidth = gridWeight;
+                // fg = '#000099';
+                // fg = '#2222aa';
+
+                drawCircle(ctx, 0, 0, gridR, {fill: null, stroke: fg});
+                drawCircle(ctx, w, 0, gridR, {fill: null, stroke: fg});
+                drawCircle(ctx, w, h, gridR, {fill: null, stroke: fg});
+                drawCircle(ctx, 0, h, gridR, {fill: null, stroke: fg});
+
+
+                // fg = '#990000';
+                // fg = '#2222aa';
+                ctx.lineWidth = crossWeight;
 
                 crossPattern(c1);
                 crossPattern(c2);
 
                 if (crossDots && (i % 2) === (j % 2)) {
-                    //drawCircle(ctx, w/2, h/2, crossScale, {fill: crossFill, stroke: fg});
+                    drawCircle(ctx, w/2, h/2, crossScale, {fill: crossFill, stroke: fg});
                 }
 
                 cr = Math.sqrt(Math.pow(xnorm - xref, 2) + Math.pow(ynorm - yref, 2))/.7071;
@@ -381,11 +411,11 @@ export function circles(options) {
                     dotMin + dotScale * w * cr,
                     {fill: dotFill, stroke: fg});
 
-                drawCircle(ctx,
-                    w/2,
-                    h/2,
-                    dotMin + dotScale * w * cr + ctx.lineWidth * 2,
-                    {fill: null, stroke: fg});
+                // drawCircle(ctx,
+                //     w/2,
+                //     h/2,
+                //     dotMin + dotScale * w * cr + ctx.lineWidth * 2,
+                //     {fill: null, stroke: fg});
 
 
                 // unshift, unclip
@@ -398,7 +428,7 @@ export function circles(options) {
 
     // gather our modes
     let modes = [snakes, rings, pattern];
-    //modes = [rings];
+    //modes = [pattern];
 
     // do the loop with one of our modes
     randItem(modes)();
