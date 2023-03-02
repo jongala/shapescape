@@ -5,7 +5,7 @@ import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, draw
 
 const DEFAULTS = {
     container: 'body',
-    palette: palettes.high_contrast,
+    palette: palettes.blush,
     addNoise: 0.04,
     noiseInput: null,
     dust: false,
@@ -195,10 +195,33 @@ export function plants(options) {
         color = color || 'red';
 
         ctx.beginPath();
-        ctx.moveTo(0, 0);
 
         ctx.lineWidth = size;
-        drawCircle(ctx, size * 1.5, 0, size * 3, {fill: color, stroke: fg});
+        ctx.lineCap = 'round';
+
+        let _x = size * 2;
+        let len = size * 8;
+        let height = size * 4;
+
+        // draw leaf shape with two simple curves
+        ctx.moveTo(_x, 0);
+        ctx.quadraticCurveTo(_x + len/2, height, _x + len, 0);
+        ctx.quadraticCurveTo(_x + len/2, -height, _x, 0);
+
+        ctx.strokeStyle = fg;
+        ctx.fillStyle = color;
+
+        ctx.fill();
+        ctx.stroke();
+
+
+        // center stroke
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(_x + len/2, 0);
+        ctx.stroke();
+
+        //drawCircle(ctx, size * 1.5, 0, size * 3, {fill: color, stroke: fg});
 
 
         // reset transforms
@@ -229,11 +252,11 @@ export function plants(options) {
             x: cw/branchCount * i,//randomInRange(0, cw),
             y: ch + randomInRange(0, 70),
             angle: PI/2 + randomInRange(-PI/8, PI/8),
-            size: randomInRange(4, 6),
+            width: randomInRange(4, 6),
             curvature: 0.3,
             lean: randomInRange(-1, 1),
             color: 'color',
-            stepCount: randomInt(6, 10),
+            stepCount: randomInt(4, 8),
             length: 70
         });
     }
@@ -243,7 +266,7 @@ export function plants(options) {
 
     let splitGrowRate = 0.3; // chance to split a new branch
     let splitBudRate = 0.1; // chance to split and bud
-    let stopBudRate = 0.1; // chances a stop and bud
+    let stopBudRate = 0.2; // chances a stop and bud
 
     let growthDecay = 0.9;
     let straightening = 0.85; // sweet spot is 0.8 to 1
@@ -260,29 +283,24 @@ export function plants(options) {
                 branch.y,
                 branch.angle,
                 branch.length,
-                branch.size,
+                branch.width,
                 branch.curvature * curveSign
             );
 
 
-            // update the branch
-            branch.stepCount--;
-            branch.length *= growthDecay; // reduce length each time
-            branch.curvature *= straightening; // straighten out each time
-            branch.size *= thinning; // thin out each time
-            branch.angle += branch.lean * leanFactor;
+
 
             if (branch.stepCount <= 0) {
                 // remove dead branches
                 branches.splice(i, 1);
-                drawTip(branch.x, branch.y, branch.angle, branch.size, accentColor);
+                drawTip(branch.x, branch.y, branch.angle, branch.width, accentColor);
             } else {
                 // continue
                 if (Math.random() < splitGrowRate) {
                     // split sometimes
 
                     // debug: highlight branch point
-                    //drawCircle(ctx, branch.x, branch.y, branch.size * 5, {fill:null,stroke:'#ace'});
+                    //drawCircle(ctx, branch.x, branch.y, branch.width * 5, {fill:null,stroke:'#ace'});
 
                     branch.angle += diverge/2 ;//* curveSign;
 
@@ -290,7 +308,7 @@ export function plants(options) {
                         x: branch.x,
                         y: branch.y,
                         angle: branch.angle - diverge,// * curveSign,
-                        size: branch.size,
+                        width: branch.width,
                         curvature: -branch.curvature,
                         lean: branch.lean,
                         color: 'color',
@@ -300,7 +318,7 @@ export function plants(options) {
                 } else if (Math.random() < splitBudRate) {
                     // stop and bud sometimes
                     branch.angle += diverge/2 ;//* curveSign;
-                    drawTip(branch.x, branch.y, branch.angle + diverge, branch.size, accentColor);
+                    drawTip(branch.x, branch.y, branch.angle + diverge, branch.width, accentColor);
 
                 } else if (Math.random() < stopBudRate) {
                     // stop and bud sometimes
@@ -308,6 +326,12 @@ export function plants(options) {
                 }
             }
 
+            // update the branch
+            branch.stepCount--;
+            branch.length *= growthDecay; // reduce length each time
+            branch.curvature *= straightening; // straighten out each time
+            branch.width *= thinning; // thin out each time
+            branch.angle += branch.lean * leanFactor;
 
         });
     }
