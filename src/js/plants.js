@@ -69,22 +69,6 @@ export function plants(options) {
     ctx.fillRect(0, 0, cw, ch);
 
 
-    // random points
-    let p1, p2;
-    p1 = [
-        randomInRange(0, cw),
-        randomInRange(0, ch),
-    ];
-    p2 = [
-        randomInRange(0, cw),
-        randomInRange(0, ch),
-    ];
-
-    // draw the test points
-    // drawCircle(ctx, ...p1, 10, {fill:null, stroke:'red'});
-    // drawCircle(ctx, ...p2, 10, {fill:null, stroke:'blue'});
-
-
     // directly draw from a to b
     function drawLineSegment(a, b) {
         ctx.beginPath();
@@ -150,7 +134,7 @@ export function plants(options) {
     // draw from a to b, by transforming the canvas and moving
     // "horizontally" across.
     // Draw with a trace of dots.
-    function traceSegment (x, y, angle, length, size=3, curvature=0.2) {
+    function traceSegment (x, y, angle, length, size=3, curvature=0.2, color=fg) {
         // translate to a, point toward b
         ctx.translate(x, y);
         ctx.rotate(-angle);
@@ -167,7 +151,7 @@ export function plants(options) {
             _x = inc * i;
             _y = curvature * length * Math.sin(i/steps * PI);
             //ctx.moveTo(inc * i, 0);
-            drawCircle(ctx, _x, _y, size/2, {fill:fg});
+            drawCircle(ctx, _x, _y, size/2, {fill: color});
         }
 
         let x2, y2;
@@ -182,7 +166,7 @@ export function plants(options) {
         // reset transforms
         ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-        console.log(`traceSegment from ${x},${y} to ${x2},${y2}, angle ${angle * 180/PI} len ${length}`);
+        //console.log(`traceSegment from ${x},${y} to ${x2},${y2}, angle ${angle * 180/PI} len ${length}`);
 
         return [x2, y2];
     }
@@ -228,6 +212,26 @@ export function plants(options) {
         ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
 
+
+    // --------------------------------------
+    // Test objects
+    // --------------------------------------
+
+    // random points
+    let p1, p2;
+    p1 = [
+        randomInRange(0, cw),
+        randomInRange(0, ch),
+    ];
+    p2 = [
+        randomInRange(0, cw),
+        randomInRange(0, ch),
+    ];
+
+    // draw the test points
+    // drawCircle(ctx, ...p1, 10, {fill:null, stroke:'red'});
+    // drawCircle(ctx, ...p2, 10, {fill:null, stroke:'blue'});
+
     var v = getVector(p1, p2);
 
     // test segment renderers
@@ -237,94 +241,135 @@ export function plants(options) {
     // ctx.strokeStyle = '#39c';
     // traceSegment(p1[0], p1[1], v.angle, v.length, 3, -0.2);
 
+    // console.log(`Test with angle ${v.angle} (${v.angle * 180/PI})`)
 
 
+
+    // --------------------------------------
+    // Real stuff
+    // --------------------------------------
 
     let branches = [];
 
 
     console.log('Plants\n--------------------------------------')
 
-    let branchCount = 10;
+    let branchCount = Math.round(cw/100);
 
+    // Define initial branch properties
     for (var i = 0 ; i < branchCount ; i++) {
         branches.push({
             x: cw/branchCount * i,//randomInRange(0, cw),
             y: ch + randomInRange(0, 70),
             angle: PI/2 + randomInRange(-PI/8, PI/8),
-            width: randomInRange(4, 6),
-            curvature: 0.3,
+            width: SCALE/100 * randomInRange(0.75, 1),
+            curvature: 0.1,
             lean: randomInRange(-1, 1),
             color: 'color',
             stepCount: randomInt(4, 8),
-            length: 70
+            length: SCALE / 10
         });
     }
 
 
-    let diverge = PI/4;
 
+
+    // TODO: make these props ?
     let splitGrowRate = 0.3; // chance to split a new branch
     let splitBudRate = 0.1; // chance to split and bud
     let stopBudRate = 0.2; // chances a stop and bud
 
-    let growthDecay = 0.9;
+    // TODO: make these props
+    let diverge = PI/4;
+    let growthDecay = 0.8; // each segment gets shorter
     let straightening = 0.85; // sweet spot is 0.8 to 1
-    let leanFactor = 0.1;
-    let thinning = 0.95;
+    let thinning = 0.95; //
+    let leanFactor = 0.2; // how much to lean
+
 
     while (branches.length) {
         branches.forEach((branch, i) => {
             // main branch propagation logic
 
             let curveSign = branch.stepCount % 2 ? 1 : -1;
+
+
+            // remove dead branches
+            if (branch.stepCount <= 0) {
+                // remove dead branches
+                branches.splice(i, 1);
+                drawTip(branch.x, branch.y, branch.angle, branch.width, accentColor);
+                return;
+            }
+
+            // remaining branches continue and draw,
+            // then decide to split or bud
+
+
+
+            // draw main branch
+
+            // first in background as mask
+            /*traceSegment(
+                branch.x,
+                branch.y,
+                branch.angle,
+                branch.length,
+                branch.width * 3,
+                branch.curvature * curveSign,
+                bg
+            );*/
+
+            // then in fg
             [branch.x, branch.y] = traceSegment(
                 branch.x,
                 branch.y,
                 branch.angle,
                 branch.length,
                 branch.width,
-                branch.curvature * curveSign
+                branch.curvature * curveSign,
+                fg
             );
 
 
+            let splitSign;
+            splitSign = (curveSign > 0)? 1 : -1;
 
 
-            if (branch.stepCount <= 0) {
-                // remove dead branches
-                branches.splice(i, 1);
-                drawTip(branch.x, branch.y, branch.angle, branch.width, accentColor);
-            } else {
-                // continue
-                if (Math.random() < splitGrowRate) {
-                    // split sometimes
+            let splitGap = branch.width * 2;
 
-                    // debug: highlight branch point
-                    //drawCircle(ctx, branch.x, branch.y, branch.width * 5, {fill:null,stroke:'#ace'});
 
-                    branch.angle += diverge/2 ;//* curveSign;
+            if (Math.random() < splitGrowRate  && branch.stepCount > 1) {
+                // split a new branch sometimes
 
-                    branches.push({
-                        x: branch.x,
-                        y: branch.y,
-                        angle: branch.angle - diverge,// * curveSign,
-                        width: branch.width,
-                        curvature: -branch.curvature,
-                        lean: branch.lean,
-                        color: 'color',
-                        stepCount: branch.stepCount,
-                        length: branch.length
-                    });
-                } else if (Math.random() < splitBudRate) {
-                    // stop and bud sometimes
-                    branch.angle += diverge/2 ;//* curveSign;
-                    drawTip(branch.x, branch.y, branch.angle + diverge, branch.width, accentColor);
+                // debug: highlight branch point
+                //drawCircle(ctx, branch.x, branch.y, branch.width * 5, {fill:null,stroke:'#ace'});
 
-                } else if (Math.random() < stopBudRate) {
-                    // stop and bud sometimes
-                    branch.stepCount = 0; // will draw next pass
-                }
+                // only kink new branch
+                let splitAngle = branch.angle - diverge * splitSign;
+
+                // add a little gap along the vector before starting the new branch
+                branches.push({
+                    x: branch.x + splitGap * Math.cos(splitAngle),
+                    y: branch.y - splitGap * Math.sin(splitAngle),
+                    angle: splitAngle,
+                    width: branch.width * thinning,
+                    curvature: -branch.curvature,
+                    lean: branch.lean,
+                    color: 'color',
+                    stepCount: branch.stepCount,
+                    length: branch.length
+                });
+            } else if (Math.random() < splitBudRate && branch.stepCount > 1) {
+                // add a bud
+                //branch.angle -= diverge * splitSign;
+                drawTip(branch.x, branch.y, branch.angle + diverge, branch.width, accentColor);
+
+            } else if (Math.random() < stopBudRate) {
+                // stop and bud
+                branch.stepCount = 0; // will draw next pass
             }
+
 
             // update the branch
             branch.stepCount--;
