@@ -12,10 +12,14 @@ const DEFAULTS = {
     skew: 1, // normalized skew
     clear: true,
 
-    mode: null,
-    count: 0, // 0 for auto, or an integer
-    weight: 0, // 0 for auto, or 1-10 for normalized weights
-    contrast: true
+    splitting: 0.3,
+    budding: 0.1,
+    stopping: 0.2,
+    divergence: 45, // degrees
+    growthDecay: 0.8,
+    straightening: 0.85,
+    thinning: 0.95,
+    leaning: 0.2,
 }
 
 const PI = Math.PI;
@@ -43,6 +47,18 @@ export function plants(options) {
     }
 
     let ctx = el.getContext('2d');
+
+    // Props
+
+    const SPLITTING = opts.splitting;
+    const BUDDING = opts.budding;
+    const STOPPING = opts.stopping;
+    const DIVERGENCE = opts.divergence * PI / 180; // input is in degrees
+    const GROWTHDECAY = opts.growthDecay;
+    const STRAIGHTENING = opts.straightening;
+    const THINNING = opts.thinning;
+    const LEANING = opts.leaning;
+
 
     // color funcs
     let randomFill = () => "#" + Math.random().toString(16).slice(2,8);
@@ -268,7 +284,7 @@ export function plants(options) {
             y: ch + randomInRange(0, 70),
             angle: PI/2 + randomInRange(-PI/8, PI/8),
             width: SCALE/100 * randomInRange(0.5, 0.75),
-            budSize: SCALE/100 * randomInRange(0.25, 0.5),
+            budSize: SCALE/100 * randomInRange(0.33, 0.5),
             curvature: 0.1,
             lean: randomInRange(-1, 1),
             color: 'color',
@@ -277,17 +293,6 @@ export function plants(options) {
         });
     }
 
-    // TODO: make these props ?
-    let splitGrowRate = 0.3; // chance to split a new branch
-    let splitBudRate = 0.1; // chance to split and bud
-    let stopBudRate = 0.2; // chances a stop and bud
-
-    // TODO: make these props
-    let diverge = PI/4;
-    let growthDecay = 0.8; // each segment gets shorter
-    let straightening = 0.85; // sweet spot is 0.8 to 1
-    let thinning = 0.95; //
-    let leanFactor = 0.2; // how much to lean
 
 
     while (branches.length) {
@@ -342,21 +347,21 @@ export function plants(options) {
             let splitGap = branch.width * 2;
 
 
-            if (Math.random() < splitGrowRate  && branch.stepCount > 1) {
+            if (Math.random() < SPLITTING  && branch.stepCount > 1) {
                 // split a new branch sometimes
 
                 // debug: highlight branch point
                 //drawCircle(ctx, branch.x, branch.y, branch.width * 5, {fill:null,stroke:'#ace'});
 
                 // only kink new branch
-                let splitAngle = branch.angle - diverge * splitSign;
+                let splitAngle = branch.angle - DIVERGENCE * splitSign;
 
                 // ok fine kink both branches a little
                 let kinkFactor = (branch.lean > 0) ? 1 : -1;
                 kinkFactor *= 0.3;
 
-                branch.angle += kinkFactor * diverge;
-                splitAngle += kinkFactor * diverge;
+                branch.angle += kinkFactor * DIVERGENCE;
+                splitAngle += kinkFactor * DIVERGENCE;
 
                 // push a clean copy of the branch as a new branch.
                 // add a little gap along the vector before starting the new branch
@@ -368,16 +373,16 @@ export function plants(options) {
                         x: branch.x + splitGap * Math.cos(splitAngle),
                         y: branch.y - splitGap * Math.sin(splitAngle),
                         angle: splitAngle,
-                        width: branch.width * thinning,
+                        width: branch.width * THINNING,
                         curvature: -branch.curvature
                     }
                 ));
-            } else if (Math.random() < splitBudRate && branch.stepCount > 1) {
+            } else if (Math.random() < BUDDING && branch.stepCount > 1) {
                 // add a bud
                 //branch.angle -= diverge * splitSign;
-                drawTip(branch.x, branch.y, branch.angle + diverge, branch.budSize, accentColor);
+                drawTip(branch.x, branch.y, branch.angle + DIVERGENCE, branch.budSize, accentColor);
 
-            } else if (Math.random() < stopBudRate) {
+            } else if (Math.random() < STOPPING) {
                 // stop and bud
                 branch.stepCount = 0; // will draw next pass
             }
@@ -385,10 +390,10 @@ export function plants(options) {
 
             // update the branch
             branch.stepCount--;
-            branch.length *= growthDecay; // reduce length each time
-            branch.curvature *= straightening; // straighten out each time
-            branch.width *= thinning; // thin out each time
-            branch.angle += branch.lean * leanFactor;
+            branch.length *= GROWTHDECAY; // reduce length each time
+            branch.curvature *= STRAIGHTENING; // straighten out each time
+            branch.width *= THINNING; // thin out each time
+            branch.angle += branch.lean * LEANING;
         });
     }
 
