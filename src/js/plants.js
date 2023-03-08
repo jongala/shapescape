@@ -267,7 +267,7 @@ export function plants(options) {
             x: cw / branchCount * (i + 1/2),
             y: ch + randomInRange(0, 70),
             angle: PI/2 + randomInRange(-PI/8, PI/8),
-            width: SCALE/100 * randomInRange(0.75, 1),
+            width: SCALE/100 * randomInRange(0.5, 0.75),
             budSize: SCALE/100 * randomInRange(0.25, 0.5),
             curvature: 0.1,
             lean: randomInRange(-1, 1),
@@ -336,9 +336,9 @@ export function plants(options) {
 
 
             let splitSign;
-            splitSign = (curveSign > 0)? 1 : -1;
+            splitSign = curveSign * -1;
 
-
+            // gap between new branch and base branch
             let splitGap = branch.width * 2;
 
 
