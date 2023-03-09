@@ -12,14 +12,14 @@ const DEFAULTS = {
     skew: 1, // normalized skew
     clear: true,
 
-    splitting: 0.3,
-    budding: 0.1,
-    stopping: 0.2,
-    divergence: 45, // degrees
-    growthDecay: 0.8,
-    straightening: 0.85,
-    thinning: 'auto',
-    leaning: 0.2,
+    splitting: 'med',
+    budding: 'med',
+    stopping: 'med',
+    divergence: 'med', // degrees
+    growthDecay: 'med',
+    straightening: 'med',
+    thinning: 'med',
+    leaning: 'med',
 }
 
 const PI = Math.PI;
@@ -51,20 +51,22 @@ export function plants(options) {
     // Props
 
     // map named values of props, e.g. low, med, high…
-    // to values, by passing co-indexed arrays of @names and @values
+    // to values, as defined in the obj @props
     // If values are arrays, use @accessor function to pick.
     // Respect 'auto' as special case for @name
-    function mapNameToVals (names, values, accessor=randomInRange) {
-        return function(name) {
+    function mapKeywordToVal (props, accessor=randomInRange) {
+        let names = Object.keys(props);
+
+        return function(name, label='param') {
             if (name === 'auto' || name === 'AUTO') {
                 name = randItem(names);
-                console.log(`auto picked ${name}`);
+                console.log(`${label}: auto picked ${name}`);
             }
-            let nameIdx = names.indexOf(name);
-            if (nameIdx < 0) {
-                nameIdx = 0;
+            if (props[name] === undefined) {
+                name = names[0];
+                console.log(`${label}: fell back to ${name}`);
             }
-            let val = values[nameIdx];
+            let val = props[name];
             if (Array.isArray(val)) {
                 return accessor(...val);
             } else {
@@ -74,17 +76,46 @@ export function plants(options) {
     }
 
 
-    const SPLITTING = opts.splitting;
-    const BUDDING = opts.budding;
-    const STOPPING = opts.stopping;
-    const DIVERGENCE = opts.divergence * PI / 180; // input is in degrees
-    const GROWTHDECAY = opts.growthDecay;
-    const STRAIGHTENING = opts.straightening;
-    const THINNING = mapNameToVals(
-        ['low','med','high'],
-        [0.99, 0.93, 0.85]
-        )(opts.thinning);
-    const LEANING = opts.leaning;
+    const SPLITTING =  mapKeywordToVal({
+        'low': 0.2,
+        'med': 0.3,
+        'high': 0.4
+    })(opts.splitting, 'splitting');
+    const BUDDING =  mapKeywordToVal({
+        'low': 0.05,
+        'med': 0.12,
+        'high': 0.2
+    })(opts.budding, 'budding');
+    const STOPPING = mapKeywordToVal({
+        'low': 0.1,
+        'med': 0.2,
+        'high': 0.3
+    })(opts.stopping, 'stopping');
+    const DIVERGENCE = mapKeywordToVal({
+        'low':  [15, 30],
+        'med': [30, 60],
+        'high': [60, 90]
+    })(opts.divergence, 'divergence') * PI/180; //opts.divergence * PI / 180; // input is in degrees
+    const GROWTHDECAY = mapKeywordToVal({
+        'low': 0.9,
+        'med': 0.8,
+        'high': 0.7
+    })(opts.growthDecay, 'decay');
+    const STRAIGHTENING = mapKeywordToVal({
+        'low': 1,
+        'med': 0.85,
+        'high': [0.7, 0.8]
+    })(opts.straightening, 'straightening');
+    const THINNING = mapKeywordToVal({
+        'low': [0.97, 1],
+        'med': [0.92, 0.95],
+        'high': [0.85, 0.9]
+    })(opts.thinning, 'thinning');
+    const LEANING = mapKeywordToVal({
+        'low': [0, 0.15],
+        'med': [0.15, 0.25],
+        'high': [0.25, 0.35]
+    })(opts.leaning, 'leaning');
 
 
     // color funcs
@@ -318,7 +349,7 @@ export function plants(options) {
             lean: randomInRange(-1, 1),
             color: 'color',
             stepCount: randomInt(4, 8),
-            length: SCALE / 10
+            length: SCALE / 10 / GROWTHDECAY
         });
     }
 
