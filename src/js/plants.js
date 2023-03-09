@@ -18,7 +18,7 @@ const DEFAULTS = {
     divergence: 45, // degrees
     growthDecay: 0.8,
     straightening: 0.85,
-    thinning: 0.95,
+    thinning: 'auto',
     leaning: 0.2,
 }
 
@@ -50,13 +50,40 @@ export function plants(options) {
 
     // Props
 
+    // map named values of props, e.g. low, med, high…
+    // to values, by passing co-indexed arrays of @names and @values
+    // If values are arrays, use @accessor function to pick.
+    // Respect 'auto' as special case for @name
+    function mapNameToVals (names, values, accessor=randomInRange) {
+        return function(name) {
+            if (name === 'auto' || name === 'AUTO') {
+                name = randItem(names);
+                console.log(`auto picked ${name}`);
+            }
+            let nameIdx = names.indexOf(name);
+            if (nameIdx < 0) {
+                nameIdx = 0;
+            }
+            let val = values[nameIdx];
+            if (Array.isArray(val)) {
+                return accessor(...val);
+            } else {
+                return val;
+            }
+        }
+    }
+
+
     const SPLITTING = opts.splitting;
     const BUDDING = opts.budding;
     const STOPPING = opts.stopping;
     const DIVERGENCE = opts.divergence * PI / 180; // input is in degrees
     const GROWTHDECAY = opts.growthDecay;
     const STRAIGHTENING = opts.straightening;
-    const THINNING = opts.thinning;
+    const THINNING = mapNameToVals(
+        ['low','med','high'],
+        [0.99, 0.93, 0.85]
+        )(opts.thinning);
     const LEANING = opts.leaning;
 
 
@@ -158,6 +185,8 @@ export function plants(options) {
         // draw "horizontally" from a to b
         ctx.beginPath();
         ctx.moveTo(0, 0);
+
+        size = Math.max(size, 0.5);
 
 
         let steps = Math.round(length);
