@@ -15,7 +15,8 @@ const DEFAULTS = {
     splitting: 'med',
     budding: 'med',
     stopping: 'med',
-    divergence: 'med', // degrees
+    flowering: 'auto',
+    divergence: 'auto', // degrees
     growthDecay: 'med',
     straightening: 'med',
     thinning: 'med',
@@ -82,15 +83,22 @@ export function plants(options) {
         'high': 0.4
     })(opts.splitting, 'splitting');
     const BUDDING =  mapKeywordToVal({
-        'low': 0.05,
-        'med': 0.12,
-        'high': 0.2
+        'low': 0.2,
+        'med': 0.3,
+        'high': 0.5
     })(opts.budding, 'budding');
     const STOPPING = mapKeywordToVal({
         'low': 0.1,
         'med': 0.2,
         'high': 0.3
     })(opts.stopping, 'stopping');
+    const FLOWERING = mapKeywordToVal({
+        'none': 0,
+        'low': 0.25,
+        'med': 0.6,
+        'high': 0.8,
+        'all': 1
+    })(opts.flowering, 'flowering');
     const DIVERGENCE = mapKeywordToVal({
         'low':  [15, 30],
         'med': [30, 60],
@@ -248,7 +256,50 @@ export function plants(options) {
     }
 
 
+    // draw a bud or flower
     function drawTip(x, y, angle, size, color) {
+        if (Math.random() < FLOWERING) {
+            drawFlower(...arguments);
+        } else {
+            drawBud(...arguments);
+        }
+    }
+
+
+    // closed, solid fg colored bud
+    function drawBud(x, y, angle, size, color) {
+        ctx.translate(x, y);
+        ctx.rotate(-angle);
+
+        color = color || 'red';
+
+        ctx.beginPath();
+
+        ctx.lineWidth = size;
+        ctx.lineCap = 'round';
+
+        let _x = size * 2;
+        let len = size * randomInRange(3, 5);
+        let height = size * 2;
+
+        // draw leaf shape with two simple curves
+        ctx.moveTo(_x, 0);
+        ctx.quadraticCurveTo(_x + len/2, height, _x + len, 0);
+        ctx.quadraticCurveTo(_x + len/2, -height, _x, 0);
+
+        ctx.strokeStyle = fg;
+        ctx.fillStyle = fg;
+
+        ctx.fill();
+        ctx.stroke();
+
+        // reset transforms
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.setLineDash([]);
+    }
+
+    // flower with contrasting fill
+    function drawFlower(x, y, angle, size, color) {
         ctx.translate(x, y);
         ctx.rotate(-angle);
 
