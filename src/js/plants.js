@@ -21,6 +21,8 @@ const DEFAULTS = {
     straightening: 'med',
     thinning: 'med',
     leaning: 'med',
+    roughness: 'auto',
+    knobbiness: 'med',
 }
 
 const PI = Math.PI;
@@ -76,6 +78,9 @@ export function plants(options) {
         }
     }
 
+    // hello world
+    console.log('--------------------------------------\nPlants')
+
 
     const SPLITTING =  mapKeywordToVal({
         'low': 0.2,
@@ -124,6 +129,18 @@ export function plants(options) {
         'med': [0.15, 0.25],
         'high': [0.25, 0.35]
     })(opts.leaning, 'leaning');
+    const ROUGHNESS = mapKeywordToVal({
+        'off': 0,
+        'low': 0.15,
+        'med': 0.2,
+        'high': 0.3
+    })(opts.roughness, 'roughness');
+    const KNOBBINESS = mapKeywordToVal({
+        'off': 0,
+        'low': [0.1, 0.15],
+        'med': [0.2, 0.3],
+        'high': [0.25, 0.35]
+    })(opts.knobbiness, 'knobbiness');
 
 
     // color funcs
@@ -216,6 +233,8 @@ export function plants(options) {
     // draw from a to b, by transforming the canvas and moving
     // "horizontally" across.
     // Draw with a trace of dots.
+    // Use ROUGHNESS for jitter, and KNOBBINESS to scatter extra dots
+    // around endpoints.
     function drawSegment (x, y, angle, length, size=3, curvature=0.2, color=fg) {
         // translate to a, point toward b
         ctx.translate(x, y);
@@ -225,42 +244,8 @@ export function plants(options) {
         ctx.beginPath();
         ctx.moveTo(0, 0);
 
-        size = Math.max(size, 0.5);
-
-
-        let steps = Math.round(length);
-        let inc = length / steps;
-        let _x, _y;
-        for (var i = 0 ; i < steps ; i++ ) {
-            _x = inc * i;
-            _y = curvature * length * Math.sin(i/steps * PI);
-            //ctx.moveTo(inc * i, 0);
-            drawCircle(ctx, _x, _y, size/2, {fill: color});
-        }
-
-        let x2, y2;
-        x2 = x + length * Math.cos(-angle);
-        y2 = y + length * Math.sin(-angle);
-
-        // reset transforms
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-        return [x2, y2];
-    }
-
-    function drawRoughSegment (x, y, angle, length, size=3, curvature=0.2, color=fg) {
-        // translate to a, point toward b
-        ctx.translate(x, y);
-        ctx.rotate(-angle);
-
-        // draw "horizontally" from a to b
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-
-        size = Math.max(size, 0.5);
-
-
-        let roughness = 0.15 * size;
+        // min size of tracing dot in case thinning takes us too far down
+        size = Math.max(size, 0.75);
 
         let steps = Math.round(length);
         let inc = length / steps;
@@ -268,7 +253,7 @@ export function plants(options) {
         for (var i = 0 ; i < steps ; i++ ) {
             _x = inc * i;
             _y = curvature * length * Math.sin(i/steps * PI);
-            _y += randomInRange(-1, 1) * roughness;
+            _y += randomInRange(-1, 1) * ROUGHNESS * size; // jitter
             drawCircle(ctx, _x, _y, size/2, {fill: color});
         }
 
@@ -277,40 +262,38 @@ export function plants(options) {
         y2 = y + length * Math.sin(-angle);
 
 
-        let bx, by;
-        let knobLength = size * 2;
+        if (KNOBBINESS > 0) {
+            // draw cluster near the ends
+            let bx, by;
+            let knobLength = size * 2;
 
-        // bx = size * 2
-        // = PI
-        // bx / (size * 2) = PI
+            const knobCount = 20;
 
-
-        // draw cluster near the ends
-        for (var i = 0 ; i < 20 ; i++ ) {
-            bx = randomInRange(0, knobLength);
-            by = randomInRange(0.2, 0.3) * randItem([-1, 1]) * (knobLength - bx);
-            drawCircle(
-                ctx,
-                bx,
-                by,
-                size/2,
-                {fill: color}
-            );
+            // near end
+            for (var i = 0 ; i < knobCount ; i++ ) {
+                bx = randomInRange(0, knobLength);
+                by = KNOBBINESS * randItem([-1, 1]) * (knobLength - bx);
+                drawCircle(
+                    ctx,
+                    bx,
+                    by,
+                    size/2,
+                    {fill: color}
+                );
+            }
+            // far end
+            for (var i = 0 ; i < knobCount ; i++ ) {
+                bx = randomInRange(0, knobLength);
+                by = KNOBBINESS * randItem([-1, 1]) * (knobLength - bx);
+                drawCircle(
+                    ctx,
+                    length - bx,
+                    by,
+                    size/2,
+                    {fill: color}
+                );
+            }
         }
-
-        for (var i = 0 ; i < 10 ; i++ ) {
-            bx = randomInRange(0, knobLength);
-            by = randomInRange(0.2, 0.3) * randItem([-1, 1]) * (knobLength - bx);
-            drawCircle(
-                ctx,
-                length - bx,
-                by,
-                size/2,
-                {fill: color}
-            );
-        }
-
-
 
         // reset transforms
         ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -448,9 +431,6 @@ export function plants(options) {
 
     let branches = [];
 
-
-    console.log('Plants\n--------------------------------------')
-
     let branchCount = Math.round(cw/100);
 
     // Define initial branch properties
@@ -505,7 +485,7 @@ export function plants(options) {
             );*/
 
             // then in fg
-            [branch.x, branch.y] = drawRoughSegment(
+            [branch.x, branch.y] = drawSegment(
                 branch.x,
                 branch.y,
                 branch.angle,
