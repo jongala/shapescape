@@ -152,7 +152,7 @@ export function plants(options) {
 
 
     // directly draw from a to b
-    function drawLineSegment(a, b) {
+    function drawAbsoluteLineSegment(a, b) {
         ctx.beginPath();
         ctx.moveTo(...a);
         ctx.lineTo(...b);
@@ -191,7 +191,7 @@ export function plants(options) {
 
     // draw from x, y, by transforming the canvas and moving
     // "horizontally" for length.
-    function drawSegment (x, y, angle, length) {
+    function drawLineSegment (x, y, angle, length) {
         ctx.translate(x, y);
         ctx.rotate(-angle);
 
@@ -216,7 +216,7 @@ export function plants(options) {
     // draw from a to b, by transforming the canvas and moving
     // "horizontally" across.
     // Draw with a trace of dots.
-    function traceSegment (x, y, angle, length, size=3, curvature=0.2, color=fg) {
+    function drawSegment (x, y, angle, length, size=3, curvature=0.2, color=fg) {
         // translate to a, point toward b
         ctx.translate(x, y);
         ctx.rotate(-angle);
@@ -242,9 +242,74 @@ export function plants(options) {
         x2 = x + length * Math.cos(-angle);
         y2 = y + length * Math.sin(-angle);
 
-        if (x2.toString() === 'NaN' || y2.toString() === 'NaN') {
-            debugger;
+        // reset transforms
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+        return [x2, y2];
+    }
+
+    function drawRoughSegment (x, y, angle, length, size=3, curvature=0.2, color=fg) {
+        // translate to a, point toward b
+        ctx.translate(x, y);
+        ctx.rotate(-angle);
+
+        // draw "horizontally" from a to b
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+
+        size = Math.max(size, 0.5);
+
+
+        let roughness = 0.15 * size;
+
+        let steps = Math.round(length);
+        let inc = length / steps;
+        let _x, _y;
+        for (var i = 0 ; i < steps ; i++ ) {
+            _x = inc * i;
+            _y = curvature * length * Math.sin(i/steps * PI);
+            _y += randomInRange(-1, 1) * roughness;
+            drawCircle(ctx, _x, _y, size/2, {fill: color});
         }
+
+        let x2, y2;
+        x2 = x + length * Math.cos(-angle);
+        y2 = y + length * Math.sin(-angle);
+
+
+        let bx, by;
+        let knobLength = size * 2;
+
+        // bx = size * 2
+        // = PI
+        // bx / (size * 2) = PI
+
+
+        // draw cluster near the ends
+        for (var i = 0 ; i < 20 ; i++ ) {
+            bx = randomInRange(0, knobLength);
+            by = randomInRange(0.2, 0.3) * randItem([-1, 1]) * (knobLength - bx);
+            drawCircle(
+                ctx,
+                bx,
+                by,
+                size/2,
+                {fill: color}
+            );
+        }
+
+        for (var i = 0 ; i < 10 ; i++ ) {
+            bx = randomInRange(0, knobLength);
+            by = randomInRange(0.2, 0.3) * randItem([-1, 1]) * (knobLength - bx);
+            drawCircle(
+                ctx,
+                length - bx,
+                by,
+                size/2,
+                {fill: color}
+            );
+        }
+
 
 
         // reset transforms
@@ -440,7 +505,7 @@ export function plants(options) {
             );*/
 
             // then in fg
-            [branch.x, branch.y] = traceSegment(
+            [branch.x, branch.y] = drawRoughSegment(
                 branch.x,
                 branch.y,
                 branch.angle,
