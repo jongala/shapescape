@@ -247,6 +247,8 @@ export function plants(options) {
         // min size of tracing dot in case thinning takes us too far down
         size = Math.max(size, 0.75);
 
+        length *= randomInRange(0.75, 1.25); // randomize length
+
         let steps = Math.round(length);
         let inc = length / steps;
         let _x, _y;
@@ -444,8 +446,8 @@ export function plants(options) {
             curvature: 0.1,
             lean: randomInRange(-1, 1),
             color: 'color',
-            stepCount: randomInt(4, 8),
-            length: SCALE / 10 / GROWTHDECAY
+            stepCount: randomInt(5, 7),
+            length: ch / 2 / 6 / GROWTHDECAY,//SCALE / 10 / GROWTHDECAY
         });
     }
 
