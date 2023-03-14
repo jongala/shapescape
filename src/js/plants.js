@@ -225,7 +225,7 @@ export function plants(options) {
         // reset transforms
         ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-        console.log(`drawSegment from ${x},${y} to ${x2},${y2}, angle ${angle * 180/PI} len ${length}`);
+        //console.log(`drawSegment from ${x},${y} to ${x2},${y2}, angle ${angle * 180/PI} len ${length}`);
 
         return [x2, y2];
     }
@@ -431,8 +431,46 @@ export function plants(options) {
     // Real stuff
     // --------------------------------------
 
-    let branches = [];
+    // background lines:
 
+    let vines = [];
+    let vineCount = cw / randomInRange(15, 30);
+    let vineColor = getContrastColor();
+    let vineWidth = cw / randomInRange(600, 1200);
+    vineWidth = Math.max(vineWidth, 1);
+
+
+    ctx.strokeStyle = vineColor;
+    ctx.lineWidth = vineWidth;
+    ctx.globalAlpha = randomInRange(0.2, 0.4);
+
+    for (var i = 0; i < vineCount; i++) {
+        let vx = cw/vineCount * (i + 1/2);
+        let vh = randomInRange(ch * 0.05, ch * 0.5);
+        drawLineSegment(
+            vx,
+            0,
+            -PI/2,
+            vh
+        );
+        drawCircle(ctx,
+            vx + randomInRange(-cw/vineCount, cw/vineCount),
+            randomInRange(vh/2, vh),
+            cw/vineCount * randomInRange(0.5, 0.75),
+            {fill: vineColor}
+        );
+
+        drawCircle(ctx,
+            vx,
+            vh,
+            cw/vineCount * randomInRange(0.5, 0.75),
+            {fill: vineColor}
+        );
+    }
+    ctx.globalAlpha = 1;
+
+    // Set up initial branches
+    let branches = [];
     let branchCount = Math.round(cw/100);
 
     // Define initial branch properties
