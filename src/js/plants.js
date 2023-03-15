@@ -431,7 +431,9 @@ export function plants(options) {
     // Real stuff
     // --------------------------------------
 
+
     // background lines:
+    // --------------------------------------
 
     let vines = [];
     let vineCount = cw / randomInRange(15, 30);
@@ -454,20 +456,40 @@ export function plants(options) {
             vh
         );
         drawCircle(ctx,
-            vx + randomInRange(-cw/vineCount, cw/vineCount),
-            randomInRange(vh/2, vh),
-            cw/vineCount * randomInRange(0.5, 0.75),
-            {fill: vineColor}
-        );
-
-        drawCircle(ctx,
             vx,
             vh,
             cw/vineCount * randomInRange(0.5, 0.75),
             {fill: vineColor}
         );
+
+
+        // draw more dots up the vine
+        // each higher than the last
+        // offset slightly left/right
+
+        let maxDots = 4;
+        let last = 1;
+        let seed = 1;
+
+        for (var j = 0; j < maxDots; j++) {
+            seed = Math.random();
+            if (seed < last) {
+                drawCircle(ctx,
+                    vx + randomInRange(-cw/vineCount, cw/vineCount),
+                    vh * seed,
+                    cw/vineCount * randomInRange(0.5, 0.75),
+                    {fill: vineColor}
+                );
+
+                last = seed;
+            }
+        }
     }
     ctx.globalAlpha = 1;
+
+
+    // branch setup
+    // --------------------------------------
 
     // Set up initial branches
     let branches = [];
@@ -489,6 +511,9 @@ export function plants(options) {
         });
     }
 
+
+    // branch loop
+    // --------------------------------------
 
 
     while (branches.length) {
