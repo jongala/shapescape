@@ -1,6 +1,6 @@
 import noiseUtils from './noiseutils';
 import palettes from './palettes';
-import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
+import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, getAngle, getVector, mapKeywordToVal } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
 const DEFAULTS = {
@@ -52,31 +52,6 @@ export function plants(options) {
     let ctx = el.getContext('2d');
 
     // Props
-
-    // map named values of props, e.g. low, med, high…
-    // to values, as defined in the obj @props
-    // If values are arrays, use @accessor function to pick.
-    // Respect 'auto' as special case for @name
-    function mapKeywordToVal (props, accessor=randomInRange) {
-        let names = Object.keys(props);
-
-        return function(name, label='param') {
-            if (name === 'auto' || name === 'AUTO') {
-                name = randItem(names);
-                console.log(`${label}: auto picked ${name}`);
-            }
-            if (props[name] === undefined) {
-                name = names[0];
-                console.log(`${label}: fell back to ${name}`);
-            }
-            let val = props[name];
-            if (Array.isArray(val)) {
-                return accessor(...val);
-            } else {
-                return val;
-            }
-        }
-    }
 
     // hello world
     console.log('--------------------------------------\nPlants')
@@ -176,34 +151,6 @@ export function plants(options) {
         ctx.stroke();
 
         console.log(`drawLineSegment from ${a} to ${b}`);
-    }
-
-    // util
-    function getAngle(a, b) {
-        let dx = b[0] - a[0];
-        let dy = b[1] - a[1];
-        let theta = Math.atan(-dy/dx);
-        if (dx < 0) {
-            theta -= PI;
-        }
-        return theta;
-    }
-
-    // util
-    function getVector(a, b) {
-        let dx = b[0] - a[0];
-        let dy = b[1] - a[1];
-        let theta = Math.atan(-dy/dx);
-        if (dx < 0) {
-            theta -= PI;
-        }
-        let length = Math.sqrt(dx * dx + dy * dy);
-        return {
-            x: a[0],
-            y: a[1],
-            angle: theta,
-            length: length
-        }
     }
 
     // draw from x, y, by transforming the canvas and moving

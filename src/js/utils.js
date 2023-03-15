@@ -184,3 +184,61 @@ export function closestColor (sample, palette) {
 export function scalarVec (vec, scalar) {
     return vec.map((x) => x * scalar);
 }
+
+// util
+// get angle between @a and @b of form [x, y]
+// returns in radians
+export function getAngle(a, b) {
+    let dx = b[0] - a[0];
+    let dy = b[1] - a[1];
+    let theta = Math.atan(-dy/dx);
+    if (dx < 0) {
+        theta -= Math.PI;
+    }
+    return theta;
+}
+
+// util
+// get vector between @a and @b of form [x, y]
+// return object with x, y = @a, angle, length
+export function getVector(a, b) {
+    let dx = b[0] - a[0];
+    let dy = b[1] - a[1];
+    let theta = Math.atan(-dy/dx);
+    if (dx < 0) {
+        theta -= Math.PI;
+    }
+    let length = Math.sqrt(dx * dx + dy * dy);
+    return {
+        x: a[0],
+        y: a[1],
+        angle: theta,
+        length: length
+    }
+}
+
+
+// map named values of props, e.g. low, med, high…
+// to values, as defined in the obj @props
+// If values are arrays, use @accessor function to pick.
+// Respect 'auto' as special case for @name
+export function mapKeywordToVal (props, accessor=randomInRange) {
+    let names = Object.keys(props);
+
+    return function(name, label='param') {
+        if (name === 'auto' || name === 'AUTO') {
+            name = randItem(names);
+            console.log(`${label}: auto picked ${name}`);
+        }
+        if (props[name] === undefined) {
+            name = names[0];
+            console.log(`${label}: fell back to ${name}`);
+        }
+        let val = props[name];
+        if (Array.isArray(val)) {
+            return accessor(...val);
+        } else {
+            return val;
+        }
+    }
+}
