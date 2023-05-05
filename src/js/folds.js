@@ -142,17 +142,26 @@ let curves = {
     }
 
 
-    let defineFold = function(a, b, opts) {
-        let coefs = [];
-        coefs = [100,100,,-8,,1,,,,,6,0,1,,,,,,,,,2,,1];
-        coefs = makeCoefs(6);
-        console.log(coefs);
+    let defineFold = function(a, b, coefs) {
         return {
             a,
             b,
             coefs
         }
     }
+
+    // multiply two sparse arrays of scalar values
+    let vecMult = function(a1, a2) {
+        let len = Math.min(a1.length, a2.length);
+        let result = Array(len);
+        for (var i = 0; i <= len; i++) {
+            if (a1[i] !== undefined && a2[i] !== undefined) {
+                result[i] = a1[i] * a2[i];
+            }
+        }
+        return result;
+    }
+
 
 
     function lerp(v0, v1, t) {
@@ -173,11 +182,29 @@ let curves = {
         }
     }
 
-    let testFold = defineFold([0, 100], [cw, 300], {});
-    drawFold(testFold, 100);
+    let baseCoefs = makeCoefs(6);
+    let coefs = baseCoefs.concat([]); // clone array, for some reason
+    let scalingVec = makeScalingVec(6);
+    let testFold = defineFold([0, 100], [cw, 300], coefs);
+    //drawFold(testFold, 100);
 
-    //let fold = makeFold([], [], 5);
-    //drawFold(fold);
+    let foldCount = 10;
+    let folds = [];
+
+
+    let baseY1 = 100;
+    let baseY2 = 300;
+    let increment = 20;
+
+
+    for (var i = 0; i < foldCount; i++) {
+        coefs = vecMult(coefs, scalingVec);
+        folds.push(defineFold([0, baseY1 + i * increment], [cw, baseY2 + i * increment], coefs));
+    }
+
+    folds.forEach((f, i) => {
+        drawFold(f, 100);
+    });
 
 
     // add noise
