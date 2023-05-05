@@ -26,6 +26,7 @@ import { doodle } from './doodle';
 import { pillars } from './pillars';
 import { rings } from './rings';
 import { plants } from './plants';
+import { folds } from './folds';
 // utils
 import { setAttrs, hexToRgb, scalarVec } from './utils';
 // postprocess
@@ -57,6 +58,7 @@ const RENDERERS = {
     pillars: pillars,
     rings: rings,
     plants: plants,
+    folds: folds,
     //clouds: clouds
 };
 let initRenderer = 'waterline';
