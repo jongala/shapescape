@@ -65,6 +65,7 @@ export function folds(options) {
     contrastPalette.splice(opts.palette.indexOf(bg), 1);
     let getContrastColor = getSolidColorFunction(contrastPalette);
     fg = getContrastColor(); // …now set fg in contrast to bg
+    let fg2 = getContrastColor();
     let accentColor = getContrastColor();
 
     ctx.fillStyle = bg;
@@ -87,7 +88,7 @@ let curves = {
 
 
     /**
-     * A f(x) = y, based on coefficients and offsets. 
+     * A f(x) = y, based on coefficients and offsets.
      * Takes an input @n, and applies a series of sin funcs scaled by
      * the values in @coefs, and returns a single scalar.
      * @param  {number} n      input dimension, from 0 to 1
@@ -117,7 +118,7 @@ let curves = {
         drawCircle(ctx, t * cw, ch/2 + synthFunc(t, curves.wave), 3, {fill: fg})
     }*/
 
-    
+
     // generate random vector of coefficients
     let makeCoefs = function(terms=10) {
         let threshold = 0.3;
@@ -168,7 +169,9 @@ let curves = {
         return v0 * (1 - t) + v1 * t;
     }
 
-    let drawFold = function(fold, pointCount) {
+    ctx.lineWidth = 1;
+
+    let drawFold = function(fold, pointCount, tail=[0, 100]) {
         let _x, _y;
         _x = fold.a[0];
         _y = fold.a[1];
@@ -178,32 +181,64 @@ let curves = {
             _x = lerp(fold.a[0], fold.b[0], t);
             _y = lerp(fold.a[1], fold.b[1], t);
             _y += synthFunc(t, fold.coefs);
-            drawCircle(ctx, _x, _y , 3, {fill: fg})
+
+            let g = ctx.createLinearGradient(_x, _y, _x + tail[0], _y + tail[1]);
+            g.addColorStop(0, fg);
+            g.addColorStop(1, bg);
+            ctx.strokeStyle = g;
+            ctx.beginPath();
+            ctx.moveTo(_x, _y);
+            ctx.lineTo(_x + tail[0], _y + tail[1]);
+            ctx.stroke();
+
+            //drawCircle(ctx, _x, _y , 3, {fill: fg})
         }
     }
 
-    let baseCoefs = makeCoefs(6);
+
+    let termCount = 4; // number of tems in wave coefficients
+
+    let baseCoefs = makeCoefs(termCount);
     let coefs = baseCoefs.concat([]); // clone array, for some reason
-    let scalingVec = makeScalingVec(6);
+    let scalingVec = makeScalingVec(termCount);
     let testFold = defineFold([0, 100], [cw, 300], coefs);
     //drawFold(testFold, 100);
 
-    let foldCount = 10;
+    let foldCount = 30;
     let folds = [];
 
 
-    let baseY1 = 100;
-    let baseY2 = 300;
-    let increment = 20;
+    let baseY1 = randomInRange(0, ch);
+    let baseY2 = randomInRange(0, ch);
+    let increment = ch / (foldCount - 1);
+
+    let offsetY = Math.max(baseY1, baseY2);
+    baseY1 -= offsetY;
+    baseY2 -= offsetY;
+
+    console.log('colors', fg, fg2);
 
 
+    // define a stack of folds, incrementing Y,
+    // and multiplying the coefs by the scalingVec each time
+    // to create a smoothly varying set of coefficients
     for (var i = 0; i < foldCount; i++) {
         coefs = vecMult(coefs, scalingVec);
         folds.push(defineFold([0, baseY1 + i * increment], [cw, baseY2 + i * increment], coefs));
     }
 
+    // how many points on each fold?
+    let pointCount = Math.round(cw);
+    pointCount = Math.round(cw / randItem([1, 2, 3, 4, 5]) );
+
+    // how thick is each stroke that builds the folds?
+    ctx.lineWidth = 1;
+
+
+    let tail = [randomInRange(-1, 1) * increment/4, increment * randomInRange(1, 4)];
+
     folds.forEach((f, i) => {
-        drawFold(f, 100);
+        drawFold(f, pointCount, tail);
     });
 
 
