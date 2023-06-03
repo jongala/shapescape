@@ -59,10 +59,18 @@ export function fracture(canvas, regions=2) {
         }
         ctx.closePath();
 
+        let edgeGradient = ctx.createLinearGradient(
+            rn(cw), rn(ch),
+            rn(cw), rn(ch)
+        );
+        edgeGradient.addColorStop(0, '#ffffff');
+        edgeGradient.addColorStop(0.5, '#666666');
+        edgeGradient.addColorStop(1, '#333333');
+
         // draw the edge lightly
         ctx.globalCompositeOperation = 'color-dodge';
         ctx.globalAlpha = 0.7;
-        ctx.strokeStyle = '#fff';
+        ctx.strokeStyle = edgeGradient;
         ctx.lineWidth = SCALE/800 * randomInRange(2, 4);
         ctx.stroke();
 
