@@ -69,14 +69,22 @@ export function fracture(canvas, regions=2) {
 
         // draw the edge lightly
         ctx.globalCompositeOperation = 'color-dodge';
-        ctx.globalAlpha = 0.7;
+        ctx.globalAlpha = randomInRange(0.6, 0.8);
         ctx.strokeStyle = edgeGradient;
         ctx.lineWidth = SCALE/800 * randomInRange(2, 4);
         ctx.stroke();
 
+        // fill the masked area with the gradient, lightly
+        ctx.globalCompositeOperation = 'overlay';
+        ctx.globalAlpha = randomInRange(0.05, 0.15);
+        ctx.fillStyle = edgeGradient;
+        ctx.fillRect(0, 0, cw, ch);
+
         // must save before clipping to be able to unclip via restore
         ctx.save();
         ctx.clip();
+
+
 
         // move and scale the canvas, then apply the original art
         ctx.translate(cw/2, ch/2);
