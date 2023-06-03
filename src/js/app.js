@@ -32,6 +32,7 @@ import { setAttrs, hexToRgb, scalarVec } from './utils';
 import roughen from './roughen';
 import dither from './postprocess/dither';
 import { halftoneCMYK, halftoneSpotColors } from './postprocess/halftone';
+import { fracture } from './postprocess/fracture';
 
 // Renderers
 const RENDERERS = {
@@ -249,6 +250,16 @@ function halftoneSpot() {
 
 window.halftoneSpot = halftoneSpot;
 
+
+/* Fracture
+-------------------------------------- */
+
+let fractureImage = function() {
+    var canvas = document.querySelector('#example canvas');
+    fracture(canvas);
+}
+
+window.fractureImage = fractureImage;
 
 /* ======================================
 END POSTPROCESS
