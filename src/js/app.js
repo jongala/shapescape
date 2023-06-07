@@ -261,6 +261,18 @@ let fractureImage = function() {
 
 window.fractureImage = fractureImage;
 
+
+let shatterImage = function() {
+    var canvas = document.querySelector('#example canvas');
+    //fracture(canvas, 64);
+    let steps = 4;
+    while (steps--) {
+        fracture(canvas, 4)
+    }
+}
+
+window.shatterImage = shatterImage;
+
 /* ======================================
 END POSTPROCESS
 ====================================== */

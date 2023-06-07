@@ -36,7 +36,7 @@ export function fracture(canvas, regions=2) {
     // create a series of masks
     for (var i = 0; i < regions; i++) {
         // set magnification effect for each fragment
-        let magnification = randomInRange(0.02, 0.04);
+        let magnification = randomInRange(0.01, 0.03);
 
         // scale offsets to mag effect, to avoid pulling edges into view
         let offsetx = cw * (randomInRange(-magnification, magnification)) / 2;
@@ -114,7 +114,7 @@ export function fracture(canvas, regions=2) {
         // This determines the separation of the two colors for edge hilites
         // 0 would be total overlap which composites to white.
         // 0.5 would have no overlap, and show pure color edges adjacently
-        let diffract = weight * randomInRange(0.2, 0.4);
+        let diffract = weight * randomInRange(0.2, 0.35);
 
         // By compositing pink and green in overlapping strokes via color-dodge
         // we get a pink fringe, green fringe, and white overlap area
@@ -147,6 +147,9 @@ export function fracture(canvas, regions=2) {
         pointsToPath(ctx, v);
         ctx.stroke();
         ctx.translate(-diffract, -diffract);
+
+        // reset transforms
+        resetTransform(ctx);
 
         // fill the masked area with the white gradient, lightly
         // use overlay composite for relatively color neutral effects
