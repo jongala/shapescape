@@ -48,21 +48,26 @@ export function fracture(canvas, regions=2) {
 
         // slice the canvas across each corner, or left to right
         // we will pick one of these for each fracture path
+        let xmin, ymin;
+        let xmax, ymax;
+        xmin = ymin = -10;
+        xmax = cw + 10;
+        ymax = ch + 10;
         let vertices = [
             // left, top
-            [[0, rn(ch)], [0, 0], [rn(cw), 0] ],
+            [[xmin, rn(ymax)], [xmin, ymin], [rn(xmax), ymin] ],
             // left, right
-            [[rn(cw), 0], [0, 0], [cw, 0],  [cw, rn(ch)]],
+            [[rn(xmax), ymin], [xmin, ymin], [xmax, ymin],  [xmax, rn(ymax)]],
             // top, right
-            [[rn(cw), 0], [cw, 0],  [cw, rn(ch)]],
+            [[rn(xmax), ymin], [xmax, ymin],  [xmax, rn(ymax)]],
             // left, bottom
-            [[0, rn(ch)], [0, ch], [rn(cw), ch] ],
+            [[xmin, rn(ymax)], [xmin, ymax], [rn(xmax), ymax] ],
             // right, bottom
-            [[cw, rn(ch)], [cw, ch], [rn(cw), ch]],
+            [[xmax, rn(ymax)], [xmax, ymax], [rn(xmax), ymax]],
             // top, bottom
-            [[rn(cw), 0], [0, 0], [0, ch],  [rn(cw), ch]],
+            [[rn(xmax), ymin], [xmin, ymin], [xmin, ymax],  [rn(xmax), ymax]],
             // top, bottom 2
-            [[rn(cw), 0], [cw, 0], [cw, ch],  [rn(cw), ch]]
+            [[rn(xmax), ymin], [xmax, ymin], [xmax, ymax],  [rn(xmax), ymax]]
         ];
 
         let v = randItem(vertices);
