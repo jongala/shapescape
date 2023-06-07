@@ -9,6 +9,18 @@ function copyCanvas(canvas) {
     return copy;
 }
 
+function pointsToPath(ctx, points) {
+    // copy the points list, so we don't mutate
+    let pts = points.concat([]);
+    ctx.beginPath();
+    ctx.moveTo(...(pts.shift()));
+    while (pts.length) {
+        ctx.lineTo(...(pts.shift()));
+    }
+    ctx.closePath();
+    return ctx;
+}
+
 export function fracture(canvas, regions=2) {
 
     let ctx = canvas.getContext('2d');
@@ -54,36 +66,9 @@ export function fracture(canvas, regions=2) {
         ];
 
         let v = randItem(vertices);
-        let v2 = v.concat([]); // duplicate
 
         // build the mask path
-        ctx.beginPath();
-        ctx.moveTo(...(v.shift()));
-        while (v.length) {
-            ctx.lineTo(...(v.shift()));
-        }
-        ctx.closePath();
-
-        let edgeGradient = ctx.createLinearGradient(
-            rn(cw), rn(ch),
-            rn(cw), rn(ch)
-        );
-        edgeGradient.addColorStop(0, '#ffffff');
-        edgeGradient.addColorStop(0.5, '#666666');
-        edgeGradient.addColorStop(1, '#333333');
-
-        // draw the edge lightly
-        ctx.globalCompositeOperation = 'color-dodge';
-        ctx.globalAlpha = randomInRange(0.6, 0.8);
-        ctx.strokeStyle = edgeGradient;
-        ctx.lineWidth = SCALE/800 * randomInRange(2, 4);
-        ctx.stroke();
-
-        // fill the masked area with the gradient, lightly
-        ctx.globalCompositeOperation = 'overlay';
-        ctx.globalAlpha = randomInRange(0.05, 0.15);
-        ctx.fillStyle = edgeGradient;
-        ctx.fillRect(0, 0, cw, ch);
+        pointsToPath(ctx, v);
 
         // must save before clipping to be able to unclip via restore
         ctx.save();
@@ -107,9 +92,73 @@ export function fracture(canvas, regions=2) {
         // unclip and reset
         ctx.restore();
         resetTransform(ctx);
+
+
+        // draw the edge lightly
+        let weight = SCALE/800 * randomInRange(1, 3);
+        ctx.lineWidth = weight;
+
+        // we will re-use these coordinates in multiple gradients for
+        // edge and face decoration
+        let gradientPoints = [
+            rn(cw), rn(ch),
+            rn(cw), rn(ch)
+        ];
+
+        // composite in color first, so we can fake chromatic aberration
+        ctx.globalCompositeOperation = 'color-dodge';
+        ctx.globalAlpha = 1;
+
+
+
+        // This determines the separation of the two colors for edge hilites
+        // 0 would be total overlap which composites to white.
+        // 0.5 would have no overlap, and show pure color edges adjacently
+        let diffract = weight * randomInRange(0.2, 0.4);
+
+        // By compositing pink and green in overlapping strokes via color-dodge
+        // we get a pink fringe, green fringe, and white overlap area
+
+        let pinkGrad = ctx.createLinearGradient(...gradientPoints);
+        pinkGrad.addColorStop(0, 'rgba(255, 0, 255, 1)');
+        pinkGrad.addColorStop(0.5, 'rgba(255, 0, 255, 0.4)');
+        pinkGrad.addColorStop(1, 'rgba(255, 0, 255, 0.2)');
+
+        let greenGrad = ctx.createLinearGradient(...gradientPoints);
+        greenGrad.addColorStop(0, 'rgba(0, 255, 0, 1)');
+        greenGrad.addColorStop(0.5, 'rgba(0, 255, 0, 0.4)');
+        greenGrad.addColorStop(1, 'rgba(0, 255, 0, 0.2)');
+
+        let lightGrad = ctx.createLinearGradient(...gradientPoints);
+        lightGrad.addColorStop(0, '#ffffff');
+        lightGrad.addColorStop(0.5, '#666666');
+        lightGrad.addColorStop(1, '#333333');
+
+        // draw a pink edge offset one way
+        ctx.strokeStyle = pinkGrad;
+        ctx.translate(-diffract, -diffract);
+        pointsToPath(ctx, v);
+        ctx.stroke();
+        ctx.translate(diffract, diffract);
+
+        // then a green edge offset the other
+        ctx.strokeStyle = greenGrad;
+        ctx.translate(diffract, diffract);
+        pointsToPath(ctx, v);
+        ctx.stroke();
+        ctx.translate(-diffract, -diffract);
+
+        // fill the masked area with the white gradient, lightly
+        // use overlay composite for relatively color neutral effects
+        ctx.globalCompositeOperation = 'overlay';
+        ctx.globalAlpha = randomInRange(0.05, 0.15);
+        ctx.fillStyle = lightGrad;
+        ctx.fillRect(0, 0, cw, ch);
+
+        // reset transforms
+        resetTransform(ctx);
     }
 
     // clean up the copy canvas node
     copy.remove();
 }
-
