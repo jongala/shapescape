@@ -256,7 +256,7 @@ window.halftoneSpot = halftoneSpot;
 
 let fractureImage = function() {
     var canvas = document.querySelector('#example canvas');
-    fracture(canvas);
+    fracture(canvas, 2);
 }
 
 window.fractureImage = fractureImage;

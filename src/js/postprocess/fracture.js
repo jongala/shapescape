@@ -18,16 +18,20 @@ export function fracture(canvas, regions=2) {
     let ch = canvas.height;
     let SCALE = Math.min(cw, ch);
 
-    let magnification = randomInRange(0, 0.05);
-
-    let offsetx = cw * (randomInRange(-magnification, magnification)) / 2;
-    let offsety = ch * (randomInRange(-magnification, magnification)) / 2;
-
-
-    // create a series of masks
+    // convenience for randomInRange:
     let rn = randomInRange;
 
+    // create a series of masks
     for (var i = 0; i < regions; i++) {
+        // set magnification effect for each fragment
+        let magnification = randomInRange(0.02, 0.04);
+
+        // scale offsets to mag effect, to avoid pulling edges into view
+        let offsetx = cw * (randomInRange(-magnification, magnification)) / 2;
+        let offsety = ch * (randomInRange(-magnification, magnification)) / 2;
+
+        console.log(`fragment: magnification:${(magnification*100).toPrecision(2)}%, offsets:${offsetx.toPrecision(2)},${offsety.toPrecision(2)}`);
+
         // create clip path
 
         // slice the canvas across each corner, or left to right
@@ -50,6 +54,7 @@ export function fracture(canvas, regions=2) {
         ];
 
         let v = randItem(vertices);
+        let v2 = v.concat([]); // duplicate
 
         // build the mask path
         ctx.beginPath();
@@ -83,8 +88,6 @@ export function fracture(canvas, regions=2) {
         // must save before clipping to be able to unclip via restore
         ctx.save();
         ctx.clip();
-
-
 
         // move and scale the canvas, then apply the original art
         ctx.translate(cw/2, ch/2);
