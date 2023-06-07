@@ -85,14 +85,13 @@ export function fracture(canvas, regions=2) {
         ctx.globalAlpha = 1;
         ctx.drawImage(copy, 0, 0);
 
-        // debug draw
-        //ctx.fillStyle = randItem(['red','blue','green','orange','yellow','purple']);
-        //ctx.fillRect(0, 0, cw, ch);
-
         // unclip and reset
         ctx.restore();
         resetTransform(ctx);
 
+
+        // Glass decorations
+        // --------------------------------------
 
         // draw the edge lightly
         let weight = SCALE/800 * randomInRange(1, 3);
@@ -105,19 +104,14 @@ export function fracture(canvas, regions=2) {
             rn(cw), rn(ch)
         ];
 
-        // composite in color first, so we can fake chromatic aberration
-        ctx.globalCompositeOperation = 'color-dodge';
-        ctx.globalAlpha = 1;
-
-
-
         // This determines the separation of the two colors for edge hilites
         // 0 would be total overlap which composites to white.
         // 0.5 would have no overlap, and show pure color edges adjacently
-        let diffract = weight * randomInRange(0.2, 0.35);
+        let diffract = weight * randomInRange(0.25, 0.5);
 
         // By compositing pink and green in overlapping strokes via color-dodge
         // we get a pink fringe, green fringe, and white overlap area
+        // Create a light gradient to overlay the whole area
 
         let pinkGrad = ctx.createLinearGradient(...gradientPoints);
         pinkGrad.addColorStop(0, 'rgba(255, 0, 255, 1)');
@@ -134,22 +128,14 @@ export function fracture(canvas, regions=2) {
         lightGrad.addColorStop(0.5, '#666666');
         lightGrad.addColorStop(1, '#333333');
 
-        // draw a pink edge offset one way
-        ctx.strokeStyle = pinkGrad;
-        ctx.translate(-diffract, -diffract);
-        pointsToPath(ctx, v);
-        ctx.stroke();
-        ctx.translate(diffract, diffract);
 
-        // then a green edge offset the other
-        ctx.strokeStyle = greenGrad;
-        ctx.translate(diffract, diffract);
-        pointsToPath(ctx, v);
-        ctx.stroke();
-        ctx.translate(-diffract, -diffract);
-
-        // reset transforms
-        resetTransform(ctx);
+        // get edge direction for offsets
+        let edgePts = [v[0], v[v.length-1]];
+        let theta = Math.atan2(
+            edgePts[1][1] - edgePts[0][1],
+            edgePts[1][0] - edgePts[0][0],
+        );
+        theta += Math.PI/2;
 
         // fill the masked area with the white gradient, lightly
         // use overlay composite for relatively color neutral effects
@@ -157,6 +143,22 @@ export function fracture(canvas, regions=2) {
         ctx.globalAlpha = randomInRange(0.05, 0.15);
         ctx.fillStyle = lightGrad;
         ctx.fillRect(0, 0, cw, ch);
+
+        // composite in color for fake chromatic aberration
+        ctx.globalCompositeOperation = 'color-dodge';
+        ctx.globalAlpha = 1;
+
+        // draw a pink edge at the reference path
+        ctx.strokeStyle = pinkGrad;
+        pointsToPath(ctx, v);
+        ctx.stroke();
+
+        // then a green edge offset by a fraction of stroke width
+        ctx.strokeStyle = greenGrad;
+        ctx.translate(diffract * Math.cos(theta), diffract * Math.sin(theta));
+        pointsToPath(ctx, v);
+        ctx.stroke();
+        ctx.translate(-diffract * Math.cos(theta), -diffract * Math.sin(theta));
 
         // reset transforms
         resetTransform(ctx);
