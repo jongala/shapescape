@@ -112,7 +112,7 @@ export function fracture(canvas, regions=2) {
         // This determines the separation of the two colors for edge hilites
         // 0 would be total overlap which composites to white.
         // 0.5 would have no overlap, and show pure color edges adjacently
-        let diffract = weight * randomInRange(0.25, 0.5);
+        let diffract = weight * randomInRange(0.25, 0.55);
 
         // By compositing pink and green in overlapping strokes via color-dodge
         // we get a pink fringe, green fringe, and white overlap area
