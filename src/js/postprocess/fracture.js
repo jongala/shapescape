@@ -167,6 +167,16 @@ export function fracture(canvas, regions=2) {
         ctx.stroke();
         ctx.translate(-2 * diffract * Math.cos(theta), -2 * diffract * Math.sin(theta));
 
+        // light inner edge for plate thickness
+        // TODO come back to this
+        // ctx.globalAlpha = randomInRange(0.0, 0.2);
+        // ctx.strokeStyle = lightGrad;
+        // let thickness = randomInRange(7, 14);
+        // ctx.translate(thickness * diffract * Math.cos(theta), thickness * diffract * Math.sin(theta));
+        // line(ctx, edgePts[0][0], edgePts[0][1], edgePts[1][0], edgePts[1][1]);
+        // ctx.stroke();
+        // ctx.translate(-thickness * diffract * Math.cos(theta), -thickness * diffract * Math.sin(theta));
+
         // composite in color for fake chromatic aberration
         ctx.globalCompositeOperation = 'color-dodge';
         ctx.globalAlpha = 1;
