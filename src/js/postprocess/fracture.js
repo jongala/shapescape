@@ -169,6 +169,8 @@ export function fracture(canvas, regions=2) {
         resetTransform(ctx);
     }
 
+    ctx.globalCompositeOperation = 'normal';
+    ctx.globalAlpha = 1;
     // clean up the copy canvas node
     copy.remove();
 }
