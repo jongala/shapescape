@@ -191,11 +191,7 @@ export function scalarVec (vec, scalar) {
 export function getAngle(a, b) {
     let dx = b[0] - a[0];
     let dy = b[1] - a[1];
-    let theta = Math.atan(-dy/dx);
-    if (dx < 0) {
-        theta -= Math.PI;
-    }
-    return theta;
+    return Math.atan2(dy, dx);
 }
 
 // util
@@ -204,10 +200,7 @@ export function getAngle(a, b) {
 export function getVector(a, b) {
     let dx = b[0] - a[0];
     let dy = b[1] - a[1];
-    let theta = Math.atan(-dy/dx);
-    if (dx < 0) {
-        theta -= Math.PI;
-    }
+    let theta = Math.atan2(dy , dx);
     let length = Math.sqrt(dx * dx + dy * dy);
     return {
         x: a[0],
