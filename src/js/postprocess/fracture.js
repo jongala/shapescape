@@ -21,6 +21,12 @@ function pointsToPath(ctx, points) {
     return ctx;
 }
 
+function line(ctx, x1, y1, x2, y2) {
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+}
+
 export function fracture(canvas, regions=2) {
 
     let ctx = canvas.getContext('2d');
@@ -133,6 +139,10 @@ export function fracture(canvas, regions=2) {
         lightGrad.addColorStop(0.5, '#666666');
         lightGrad.addColorStop(1, '#333333');
 
+        let darkGrad = ctx.createLinearGradient(...gradientPoints);
+        darkGrad.addColorStop(0, '#333333');
+        darkGrad.addColorStop(0.5, '#555555');
+        darkGrad.addColorStop(1, '#666666');
 
         // get edge direction for offsets
         let edgePts = [v[0], v[v.length-1]];
@@ -149,6 +159,14 @@ export function fracture(canvas, regions=2) {
         ctx.fillStyle = lightGrad;
         ctx.fillRect(0, 0, cw, ch);
 
+        // dark edge at the far side
+        ctx.globalAlpha = randomInRange(0.3, 0.7);
+        ctx.strokeStyle = darkGrad;
+        ctx.translate(2 * diffract * Math.cos(theta), 2 * diffract * Math.sin(theta));
+        line(ctx, edgePts[0][0], edgePts[0][1], edgePts[1][0], edgePts[1][1]);
+        ctx.stroke();
+        ctx.translate(-2 * diffract * Math.cos(theta), -2 * diffract * Math.sin(theta));
+
         // composite in color for fake chromatic aberration
         ctx.globalCompositeOperation = 'color-dodge';
         ctx.globalAlpha = 1;
@@ -164,6 +182,8 @@ export function fracture(canvas, regions=2) {
         pointsToPath(ctx, v);
         ctx.stroke();
         ctx.translate(-diffract * Math.cos(theta), -diffract * Math.sin(theta));
+
+
 
         // reset transforms
         resetTransform(ctx);
