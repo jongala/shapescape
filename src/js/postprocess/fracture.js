@@ -49,11 +49,13 @@ export function fracture(canvas, regions=2) {
     let SCALE = Math.min(cw, ch);
 
     let magSteps = 10;
+    // scale offsets to mag effect, to avoid pulling edges into view
+    let offset = SCALE/800 * randomInRange(0.3, 0.7);
 
     // convenience for randomInRange:
     let rn = randomInRange;
 
-    let THICK = (Math.random() < 0.5);
+    let THICK = (Math.random() < 0.3);
 
     console.log(`fragment, ${regions} regions`);
 
@@ -62,8 +64,7 @@ export function fracture(canvas, regions=2) {
         // set magnification effect for each fragment
         let magnification = randomInRange(0.01, 0.03);
 
-        // scale offsets to mag effect, to avoid pulling edges into view
-        let offset = SCALE/800 * 1;
+
 
         //console.log(`fragment: magnification:${(magnification*100).toPrecision(2)}%, offsets:${offsetx.toPrecision(2)},${offsety.toPrecision(2)}`);
 
@@ -222,25 +223,46 @@ export function fracture(canvas, regions=2) {
         ctx.fillRect(0, 0, cw, ch);
 
         // dark edge at the far side.
-        ctx.globalAlpha = randomInRange(0.3, 0.7);
+        ctx.globalAlpha = randomInRange(0.1, 0.5);
         ctx.strokeStyle = darkGrad;
         ctx.translate(2 * diffract * Math.cos(theta), 2 * diffract * Math.sin(theta));
-        line(ctx, edgePts[0][0], edgePts[0][1], edgePts[1][0], edgePts[1][1]);
+        line(ctx, ...edgePts[0], ...edgePts[1]);
         ctx.stroke();
         ctx.translate(-2 * diffract * Math.cos(theta), -2 * diffract * Math.sin(theta));
 
-        // light inner edge for plate thickness
+
         // TODO come back to this
         if (THICK) {
-            ctx.globalCompositeOperation = 'color-dodge';
+            let thickness = offset * magSteps;
+
+            // heavy stroke along thickness
+            ctx.globalCompositeOperation = 'overlay';
             ctx.globalAlpha = randomInRange(0.0, 0.4);
+            ctx.lineWidth = thickness;
+            ctx.translate(
+                -(thickness/2 + diffract) * Math.cos(theta),
+                -(thickness/2 + diffract) * Math.sin(theta)
+            );
+            line(ctx, ...edgePts[0], ...edgePts[1]);
             ctx.strokeStyle = lightGrad;
-            let thickness = -offset * magSteps;
-            ctx.translate(thickness * diffract * Math.cos(theta), thickness * diffract * Math.sin(theta));
-            line(ctx, edgePts[0][0], edgePts[0][1], edgePts[1][0], edgePts[1][1]);
             ctx.stroke();
+            ctx.translate(
+                (thickness/2 + diffract) * Math.cos(theta),
+                (thickness/2 + diffract) * Math.sin(theta)
+            );
+            // restore standard line weight
+            ctx.lineWidth = weight;
+
+            // light inner edge for plate thickness
+            ctx.globalCompositeOperation = 'color-dodge';
+            ctx.globalAlpha = randomInRange(0.2, 0.4);
+            ctx.strokeStyle = lightGrad;
             ctx.translate(-thickness * diffract * Math.cos(theta), -thickness * diffract * Math.sin(theta));
+            line(ctx, ...edgePts[0], ...edgePts[1]);
+            ctx.stroke();
+            ctx.translate(thickness * diffract * Math.cos(theta), thickness * diffract * Math.sin(theta));
         }
+
 
         // composite in color for fake chromatic aberration
         ctx.globalCompositeOperation = 'color-dodge';
