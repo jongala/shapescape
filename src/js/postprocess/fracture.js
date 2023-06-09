@@ -36,6 +36,10 @@ export function fracture(canvas, regions=2) {
     let ch = canvas.height;
     let SCALE = Math.min(cw, ch);
 
+    // draw the edge lightly
+    let weight = SCALE/800 * randomInRange(1, 3);
+    ctx.lineWidth = weight;
+
     // convenience for randomInRange:
     let rn = randomInRange;
 
@@ -96,17 +100,13 @@ export function fracture(canvas, regions=2) {
         ctx.globalAlpha = 1;
         ctx.drawImage(copy, 0, 0);
 
-        // unclip and reset
-        ctx.restore();
+        // reset but don't unclip until after face hilite
         resetTransform(ctx);
 
 
         // Glass decorations
         // --------------------------------------
 
-        // draw the edge lightly
-        let weight = SCALE/800 * randomInRange(1, 3);
-        ctx.lineWidth = weight;
 
         // we will re-use these coordinates in multiple gradients for
         // edge and face decoration
@@ -159,7 +159,11 @@ export function fracture(canvas, regions=2) {
         ctx.fillStyle = lightGrad;
         ctx.fillRect(0, 0, cw, ch);
 
+        // After drawing face hilite, unclip
+        ctx.restore();
+
         // dark edge at the far side
+        ctx.globalCompositeOperation = 'overlay';
         ctx.globalAlpha = randomInRange(0.3, 0.7);
         ctx.strokeStyle = darkGrad;
         ctx.translate(2 * diffract * Math.cos(theta), 2 * diffract * Math.sin(theta));
@@ -179,7 +183,7 @@ export function fracture(canvas, regions=2) {
 
         // composite in color for fake chromatic aberration
         ctx.globalCompositeOperation = 'color-dodge';
-        ctx.globalAlpha = 1;
+        ctx.globalAlpha = 0.9;
 
         // draw a pink edge at the reference path
         ctx.strokeStyle = pinkGrad;
