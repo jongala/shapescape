@@ -192,13 +192,22 @@ export function fracture(canvas, regions=2) {
 
         let lightGrad = ctx.createLinearGradient(...gradientPoints);
         lightGrad.addColorStop(0, '#ffffff');
-        lightGrad.addColorStop(0.5, '#666666');
-        lightGrad.addColorStop(1, '#333333');
+        lightGrad.addColorStop(0.5, '#666f6a');
+        lightGrad.addColorStop(1, '#224433');
 
         let darkGrad = ctx.createLinearGradient(...gradientPoints);
         darkGrad.addColorStop(0, '#333333');
         darkGrad.addColorStop(0.5, '#555555');
         darkGrad.addColorStop(1, '#666666');
+
+
+        let edgeGrad = ctx.createLinearGradient(rn(cw), rn(ch),
+            rn(cw), rn(ch));
+        edgeGrad.addColorStop(0, '#ffffff');
+        edgeGrad.addColorStop(0.3, '#668877');
+        edgeGrad.addColorStop(1, '#1a4d33');
+
+
 
         // fill the masked area with the white gradient, lightly.
         // use overlay composite for relatively color neutral effects
@@ -206,7 +215,7 @@ export function fracture(canvas, regions=2) {
         pointsToPath(ctx, v);
         ctx.clip();
         ctx.globalCompositeOperation = 'overlay';
-        ctx.globalAlpha = randomInRange(0.05, 0.15);
+        ctx.globalAlpha = randomInRange(0.15, 0.25);
         ctx.fillStyle = lightGrad;
         ctx.fillRect(0, 0, cw, ch);
         ctx.restore();
@@ -225,16 +234,18 @@ export function fracture(canvas, regions=2) {
         if (THICK) {
             let thickness = offset * magSteps;
 
+
+
             // heavy stroke of light gradient to show thickness of plate
             ctx.globalCompositeOperation = 'overlay';
-            ctx.globalAlpha = randomInRange(0.05, 0.35);
+            ctx.globalAlpha = randItem([0, 0.25 ,randomInRange(0.5, 0.9)]);
             ctx.lineWidth = thickness;
             ctx.translate(
                 -(thickness/2 + diffract) * Math.cos(theta),
                 -(thickness/2 + diffract) * Math.sin(theta)
             );
             line(ctx, ...edgePts[0], ...edgePts[1]);
-            ctx.strokeStyle = lightGrad;
+            ctx.strokeStyle = edgeGrad;
             ctx.stroke();
             ctx.translate(
                 (thickness/2 + diffract) * Math.cos(theta),
@@ -245,7 +256,7 @@ export function fracture(canvas, regions=2) {
 
             // light inner edge to catch other plate edge hilite
             ctx.globalCompositeOperation = 'color-dodge';
-            ctx.globalAlpha = randomInRange(0.1, 0.2);
+            ctx.globalAlpha = randItem([0, 0, randomInRange(0.15, 0.25)]);
             ctx.strokeStyle = lightGrad;
             ctx.translate(-thickness * diffract * Math.cos(theta), -thickness * diffract * Math.sin(theta));
             line(ctx, ...edgePts[0], ...edgePts[1]);
