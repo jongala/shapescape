@@ -210,6 +210,33 @@ export function getVector(a, b) {
     }
 }
 
+// get the average coordinates from an array of
+// @points in [x,y] form
+export function averagePoints(points) {
+    let avg = [0, 0];
+    for (var i = 0; i < points.length; i++) {
+        avg[0] += points[i][0];
+        avg[1] += points[i][1];
+    }
+    avg[0] /= points.length;
+    avg[1] /= points.length;
+    return avg;
+}
+
+// Create a path in @ctx by stepping through the points
+// in @points, which are in [x,y] array form
+export function pointsToPath(ctx, points) {
+    // copy the points list, so we don't mutate
+    let pts = points.concat([]);
+    ctx.beginPath();
+    ctx.moveTo(...(pts.shift()));
+    while (pts.length) {
+        ctx.lineTo(...(pts.shift()));
+    }
+    ctx.closePath();
+    return ctx;
+}
+
 
 // map named values of props, e.g. low, med, high…
 // to values, as defined in the obj @props

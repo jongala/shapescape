@@ -115,3 +115,12 @@ export var drawTriangle = (ctx, x, y, d, opts) => {
 }
 export var drawPentagon = _drawPolygon(5, 1.1);
 export var drawHexagon = _drawPolygon(6, 1.05);
+
+// Draw a line from @a to @b, where they are of form [x, y]
+export function drawLine(ctx, a, b) {
+    let [x1, y1] = a;
+    let [x2, y2] = b;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+}

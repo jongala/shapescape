@@ -1,41 +1,14 @@
-import {randomInRange, randomInt, randItem, resetTransform, rotateCanvas} from '../utils';
-import {drawRect, drawSquare, drawCircle} from '../shapes';
+import {randomInRange, randomInt, randItem, resetTransform, rotateCanvas, pointsToPath, averagePoints} from '../utils';
+import {drawRect, drawSquare, drawLine} from '../shapes';
 
+
+// create a copy of @canvas, redraw its contents, and randomize its id
 function copyCanvas(canvas) {
     let copy = canvas.cloneNode();
     let copyctx = copy.getContext('2d');
     copyctx.drawImage(canvas, 0, 0);
     copy.setAttribute('id', 'canvas' + (Math.random()*(1<<24)).toString(16));
     return copy;
-}
-
-function pointsToPath(ctx, points) {
-    // copy the points list, so we don't mutate
-    let pts = points.concat([]);
-    ctx.beginPath();
-    ctx.moveTo(...(pts.shift()));
-    while (pts.length) {
-        ctx.lineTo(...(pts.shift()));
-    }
-    ctx.closePath();
-    return ctx;
-}
-
-function line(ctx, x1, y1, x2, y2) {
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-}
-
-function averagePoints(points) {
-    let avg = [0, 0];
-    for (var i = 0; i < points.length; i++) {
-        avg[0] += points[i][0];
-        avg[1] += points[i][1];
-    }
-    avg[0] /= points.length;
-    avg[1] /= points.length;
-    return avg;
 }
 
 
@@ -225,7 +198,7 @@ export function fracture(canvas, regions=2) {
         ctx.globalAlpha = randomInRange(0.1, 0.5);
         ctx.strokeStyle = darkGrad;
         ctx.translate(2 * diffract * Math.cos(theta), 2 * diffract * Math.sin(theta));
-        line(ctx, ...edgePts[0], ...edgePts[1]);
+        drawLine(ctx, ...edgePts);
         ctx.stroke();
         ctx.translate(-2 * diffract * Math.cos(theta), -2 * diffract * Math.sin(theta));
 
@@ -245,7 +218,7 @@ export function fracture(canvas, regions=2) {
                 -(thickness/2 + diffract) * Math.cos(theta),
                 -(thickness/2 + diffract) * Math.sin(theta)
             );
-            line(ctx, ...edgePts[0], ...edgePts[1]);
+            drawLine(ctx, ...edgePts);
             ctx.strokeStyle = edgeGrad;
             ctx.stroke();
             ctx.translate(
@@ -260,7 +233,7 @@ export function fracture(canvas, regions=2) {
             ctx.globalAlpha = (BRIGHTEDGE)? randomInRange(0.4, 0.8) : randItem([0, 0, randomInRange(0.2)]);
             ctx.strokeStyle = lightGrad;
             ctx.translate(-thickness * diffract * Math.cos(theta), -thickness * diffract * Math.sin(theta));
-            line(ctx, ...edgePts[0], ...edgePts[1]);
+            drawLine(ctx, ...edgePts);
             ctx.stroke();
             ctx.translate(thickness * diffract * Math.cos(theta), thickness * diffract * Math.sin(theta));
         }
