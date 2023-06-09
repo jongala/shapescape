@@ -217,12 +217,17 @@ export function fracture(canvas, regions=2) {
 
         // fill the masked area with the white gradient, lightly.
         // use overlay composite for relatively color neutral effects
+        ctx.save();
+        pointsToPath(ctx, v);
+        ctx.clip();
         ctx.globalCompositeOperation = 'overlay';
         ctx.globalAlpha = randomInRange(0.05, 0.15);
         ctx.fillStyle = lightGrad;
         ctx.fillRect(0, 0, cw, ch);
+        ctx.restore();
 
         // dark edge at the far side.
+        ctx.globalCompositeOperation = 'overlay';
         ctx.globalAlpha = randomInRange(0.1, 0.5);
         ctx.strokeStyle = darkGrad;
         ctx.translate(2 * diffract * Math.cos(theta), 2 * diffract * Math.sin(theta));
