@@ -84,9 +84,9 @@ export function fracture(canvas, regions=2) {
             // left, top
             [[xmin, rn(ymax)], [xmin, ymin], [rn(xmax), ymin] ],
             // left, right
-            [[rn(xmax), ymin], [xmin, ymin], [xmax, ymin],  [xmax, rn(ymax)]],
+            [[xmin, rn(ymax)], [xmin, ymin], [xmax, ymin],  [xmax, rn(ymax)]],
             // right, left
-            [[xmax, rn(ymax)], [xmax, ymax], [xmin, ymax],  [rn(xmax), ymin]],
+            [[xmax, rn(ymax)], [xmax, ymax], [xmin, ymax],  [xmin, rn(ymax)]],
             // top, right
             [[rn(xmax), ymin], [xmax, ymin],  [xmax, rn(ymax)]],
             // left, bottom

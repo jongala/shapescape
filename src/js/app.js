@@ -265,7 +265,7 @@ window.fractureImage = fractureImage;
 let shatterImage = function() {
     var canvas = document.querySelector('#example canvas');
     //fracture(canvas, 64);
-    let steps = 4;
+    let steps = 5;
     while (steps--) {
         fracture(canvas, 4)
     }
