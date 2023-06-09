@@ -200,13 +200,13 @@ export function fracture(canvas, regions=2) {
         darkGrad.addColorStop(0.5, '#555555');
         darkGrad.addColorStop(1, '#666666');
 
-
+        // Create a gradient with different coordinates for the edge face
+        // since it should have different light source
         let edgeGrad = ctx.createLinearGradient(rn(cw), rn(ch),
             rn(cw), rn(ch));
         edgeGrad.addColorStop(0, '#ffffff');
         edgeGrad.addColorStop(0.3, '#668877');
         edgeGrad.addColorStop(1, '#1a4d33');
-
 
 
         // fill the masked area with the white gradient, lightly.
@@ -234,11 +234,12 @@ export function fracture(canvas, regions=2) {
         if (THICK) {
             let thickness = offset * magSteps;
 
-
+            // some thick plates get strong edge face decoration
+            let BRIGHTEDGE = (Math.random() < 0.5);
 
             // heavy stroke of light gradient to show thickness of plate
             ctx.globalCompositeOperation = 'overlay';
-            ctx.globalAlpha = randItem([0, 0.25 ,randomInRange(0.5, 0.9)]);
+            ctx.globalAlpha = (BRIGHTEDGE)? randomInRange(0.6, 0.9) : randItem([0, randomInRange(0.2)]);
             ctx.lineWidth = thickness;
             ctx.translate(
                 -(thickness/2 + diffract) * Math.cos(theta),
@@ -256,7 +257,7 @@ export function fracture(canvas, regions=2) {
 
             // light inner edge to catch other plate edge hilite
             ctx.globalCompositeOperation = 'color-dodge';
-            ctx.globalAlpha = randItem([0, 0, randomInRange(0.15, 0.25)]);
+            ctx.globalAlpha = (BRIGHTEDGE)? randomInRange(0.4, 0.8) : randItem([0, 0, randomInRange(0.2)]);
             ctx.strokeStyle = lightGrad;
             ctx.translate(-thickness * diffract * Math.cos(theta), -thickness * diffract * Math.sin(theta));
             line(ctx, ...edgePts[0], ...edgePts[1]);
