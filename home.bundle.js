@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 36);
+/******/ 	return __webpack_require__(__webpack_require__.s = 39);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -87,6 +87,11 @@ exports.hexToRgb = hexToRgb;
 exports.colorDistanceArray = colorDistanceArray;
 exports.closestColor = closestColor;
 exports.scalarVec = scalarVec;
+exports.getAngle = getAngle;
+exports.getVector = getVector;
+exports.averagePoints = averagePoints;
+exports.pointsToPath = pointsToPath;
+exports.mapKeywordToVal = mapKeywordToVal;
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
@@ -254,6 +259,87 @@ function scalarVec(vec, scalar) {
     return vec.map(function (x) {
         return x * scalar;
     });
+}
+
+// util
+// get angle between @a and @b of form [x, y]
+// returns in radians
+function getAngle(a, b) {
+    var dx = b[0] - a[0];
+    var dy = b[1] - a[1];
+    return Math.atan2(dy, dx);
+}
+
+// util
+// get vector between @a and @b of form [x, y]
+// return object with x, y = @a, angle, length
+function getVector(a, b) {
+    var dx = b[0] - a[0];
+    var dy = b[1] - a[1];
+    var theta = Math.atan2(dy, dx);
+    var length = Math.sqrt(dx * dx + dy * dy);
+    return {
+        x: a[0],
+        y: a[1],
+        angle: theta,
+        length: length
+    };
+}
+
+// get the average coordinates from an array of
+// @points in [x,y] form
+function averagePoints(points) {
+    var avg = [0, 0];
+    for (var i = 0; i < points.length; i++) {
+        avg[0] += points[i][0];
+        avg[1] += points[i][1];
+    }
+    avg[0] /= points.length;
+    avg[1] /= points.length;
+    return avg;
+}
+
+// Create a path in @ctx by stepping through the points
+// in @points, which are in [x,y] array form
+function pointsToPath(ctx, points) {
+    // copy the points list, so we don't mutate
+    var pts = points.concat([]);
+    ctx.beginPath();
+    ctx.moveTo.apply(ctx, _toConsumableArray(pts.shift()));
+    while (pts.length) {
+        ctx.lineTo.apply(ctx, _toConsumableArray(pts.shift()));
+    }
+    ctx.closePath();
+    return ctx;
+}
+
+// map named values of props, e.g. low, med, high…
+// to values, as defined in the obj @props
+// If values are arrays, use @accessor function to pick.
+// Respect 'auto' as special case for @name
+function mapKeywordToVal(props) {
+    var accessor = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : randomInRange;
+
+    var names = Object.keys(props);
+
+    return function (name) {
+        var label = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'param';
+
+        if (name === 'auto' || name === 'AUTO') {
+            name = randItem(names);
+            console.log(label + ': auto picked ' + name);
+        }
+        if (props[name] === undefined) {
+            name = names[0];
+            console.log(label + ': fell back to ' + name);
+        }
+        var val = props[name];
+        if (Array.isArray(val)) {
+            return accessor.apply(undefined, _toConsumableArray(val));
+        } else {
+            return val;
+        }
+    };
 }
 
 /***/ }),
@@ -431,6 +517,10 @@ var lemon_beach = exports.lemon_beach = ['#d7d7d7', '#979797', '#cabd9d', '#e4ca
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+exports.drawLine = drawLine;
 /*
  * Scaffolding for a drawing function.
  * Implements basic setup for placement, rotation, stroke, fill,
@@ -548,6 +638,21 @@ var drawTriangle = exports.drawTriangle = function drawTriangle(ctx, x, y, d, op
 };
 var drawPentagon = exports.drawPentagon = _drawPolygon(5, 1.1);
 var drawHexagon = exports.drawHexagon = _drawPolygon(6, 1.05);
+
+// Draw a line from @a to @b, where they are of form [x, y]
+function drawLine(ctx, a, b) {
+    var _a = _slicedToArray(a, 2),
+        x1 = _a[0],
+        y1 = _a[1];
+
+    var _b = _slicedToArray(b, 2),
+        x2 = _b[0],
+        y2 = _b[1];
+
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+}
 
 /***/ }),
 /* 4 */
@@ -2719,15 +2824,20 @@ function waveband(ctx, x, y, w, h, count, amp, depth, options) {
         } else {
             // after, go thinner, and sometimes dotted
 
+            var dashLength = void 0;
+
             if (opts.style === 'dotted') {
                 // dotted lines. keep thicker line weight
                 ctx.lineWidth = _lineWidth * 1.5;
                 ctx.lineCap = 'round';
-                ctx.setLineDash([0, _lineWidth * (1 + i) + _lineWidth * .5]);
+                dashLength = _lineWidth * (1 + i) + _lineWidth * .5;
+                ctx.setLineDash([0, dashLength]);
+                ctx.lineDashOffset = (0, _utils.randomInRange)(-dashLength, 0);
             } else if (opts.style === 'dashed') {
                 // dashed lines, which should be thinner
                 ctx.lineWidth = _lineWidth;
                 ctx.setLineDash([_lineWidth * (depth - i + 1), _lineWidth * 2]);
+                ctx.lineDashOffset = (0, _utils.randomInRange)(-_lineWidth * 2, 0);
             } else {
                 ctx.lineWidth = _lineWidth;
             }
@@ -2740,6 +2850,7 @@ function waveband(ctx, x, y, w, h, count, amp, depth, options) {
     // reset lineWidth in case depth = 0;
     ctx.lineWidth = _lineWidth;
     ctx.setLineDash([]);
+    ctx.lineDashOffset = 0;
 }
 
 var WAVELET_DEFAULTS = {
@@ -3366,7 +3477,7 @@ function circles(options) {
     var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
 
     // define grid
-    var count = Math.round((0, _utils.randomInRange)(4, 9));
+    var count = Math.round((0, _utils.randomInRange)(SCALE / 200, SCALE / 80));
     var w = Math.ceil(cw / count);
     var h = w;
     var vcount = Math.ceil(ch / h);
@@ -3388,6 +3499,8 @@ function circles(options) {
 
     // shared colors
     var bg = getSolidFill();
+    //bg = 'white';
+
 
     // get palette of non-bg colors
     var contrastPalette = [].concat(opts.palette);
@@ -3501,6 +3614,7 @@ function circles(options) {
         ctx.stroke();
     }
 
+    // mode
     function rings() {
         ctx.lineCap = 'round';
         ctx.fillStyle = bg;
@@ -3522,6 +3636,7 @@ function circles(options) {
         var centers = [];
         var r = void 0;
 
+        // threshold to draw or not draw at a given cell
         var threshold = 0.5 - .25 * (count / 10);
         console.log('count:', count, 'threshold:', threshold);
 
@@ -3537,7 +3652,7 @@ function circles(options) {
                 ynorm = py / ch;
 
                 var start = Math.round((0, _utils.randomInRange)(0, 4));
-                var segments = Math.round((0, _utils.randomInRange)(1, 3));
+                var segments = (0, _utils.randItem)([1, 1, 1, 2, 2, 2, 3, 3, 3, 4]);
                 r = w / 2 * Math.round((0, _utils.randomInRange)(1, 3));
 
                 ctx.strokeStyle = fg;
@@ -3592,23 +3707,32 @@ function circles(options) {
 
     // mode
     function pattern() {
-        var c1 = (0, _utils.randomInRange)(0.125, 0.5);
-        var c2 = (0, _utils.randomInRange)(.5, 1);
+        var c1 = (0, _utils.randomInRange)(0.125, 0.25);
+        var c2 = (0, _utils.randomInRange)(.4, 0.8);
+
+        //c1 = 0.00025;
+        //c2 = 0.8;
+
+        //c2 = 10;
 
         var dotScale = (0, _utils.randomInRange)(0.1, 0.5);
         var dotMin = (0, _utils.randomInRange)(0, 0.5 - dotScale);
         var dotFill = getContrastColor();
         var dotSign = Math.random() < 0.5;
 
+        //dotFill = '#ffcc00';
+        //dotFill = '#2222aa';
+
         var xref = Math.random();
         var yref = Math.random();
-        if (Math.random() < 0.5) {
+        if (Math.random() < 0.9999995) {
             xref = yref = 0.5;
         }
 
         var crossDots = true; //Math.random() < 0.5;
         var crossFill = Math.random() < 0.5 ? fg : bg;
-        var crossScale = (0, _utils.randomInRange)(0.25, .3);
+        crossFill = bg;
+        var crossScale = (0, _utils.randomInRange)(0.25, .3) * w;
 
         var cr = void 0;
 
@@ -3620,7 +3744,16 @@ function circles(options) {
             (0, _shapes.drawCircle)(ctx, w / 2, -h * (r - 1), h * r, { fill: null, stroke: fg });
         };
 
-        ctx.lineWidth = (0, _utils.randomInRange)(1, w / 30);
+        // base line weight
+        var weight = (0, _utils.randomInRange)(1, w / 60);
+        var gridWeight = weight * (0, _utils.randItem)([1, 1.5, 2]);
+        var crossWeight = weight * (0, _utils.randItem)([1, 1.5, 2]);
+
+        ctx.lineWidth = weight;
+        console.log('cell width', w, 'line', weight);
+
+        var gridR = w / 2;
+        gridR = w * (0, _utils.randomInRange)(0.125, 0.5);
 
         for (var i = 0; i < vcount; i++) {
             for (var j = 0; j < count; j++) {
@@ -3634,16 +3767,24 @@ function circles(options) {
                 ctx.translate(x, y);
                 clipSquare(ctx, w, h, bg);
 
-                (0, _shapes.drawCircle)(ctx, 0, 0, w / 2, { fill: null, stroke: fg });
-                (0, _shapes.drawCircle)(ctx, w, 0, w / 2, { fill: null, stroke: fg });
-                (0, _shapes.drawCircle)(ctx, w, h, w / 2, { fill: null, stroke: fg });
-                (0, _shapes.drawCircle)(ctx, 0, h, w / 2, { fill: null, stroke: fg });
+                ctx.lineWidth = gridWeight;
+                // fg = '#000099';
+                // fg = '#2222aa';
+
+                (0, _shapes.drawCircle)(ctx, 0, 0, gridR, { fill: null, stroke: fg });
+                (0, _shapes.drawCircle)(ctx, w, 0, gridR, { fill: null, stroke: fg });
+                (0, _shapes.drawCircle)(ctx, w, h, gridR, { fill: null, stroke: fg });
+                (0, _shapes.drawCircle)(ctx, 0, h, gridR, { fill: null, stroke: fg });
+
+                // fg = '#990000';
+                // fg = '#2222aa';
+                ctx.lineWidth = crossWeight;
 
                 crossPattern(c1);
                 crossPattern(c2);
 
                 if (crossDots && i % 2 === j % 2) {
-                    //drawCircle(ctx, w/2, h/2, crossScale, {fill: crossFill, stroke: fg});
+                    (0, _shapes.drawCircle)(ctx, w / 2, h / 2, crossScale, { fill: crossFill, stroke: fg });
                 }
 
                 cr = Math.sqrt(Math.pow(xnorm - xref, 2) + Math.pow(ynorm - yref, 2)) / .7071;
@@ -3654,7 +3795,12 @@ function circles(options) {
 
                 (0, _shapes.drawCircle)(ctx, w / 2, h / 2, dotMin + dotScale * w * cr, { fill: dotFill, stroke: fg });
 
-                (0, _shapes.drawCircle)(ctx, w / 2, h / 2, dotMin + dotScale * w * cr + ctx.lineWidth * 2, { fill: null, stroke: fg });
+                // drawCircle(ctx,
+                //     w/2,
+                //     h/2,
+                //     dotMin + dotScale * w * cr + ctx.lineWidth * 2,
+                //     {fill: null, stroke: fg});
+
 
                 // unshift, unclip
                 ctx.restore();
@@ -3665,6 +3811,7 @@ function circles(options) {
 
     // gather our modes
     var modes = [snakes, rings, pattern];
+    //modes = [pattern];
 
     // do the loop with one of our modes
     (0, _utils.randItem)(modes)();
@@ -5351,7 +5498,10 @@ function fragments(options) {
 /* 33 */,
 /* 34 */,
 /* 35 */,
-/* 36 */
+/* 36 */,
+/* 37 */,
+/* 38 */,
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

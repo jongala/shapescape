@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 37);
+/******/ 	return __webpack_require__(__webpack_require__.s = 40);
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -88,6 +88,11 @@ exports.hexToRgb = hexToRgb;
 exports.colorDistanceArray = colorDistanceArray;
 exports.closestColor = closestColor;
 exports.scalarVec = scalarVec;
+exports.getAngle = getAngle;
+exports.getVector = getVector;
+exports.averagePoints = averagePoints;
+exports.pointsToPath = pointsToPath;
+exports.mapKeywordToVal = mapKeywordToVal;
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
@@ -255,6 +260,87 @@ function scalarVec(vec, scalar) {
     return vec.map(function (x) {
         return x * scalar;
     });
+}
+
+// util
+// get angle between @a and @b of form [x, y]
+// returns in radians
+function getAngle(a, b) {
+    var dx = b[0] - a[0];
+    var dy = b[1] - a[1];
+    return Math.atan2(dy, dx);
+}
+
+// util
+// get vector between @a and @b of form [x, y]
+// return object with x, y = @a, angle, length
+function getVector(a, b) {
+    var dx = b[0] - a[0];
+    var dy = b[1] - a[1];
+    var theta = Math.atan2(dy, dx);
+    var length = Math.sqrt(dx * dx + dy * dy);
+    return {
+        x: a[0],
+        y: a[1],
+        angle: theta,
+        length: length
+    };
+}
+
+// get the average coordinates from an array of
+// @points in [x,y] form
+function averagePoints(points) {
+    var avg = [0, 0];
+    for (var i = 0; i < points.length; i++) {
+        avg[0] += points[i][0];
+        avg[1] += points[i][1];
+    }
+    avg[0] /= points.length;
+    avg[1] /= points.length;
+    return avg;
+}
+
+// Create a path in @ctx by stepping through the points
+// in @points, which are in [x,y] array form
+function pointsToPath(ctx, points) {
+    // copy the points list, so we don't mutate
+    var pts = points.concat([]);
+    ctx.beginPath();
+    ctx.moveTo.apply(ctx, _toConsumableArray(pts.shift()));
+    while (pts.length) {
+        ctx.lineTo.apply(ctx, _toConsumableArray(pts.shift()));
+    }
+    ctx.closePath();
+    return ctx;
+}
+
+// map named values of props, e.g. low, med, high…
+// to values, as defined in the obj @props
+// If values are arrays, use @accessor function to pick.
+// Respect 'auto' as special case for @name
+function mapKeywordToVal(props) {
+    var accessor = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : randomInRange;
+
+    var names = Object.keys(props);
+
+    return function (name) {
+        var label = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'param';
+
+        if (name === 'auto' || name === 'AUTO') {
+            name = randItem(names);
+            console.log(label + ': auto picked ' + name);
+        }
+        if (props[name] === undefined) {
+            name = names[0];
+            console.log(label + ': fell back to ' + name);
+        }
+        var val = props[name];
+        if (Array.isArray(val)) {
+            return accessor.apply(undefined, _toConsumableArray(val));
+        } else {
+            return val;
+        }
+    };
 }
 
 /***/ }),
@@ -552,31 +638,6 @@ function truchet(options) {
         ctx.fill();
     }
 
-    // draw an arc around anchor corner
-    function _arc(anchor, color) {
-        var corners = [[0, 0], [w, 0], [w, h], [0, h]];
-        if (anchor === undefined) anchor = Math.round((0, _utils.randomInRange)(0, 3));
-
-        (0, _shapes.drawCircle)(ctx, corners[anchor][0], corners[anchor][1], w / 2, {
-            stroke: color
-        });
-    }
-
-    // draw arc terminals for anchor corner
-    function _terminal(size, anchor, color) {
-        var corners = [[w / 2, 0], [w, h / 2], [w / 2, h], [0, h / 2]];
-        if (anchor === undefined) anchor = Math.round((0, _utils.randomInRange)(0, 3));
-        var a = anchor % corners.length;
-        var b = (anchor + 3) % corners.length;
-
-        (0, _shapes.drawCircle)(ctx, corners[a][0], corners[a][1], size, {
-            fill: color
-        });
-        (0, _shapes.drawCircle)(ctx, corners[b][0], corners[b][1], size, {
-            fill: color
-        });
-    }
-
     // mode
     function circles(background) {
         background = background || bg;
@@ -679,96 +740,8 @@ function truchet(options) {
         }
     }
 
-    //mode
-    function arcs(background, weight) {
-        background = background || bg;
-        ctx.lineWidth = weight;
-        for (var i = 0; i < vcount; i++) {
-            for (var j = 0; j < count; j++) {
-                // convenience vars
-                x = w * j;
-                y = h * i;
-                xnorm = x / cw;
-                ynorm = y / ch;
-
-                // shift and clip
-                ctx.translate(x, y);
-                clipSquare(ctx, w, h, background);
-
-                if (Math.random() < 0.5) {
-                    _arc(0, fg);
-                    _arc(2, fg);
-                } else {
-                    _arc(1, fg);
-                    _arc(3, fg);
-                }
-
-                // unshift, unclip
-                ctx.restore();
-                (0, _utils.resetTransform)(ctx);
-            }
-        }
-    }
-
-    // mode
-    function arcs2(background, weight) {
-        background = background || bg;
-        ctx.lineWidth = weight;
-
-        for (var i = 0; i < vcount; i++) {
-            for (var j = 0; j < count; j++) {
-                // convenience vars
-                x = w * j;
-                y = h * i;
-                xnorm = x / cw;
-                ynorm = y / ch;
-
-                // shift and clip
-                ctx.translate(x, y);
-                clipSquare(ctx, w, h, background);
-
-                switch (Math.round((0, _utils.randomInRange)(1, 9))) {
-                    case 1:
-                    case 2:
-                        _arc(0, fg);
-                        _arc(2, fg);
-                        break;
-                    case 3:
-                    case 4:
-                        _arc(1, fg);
-                        _arc(3, fg);
-                        break;
-                    case 5:
-                        _arc(0, fg);
-                        _terminal(weight / 2, 2, fg);
-                        break;
-                    case 6:
-                        _arc(1, fg);
-                        _terminal(weight / 2, 3, fg);
-                        break;
-                    case 7:
-                        _arc(2, fg);
-                        _terminal(weight / 2, 0, fg);
-                        break;
-                    case 8:
-                        _arc(3, fg);
-                        _terminal(weight / 2, 1, fg);
-                        break;
-                    case 9:
-                        _terminal(weight / 2, 0, fg);
-                        _terminal(weight / 2, 2, fg);
-                        break;
-                }
-
-                // unshift, unclip
-                ctx.restore();
-                (0, _utils.resetTransform)(ctx);
-            }
-        }
-    }
-
     // gather our modes
-    var modes = [circles, triangles, mixed, arcs, arcs2];
+    var modes = [circles, triangles, mixed];
 
     // do the loop with one of our modes
     renderer = (0, _utils.randItem)(modes);
@@ -853,6 +826,10 @@ var lemon_beach = exports.lemon_beach = ['#d7d7d7', '#979797', '#cabd9d', '#e4ca
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+exports.drawLine = drawLine;
 /*
  * Scaffolding for a drawing function.
  * Implements basic setup for placement, rotation, stroke, fill,
@@ -971,9 +948,24 @@ var drawTriangle = exports.drawTriangle = function drawTriangle(ctx, x, y, d, op
 var drawPentagon = exports.drawPentagon = _drawPolygon(5, 1.1);
 var drawHexagon = exports.drawHexagon = _drawPolygon(6, 1.05);
 
+// Draw a line from @a to @b, where they are of form [x, y]
+function drawLine(ctx, a, b) {
+    var _a = _slicedToArray(a, 2),
+        x1 = _a[0],
+        y1 = _a[1];
+
+    var _b = _slicedToArray(b, 2),
+        x2 = _b[0],
+        y2 = _b[1];
+
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+}
+
 /***/ }),
 
-/***/ 37:
+/***/ 40:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -995,7 +987,7 @@ var _colorbrewer2 = _interopRequireDefault(_colorbrewer);
 
 var _truchet = __webpack_require__(17);
 
-var _numerals = __webpack_require__(38);
+var _numerals = __webpack_require__(41);
 
 var _utils = __webpack_require__(0);
 
@@ -1117,7 +1109,7 @@ setInterval(function () {
 
 /***/ }),
 
-/***/ 38:
+/***/ 41:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
