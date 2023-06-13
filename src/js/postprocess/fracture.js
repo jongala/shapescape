@@ -28,7 +28,7 @@ export function fracture(canvas, regions=2) {
     let THICK = (Math.random() < 0.5);
     let magSteps = 10;
     // scale offset for thick plate rendering
-    let offset = SCALE/800 * randomInRange(0.3, 0.7);
+    let offset = SCALE/800 * randomInRange(0.4, 0.7);
 
     console.log(`fragment, ${regions} regions`);
 
@@ -181,6 +181,13 @@ export function fracture(canvas, regions=2) {
         edgeGrad.addColorStop(0.3, '#668877');
         edgeGrad.addColorStop(1, '#1a4d33');
 
+        // separate coords for the inner edge of thick plates
+        let innerEdgeGrad = ctx.createLinearGradient(rn(cw), rn(ch),
+            rn(cw), rn(ch));
+        innerEdgeGrad.addColorStop(0, '#ffffff');
+        innerEdgeGrad.addColorStop(0.3, '#666f6a');
+        innerEdgeGrad.addColorStop(1, '#224433');
+
 
         // fill the masked area with the white gradient, lightly.
         // use overlay composite for relatively color neutral effects
@@ -225,17 +232,21 @@ export function fracture(canvas, regions=2) {
                 (thickness/2 + diffract) * Math.cos(theta),
                 (thickness/2 + diffract) * Math.sin(theta)
             );
-            // restore standard line weight
-            ctx.lineWidth = weight;
+
+            // lighter stroke for inner edge
+            ctx.lineWidth = weight/2;
 
             // light inner edge to catch other plate edge hilite
             ctx.globalCompositeOperation = 'color-dodge';
             ctx.globalAlpha = (BRIGHTEDGE)? randomInRange(0.4, 0.8) : randItem([0, 0, randomInRange(0.2)]);
-            ctx.strokeStyle = lightGrad;
-            ctx.translate(-thickness * diffract * Math.cos(theta), -thickness * diffract * Math.sin(theta));
+            ctx.strokeStyle = innerEdgeGrad;
+            ctx.translate(-(thickness + diffract) * Math.cos(theta), -(thickness + diffract) * Math.sin(theta));
             drawLine(ctx, ...edgePts);
             ctx.stroke();
-            ctx.translate(thickness * diffract * Math.cos(theta), thickness * diffract * Math.sin(theta));
+            ctx.translate((thickness + diffract) * Math.cos(theta), (thickness + diffract) * Math.sin(theta));
+
+            // restore standard line weight
+            ctx.lineWidth = weight;
         }
 
 
