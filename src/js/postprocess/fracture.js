@@ -131,7 +131,7 @@ export function fracture(canvas, regions=2) {
         // --------------------------------------
 
         // pick edge weight
-        let weight = SCALE/800 * randomInRange(1, 3);
+        let weight = SCALE/800 * randomInRange(2, 3.5);
         ctx.lineWidth = weight;
 
         // we will re-use these coordinates in multiple gradients for
@@ -154,12 +154,12 @@ export function fracture(canvas, regions=2) {
         // Create gradients for the edges, using common coordinates but
         // different colors to align them and suggest unified light source
         let pinkGrad = ctx.createLinearGradient(...gradientPoints);
-        pinkGrad.addColorStop(0, 'rgba(255, 0, 255, 1)');
+        pinkGrad.addColorStop(0, 'rgba(255, 0, 255, 0.9)');
         pinkGrad.addColorStop(0.5, 'rgba(255, 0, 255, 0.4)');
         pinkGrad.addColorStop(1, 'rgba(255, 0, 255, 0.2)');
 
         let greenGrad = ctx.createLinearGradient(...gradientPoints);
-        greenGrad.addColorStop(0, 'rgba(0, 255, 0, 1)');
+        greenGrad.addColorStop(0, 'rgba(0, 255, 0, 0.9)');
         greenGrad.addColorStop(0.5, 'rgba(0, 255, 0, 0.4)');
         greenGrad.addColorStop(1, 'rgba(0, 255, 0, 0.2)');
 
@@ -178,14 +178,14 @@ export function fracture(canvas, regions=2) {
         let edgeGrad = ctx.createLinearGradient(rn(cw), rn(ch),
             rn(cw), rn(ch));
         edgeGrad.addColorStop(0, '#ffffff');
-        edgeGrad.addColorStop(0.3, '#668877');
+        edgeGrad.addColorStop(0.5, '#668877');
         edgeGrad.addColorStop(1, '#1a4d33');
 
         // separate coords for the inner edge of thick plates
         let innerEdgeGrad = ctx.createLinearGradient(rn(cw), rn(ch),
             rn(cw), rn(ch));
         innerEdgeGrad.addColorStop(0, '#ffffff');
-        innerEdgeGrad.addColorStop(0.3, '#666f6a');
+        innerEdgeGrad.addColorStop(0.5, '#666f6a');
         innerEdgeGrad.addColorStop(1, '#224433');
 
 
