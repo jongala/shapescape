@@ -12,17 +12,18 @@ const DEFAULTS = {
     skew: 1, // normalized skew
     clear: true,
 
-    splitting: 'med',
-    budding: 'med',
-    stopping: 'med',
+    splitting: 'auto',
+    budding: 'auto',
+    stopping: 'auto',
     flowering: 'auto',
     divergence: 'auto', // degrees
-    growthDecay: 'med',
-    straightening: 'med',
-    thinning: 'med',
-    leaning: 'med',
+    growthDecay: 'auto',
+    curvature: 'auto',
+    straightening: 'auto',
+    thinning: 'auto',
+    leaning: 'auto',
     roughness: 'auto',
-    knobbiness: 'med',
+    knobbiness: 'auto',
 }
 
 const PI = Math.PI;
@@ -89,6 +90,11 @@ export function plants(options) {
         'med': 0.8,
         'high': 0.7
     })(opts.growthDecay, 'decay');
+    const CURVATURE = mapKeywordToVal({
+        'low': [0, 0.05],
+        'med': [0.05, 0.1],
+        'high': [0.1, 0.15]
+    })(opts.curvature, 'curvature');
     const STRAIGHTENING = mapKeywordToVal({
         'low': 1,
         'med': 0.85,
@@ -172,8 +178,6 @@ export function plants(options) {
         // reset transforms
         ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-        //console.log(`drawSegment from ${x},${y} to ${x2},${y2}, angle ${angle * 180/PI} len ${length}`);
-
         return [x2, y2];
     }
 
@@ -182,7 +186,7 @@ export function plants(options) {
     // Draw with a trace of dots.
     // Use ROUGHNESS for jitter, and KNOBBINESS to scatter extra dots
     // around endpoints.
-    function drawSegment (x, y, angle, length, size=3, curvature=0.2, color=fg) {
+    function drawPlantSegment (x, y, angle, length, size=3, curvature=0.2, color=fg) {
         // translate to a, point toward b
         ctx.translate(x, y);
         ctx.rotate(-angle);
@@ -365,7 +369,7 @@ export function plants(options) {
 
     // test segment renderers
     // ctx.strokeStyle = '#39c';
-    // drawSegment(p1[0], p1[1], v.angle, v.length);
+    // drawLineSegment(p1[0], p1[1], v.angle, v.length);
 
     // ctx.strokeStyle = '#39c';
     // traceSegment(p1[0], p1[1], v.angle, v.length, 3, -0.2);
@@ -450,7 +454,7 @@ export function plants(options) {
             angle: PI/2 + randomInRange(-PI/8, PI/8),
             width: SCALE/100 * randomInRange(0.5, 0.75),
             budSize: SCALE/100 * randomInRange(0.33, 0.5),
-            curvature: 0.1,
+            curvature: CURVATURE,
             lean: randomInRange(-1, 1),
             color: 'color',
             stepCount: randomInt(5, 7),
@@ -497,7 +501,7 @@ export function plants(options) {
             );*/
 
             // then in fg
-            [branch.x, branch.y] = drawSegment(
+            [branch.x, branch.y] = drawPlantSegment(
                 branch.x,
                 branch.y,
                 branch.angle,
