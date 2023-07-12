@@ -456,7 +456,7 @@ var pnames = Object.keys(appPalettes);
 pnames.forEach(function(pname) {
     var option = document.createElement('option');
     option.value = pname;
-    option.innerHTML = pname;
+    option.innerHTML = pname.replace(/_/g,' ');
     if(pname === "default") {
         option.innerHTML = "default colors";
     }
