@@ -4453,7 +4453,7 @@ var DEFAULTS = {
 
     var rightLine = function rightLine(d, i) {
         ctx.beginPath();
-        ctx.moveTo(d * w + w / 2, i * h + h / 2);
+        ctx.moveTo(d * w + w / 2 + ctx.lineWidth, i * h + h / 2);
         ctx.lineTo(cw, i * h + h / 2);
         ctx.strokeStyle = rightColor;
         ctx.stroke();
@@ -4461,7 +4461,7 @@ var DEFAULTS = {
 
     var leftLine = function leftLine(d, i) {
         ctx.beginPath();
-        ctx.moveTo(d * w - w / 2, i * h + h / 2);
+        ctx.moveTo(d * w - w / 2 - ctx.lineWidth, i * h + h / 2);
         ctx.lineTo(0, i * h + h / 2);
         ctx.strokeStyle = leftColor;
         ctx.stroke();
@@ -4469,7 +4469,7 @@ var DEFAULTS = {
 
     var downLine = function downLine(d, i) {
         ctx.beginPath();
-        ctx.moveTo(i * w + w / 2, d * h + h / 2);
+        ctx.moveTo(i * w + w / 2, d * h + h / 2 + ctx.lineWidth);
         ctx.lineTo(i * w + w / 2, ch);
         ctx.strokeStyle = downColor;
         ctx.stroke();

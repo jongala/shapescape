@@ -4782,7 +4782,7 @@ var DEFAULTS = {
 
     var rightLine = function rightLine(d, i) {
         ctx.beginPath();
-        ctx.moveTo(d * w + w / 2, i * h + h / 2);
+        ctx.moveTo(d * w + w / 2 + ctx.lineWidth, i * h + h / 2);
         ctx.lineTo(cw, i * h + h / 2);
         ctx.strokeStyle = rightColor;
         ctx.stroke();
@@ -4790,7 +4790,7 @@ var DEFAULTS = {
 
     var leftLine = function leftLine(d, i) {
         ctx.beginPath();
-        ctx.moveTo(d * w - w / 2, i * h + h / 2);
+        ctx.moveTo(d * w - w / 2 - ctx.lineWidth, i * h + h / 2);
         ctx.lineTo(0, i * h + h / 2);
         ctx.strokeStyle = leftColor;
         ctx.stroke();
@@ -4798,7 +4798,7 @@ var DEFAULTS = {
 
     var downLine = function downLine(d, i) {
         ctx.beginPath();
-        ctx.moveTo(i * w + w / 2, d * h + h / 2);
+        ctx.moveTo(i * w + w / 2, d * h + h / 2 + ctx.lineWidth);
         ctx.lineTo(i * w + w / 2, ch);
         ctx.strokeStyle = downColor;
         ctx.stroke();
@@ -6370,7 +6370,7 @@ var pnames = Object.keys(appPalettes);
 pnames.forEach(function (pname) {
     var option = document.createElement('option');
     option.value = pname;
-    option.innerHTML = pname;
+    option.innerHTML = pname.replace(/_/g, ' ');
     if (pname === "default") {
         option.innerHTML = "default colors";
     }
@@ -9739,17 +9739,18 @@ var DEFAULTS = {
     skew: 1, // normalized skew
     clear: true,
 
-    splitting: 'med',
-    budding: 'med',
-    stopping: 'med',
+    splitting: 'auto',
+    budding: 'auto',
+    stopping: 'auto',
     flowering: 'auto',
     divergence: 'auto', // degrees
-    growthDecay: 'med',
-    straightening: 'med',
-    thinning: 'med',
-    leaning: 'med',
+    growthDecay: 'auto',
+    curvature: 'auto',
+    straightening: 'auto',
+    thinning: 'auto',
+    leaning: 'auto',
     roughness: 'auto',
-    knobbiness: 'med'
+    knobbiness: 'auto'
 };
 
 var PI = Math.PI;
@@ -9815,6 +9816,11 @@ function plants(options) {
         'med': 0.8,
         'high': 0.7
     })(opts.growthDecay, 'decay');
+    var CURVATURE = (0, _utils.mapKeywordToVal)({
+        'low': [0, 0.05],
+        'med': [0.05, 0.1],
+        'high': [0.1, 0.15]
+    })(opts.curvature, 'curvature');
     var STRAIGHTENING = (0, _utils.mapKeywordToVal)({
         'low': 1,
         'med': 0.85,
@@ -9901,8 +9907,6 @@ function plants(options) {
         // reset transforms
         ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-        //console.log(`drawSegment from ${x},${y} to ${x2},${y2}, angle ${angle * 180/PI} len ${length}`);
-
         return [x2, y2];
     }
 
@@ -9911,7 +9915,7 @@ function plants(options) {
     // Draw with a trace of dots.
     // Use ROUGHNESS for jitter, and KNOBBINESS to scatter extra dots
     // around endpoints.
-    function drawSegment(x, y, angle, length) {
+    function drawPlantSegment(x, y, angle, length) {
         var size = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 3;
         var curvature = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 0.2;
         var color = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : fg;
@@ -10079,7 +10083,7 @@ function plants(options) {
 
     // test segment renderers
     // ctx.strokeStyle = '#39c';
-    // drawSegment(p1[0], p1[1], v.angle, v.length);
+    // drawLineSegment(p1[0], p1[1], v.angle, v.length);
 
     // ctx.strokeStyle = '#39c';
     // traceSegment(p1[0], p1[1], v.angle, v.length, 3, -0.2);
@@ -10145,7 +10149,7 @@ function plants(options) {
             angle: PI / 2 + (0, _utils.randomInRange)(-PI / 8, PI / 8),
             width: SCALE / 100 * (0, _utils.randomInRange)(0.5, 0.75),
             budSize: SCALE / 100 * (0, _utils.randomInRange)(0.33, 0.5),
-            curvature: 0.1,
+            curvature: CURVATURE,
             lean: (0, _utils.randomInRange)(-1, 1),
             color: 'color',
             stepCount: (0, _utils.randomInt)(5, 7),
@@ -10190,12 +10194,12 @@ function plants(options) {
 
             // then in fg
 
-            var _drawSegment = drawSegment(branch.x, branch.y, branch.angle, branch.length, branch.width, branch.curvature * curveSign, fg);
+            var _drawPlantSegment = drawPlantSegment(branch.x, branch.y, branch.angle, branch.length, branch.width, branch.curvature * curveSign, fg);
 
-            var _drawSegment2 = _slicedToArray(_drawSegment, 2);
+            var _drawPlantSegment2 = _slicedToArray(_drawPlantSegment, 2);
 
-            branch.x = _drawSegment2[0];
-            branch.y = _drawSegment2[1];
+            branch.x = _drawPlantSegment2[0];
+            branch.y = _drawPlantSegment2[1];
 
 
             var splitSign = void 0;
@@ -10973,7 +10977,7 @@ function fracture(canvas) {
         // --------------------------------------
 
         // pick edge weight
-        var weight = SCALE / 800 * (0, _utils.randomInRange)(1, 3);
+        var weight = SCALE / 800 * (0, _utils.randomInRange)(2, 3.5);
         ctx.lineWidth = weight;
 
         // we will re-use these coordinates in multiple gradients for
@@ -10993,12 +10997,12 @@ function fracture(canvas) {
         // Create gradients for the edges, using common coordinates but
         // different colors to align them and suggest unified light source
         var pinkGrad = ctx.createLinearGradient.apply(ctx, gradientPoints);
-        pinkGrad.addColorStop(0, 'rgba(255, 0, 255, 1)');
+        pinkGrad.addColorStop(0, 'rgba(255, 0, 255, 0.9)');
         pinkGrad.addColorStop(0.5, 'rgba(255, 0, 255, 0.4)');
         pinkGrad.addColorStop(1, 'rgba(255, 0, 255, 0.2)');
 
         var greenGrad = ctx.createLinearGradient.apply(ctx, gradientPoints);
-        greenGrad.addColorStop(0, 'rgba(0, 255, 0, 1)');
+        greenGrad.addColorStop(0, 'rgba(0, 255, 0, 0.9)');
         greenGrad.addColorStop(0.5, 'rgba(0, 255, 0, 0.4)');
         greenGrad.addColorStop(1, 'rgba(0, 255, 0, 0.2)');
 
@@ -11016,13 +11020,13 @@ function fracture(canvas) {
         // since it should have different light source
         var edgeGrad = ctx.createLinearGradient(rn(cw), rn(ch), rn(cw), rn(ch));
         edgeGrad.addColorStop(0, '#ffffff');
-        edgeGrad.addColorStop(0.3, '#668877');
+        edgeGrad.addColorStop(0.5, '#668877');
         edgeGrad.addColorStop(1, '#1a4d33');
 
         // separate coords for the inner edge of thick plates
         var innerEdgeGrad = ctx.createLinearGradient(rn(cw), rn(ch), rn(cw), rn(ch));
         innerEdgeGrad.addColorStop(0, '#ffffff');
-        innerEdgeGrad.addColorStop(0.3, '#666f6a');
+        innerEdgeGrad.addColorStop(0.5, '#666f6a');
         innerEdgeGrad.addColorStop(1, '#224433');
 
         // fill the masked area with the white gradient, lightly.
