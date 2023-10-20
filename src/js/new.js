@@ -1,6 +1,6 @@
 import noiseUtils from './noiseutils';
 import palettes from './palettes';
-import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
+import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, getAngle, getVector, mapKeywordToVal } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
 const DEFAULTS = {
@@ -10,9 +10,7 @@ const DEFAULTS = {
     noiseInput: null,
     dust: false,
     skew: 1, // normalized skew
-    clear: true,
-    lightMode: 'auto', // [auto, bloom, normal]
-    gridMode: 'auto', // [auto, coarse, fine]
+    clear: true
 }
 
 const PI = Math.PI;
@@ -57,6 +55,13 @@ export function newName(options) {
 
     // shared foregrounds
     let fg = getContrastColor();
+
+    // fill background
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, cw, ch);
+
+    // set default stroke
+    ctx.strokeStyle = fg;
 
 
     // Draw Stuff
