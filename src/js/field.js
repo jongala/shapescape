@@ -112,7 +112,6 @@ export function field(options) {
     let dotFill = fg2;
 
 
-    let cellCount = cw/cellSize;
     let rateMax = 3;
     if (DENSITY === 'fine' && Math.random() < 0.5) {
         rateMax = 6;
@@ -256,10 +255,10 @@ export function field(options) {
         let xcount = Math.ceil(w / size) + 2;
         let ycount = Math.ceil(h / size) + 2;
         let count = xcount * ycount;
-        let x,y;
+        let x, y;
         for (var i = 0 ; i < count ; i++) {
             x = size * ((i % xcount) - 1) + size / 2;
-            y = size * (Math.floor(i/ycount) - 1) + size / 2;
+            y = size * (Math.floor(i/xcount) - 1) + size / 2;
             pts.push([x, y]);
         }
         return pts;
