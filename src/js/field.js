@@ -12,6 +12,7 @@ const DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     clear: true,
+    colorMode: 'auto', // from COLORMODES or 'auto'
     fieldMode: 'auto', // [auto, harmonic, flow]
     lightMode: 'normal', // [auto, bloom, normal]
     gridMode: 'auto', // [auto, normal, scatter, random]
@@ -23,6 +24,7 @@ const FIELDMODES = ['harmonic', 'flow'];
 const LIGHTMODES = ['bloom', 'normal'];
 const GRIDMODES = ['normal', 'scatter', 'random'];
 const DENSITIES = ['coarse', 'fine'];
+const COLORMODES = ['normal', 'angle'];
 
 // Main function
 export function field(options) {
@@ -56,6 +58,7 @@ export function field(options) {
     const GRIDMODE = opts.gridMode === 'auto' ? randItem(GRIDMODES) : opts.gridMode;
     const DENSITY = opts.density === 'auto' ? randItem(DENSITIES) : opts.density;
     const FIELDMODE = opts.fieldMode === 'auto' ? randItem(FIELDMODES) : opts.fieldMode;
+    const COLORMODE = opts.colorMode === 'auto' ? randItem(COLORMODES) : opts.colorMode;
 
     // color funcs
     let getSolidFill = getSolidColorFunction(opts.palette);
@@ -71,7 +74,7 @@ export function field(options) {
     }
 
     let cellSize = Math.round(SHORT / randomInRange( countMin, countMax ));
-    console.log(`cellSize: ${cellSize}, ${GRIDMODE}, ${DENSITY}, ${FIELDMODE}`);
+    console.log(`Field: ${DENSITY}(${cellSize}px) ${GRIDMODE}  ${FIELDMODE}`);
 
     // setup vars for each cell
     let x = 0;
@@ -103,7 +106,10 @@ export function field(options) {
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, cw, ch);
 
+    // set default tail color
     ctx.strokeStyle = fg;
+    // set default dot color
+    let dotFill = fg2;
 
 
     let cellCount = cw/cellSize;
@@ -136,7 +142,7 @@ export function field(options) {
     // Only do this sometimes, and not when scattering
     let warp = 0;
     if (GRIDMODE !== 'scatter' && (Math.random() < 0.5)) {
-        warp = randomInRange(0, Math.sqrt(2));
+        warp = randomInRange(0.75, Math.sqrt(2));
     }
 
     // set of functions to transform opacity across grid
@@ -213,7 +219,7 @@ export function field(options) {
                     }; // min r
 
                     let scalar = source.sign * source.strength/(_r);
-                    
+
                     let _x = scalar * (dx);
                     let _y = scalar * (dy);
                     v[0] += _x;
@@ -289,7 +295,21 @@ export function field(options) {
     let sourceTransform = createSourceSinkTransform(Math.round(randomInRange(5, 15)));
 
 
-    ctx.strokeStyle = fg;
+    // Flags for coloring by angle
+    // Don't do special coloring in bloom mode, because it relies on grayscale
+    // initial rendering
+    let colorTailByAngle = false;
+    let colorDotByAngle = false;
+    if (COLORMODE === 'angle' && LIGHTMODE !== 'bloom') {
+        if (Math.random() < 0.5) {
+            colorTailByAngle = true;
+        }
+        if (Math.random() < 0.5) {
+            colorDotByAngle = true;
+        }
+    }
+
+    // console.log(`Colors: tails ${colorTailByAngle}, dots: ${colorDotByAngle}`);
 
     // source/sink stuff
     if (FIELDMODE === 'flow') {
@@ -307,20 +327,11 @@ export function field(options) {
         xnorm = x/cw;
         ynorm = y/ch;
 
-        
-
         // shift base points to their warped coordinates
         x = x + cellSize * trans.xbase(xnorm, ynorm) * warp;
         y = y + cellSize * trans.ybase(xnorm, ynorm) * warp;
 
-        ctx.globalAlpha = 1;
-        drawCircle(ctx,
-            x,
-            y,
-            (trans.radius(xnorm, ynorm) + 1) * dotScale,
-            {fill: fg2}
-        );
-
+        // get end of tail coords
         if (FIELDMODE === 'flow') {
             // flow fields (source-sink)
             let flow = sourceTransform.t(xnorm, ynorm);
@@ -332,7 +343,28 @@ export function field(options) {
             _y = trans.ytail(xnorm, ynorm);
         }
 
+        let theta = Math.atan2(_y, _x);
+        let fillIndex = Math.round(contrastPalette.length * theta/PI / 2);
+        let angleColor = contrastPalette[fillIndex];
+
+        if (colorDotByAngle) {
+            dotFill = angleColor;
+        }
+
+        // draw dot
+        ctx.globalAlpha = 1;
+        drawCircle(ctx,
+            x,
+            y,
+            (trans.radius(xnorm, ynorm) + 1) * dotScale,
+            {fill: dotFill}
+        );
+
         ctx.globalAlpha = opacityFunc(_x, _y);
+
+        if (colorTailByAngle) {
+            ctx.strokeStyle = angleColor;
+        }
 
         ctx.beginPath();
         ctx.moveTo(x, y);
