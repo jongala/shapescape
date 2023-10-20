@@ -24,7 +24,7 @@ const FIELDMODES = ['harmonic', 'flow'];
 const LIGHTMODES = ['bloom', 'normal'];
 const GRIDMODES = ['normal', 'scatter', 'random'];
 const DENSITIES = ['coarse', 'fine'];
-const COLORMODES = ['normal', 'angle'];
+const COLORMODES = ['single', 'angle', 'random'];
 
 // Main function
 export function field(options) {
@@ -74,7 +74,7 @@ export function field(options) {
     }
 
     let cellSize = Math.round(SHORT / randomInRange( countMin, countMax ));
-    console.log(`Field: ${DENSITY}(${cellSize}px) ${GRIDMODE}  ${FIELDMODE}`);
+    console.log(`Field: ${DENSITY}(${cellSize}px) ${GRIDMODE} ${FIELDMODE} ${COLORMODE}`);
 
     // setup vars for each cell
     let x = 0;
@@ -300,12 +300,18 @@ export function field(options) {
     // initial rendering
     let colorTailByAngle = false;
     let colorDotByAngle = false;
-    if (COLORMODE === 'angle' && LIGHTMODE !== 'bloom') {
-        if (Math.random() < 0.5) {
-            colorTailByAngle = true;
+    let randomColorThreshold;
+    if (LIGHTMODE !== 'bloom') {
+        if (COLORMODE === 'angle') {
+            if (Math.random() < 0.6) {
+                colorTailByAngle = true;
+            }
+            if (Math.random() < 0.6) {
+                colorDotByAngle = true;
+            }
         }
-        if (Math.random() < 0.5) {
-            colorDotByAngle = true;
+        if (COLORMODE === 'random') {
+            randomColorThreshold = 0.66;
         }
     }
 
@@ -350,6 +356,9 @@ export function field(options) {
         if (colorDotByAngle) {
             dotFill = angleColor;
         }
+        if (COLORMODE === 'random' && Math.random() < randomColorThreshold) {
+            dotFill = getContrastColor();
+        }
 
         // draw dot
         ctx.globalAlpha = 1;
@@ -364,6 +373,9 @@ export function field(options) {
 
         if (colorTailByAngle) {
             ctx.strokeStyle = angleColor;
+        }
+        if (COLORMODE === 'random' && Math.random() < randomColorThreshold) {
+            ctx.strokeStyle = getContrastColor();
         }
 
         ctx.beginPath();
