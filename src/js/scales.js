@@ -57,6 +57,7 @@ export function scales(options) {
     let fg = getContrastColor();
     let fg2 = getContrastColor();
     let fg3 = getContrastColor();
+    //fg3 = fg;
 
     // fill background
     ctx.fillStyle = bg;
@@ -96,6 +97,19 @@ export function scales(options) {
             // 2C simple circle
             drawCircle(ctx, x, y, r * 1.0, {fill: c1});
             drawCircle(ctx, x, y, r * 0.9, {fill: c2});
+            drawCircle(ctx, x, y, r * 0.85, {fill: c1});
+            drawCircle(ctx, x, y, r * 0.75, {fill: c2});
+        },
+        function(x, y, r, c1, c2, c3) {
+            // 2C thin lines
+            drawCircle(ctx, x, y, r * 1.0, {fill: c1});
+            drawCircle(ctx, x, y, r * 0.9, {fill: c2});
+            drawCircle(ctx, x, y, r * 0.75, {fill: c1});
+            drawCircle(ctx, x, y, r * 0.65, {fill: c2});
+            drawCircle(ctx, x, y, r * 0.5, {fill: c1});
+            drawCircle(ctx, x, y, r * 0.4, {fill: c2});
+            drawCircle(ctx, x, y, r * 0.25, {fill: c1});
+            drawCircle(ctx, x, y, r * 0.15, {fill: c2});
         },
         function(x, y, r, c1, c2, c3) {
             // 2C evenly spaced rings
@@ -140,8 +154,8 @@ export function scales(options) {
             ctx.setLineDash([0, lineWidth * 1.5]);
             drawCircle(ctx, x, y, r * 1.0, {fill: c1});
             drawCircle(ctx, x, y, r * 0.9, {fill: c2});
-            drawCircle(ctx, x, y, r * 0.7, {fill: null, stroke: c3});
-            drawCircle(ctx, x, y, r * 0.45, {fill: null, stroke: c3});
+            drawCircle(ctx, x, y, r * 0.675, {fill: null, stroke: c3});
+            drawCircle(ctx, x, y, r * 0.425, {fill: null, stroke: c3});
             drawCircle(ctx, x, y, r * 0.2, {fill: c3});
         }
     ];
@@ -164,13 +178,15 @@ export function scales(options) {
     // .5 -> 1
 
 
-    let pts = [];
-    let ref = randomInt(10, 15);
+    let ref = randomInt(10, 15); // horizontal reference count
+    ref = Math.round(cw / randomInRange(60, 90));
     let size = Math.round(cw/ref * h_spacing);
     let xcount = Math.ceil(cw / size) + 2;
     let ycount = Math.ceil(ch / size) * 1/v_spacing + 2;
     let count = xcount * ycount;
 
+
+    let pts = [];
     let x, y;
     for (var j = 0 ; j < ycount ; j++) {
         for (var i = 0; i <= xcount ; i++) {
@@ -184,16 +200,25 @@ export function scales(options) {
 
     let xnorm, ynorm;
 
+    let renderSet = [].concat(scaleFunctions);
+    renderSet.sort(()=>Math.random()-0.5);
+
     pts.forEach((p, i) => {
         x = p[0];
         y = p[1];
         xnorm = x/cw;
         ynorm = y/ch;
 
+        //console.log(Math.floor(ynorm * (scaleFunctions.length - 1)));
+
+        scaleRenderer = renderSet[Math.round(ynorm * (renderSet.length - 1))];
+
         scaleRenderer(x, y, size/2, fg, fg2, fg3);
     });
 
 
+    ctx.setLineDash([]);
+    ctx.lineDashOffset = 0;
 
 
 
