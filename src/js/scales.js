@@ -165,24 +165,28 @@ export function scales(options) {
 
 
     // grid stuff
+    // --------------------------------------
 
     let v_spacing = 0.3; // .5 or less
-    let h_spacing = 0.9; //
+    let h_spacing = 0.915; //
 
+    // map spacing from v to h
     // .1 -> .75
     // .2 -> .8
-    // .25 -> .83
-    // .3 -> .9
-    // .3333 -> .93
+    // .23 -> .845
+    // .25 -> .85
+    // .28 -> .90
+    // .3 -> .915
+    // .3333 -> .93 // .3333 and above shows full center dots
     // .4 -> .96
     // .5 -> 1
 
 
     let ref = randomInt(10, 15); // horizontal reference count
     ref = Math.round(cw / randomInRange(60, 90));
-    let size = Math.round(cw/ref * h_spacing);
-    let xcount = Math.ceil(cw / size) + 2;
-    let ycount = Math.ceil(ch / size) * 1/v_spacing + 2;
+    let size = Math.round(cw / ref);
+    let xcount = Math.ceil(cw / size * 1 / h_spacing) + 2;
+    let ycount = Math.ceil(ch / size) * 1 / v_spacing + 2;
     let count = xcount * ycount;
 
 
@@ -196,6 +200,9 @@ export function scales(options) {
             pts.push([x, y]);
         }
     }
+
+    // end grid
+    // --------------------------------------
 
 
     let xnorm, ynorm;
