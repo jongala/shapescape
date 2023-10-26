@@ -203,6 +203,19 @@ export function scales(options) {
     let renderSet = [].concat(scaleFunctions);
     renderSet.sort(()=>Math.random()-0.5);
 
+
+    let PATCHES = true;
+    let clusterNodes = [];
+    if (PATCHES) {
+        // scatter N points for N renderers
+        renderSet.forEach((p, i)=>{
+            // push an x,y between 0 and 1, we will compare to normalize coords
+            clusterNodes.push([ randomInRange(0, 1), randomInRange(0, 1) ]);
+        });
+        // at render time, use the renderer closest to the point you are at
+        console.log(clusterNodes.toString());
+    }
+
     pts.forEach((p, i) => {
         x = p[0];
         y = p[1];
@@ -211,16 +224,45 @@ export function scales(options) {
 
         //console.log(Math.floor(ynorm * (scaleFunctions.length - 1)));
 
-        scaleRenderer = renderSet[Math.round(ynorm * (renderSet.length - 1))];
+        if (PATCHES) {
+            // pick renderer closest to this point
+            let minR = 2; // max squared dimension for normalized vals
+            let renderIndex = null;
+            let R;
+            clusterNodes.forEach((n, i)=>{
+                let dx = xnorm - n[0];
+                let dy = ynorm - n[1];
+                R = dx * dx + dy * dy;
+                if (R < minR) {
+                    minR = R;
+                    renderIndex = i;
+                }
+                //console.log(`renderer ${i}: ${R}`);
+            });
+            //console.log(`picked renderer ${renderIndex} with distance ${R}`);
+            scaleRenderer = renderSet[renderIndex];
+        } else {
+            // draw in bands based on ynorm
+            scaleRenderer = renderSet[Math.round(ynorm * (renderSet.length - 1))];
+        }
 
         scaleRenderer(x, y, size/2, fg, fg2, fg3);
     });
 
+    // debug: draw the reference nodes
+    // ctx.font = '14px sans-serif';
+    // ctx.textAlign = 'center';
+    // ctx.textBaseline = 'middle'
+    // clusterNodes.forEach((n, i)=>{
+    //     drawCircle(ctx, cw * n[0], ch * n[1], 10, {fill: 'black'});
+    //     ctx.fillStyle = 'white';
+    //     ctx.fillText(i, cw * n[0], ch * n[1]);
+    // });
 
+
+    // reset line dashes for other renderers
     ctx.setLineDash([]);
     ctx.lineDashOffset = 0;
-
-
 
 
     // Finish up
