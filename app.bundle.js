@@ -5116,6 +5116,7 @@ var DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     clear: true,
+    colorMode: 'auto', // from COLORMODES or 'auto'
     fieldMode: 'auto', // [auto, harmonic, flow]
     lightMode: 'normal', // [auto, bloom, normal]
     gridMode: 'auto', // [auto, normal, scatter, random]
@@ -5127,6 +5128,7 @@ var FIELDMODES = ['harmonic', 'flow'];
 var LIGHTMODES = ['bloom', 'normal'];
 var GRIDMODES = ['normal', 'scatter', 'random'];
 var DENSITIES = ['coarse', 'fine'];
+var COLORMODES = ['single', 'angle', 'random'];
 
 // Main function
 function field(options) {
@@ -5160,6 +5162,7 @@ function field(options) {
     var GRIDMODE = opts.gridMode === 'auto' ? (0, _utils.randItem)(GRIDMODES) : opts.gridMode;
     var DENSITY = opts.density === 'auto' ? (0, _utils.randItem)(DENSITIES) : opts.density;
     var FIELDMODE = opts.fieldMode === 'auto' ? (0, _utils.randItem)(FIELDMODES) : opts.fieldMode;
+    var COLORMODE = opts.colorMode === 'auto' ? (0, _utils.randItem)(COLORMODES) : opts.colorMode;
 
     // color funcs
     var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
@@ -5176,7 +5179,7 @@ function field(options) {
     }
 
     var cellSize = Math.round(SHORT / (0, _utils.randomInRange)(countMin, countMax));
-    console.log('cellSize: ' + cellSize + ', ' + GRIDMODE + ', ' + DENSITY + ', ' + FIELDMODE);
+    console.log('Field: ' + DENSITY + '(' + cellSize + 'px) ' + GRIDMODE + ' ' + FIELDMODE + ' ' + COLORMODE);
 
     // setup vars for each cell
     var x = 0;
@@ -5208,9 +5211,11 @@ function field(options) {
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, cw, ch);
 
+    // set default tail color
     ctx.strokeStyle = fg;
+    // set default dot color
+    var dotFill = fg2;
 
-    var cellCount = cw / cellSize;
     var rateMax = 3;
     if (DENSITY === 'fine' && Math.random() < 0.5) {
         rateMax = 6;
@@ -5241,7 +5246,7 @@ function field(options) {
     // Only do this sometimes, and not when scattering
     var warp = 0;
     if (GRIDMODE !== 'scatter' && Math.random() < 0.5) {
-        warp = (0, _utils.randomInRange)(0, Math.sqrt(2));
+        warp = (0, _utils.randomInRange)(0.75, Math.sqrt(2));
     }
 
     // set of functions to transform opacity across grid
@@ -5375,7 +5380,7 @@ function field(options) {
             y = void 0;
         for (var i = 0; i < count; i++) {
             x = size * (i % xcount - 1) + size / 2;
-            y = size * (Math.floor(i / ycount) - 1) + size / 2;
+            y = size * (Math.floor(i / xcount) - 1) + size / 2;
             pts.push([x, y]);
         }
         return pts;
@@ -5410,7 +5415,27 @@ function field(options) {
 
     var sourceTransform = createSourceSinkTransform(Math.round((0, _utils.randomInRange)(5, 15)));
 
-    ctx.strokeStyle = fg;
+    // Flags for coloring by angle
+    // Don't do special coloring in bloom mode, because it relies on grayscale
+    // initial rendering
+    var colorTailByAngle = false;
+    var colorDotByAngle = false;
+    var randomColorThreshold = void 0;
+    if (LIGHTMODE !== 'bloom') {
+        if (COLORMODE === 'angle') {
+            if (Math.random() < 0.6) {
+                colorTailByAngle = true;
+            }
+            if (Math.random() < 0.6) {
+                colorDotByAngle = true;
+            }
+        }
+        if (COLORMODE === 'random') {
+            randomColorThreshold = 0.66;
+        }
+    }
+
+    // console.log(`Colors: tails ${colorTailByAngle}, dots: ${colorDotByAngle}`);
 
     // source/sink stuff
     if (FIELDMODE === 'flow') {
@@ -5432,9 +5457,7 @@ function field(options) {
         x = x + cellSize * trans.xbase(xnorm, ynorm) * warp;
         y = y + cellSize * trans.ybase(xnorm, ynorm) * warp;
 
-        ctx.globalAlpha = 1;
-        (0, _shapes.drawCircle)(ctx, x, y, (trans.radius(xnorm, ynorm) + 1) * dotScale, { fill: fg2 });
-
+        // get end of tail coords
         if (FIELDMODE === 'flow') {
             // flow fields (source-sink)
             var flow = sourceTransform.t(xnorm, ynorm);
@@ -5446,7 +5469,29 @@ function field(options) {
             _y = trans.ytail(xnorm, ynorm);
         }
 
+        var theta = Math.atan2(_y, _x);
+        var fillIndex = Math.round(contrastPalette.length * theta / PI / 2);
+        var angleColor = contrastPalette[fillIndex];
+
+        if (colorDotByAngle) {
+            dotFill = angleColor;
+        }
+        if (COLORMODE === 'random' && Math.random() < randomColorThreshold) {
+            dotFill = getContrastColor();
+        }
+
+        // draw dot
+        ctx.globalAlpha = 1;
+        (0, _shapes.drawCircle)(ctx, x, y, (trans.radius(xnorm, ynorm) + 1) * dotScale, { fill: dotFill });
+
         ctx.globalAlpha = opacityFunc(_x, _y);
+
+        if (colorTailByAngle) {
+            ctx.strokeStyle = angleColor;
+        }
+        if (COLORMODE === 'random' && Math.random() < randomColorThreshold) {
+            ctx.strokeStyle = getContrastColor();
+        }
 
         ctx.beginPath();
         ctx.moveTo(x, y);
@@ -5951,19 +5996,21 @@ var _rings = __webpack_require__(34);
 
 var _plants = __webpack_require__(35);
 
+var _scales = __webpack_require__(36);
+
 var _utils = __webpack_require__(0);
 
 var _roughen = __webpack_require__(24);
 
 var _roughen2 = _interopRequireDefault(_roughen);
 
-var _dither = __webpack_require__(36);
+var _dither = __webpack_require__(37);
 
 var _dither2 = _interopRequireDefault(_dither);
 
-var _halftone = __webpack_require__(37);
+var _halftone = __webpack_require__(38);
 
-var _fracture = __webpack_require__(38);
+var _fracture = __webpack_require__(39);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -5992,7 +6039,8 @@ var RENDERERS = {
     doodle: _doodle.doodle,
     pillars: _pillars.pillars,
     rings: _rings.rings,
-    plants: _plants.plants
+    plants: _plants.plants,
+    scales: _scales.scales
     //clouds: clouds
 };
 // utils
@@ -8902,34 +8950,6 @@ function doodle(options) {
         (0, _utils.resetTransform)(ctx);
     };
 
-    // const used in normalizing transforms
-    var maxLen = 2 * Math.sqrt(2);
-
-    // set of functions to transform opacity across grid
-    var opacityTransforms = [function () {
-        return 1;
-    }, function (_x, _y) {
-        return Math.abs(_y / _x) / maxLen;
-    }, function (_x, _y) {
-        return 1 - Math.abs(_y / _x) / maxLen;
-    }, function (_x, _y) {
-        return Math.abs(_x / _y);
-    }, // hides verticals
-    function (_x, _y) {
-        return Math.abs(_y / _x);
-    }, // hides horizontals
-    function (_x, _y) {
-        return _x / _y;
-    }, function (_x, _y) {
-        return _y / _x;
-    }, function (_x, _y) {
-        return _y - _x;
-    }, function (_x, _y) {
-        return _x - _y;
-    }];
-    // now pick one
-    var opacityFunc = (0, _utils.randItem)(opacityTransforms);
-
     // Create a function which is a periodic transform of x, y
     function createTransform() {
         var rateMin = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
@@ -8997,7 +9017,6 @@ function doodle(options) {
         ynorm = y / ch;
 
         var colorIndex = Math.round((trans.color(xnorm, ynorm) + 1) * colorCount) % colorCount;
-        //colorIndex = Math.round(opacityFunc(xnorm, ynorm) * colorCount) % colorCount;;
 
         (0, _utils.randItem)(shapes)(ctx, x, y, dotScale + (1 + trans.radius(xnorm, ynorm)) * (cellSize / 2 - dotScale) / 2.5, {
             fill: null,
@@ -10279,6 +10298,349 @@ function plants(options) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.scales = scales;
+
+var _noiseutils = __webpack_require__(1);
+
+var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _palettes = __webpack_require__(2);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
+var _utils = __webpack_require__(0);
+
+var _shapes = __webpack_require__(3);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var DEFAULTS = {
+    container: 'body',
+    palette: _palettes2.default.north_beach,
+    addNoise: 0.04,
+    noiseInput: null,
+    dust: false,
+    skew: 1, // normalized skew
+    clear: true
+};
+
+var PI = Math.PI;
+
+// Main function
+function scales(options) {
+    var opts = Object.assign({}, DEFAULTS, options);
+
+    var container = opts.container;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
+    var SCALE = Math.min(cw, ch);
+
+    // Find or create canvas child
+    var el = container.querySelector('canvas');
+    var newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        el.width = cw;
+        el.height = ch;
+    }
+
+    var ctx = el.getContext('2d');
+
+    // Color funcs
+    // --------------------------------------
+
+    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
+
+    // shared colors
+    var bg = getSolidFill();
+
+    // get palette of non-bg colors
+    var contrastPalette = [].concat(opts.palette);
+    contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
+
+    // shared foregrounds
+    var fg = getContrastColor();
+    var fg2 = getContrastColor();
+    var fg3 = getContrastColor();
+    //fg3 = fg;
+
+    // fill background
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, cw, ch);
+
+    // set default stroke
+    ctx.strokeStyle = fg;
+
+    // Draw Stuff
+    // --------------------------------------
+
+    // scale styles
+
+    ctx.lineCap = 'round';
+
+    var scaleSimple = function scaleSimple(x, y, r, c1, c2, c3) {
+        (0, _shapes.drawCircle)(ctx, x, y, r, { fill: c1, stroke: c2 });
+    };
+
+    var scaleRings = function scaleRings(x, y, r, c1, c2, c3) {
+        (0, _shapes.drawCircle)(ctx, x, y, r * 1.0, { fill: c1 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.8, { fill: c2 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.6, { fill: c1 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.4, { fill: c2 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.2, { fill: c1 });
+    };
+
+    var scaleFunctions = [function (x, y, r, c1, c2, c3) {
+        // 2C simple circle
+        (0, _shapes.drawCircle)(ctx, x, y, r * 1.0, { fill: c1 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.9, { fill: c2 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.85, { fill: c1 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.75, { fill: c2 });
+    }, function (x, y, r, c1, c2, c3) {
+        // 2C thin lines
+        (0, _shapes.drawCircle)(ctx, x, y, r * 1.0, { fill: c1 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.9, { fill: c2 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.75, { fill: c1 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.65, { fill: c2 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.5, { fill: c1 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.4, { fill: c2 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.25, { fill: c1 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.15, { fill: c2 });
+    }, function (x, y, r, c1, c2, c3) {
+        // 2C evenly spaced rings
+        (0, _shapes.drawCircle)(ctx, x, y, r * 1.0, { fill: c1 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.8, { fill: c2 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.6, { fill: c1 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.4, { fill: c2 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.2, { fill: c1 });
+    }, function (x, y, r, c1, c2, c3) {
+        // 3C thin middle ring
+        (0, _shapes.drawCircle)(ctx, x, y, r * 1.0, { fill: c1 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.9, { fill: c2 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.6, { fill: c3 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.5, { fill: c2 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.2, { fill: c3 });
+    }, function (x, y, r, c1, c2, c3) {
+        // 3C twin middle ring
+        (0, _shapes.drawCircle)(ctx, x, y, r * 1.0, { fill: c1 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.9, { fill: c2 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.7, { fill: c3 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.6, { fill: c2 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.5, { fill: c3 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.4, { fill: c2 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.2, { fill: c3 });
+    }, function (x, y, r, c1, c2, c3) {
+        // 3C dots
+        var lineWidth = r * 0.25;
+        ctx.lineWidth = lineWidth;
+        ctx.setLineDash([0, lineWidth * 1.33]);
+        (0, _shapes.drawCircle)(ctx, x, y, r * 1.0, { fill: c1 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.9, { fill: c2 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.55, { fill: null, stroke: c3 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.2, { fill: c1 });
+    }, function (x, y, r, c1, c2, c3) {
+        // 3C double dots
+        var lineWidth = r * 0.175;
+        ctx.lineWidth = lineWidth;
+        ctx.setLineDash([0, lineWidth * 1.5]);
+        (0, _shapes.drawCircle)(ctx, x, y, r * 1.0, { fill: c1 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.9, { fill: c2 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.675, { fill: null, stroke: c3 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.425, { fill: null, stroke: c3 });
+        (0, _shapes.drawCircle)(ctx, x, y, r * 0.2, { fill: c3 });
+    }];
+
+    var scaleRenderer = (0, _utils.randItem)(scaleFunctions);
+    //scaleRenderer = scaleFunctions[scaleFunctions.length-1];
+
+
+    // grid stuff
+    // --------------------------------------
+
+    var v_spacing = 0.3; // .5 or less
+    var h_spacing = 0.915; //
+
+    // map spacing from v to h
+    // .1 -> .75
+    // .2 -> .8
+    // .23 -> .845
+    // .25 -> .85
+    // .28 -> .90
+    // .3 -> .915
+    // .3333 -> .93 // .3333 and above shows full center dots
+    // .4 -> .96
+    // .5 -> 1
+
+
+    var ref = (0, _utils.randomInt)(10, 15); // horizontal reference count
+    ref = Math.round(cw / (0, _utils.randomInRange)(60, 90));
+    var size = Math.round(cw / ref);
+    var xcount = Math.ceil(cw / size * 1 / h_spacing) + 2;
+    var ycount = Math.ceil(ch / size) * 1 / v_spacing + 2;
+    var count = xcount * ycount;
+
+    var pts = [];
+    var x = void 0,
+        y = void 0;
+    for (var j = 0; j < ycount; j++) {
+        for (var i = 0; i <= xcount; i++) {
+            x = size * i * h_spacing; // + size / 2;
+            if (j % 2) x += size / 2 * h_spacing;
+            y = j * size * v_spacing; // + size / 2;
+            pts.push([x, y]);
+        }
+    }
+
+    // end grid
+    // --------------------------------------
+
+
+    // Create a function which is a periodic transform of x, y
+    function createTransform() {
+        var rateMin = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+        var rateMax = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+
+        var rate1 = (0, _utils.randomInRange)(0, rateMax / 2);
+        var rate2 = (0, _utils.randomInRange)(0, rateMax / 2);
+        var rate3 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
+        var rate4 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
+
+        var phase1 = (0, _utils.randomInRange)(-PI, PI);
+        var phase2 = (0, _utils.randomInRange)(-PI, PI);
+        var phase3 = (0, _utils.randomInRange)(-PI, PI);
+        var phase4 = (0, _utils.randomInRange)(-PI, PI);
+
+        var c1 = (0, _utils.randomInRange)(0, 1);
+        var c2 = (0, _utils.randomInRange)(0, 1);
+        var c3 = (0, _utils.randomInRange)(0, 1);
+        var c4 = (0, _utils.randomInRange)(0, 1);
+        return function (xnorm, ynorm) {
+            var t1 = Math.sin(xnorm * rate1 * 2 * PI + phase1);
+            var t2 = Math.sin(ynorm * rate2 * 2 * PI + phase2);
+            var t3 = Math.sin(xnorm * rate3 * 2 * PI + phase3);
+            var t4 = Math.sin(ynorm * rate4 * 2 * PI + phase4);
+            return (c1 * t1 + c2 * t2 + c3 * t3 + c4 * t4) / (c1 + c2 + c3 + c4);
+        };
+    }
+
+    // a set of independent transforms to use while rendering
+    var trans = {
+        style: createTransform(0, 3),
+        color: createTransform(0, 3)
+    };
+
+    var xnorm = void 0,
+        ynorm = void 0;
+
+    var renderSet = [].concat(scaleFunctions);
+    renderSet.sort(function () {
+        return Math.random() - 0.5;
+    });
+
+    var PATCHES = true;
+    var clusterNodes = [];
+    if (PATCHES) {
+        // scatter N points for N renderers
+        renderSet.forEach(function (p, i) {
+            // push an x,y between 0 and 1, we will compare to normalize coords
+            clusterNodes.push([(0, _utils.randomInRange)(0, 1), (0, _utils.randomInRange)(0, 1)]);
+        });
+        // at render time, use the renderer closest to the point you are at
+        // console.log(clusterNodes.toString());
+    }
+
+    PATCHES = false;
+    var FIELDS = true;
+    var styleCount = renderSet.length;
+
+    pts.forEach(function (p, i) {
+        x = p[0];
+        y = p[1];
+        xnorm = x / cw;
+        ynorm = y / ch;
+
+        //console.log(Math.floor(ynorm * (scaleFunctions.length - 1)));
+
+        if (PATCHES) {
+            // pick renderer closest to this point
+            var minR = 2; // max squared dimension for normalized vals
+            var renderIndex = null;
+            var R = void 0;
+            clusterNodes.forEach(function (n, i) {
+                var dx = xnorm - n[0];
+                var dy = ynorm - n[1];
+                R = dx * dx + dy * dy;
+                if (R < minR) {
+                    minR = R;
+                    renderIndex = i;
+                }
+                //console.log(`renderer ${i}: ${R}`);
+            });
+            //console.log(`picked renderer ${renderIndex} with distance ${R}`);
+            scaleRenderer = renderSet[renderIndex];
+        } else if (FIELDS) {
+            // field term is periodic function, pushed into postive vals
+            var f = (trans.style(xnorm, ynorm) + 1) / 2;
+            var _renderIndex = Math.round(f * (renderSet.length - 1)) % renderSet.length;
+            scaleRenderer = renderSet[_renderIndex];
+        } else {
+            // draw in bands based on ynorm
+            scaleRenderer = renderSet[Math.round(ynorm * (renderSet.length - 1))];
+        }
+
+        scaleRenderer(x, y, size / 2, fg, fg2, fg3);
+    });
+
+    // debug: draw the reference nodes
+    // ctx.font = '14px sans-serif';
+    // ctx.textAlign = 'center';
+    // ctx.textBaseline = 'middle'
+    // clusterNodes.forEach((n, i)=>{
+    //     drawCircle(ctx, cw * n[0], ch * n[1], 10, {fill: 'black'});
+    //     ctx.fillStyle = 'white';
+    //     ctx.fillText(i, cw * n[0], ch * n[1]);
+    // });
+
+
+    // reset line dashes for other renderers
+    ctx.setLineDash([]);
+    ctx.lineDashOffset = 0;
+
+    // Finish up
+    // --------------------------------------
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            // apply noise from supplied canvas
+            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            // create noise pattern and apply
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, w / 3);
+        }
+    }
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
+}
+
+/***/ }),
+/* 37 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
@@ -10461,7 +10823,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 37 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10827,7 +11189,7 @@ function halftoneSpotColors(canvas) {
 } // halftoneCMYK()
 
 /***/ }),
-/* 38 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

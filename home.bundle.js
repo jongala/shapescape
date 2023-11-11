@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 39);
+/******/ 	return __webpack_require__(__webpack_require__.s = 40);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -4787,6 +4787,7 @@ var DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     clear: true,
+    colorMode: 'auto', // from COLORMODES or 'auto'
     fieldMode: 'auto', // [auto, harmonic, flow]
     lightMode: 'normal', // [auto, bloom, normal]
     gridMode: 'auto', // [auto, normal, scatter, random]
@@ -4798,6 +4799,7 @@ var FIELDMODES = ['harmonic', 'flow'];
 var LIGHTMODES = ['bloom', 'normal'];
 var GRIDMODES = ['normal', 'scatter', 'random'];
 var DENSITIES = ['coarse', 'fine'];
+var COLORMODES = ['single', 'angle', 'random'];
 
 // Main function
 function field(options) {
@@ -4831,6 +4833,7 @@ function field(options) {
     var GRIDMODE = opts.gridMode === 'auto' ? (0, _utils.randItem)(GRIDMODES) : opts.gridMode;
     var DENSITY = opts.density === 'auto' ? (0, _utils.randItem)(DENSITIES) : opts.density;
     var FIELDMODE = opts.fieldMode === 'auto' ? (0, _utils.randItem)(FIELDMODES) : opts.fieldMode;
+    var COLORMODE = opts.colorMode === 'auto' ? (0, _utils.randItem)(COLORMODES) : opts.colorMode;
 
     // color funcs
     var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
@@ -4847,7 +4850,7 @@ function field(options) {
     }
 
     var cellSize = Math.round(SHORT / (0, _utils.randomInRange)(countMin, countMax));
-    console.log('cellSize: ' + cellSize + ', ' + GRIDMODE + ', ' + DENSITY + ', ' + FIELDMODE);
+    console.log('Field: ' + DENSITY + '(' + cellSize + 'px) ' + GRIDMODE + ' ' + FIELDMODE + ' ' + COLORMODE);
 
     // setup vars for each cell
     var x = 0;
@@ -4879,9 +4882,11 @@ function field(options) {
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, cw, ch);
 
+    // set default tail color
     ctx.strokeStyle = fg;
+    // set default dot color
+    var dotFill = fg2;
 
-    var cellCount = cw / cellSize;
     var rateMax = 3;
     if (DENSITY === 'fine' && Math.random() < 0.5) {
         rateMax = 6;
@@ -4912,7 +4917,7 @@ function field(options) {
     // Only do this sometimes, and not when scattering
     var warp = 0;
     if (GRIDMODE !== 'scatter' && Math.random() < 0.5) {
-        warp = (0, _utils.randomInRange)(0, Math.sqrt(2));
+        warp = (0, _utils.randomInRange)(0.75, Math.sqrt(2));
     }
 
     // set of functions to transform opacity across grid
@@ -5046,7 +5051,7 @@ function field(options) {
             y = void 0;
         for (var i = 0; i < count; i++) {
             x = size * (i % xcount - 1) + size / 2;
-            y = size * (Math.floor(i / ycount) - 1) + size / 2;
+            y = size * (Math.floor(i / xcount) - 1) + size / 2;
             pts.push([x, y]);
         }
         return pts;
@@ -5081,7 +5086,27 @@ function field(options) {
 
     var sourceTransform = createSourceSinkTransform(Math.round((0, _utils.randomInRange)(5, 15)));
 
-    ctx.strokeStyle = fg;
+    // Flags for coloring by angle
+    // Don't do special coloring in bloom mode, because it relies on grayscale
+    // initial rendering
+    var colorTailByAngle = false;
+    var colorDotByAngle = false;
+    var randomColorThreshold = void 0;
+    if (LIGHTMODE !== 'bloom') {
+        if (COLORMODE === 'angle') {
+            if (Math.random() < 0.6) {
+                colorTailByAngle = true;
+            }
+            if (Math.random() < 0.6) {
+                colorDotByAngle = true;
+            }
+        }
+        if (COLORMODE === 'random') {
+            randomColorThreshold = 0.66;
+        }
+    }
+
+    // console.log(`Colors: tails ${colorTailByAngle}, dots: ${colorDotByAngle}`);
 
     // source/sink stuff
     if (FIELDMODE === 'flow') {
@@ -5103,9 +5128,7 @@ function field(options) {
         x = x + cellSize * trans.xbase(xnorm, ynorm) * warp;
         y = y + cellSize * trans.ybase(xnorm, ynorm) * warp;
 
-        ctx.globalAlpha = 1;
-        (0, _shapes.drawCircle)(ctx, x, y, (trans.radius(xnorm, ynorm) + 1) * dotScale, { fill: fg2 });
-
+        // get end of tail coords
         if (FIELDMODE === 'flow') {
             // flow fields (source-sink)
             var flow = sourceTransform.t(xnorm, ynorm);
@@ -5117,7 +5140,29 @@ function field(options) {
             _y = trans.ytail(xnorm, ynorm);
         }
 
+        var theta = Math.atan2(_y, _x);
+        var fillIndex = Math.round(contrastPalette.length * theta / PI / 2);
+        var angleColor = contrastPalette[fillIndex];
+
+        if (colorDotByAngle) {
+            dotFill = angleColor;
+        }
+        if (COLORMODE === 'random' && Math.random() < randomColorThreshold) {
+            dotFill = getContrastColor();
+        }
+
+        // draw dot
+        ctx.globalAlpha = 1;
+        (0, _shapes.drawCircle)(ctx, x, y, (trans.radius(xnorm, ynorm) + 1) * dotScale, { fill: dotFill });
+
         ctx.globalAlpha = opacityFunc(_x, _y);
+
+        if (colorTailByAngle) {
+            ctx.strokeStyle = angleColor;
+        }
+        if (COLORMODE === 'random' && Math.random() < randomColorThreshold) {
+            ctx.strokeStyle = getContrastColor();
+        }
 
         ctx.beginPath();
         ctx.moveTo(x, y);
@@ -5501,7 +5546,8 @@ function fragments(options) {
 /* 36 */,
 /* 37 */,
 /* 38 */,
-/* 39 */
+/* 39 */,
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

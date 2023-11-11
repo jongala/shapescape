@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 40);
+/******/ 	return __webpack_require__(__webpack_require__.s = 41);
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -965,7 +965,7 @@ function drawLine(ctx, a, b) {
 
 /***/ }),
 
-/***/ 40:
+/***/ 41:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -987,7 +987,7 @@ var _colorbrewer2 = _interopRequireDefault(_colorbrewer);
 
 var _truchet = __webpack_require__(17);
 
-var _numerals = __webpack_require__(41);
+var _numerals = __webpack_require__(42);
 
 var _utils = __webpack_require__(0);
 
@@ -1109,7 +1109,7 @@ setInterval(function () {
 
 /***/ }),
 
-/***/ 41:
+/***/ 42:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
