@@ -255,24 +255,6 @@ export function doodle(options) {
     }
 
 
-    // const used in normalizing transforms
-    let maxLen = 2 * Math.sqrt(2);
-
-    // set of functions to transform opacity across grid
-    const opacityTransforms = [
-        () => 1,
-        (_x, _y) => Math.abs(_y/_x)/maxLen,
-        (_x, _y) => (1 - Math.abs(_y/_x)/maxLen),
-        (_x, _y) => Math.abs(_x/_y), // hides verticals
-        (_x, _y) => Math.abs(_y/_x), // hides horizontals
-        (_x, _y) => (_x / _y),
-        (_x, _y) => (_y / _x),
-        (_x, _y) => (_y - _x),
-        (_x, _y) => (_x - _y)
-    ]
-    // now pick one
-    let opacityFunc = randItem(opacityTransforms);
-
     // Create a function which is a periodic transform of x, y
     function createTransform (rateMin = 0, rateMax = 1) {
         let rate1 = randomInRange(0, rateMax/2);
@@ -337,7 +319,6 @@ export function doodle(options) {
         ynorm = y/ch;
 
         let colorIndex = Math.round((trans.color(xnorm, ynorm)+1) * colorCount) % colorCount;
-        //colorIndex = Math.round(opacityFunc(xnorm, ynorm) * colorCount) % colorCount;;
 
         randItem(shapes)(ctx,
             x,

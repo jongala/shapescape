@@ -205,6 +205,37 @@ export function scales(options) {
     // --------------------------------------
 
 
+    // Create a function which is a periodic transform of x, y
+    function createTransform (rateMin = 0, rateMax = 1) {
+        let rate1 = randomInRange(0, rateMax/2);
+        let rate2 = randomInRange(0, rateMax/2);
+        let rate3 = randomInRange(rateMax/2, rateMax);
+        let rate4 = randomInRange(rateMax/2, rateMax);
+
+        let phase1 = randomInRange(-PI, PI);
+        let phase2 = randomInRange(-PI, PI);
+        let phase3 = randomInRange(-PI, PI);
+        let phase4 = randomInRange(-PI, PI);
+
+        let c1 = randomInRange(0, 1);
+        let c2 = randomInRange(0, 1);
+        let c3 = randomInRange(0, 1);
+        let c4 = randomInRange(0, 1);
+        return (xnorm, ynorm) => {
+            let t1 = Math.sin(xnorm * rate1 * 2 * PI + phase1);
+            let t2 = Math.sin(ynorm * rate2 * 2 * PI + phase2);
+            let t3 = Math.sin(xnorm * rate3 * 2 * PI + phase3);
+            let t4 = Math.sin(ynorm * rate4 * 2 * PI + phase4);
+            return (c1 * t1 + c2 * t2 + c3 * t3 + c4 * t4)/(c1 + c2 + c3 + c4);
+        }
+    }
+
+    // a set of independent transforms to use while rendering
+    let trans = {
+        style: createTransform(0, 3),
+        color: createTransform(0, 3),
+    }
+
     let xnorm, ynorm;
 
     let renderSet = [].concat(scaleFunctions);
@@ -220,8 +251,12 @@ export function scales(options) {
             clusterNodes.push([ randomInRange(0, 1), randomInRange(0, 1) ]);
         });
         // at render time, use the renderer closest to the point you are at
-        console.log(clusterNodes.toString());
+        // console.log(clusterNodes.toString());
     }
+
+    PATCHES = false;
+    let FIELDS = true;
+    let styleCount = renderSet.length;
 
     pts.forEach((p, i) => {
         x = p[0];
@@ -247,6 +282,11 @@ export function scales(options) {
                 //console.log(`renderer ${i}: ${R}`);
             });
             //console.log(`picked renderer ${renderIndex} with distance ${R}`);
+            scaleRenderer = renderSet[renderIndex];
+        } else if (FIELDS) {
+            // field term is periodic function, pushed into postive vals
+            let f = (trans.style(xnorm, ynorm) + 1)/2;
+            let renderIndex = Math.round( f * (renderSet.length - 1) ) % renderSet.length;
             scaleRenderer = renderSet[renderIndex];
         } else {
             // draw in bands based on ynorm
