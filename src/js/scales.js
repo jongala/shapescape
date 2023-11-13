@@ -258,6 +258,8 @@ export function scales(options) {
     let FIELDS = true;
     let styleCount = renderSet.length;
 
+    let [c1, c2, c3] = [fg, fg2, fg3];
+
     pts.forEach((p, i) => {
         x = p[0];
         y = p[1];
@@ -286,14 +288,23 @@ export function scales(options) {
         } else if (FIELDS) {
             // field term is periodic function, pushed into postive vals
             let f = (trans.style(xnorm, ynorm) + 1)/2;
-            let renderIndex = Math.round( f * (renderSet.length - 1) ) % renderSet.length;
-            scaleRenderer = renderSet[renderIndex];
+            let renderIndex = Math.round( f * (renderSet.length - 1) );
+
+            scaleRenderer = renderSet[renderIndex % renderSet.length];
+
+            // Define colors from the contrast palette,
+            // aligned to the render styles.
+            // Stepping through by index this way ensures that adjacent
+            // styles share some colors
+            c1 = contrastPalette[(renderIndex + 0) % contrastPalette.length];
+            c2 = contrastPalette[(renderIndex + 1) % contrastPalette.length];
+            c3 = contrastPalette[(renderIndex + 2) % contrastPalette.length];
         } else {
             // draw in bands based on ynorm
             scaleRenderer = renderSet[Math.round(ynorm * (renderSet.length - 1))];
         }
 
-        scaleRenderer(x, y, size/2, fg, fg2, fg3);
+        scaleRenderer(x, y, size/2, c1, c2, c3);
     });
 
     // debug: draw the reference nodes
