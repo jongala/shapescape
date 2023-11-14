@@ -13,6 +13,10 @@ const DEFAULTS = {
     clear: true
 }
 
+// TODO:
+// EXPANDEDPALETTE : use whole palette vs predefined fg1,2,3
+// STYLE: PATCHES, FIELDS, etc.
+
 const PI = Math.PI;
 
 // Main function
@@ -260,6 +264,13 @@ export function scales(options) {
 
     let [c1, c2, c3] = [fg, fg2, fg3];
 
+    // how many times through the style set?
+    let CYCLES = 1;
+    if (Math.random() <= 0.2) {
+        // sometimes, cycle more
+        CYCLES = 2;
+    }
+
     pts.forEach((p, i) => {
         x = p[0];
         y = p[1];
@@ -286,9 +297,10 @@ export function scales(options) {
             //console.log(`picked renderer ${renderIndex} with distance ${R}`);
             scaleRenderer = renderSet[renderIndex];
         } else if (FIELDS) {
+
             // field term is periodic function, pushed into postive vals
             let f = (trans.style(xnorm, ynorm) + 1)/2;
-            let renderIndex = Math.round( f * (renderSet.length - 1) );
+            let renderIndex = Math.round( f * (renderSet.length - 1) * CYCLES);
 
             scaleRenderer = renderSet[renderIndex % renderSet.length];
 
