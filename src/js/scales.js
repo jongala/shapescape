@@ -3,6 +3,13 @@ import palettes from './palettes';
 import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, getAngle, getVector, mapKeywordToVal } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
+// TODO:
+// EXPANDEDPALETTE : use whole palette vs predefined fg1,2,3
+// STYLE: PATCHES, FIELDS, etc.
+
+const STYLES = ['patches', 'fields', 'stripes']; //
+const COLORDEPTHS = ['small', 'medium', 'large']; // how much of the palette to use
+
 const DEFAULTS = {
     container: 'body',
     palette: palettes.north_beach,
@@ -10,12 +17,11 @@ const DEFAULTS = {
     noiseInput: null,
     dust: false,
     skew: 1, // normalized skew
-    clear: true
-}
+    clear: true,
 
-// TODO:
-// EXPANDEDPALETTE : use whole palette vs predefined fg1,2,3
-// STYLE: PATCHES, FIELDS, etc.
+    style: 'auto',
+    colorDepth: 'auto'
+}
 
 const PI = Math.PI;
 
@@ -42,6 +48,14 @@ export function scales(options) {
     }
 
     let ctx = el.getContext('2d');
+
+    // Modes and styles
+    // --------------------------------------
+
+    const STYLE = opts.style === 'auto' ? randItem(STYLES) : opts.style;
+    const COLORDEPTH = opts.colorDepth === 'auto' ? randItem(COLORDEPTHS) : opts.colorDepth;
+
+    console.log(`Scales: ${STYLE}, ${COLORDEPTH} colors`);
 
 
     // Color funcs
@@ -75,26 +89,9 @@ export function scales(options) {
     // --------------------------------------
 
     // scale styles
+    // --------------------------------------
 
     ctx.lineCap = 'round';
-
-    let scaleSimple = function(x, y, r, c1, c2, c3) {
-        drawCircle(ctx,
-            x,
-            y,
-            r,
-            {fill: c1, stroke: c2}
-        );
-    }
-
-
-    let scaleRings = function(x, y, r, c1, c2, c3) {
-        drawCircle(ctx, x, y, r * 1.0, {fill: c1});
-        drawCircle(ctx, x, y, r * 0.8, {fill: c2});
-        drawCircle(ctx, x, y, r * 0.6, {fill: c1});
-        drawCircle(ctx, x, y, r * 0.4, {fill: c2});
-        drawCircle(ctx, x, y, r * 0.2, {fill: c1});
-    }
 
     let scaleFunctions = [
         function(x, y, r, c1, c2, c3) {
@@ -150,6 +147,8 @@ export function scales(options) {
             drawCircle(ctx, x, y, r * 0.9, {fill: c2});
             drawCircle(ctx, x, y, r * 0.55, {fill: null, stroke: c3});
             drawCircle(ctx, x, y, r * 0.2, {fill: c1});
+            // reset line dashes for other renderers
+            ctx.setLineDash([]);
         },
         function(x, y, r, c1, c2, c3) {
             // 3C double dots
@@ -161,6 +160,7 @@ export function scales(options) {
             drawCircle(ctx, x, y, r * 0.675, {fill: null, stroke: c3});
             drawCircle(ctx, x, y, r * 0.425, {fill: null, stroke: c3});
             drawCircle(ctx, x, y, r * 0.2, {fill: c3});
+            ctx.setLineDash([]);
         }
     ];
 
@@ -246,43 +246,46 @@ export function scales(options) {
     renderSet.sort(()=>Math.random()-0.5);
 
 
-    let PATCHES = true;
+
     let clusterNodes = [];
-    if (PATCHES) {
-        // scatter N points for N renderers
+    if (STYLE === 'patches') {
+        // Scatter a point for each rendering style we have
+        // At render time, we will check to see which clusterNode a given scale
+        // is closest to, then use the renderer with the same index as its
+        // closest node.
         renderSet.forEach((p, i)=>{
-            // push an x,y between 0 and 1, we will compare to normalize coords
+            // Use x,y between 0 and 1 because we will compare to normalize coords
             clusterNodes.push([ randomInRange(0, 1), randomInRange(0, 1) ]);
         });
-        // at render time, use the renderer closest to the point you are at
-        // console.log(clusterNodes.toString());
     }
 
-    PATCHES = false;
-    let FIELDS = true;
+    // set up vars for color cycling across styles
     let styleCount = renderSet.length;
-
     let [c1, c2, c3] = [fg, fg2, fg3];
 
-    // how many times through the style set?
+    // How many times through the style set?
+    // Run through more times for large COLORDEPTH
     let CYCLES = 1;
-    if (Math.random() <= 0.2) {
-        // sometimes, cycle more
+    if (COLORDEPTH === 'large') {
         CYCLES = 2;
     }
 
+
+    // Finally: step through the points in the scale placements, and draw
+    // a scale at each point
     pts.forEach((p, i) => {
         x = p[0];
         y = p[1];
         xnorm = x/cw;
         ynorm = y/ch;
 
+        let renderIndex = 0;
+
         //console.log(Math.floor(ynorm * (scaleFunctions.length - 1)));
 
-        if (PATCHES) {
+        if (STYLE === 'patches') {
             // pick renderer closest to this point
             let minR = 2; // max squared dimension for normalized vals
-            let renderIndex = null;
             let R;
             clusterNodes.forEach((n, i)=>{
                 let dx = xnorm - n[0];
@@ -296,7 +299,17 @@ export function scales(options) {
             });
             //console.log(`picked renderer ${renderIndex} with distance ${R}`);
             scaleRenderer = renderSet[renderIndex];
-        } else if (FIELDS) {
+
+            // Define colors from the contrast palette,
+            // aligned to the render styles.
+            // Stepping through by index this way ensures that adjacent
+            // styles share some colors
+            if (COLORDEPTH !== 'small') {
+                c1 = contrastPalette[(renderIndex + 0) % contrastPalette.length];
+                c2 = contrastPalette[(renderIndex + 1) % contrastPalette.length];
+                c3 = contrastPalette[(renderIndex + 2) % contrastPalette.length];
+            }
+        } else if (STYLE === 'fields') {
 
             // field term is periodic function, pushed into postive vals
             let f = (trans.style(xnorm, ynorm) + 1)/2;
@@ -308,12 +321,26 @@ export function scales(options) {
             // aligned to the render styles.
             // Stepping through by index this way ensures that adjacent
             // styles share some colors
-            c1 = contrastPalette[(renderIndex + 0) % contrastPalette.length];
-            c2 = contrastPalette[(renderIndex + 1) % contrastPalette.length];
-            c3 = contrastPalette[(renderIndex + 2) % contrastPalette.length];
+            if (COLORDEPTH !== 'small') {
+                c1 = contrastPalette[(renderIndex + 0) % contrastPalette.length];
+                c2 = contrastPalette[(renderIndex + 1) % contrastPalette.length];
+                c3 = contrastPalette[(renderIndex + 2) % contrastPalette.length];
+            }
         } else {
+            // STYLE === 'stripes'
             // draw in bands based on ynorm
-            scaleRenderer = renderSet[Math.round(ynorm * (renderSet.length - 1))];
+            renderIndex = Math.round(ynorm * (renderSet.length - 1));
+            scaleRenderer = renderSet[renderIndex];
+
+            // Define colors from the contrast palette,
+            // aligned to the render styles.
+            // Stepping through by index this way ensures that adjacent
+            // styles share some colors
+            if (COLORDEPTH !== 'small') {
+                c1 = contrastPalette[(renderIndex + 0) % contrastPalette.length];
+                c2 = contrastPalette[(renderIndex + 1) % contrastPalette.length];
+                c3 = contrastPalette[(renderIndex + 2) % contrastPalette.length];
+            }
         }
 
         scaleRenderer(x, y, size/2, c1, c2, c3);
@@ -328,11 +355,6 @@ export function scales(options) {
     //     ctx.fillStyle = 'white';
     //     ctx.fillText(i, cw * n[0], ch * n[1]);
     // });
-
-
-    // reset line dashes for other renderers
-    ctx.setLineDash([]);
-    ctx.lineDashOffset = 0;
 
 
     // Finish up
