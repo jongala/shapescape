@@ -3,12 +3,10 @@ import palettes from './palettes';
 import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, getAngle, getVector, mapKeywordToVal } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
-// TODO:
-// EXPANDEDPALETTE : use whole palette vs predefined fg1,2,3
-// STYLE: PATCHES, FIELDS, etc.
-
-const STYLES = ['patches', 'fields', 'stripes']; //
-const COLORDEPTHS = ['small', 'medium', 'large']; // how much of the palette to use
+// how to pick scale styles
+const STYLES = ['patches', 'fields', 'fields', 'fields', 'fields', 'stripes'];
+// how much of the palette to use
+const COLORDEPTHS = ['small', 'medium', 'medium', 'large'];
 
 const DEFAULTS = {
     container: 'body',
