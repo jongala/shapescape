@@ -3,8 +3,28 @@ import palettes from './palettes';
 import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, getAngle, getVector, mapKeywordToVal } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
+
+// Accepts array @options, with elements [opt, weight].
+// Returns an array with each @opt inserted @weight times.
+// This is a very stupid way to pick randItem from enumerable options with
+// different weights for each item.
+function weightedPickList(options) {
+    let list = [];
+    options.forEach((weighted, i) => {
+        let [opt, weight] = weighted;
+        for (var n = 0; n < weight; n++) {
+            list.push(opt);
+        }
+    });
+    return list;
+}
+
 // how to pick scale styles
-const STYLES = ['patches', 'fields', 'fields', 'fields', 'fields', 'stripes'];
+const STYLES = weightedPickList([
+    ['patches', 2],
+    ['fields', 5],
+    ['stripes', 1]
+]);
 // how much of the palette to use
 const COLORDEPTHS = ['small', 'medium', 'medium', 'large'];
 
