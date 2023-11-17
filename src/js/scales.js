@@ -37,8 +37,9 @@ const DEFAULTS = {
     skew: 1, // normalized skew
     clear: true,
 
-    style: 'auto',
-    colorDepth: 'auto'
+    style: 'auto', // how to arrange scales
+    colorDepth: 'auto', // how much of the palette to use
+    edges: 'auto', // consistent edge coloring
 }
 
 const PI = Math.PI;
@@ -72,8 +73,9 @@ export function scales(options) {
 
     const STYLE = opts.style === 'auto' ? randItem(STYLES) : opts.style;
     const COLORDEPTH = opts.colorDepth === 'auto' ? randItem(COLORDEPTHS) : opts.colorDepth;
+    const EDGES = opts.edges === 'auto' ? Math.random() < 0.5 : opts.edges;
 
-    console.log(`Scales: ${STYLE}, ${COLORDEPTH} colors`);
+    console.log(`Scales: ${STYLE}, ${COLORDEPTH} colors, edges: ${EDGES}`);
 
 
     // Color funcs
@@ -327,6 +329,9 @@ export function scales(options) {
                 c2 = contrastPalette[(renderIndex + 1) % contrastPalette.length];
                 c3 = contrastPalette[(renderIndex + 2) % contrastPalette.length];
             }
+            if (EDGES) {
+                c1 = bg;
+            }
         } else if (STYLE === 'fields') {
 
             // field term is periodic function, pushed into postive vals
@@ -344,6 +349,9 @@ export function scales(options) {
                 c2 = contrastPalette[(renderIndex + 1) % contrastPalette.length];
                 c3 = contrastPalette[(renderIndex + 2) % contrastPalette.length];
             }
+            if (EDGES) {
+                c1 = bg;
+            }
         } else {
             // STYLE === 'stripes'
             // draw in bands based on ynorm
@@ -358,6 +366,9 @@ export function scales(options) {
                 c1 = contrastPalette[(renderIndex + 0) % contrastPalette.length];
                 c2 = contrastPalette[(renderIndex + 1) % contrastPalette.length];
                 c3 = contrastPalette[(renderIndex + 2) % contrastPalette.length];
+            }
+            if (EDGES) {
+                c1 = bg;
             }
         }
 
