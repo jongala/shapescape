@@ -281,7 +281,7 @@ export function fieldShape(options) {
 
     // Return an array of vertices defining a regular polygon
     // centered at @x, @y, with @sides, @size, and @angle
-    function makeVertices(x, y, sides=4, size=100, angle=0) {
+    function makeVertices(sides=4, x, y, size=100, angle=0) {
         let vertices = [];
         var a = Math.PI * 2 / sides;
         function _x(theta) {
@@ -305,27 +305,27 @@ export function fieldShape(options) {
 
     function squarePoints(x, y, size, angle=0) {
         // get vertices
-        let vertices = makeVertices(x, y, 4, size, angle);
+        let vertices = makeVertices(4, x, y, size, angle);
         polyPoints(vertices, 20, pts);
     }
 
 
     function trianglePoints(x, y, size, angle=0) {
         // get vertices
-        let vertices = makeVertices(x, y, 3, size, angle);
+        let vertices = makeVertices(3, x, y, size, angle);
         polyPoints(vertices, 20, pts);
     }
 
     // compose the vertex and point placement functions
-    function drawPointsPoly(pts=[], x, y, sides=4, size=100, angle=0, spacing=20) {
-        return polyPoints(makeVertices(x, y, sides, size, angle), spacing, pts);
+    function drawPointsPoly(pts=[], sides=4, x, y, size=100, angle=0, spacing=20) {
+        return polyPoints(makeVertices(sides, x, y, size, angle), spacing, pts);
     }
 
     // test shapes
     //squarePoints(cw * .33, ch *.33, SCALE/4, PI * randomInRange(0, 1));
-    drawPointsPoly(pts, cw * .33, ch *.33, 4, SCALE/4, PI * randomInRange(0, 1));
+    drawPointsPoly(pts, 4, cw * .33, ch *.33, SCALE/4, PI * randomInRange(0, 1));
     //trianglePoints(cw * .66, ch * .66, SCALE/4, PI * randomInRange(0, 1));
-    drawPointsPoly(pts, cw * .66, ch *.66, 3, SCALE/4, PI * randomInRange(0, 1));
+    drawPointsPoly(pts, 3, cw * .66, ch *.66, SCALE/4, PI * randomInRange(0, 1));
     circlePoints(cw/2, ch/2, SCALE/4);
 
 
