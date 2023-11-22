@@ -216,10 +216,9 @@ export function fieldShape(options) {
     }
 
 
-
-
-
     let pts = [];
+
+    const SPACING = 20;
 
     //pts = hexScatter(tailLength, cw, ch);
 
@@ -236,6 +235,8 @@ export function fieldShape(options) {
     }
 
 
+    // Create points at @spacing along polygon defined by @vertices
+    // Append to @pts and return modified @pts
     function polyPoints(vertices, spacing=10, pts) {
         // place points at vertices
 
@@ -274,54 +275,58 @@ export function fieldShape(options) {
             , pts);
         });
 
+        return pts;
     }
 
 
-    // rotate @p around the origin by @angle radians
-    let rot = function(p, angle) {
-        let [x, y] = p;
-        let x2, y2;
-        x2 = x * Math.cos(angle) - y * Math.sin(angle);
-        y2 = x * Math.sin(angle) + y * Math.cos(angle);
-        return [x2, y2];
-    }
+    // Return an array of vertices defining a regular polygon
+    // centered at @x, @y, with @sides, @size, and @angle
+    function makeVertices(x, y, sides=4, size=100, angle=0) {
+        let vertices = [];
+        var a = Math.PI * 2 / sides;
+        function _x(theta) {
+            return size * Math.cos(theta + angle - Math.PI / 2);
+        }
+        function _y(theta) {
+            return size * Math.sin(theta + angle - Math.PI / 2);
+        }
 
-    function squarePoints(x, y, size, angle=0) {
-        // get vertices
-        let vertices = [
-            rot([-size/2, -size/2], angle),
-            rot([size/2, -size/2], angle),
-            rot([size/2, size/2], angle),
-            rot([-size/2, size/2], angle)
-        ].map((v, i) => {
+        for (var i = 1; i <= sides; i++) {
+            vertices.push([_x(a * i), _y(a * i)]);
+        }
+
+        vertices = vertices.map((v, i) => {
             return [v[0] + x, v[1] + y]
         });
 
+        return vertices;
+    }
+
+
+    function squarePoints(x, y, size, angle=0) {
+        // get vertices
+        let vertices = makeVertices(x, y, 4, size, angle);
         polyPoints(vertices, 20, pts);
     }
 
 
     function trianglePoints(x, y, size, angle=0) {
-        let d = size * 0.64;
         // get vertices
-        let vertices = [
-            rot([0, -d], angle),
-            rot([-d * Math.cos(PI/6), d * Math.sin(PI/6)], angle),
-            rot([d * Math.cos(PI/6), d * Math.sin(PI/6)], angle)
-        ].map((v, i) => {
-            return [v[0] + x, v[1] + y]
-        });
-
+        let vertices = makeVertices(x, y, 3, size, angle);
         polyPoints(vertices, 20, pts);
     }
 
-
+    // compose the vertex and point placement functions
+    function drawPointsPoly(pts=[], x, y, sides=4, size=100, angle=0, spacing=20) {
+        return polyPoints(makeVertices(x, y, sides, size, angle), spacing, pts);
+    }
 
     // test shapes
-    squarePoints(cw * .33, ch *.33, SCALE/4, PI * randomInRange(0, 1));
-    trianglePoints(cw * .66, ch * .66, SCALE/4, PI * randomInRange(0, 1));
+    //squarePoints(cw * .33, ch *.33, SCALE/4, PI * randomInRange(0, 1));
+    drawPointsPoly(pts, cw * .33, ch *.33, 4, SCALE/4, PI * randomInRange(0, 1));
+    //trianglePoints(cw * .66, ch * .66, SCALE/4, PI * randomInRange(0, 1));
+    drawPointsPoly(pts, cw * .66, ch *.66, 3, SCALE/4, PI * randomInRange(0, 1));
     circlePoints(cw/2, ch/2, SCALE/4);
-
 
 
     // create field transform
