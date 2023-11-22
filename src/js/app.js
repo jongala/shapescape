@@ -18,6 +18,7 @@ import { mesh } from './mesh';
 import { walk } from './walk';
 import { bands } from './bands';
 import { field } from './field';
+import { fieldShape } from './fieldShape';
 import { trails } from './trails';
 import { fragments } from './fragments';
 import { clouds } from './clouds';
@@ -50,6 +51,7 @@ const RENDERERS = {
     mesh: mesh,
     walk: walk,
     field: field,
+    "field-Shape": fieldShape,
     trails: trails,
     bands: bands,
     fragments: fragments,
