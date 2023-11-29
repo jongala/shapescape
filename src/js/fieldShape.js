@@ -31,6 +31,9 @@ export function fieldShape(options) {
     let LONG = Math.max(cw, ch);
     let SHORT = Math.min(cw, ch);
     const AREA = cw * ch;
+    // canvas center x and y
+    let cx = cw/2;
+    let cy = ch/2;
 
     // Find or create canvas child
     let el = container.querySelector('canvas');
@@ -237,16 +240,13 @@ export function fieldShape(options) {
 
     // Create points at @spacing along polygon defined by @vertices
     // Append to @pts and return modified @pts
-    function polyPoints(vertices, spacing=10, pts) {
+    function pointsFromVertices(vertices, spacing=10) {
         // place points at vertices
-
+        let pts = [];
         pts.push(...vertices);
 
-
         // for each edge:
-
         // get vector for edges by subtracing vertex coordinates
-
         function drawEdge(edge, pts) {
             // for each edge, get nearest number of whole number of steps based
             // on spacing
@@ -308,39 +308,29 @@ export function fieldShape(options) {
     function squarePoints(x, y, size, angle=0) {
         // get vertices
         let vertices = makeVertices(4, x, y, size, angle);
-        polyPoints(vertices, 20, pts);
+        pointsFromVertices(vertices, 20, pts);
     }
 
 
     function trianglePoints(x, y, size, angle=0) {
         // get vertices
         let vertices = makeVertices(3, x, y, size, angle);
-        polyPoints(vertices, 20, pts);
+        pointsFromVertices(vertices, 20, pts);
     }
 
 
 
     // Convenience function: compose the vertex and point placement functions
     // to draw a complete polygon
-    function drawPointsPoly(pts=[], sides=4, x, y, size=100, angle=0, spacing=20) {
-        return polyPoints(makeVertices(sides, x, y, size, angle), spacing, pts);
+    function placePolygonPoints(sides=4, x, y, size=100, angle=0, spacing=20) {
+        return pointsFromVertices(makeVertices(sides, x, y, size, angle), spacing);
     }
-
-    // test shapes
-    //drawPointsPoly(pts, 4, cw * .33, ch *.33, SCALE/4, PI * randomInRange(0, 1));
-    //drawPointsPoly(pts, 3, cw * .66, ch *.66, SCALE/4, PI * randomInRange(0, 1));
-    //circlePoints(cw/2, ch/2, SCALE/4);
-
-    // place shapes nicely on the canvas
-
-    // center x and y
-    let cx = cw/2;
-    let cy = ch/2;
-
 
     // Draw N shapes placed along a ring at some random interval, which
     // may loop. Move the ring a bit offset from the true center.
-    let placeOnRing = function() {
+    let placeShapesOnRing = function() {
+        let ringPoints = [];
+
         let shapeR = SCALE * randomInRange(0.25, 0.4);
         let N = randomInt(2, 6);
         let shapeAngle = PI/randomInt(1, N);
@@ -355,32 +345,29 @@ export function fieldShape(options) {
             let _x, _y;
             _x = _cx + shapeR * Math.cos(i * shapeAngle);
             _y = _cy + shapeR * Math.sin(i * shapeAngle);
-            drawPointsPoly(
-                pts,
+            ringPoints = ringPoints.concat(placePolygonPoints(
                 randomInt(3, 6),
                 _x,
                 _y,
                 SCALE * randomInRange(0.1, 0.3),
                 PI * randomInRange(0, 1),
                 SCALE / randomInRange(25, 55)
-            );
+            ));
         }
 
         // debug
         ctx.lineWidth = 1;
         drawCircle(ctx, _cx, _cy, shapeR, {stroke:fg2});
+
+        return ringPoints;
     }
 
 
-    function placeOnLine() {
+    function placeShapesOnLine() {
         let N = randomInt(3, 6);
 
 
     }
-
-
-    // draw stuff
-    placeOnRing();
 
 
 
@@ -418,8 +405,8 @@ export function fieldShape(options) {
         lineScale = 1/totalStrength;
     }
 
-    // step thru points
-    pts.forEach((p, i) => {
+    // draw a single point in the field
+    function drawPoint(p, i) {
         x = p[0];
         y = p[1];
         xnorm = x/cw;
@@ -473,7 +460,22 @@ export function fieldShape(options) {
             y + tailLength * _y * lineScale
         );
         ctx.stroke();
-    });
+    }
+
+    // step thru points
+    //pts.forEach(drawPoint);
+
+
+    // draw stuff
+
+    // test shapes
+    //placePolygonPoints( 4, cw * .33, ch *.33, SCALE/4, PI * randomInRange(0, 1));
+    //placePolygonPoints( 3, cw * .66, ch *.66, SCALE/4, PI * randomInRange(0, 1));
+    //circlePoints(cw/2, ch/2, SCALE/4);
+
+    placeShapesOnRing().forEach(drawPoint);
+
+
 
     ctx.globalAlpha = 1;
 
