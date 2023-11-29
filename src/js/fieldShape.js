@@ -99,7 +99,7 @@ export function fieldShape(options) {
 
     let rateMax = 3;
 
-    let tailLength = SCALE / randomInRange(10, 50);
+    let tailLength = SCALE / randomInRange(30, 50);
 
 
     // tail vars
@@ -219,11 +219,9 @@ export function fieldShape(options) {
     }
 
 
-    let pts = [];
+
 
     const SPACING = 15;
-
-    //pts = hexScatter(tailLength, cw, ch);
 
     // place points along shapes
 
@@ -358,6 +356,8 @@ export function fieldShape(options) {
         // debug
         ctx.lineWidth = 1;
         drawCircle(ctx, _cx, _cy, shapeR, {stroke:fg2});
+        ctx.lineWidth = weight;
+
 
         return ringPoints;
     }
@@ -406,60 +406,66 @@ export function fieldShape(options) {
     }
 
     // draw a single point in the field
-    function drawPoint(p, i) {
-        x = p[0];
-        y = p[1];
-        xnorm = x/cw;
-        ynorm = y/ch;
+    function drawPoints(points, drawTails=true, drawDots=true) {
+        points.forEach((p, i) => {
+            x = p[0];
+            y = p[1];
+            xnorm = x/cw;
+            ynorm = y/ch;
 
-        // get end of tail coords
-        if (FIELDMODE === 'flow') {
-            // flow fields (source-sink)
-            let flow = sourceTransform.t(xnorm, ynorm);
-            _x = flow[0];
-            _y = flow[1];
-        } else {
-            // harmonic fields
-            _x = trans.xtail(xnorm, ynorm);
-            _y = trans.ytail(xnorm, ynorm);
-        }
+            // get end of tail coords
+            if (FIELDMODE === 'flow') {
+                // flow fields (source-sink)
+                let flow = sourceTransform.t(xnorm, ynorm);
+                _x = flow[0];
+                _y = flow[1];
+            } else {
+                // harmonic fields
+                _x = trans.xtail(xnorm, ynorm);
+                _y = trans.ytail(xnorm, ynorm);
+            }
 
-        let theta = Math.atan2(_y, _x);
-        let fillIndex = Math.round(contrastPalette.length * theta/PI / 2);
-        let angleColor = contrastPalette[fillIndex];
+            let theta = Math.atan2(_y, _x);
+            let fillIndex = Math.round(contrastPalette.length * theta/PI / 2);
+            let angleColor = contrastPalette[fillIndex];
 
-        if (colorDotByAngle) {
-            dotFill = angleColor;
-        }
-        if (COLORMODE === 'random' && Math.random() < randomColorThreshold) {
-            dotFill = getContrastColor();
-        }
+            if (drawDots) {
+                if (colorDotByAngle) {
+                    dotFill = angleColor;
+                }
+                if (COLORMODE === 'random' && Math.random() < randomColorThreshold) {
+                    dotFill = getContrastColor();
+                }
 
-        // draw dot
-        ctx.globalAlpha = 1;
-        drawCircle(ctx,
-            x,
-            y,
-            (trans.radius(xnorm, ynorm) + 1) * dotScale,
-            {fill: dotFill}
-        );
+                // draw dot
+                ctx.globalAlpha = 1;
+                drawCircle(ctx,
+                    x,
+                    y,
+                    (trans.radius(xnorm, ynorm) + 1) * dotScale,
+                    {fill: dotFill}
+                );
+            }
 
-        ctx.globalAlpha = opacityFunc(_x, _y);
+            if (drawTails) {
+                ctx.globalAlpha = opacityFunc(_x, _y);
 
-        if (colorTailByAngle) {
-            ctx.strokeStyle = angleColor;
-        }
-        if (COLORMODE === 'random' && Math.random() < randomColorThreshold) {
-            ctx.strokeStyle = getContrastColor();
-        }
+                if (colorTailByAngle) {
+                    ctx.strokeStyle = angleColor;
+                }
+                if (COLORMODE === 'random' && Math.random() < randomColorThreshold) {
+                    ctx.strokeStyle = getContrastColor();
+                }
 
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(
-            x + tailLength * _x * lineScale,
-            y + tailLength * _y * lineScale
-        );
-        ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(
+                    x + tailLength * _x * lineScale,
+                    y + tailLength * _y * lineScale
+                );
+                ctx.stroke();
+            }
+        });
     }
 
     // step thru points
@@ -473,7 +479,16 @@ export function fieldShape(options) {
     //placePolygonPoints( 3, cw * .66, ch *.66, SCALE/4, PI * randomInRange(0, 1));
     //circlePoints(cw/2, ch/2, SCALE/4);
 
-    placeShapesOnRing().forEach(drawPoint);
+    let baseScale = lineScale;
+
+    lineScale = baseScale / 3;
+
+    drawPoints(hexScatter(tailLength, cw, ch), true, false);
+
+    lineScale = baseScale;
+    ctx.lineWidth = weight * 2;
+
+    drawPoints(placeShapesOnRing(), true, true);
 
 
 
