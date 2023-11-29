@@ -1,7 +1,7 @@
 import noiseUtils from './noiseutils';
 import palettes from './palettes';
 import hexScatter from './hexScatter';
-import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, getVector } from './utils';
+import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, getVector } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
 const DEFAULTS = {
@@ -218,7 +218,7 @@ export function fieldShape(options) {
 
     let pts = [];
 
-    const SPACING = 20;
+    const SPACING = 15;
 
     //pts = hexScatter(tailLength, cw, ch);
 
@@ -303,6 +303,8 @@ export function fieldShape(options) {
     }
 
 
+    // Convenience functions that make common shapes, based on makeVertices
+
     function squarePoints(x, y, size, angle=0) {
         // get vertices
         let vertices = makeVertices(4, x, y, size, angle);
@@ -316,17 +318,70 @@ export function fieldShape(options) {
         polyPoints(vertices, 20, pts);
     }
 
-    // compose the vertex and point placement functions
+
+
+    // Convenience function: compose the vertex and point placement functions
+    // to draw a complete polygon
     function drawPointsPoly(pts=[], sides=4, x, y, size=100, angle=0, spacing=20) {
         return polyPoints(makeVertices(sides, x, y, size, angle), spacing, pts);
     }
 
     // test shapes
-    //squarePoints(cw * .33, ch *.33, SCALE/4, PI * randomInRange(0, 1));
-    drawPointsPoly(pts, 4, cw * .33, ch *.33, SCALE/4, PI * randomInRange(0, 1));
-    //trianglePoints(cw * .66, ch * .66, SCALE/4, PI * randomInRange(0, 1));
-    drawPointsPoly(pts, 3, cw * .66, ch *.66, SCALE/4, PI * randomInRange(0, 1));
-    circlePoints(cw/2, ch/2, SCALE/4);
+    //drawPointsPoly(pts, 4, cw * .33, ch *.33, SCALE/4, PI * randomInRange(0, 1));
+    //drawPointsPoly(pts, 3, cw * .66, ch *.66, SCALE/4, PI * randomInRange(0, 1));
+    //circlePoints(cw/2, ch/2, SCALE/4);
+
+    // place shapes nicely on the canvas
+
+    // center x and y
+    let cx = cw/2;
+    let cy = ch/2;
+
+
+    // Draw N shapes placed along a ring at some random interval, which
+    // may loop. Move the ring a bit offset from the true center.
+    let placeOnRing = function() {
+        let shapeR = SCALE * randomInRange(0.25, 0.4);
+        let N = randomInt(2, 6);
+        let shapeAngle = PI/randomInt(1, N);
+
+        let _cx, _cy; // adjusted center point
+        let _r = SCALE * randomInRange(0, 0.2);
+        _cx = cx + _r * Math.cos(shapeAngle);
+        _cy = cy + _r * Math.sin(shapeAngle);
+
+
+        for (var i=0; i<N; i++) {
+            let _x, _y;
+            _x = _cx + shapeR * Math.cos(i * shapeAngle);
+            _y = _cy + shapeR * Math.sin(i * shapeAngle);
+            drawPointsPoly(
+                pts,
+                randomInt(3, 6),
+                _x,
+                _y,
+                SCALE * randomInRange(0.1, 0.3),
+                PI * randomInRange(0, 1),
+                SCALE / randomInRange(25, 55)
+            );
+        }
+
+        // debug
+        ctx.lineWidth = 1;
+        drawCircle(ctx, _cx, _cy, shapeR, {stroke:fg2});
+    }
+
+
+    function placeOnLine() {
+        let N = randomInt(3, 6);
+
+
+    }
+
+
+    // draw stuff
+    placeOnRing();
+
 
 
     // create field transform
