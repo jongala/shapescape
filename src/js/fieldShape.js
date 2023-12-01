@@ -1,7 +1,7 @@
 import noiseUtils from './noiseutils';
 import palettes from './palettes';
 import hexScatter from './hexScatter';
-import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, getVector } from './utils';
+import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, getVector, shuffle } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
 const DEFAULTS = {
@@ -324,6 +324,14 @@ export function fieldShape(options) {
         return pointsFromVertices(makeVertices(sides, x, y, size, angle), spacing);
     }
 
+    // util used for scaling shapes
+    function distanceFromEdge(x, y) {
+        let dx = Math.min(x, cw - x);
+        let dy = Math.min(y, ch - y);
+        // normalize gap to the larger dimension of the canvas
+        return Math.min(dx, dy) / LONG;
+    }
+
     // Draw N shapes placed along a ring at some random interval, which
     // may loop. Move the ring a bit offset from the true center.
     let placeShapesOnRing = function() {
@@ -354,22 +362,107 @@ export function fieldShape(options) {
         }
 
         // debug
+        ctx.globalAlpha = 0.33;
         ctx.lineWidth = 1;
         drawCircle(ctx, _cx, _cy, shapeR, {stroke:fg2});
         ctx.lineWidth = weight;
+        ctx.globalAlpha =1;
 
 
         return ringPoints;
     }
 
+    function placeShapesRandomly(N) {
+        N = N || randomInt(3, 6);
+        let shapePoints = [];
+
+        // place them randomly
+        // find distance to closest edge
+        // make shapes near edges large, away from edges small
+        // allow centers to be outside of area.
+
+        for (var i=0; i<N; i++) {
+            let _x, _y;
+            _x = randomInRange(0, cw);
+            _y = randomInRange(0, ch);
+
+            let scalar = 1 - distanceFromEdge(_x, _y);
+            scalar = scalar * scalar * scalar;
+
+            shapePoints = shapePoints.concat(placePolygonPoints(
+                randomInt(3, 6),
+                _x,
+                _y,
+                SCALE * randomInRange(0.3, 0.5) * scalar,
+                PI * randomInRange(0, 1),
+                SCALE / randomInRange(25, 55)
+            ));
+        }
+
+        return shapePoints;
+    }
 
     function placeShapesOnLine() {
         let N = randomInt(3, 6);
+        let shapePoints = [];
+
+        // points along each side of the canvas
+        let sides = shuffle([
+            [cw * randomInRange(0.2, 0.8), 0],
+            [cw, ch * randomInRange(0.2, 0.8)],
+            [cw * randomInRange(0.2, 0.8), ch],
+            [0, ch * randomInRange(0.2, 0.8)]
+        ]);
+
+        // choose random combo
+        let p1 = sides.pop();
+        let p2 = sides.pop();
 
 
+        // debug
+        ctx.globalAlpha = 0.5;
+        // drawCircle(ctx, p1[0], p1[1], 30, {fill:'green'});
+        // drawCircle(ctx, p2[0], p2[1], 30, {fill:'green'});
+
+        // trace line
+        ctx.strokeStyle = fg;
+        ctx.lineWidth = 1
+        ctx.moveTo(...p1);
+        ctx.lineTo(...p2);
+        ctx.stroke();
+        ctx.lineWidth = weight;
+
+
+        // draw shapes along the line
+        for (var i=0; i<N; i++) {
+            let _x, _y, d;
+            // interpolate at random spot along p1 -> p2
+            d = randomInRange(0, 1);
+            _x = d * p1[0] + (1 - d) * p2[0];
+            _y = d * p1[1] + (1 - d) * p2[1];
+
+            let scalar = 1 - distanceFromEdge(_x, _y);
+            scalar = scalar * scalar * scalar;
+
+            shapePoints = shapePoints.concat(placePolygonPoints(
+                randomInt(3, 6),
+                _x,
+                _y,
+                SCALE * randomInRange(0.3, 0.5) * scalar,
+                PI * randomInRange(0, 1),
+                SCALE / randomInRange(25, 55)
+            ));
+        }
+
+        return shapePoints;
     }
 
-
+    // make a collection of placement functions that we can pick from
+    let placementFunctions = [
+        placeShapesOnRing,
+        placeShapesOnLine,
+        placeShapesRandomly
+    ];
 
     // create field transform
     let sourceTransform = createSourceSinkTransform(Math.round(randomInRange(5, 15)));
@@ -443,7 +536,7 @@ export function fieldShape(options) {
                     x,
                     y,
                     (trans.radius(xnorm, ynorm) + 1) * dotScale,
-                    {fill: dotFill}
+                    {stroke: dotFill}
                 );
             }
 
@@ -468,10 +561,6 @@ export function fieldShape(options) {
         });
     }
 
-    // step thru points
-    //pts.forEach(drawPoint);
-
-
     // draw stuff
 
     // test shapes
@@ -479,17 +568,21 @@ export function fieldShape(options) {
     //placePolygonPoints( 3, cw * .66, ch *.66, SCALE/4, PI * randomInRange(0, 1));
     //circlePoints(cw/2, ch/2, SCALE/4);
 
+    // Draw the background field from scattered points, with only tails
+    // Use a shorter tail length and thickness to make this less dominant
     let baseScale = lineScale;
-
     lineScale = baseScale / 3;
 
     drawPoints(hexScatter(tailLength, cw, ch), true, false);
 
+
+    // Restore full tail length and thickness to draw points derived from
+    // the polygons
     lineScale = baseScale;
     ctx.lineWidth = weight * 2;
 
-    drawPoints(placeShapesOnRing(), true, true);
-
+    //drawPoints(placeShapesOnRing(), true, true);
+    drawPoints(randItem(placementFunctions)(), true, true);
 
 
     ctx.globalAlpha = 1;
