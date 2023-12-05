@@ -10,6 +10,7 @@ const DEFAULTS = {
     addNoise: 0.04,
     noiseInput: null,
     clear: true,
+    debug: false,
     colorMode: 'auto', // from COLORMODES or 'auto'
     fieldMode: 'auto', // [auto, harmonic, flow]
     lightMode: 'normal', // [auto, bloom, normal]
@@ -51,6 +52,7 @@ export function fieldShape(options) {
     let ctx = el.getContext('2d');
 
     // modes and styles
+    const DEBUG = opts.debug;
     const LIGHTMODE = opts.lightMode === 'auto' ? randItem(LIGHTMODES) : opts.lightMode;
     const FIELDMODE = opts.fieldMode === 'auto' ? randItem(FIELDMODES) : opts.fieldMode;
     const COLORMODE = opts.colorMode === 'auto' ? randItem(COLORMODES) : opts.colorMode;
@@ -361,13 +363,13 @@ export function fieldShape(options) {
             ));
         }
 
-        // debug
-        ctx.globalAlpha = 0.33;
-        ctx.lineWidth = 1;
-        drawCircle(ctx, _cx, _cy, shapeR, {stroke:fg2});
-        ctx.lineWidth = weight;
-        ctx.globalAlpha =1;
-
+        if (DEBUG) {
+            ctx.globalAlpha = 0.33;
+            ctx.lineWidth = 1;
+            drawCircle(ctx, _cx, _cy, shapeR, {stroke:fg2});
+            ctx.lineWidth = weight;
+            ctx.globalAlpha =1;
+        }
 
         return ringPoints;
     }
@@ -418,20 +420,16 @@ export function fieldShape(options) {
         let p1 = sides.pop();
         let p2 = sides.pop();
 
-
-        // debug
-        ctx.globalAlpha = 0.5;
-        // drawCircle(ctx, p1[0], p1[1], 30, {fill:'green'});
-        // drawCircle(ctx, p2[0], p2[1], 30, {fill:'green'});
-
-        // trace line
-        ctx.strokeStyle = fg;
-        ctx.lineWidth = 1
-        ctx.moveTo(...p1);
-        ctx.lineTo(...p2);
-        ctx.stroke();
-        ctx.lineWidth = weight;
-
+        if (DEBUG) {
+            ctx.globalAlpha = 0.5;
+            // trace line
+            ctx.strokeStyle = fg;
+            ctx.lineWidth = 1
+            ctx.moveTo(...p1);
+            ctx.lineTo(...p2);
+            ctx.stroke();
+            ctx.lineWidth = weight;
+        }
 
         // draw shapes along the line
         for (var i=0; i<N; i++) {
@@ -581,7 +579,7 @@ export function fieldShape(options) {
     lineScale = baseScale;
     ctx.lineWidth = weight * 2;
 
-    //drawPoints(placeShapesOnRing(), true, true);
+    // Pick a random placement function and draw
     drawPoints(randItem(placementFunctions)(), true, true);
 
 
