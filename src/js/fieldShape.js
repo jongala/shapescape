@@ -3,7 +3,7 @@ import palettes from './palettes';
 import hexScatter from './hexScatter';
 import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, getVector, shuffle } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
-import { createTransform, createSourceSinkTransform, opacityTransforms } from './util/fields';
+import { createTransform, createSourceSinkTransform, opacityTransforms } from './util/fieldUtils';
 
 const DEFAULTS = {
     container: 'body',
@@ -15,6 +15,7 @@ const DEFAULTS = {
     colorMode: 'auto', // from COLORMODES or 'auto'
     fieldMode: 'auto', // [auto, harmonic, flow]
     lightMode: 'normal', // [auto, bloom, normal]
+    drawEdges: 'auto', // [auto, true, false]
 }
 
 const PI = Math.PI;
@@ -57,6 +58,9 @@ export function fieldShape(options) {
     const LIGHTMODE = opts.lightMode === 'auto' ? randItem(LIGHTMODES) : opts.lightMode;
     const FIELDMODE = opts.fieldMode === 'auto' ? randItem(FIELDMODES) : opts.fieldMode;
     const COLORMODE = opts.colorMode === 'auto' ? randItem(COLORMODES) : opts.colorMode;
+    const POLYEDGES = opts.drawEdges === 'auto' ? randItem([true, false]) : opts.drawEdges;
+
+    console.log(`FieldShape: ${FIELDMODE} ${COLORMODE} ${LIGHTMODE} ${POLYEDGES}`);
 
     // color funcs
     let getSolidFill = getSolidColorFunction(opts.palette);
@@ -212,7 +216,7 @@ export function fieldShape(options) {
             let steps = Math.floor(edge.length / spacing);
             let inc = edge.length / steps;
 
-            console.log(`${steps} steps at ${inc.toPrecision(3)}px each`);
+            DEBUG && console.log(`${steps} steps at ${inc.toPrecision(3)}px each`);
 
             // start at vertex and move along edge vector in increments,
             // placing points
@@ -530,11 +534,12 @@ export function fieldShape(options) {
     lineScale = baseScale;
     ctx.lineWidth = weight * 2;
 
-    // Pick a random placement function and draw
-    polyVertices.forEach((polygon, i) => {
-        drawPoints(getEdgePointsFromVertices(polygon, SPACING), true, true);
-    });
-
+    // Pick a random placement function and draw the edges
+    if (POLYEDGES) {
+        polyVertices.forEach((polygon, i) => {
+            drawPoints(getEdgePointsFromVertices(polygon, SPACING), true, true);
+        });
+    }
 
     // -> select the background points that overlap polygons
 
