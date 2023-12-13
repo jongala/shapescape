@@ -3,6 +3,7 @@ import palettes from './palettes';
 import hexScatter from './hexScatter';
 import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, getVector, shuffle } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
+import { createTransform, createSourceSinkTransform, opacityTransforms } from './util/fields';
 
 const DEFAULTS = {
     container: 'body',
@@ -98,11 +99,9 @@ export function fieldShape(options) {
     // set default dot color
     let dotFill = fg2;
 
-
     let rateMax = 3;
 
     let tailLength = SCALE / randomInRange(30, 50);
-
 
     // tail vars
     let _x,_y,len;
@@ -124,92 +123,8 @@ export function fieldShape(options) {
     let lineScale = randomInRange(0.7, 2);
 
 
-
-    // set of functions to transform opacity across grid
-    const opacityTransforms = [
-        () => 1,
-        (_x, _y) => Math.abs(_y/_x)/maxLen,
-        (_x, _y) => (1 - Math.abs(_y/_x)/maxLen),
-        (_x, _y) => Math.abs(_x/_y), // hides verticals
-        (_x, _y) => Math.abs(_y/_x), // hides horizontals
-        (_x, _y) => (_x / _y),
-        (_x, _y) => (_y / _x),
-        (_x, _y) => (_y - _x),
-        (_x, _y) => (_x - _y)
-    ]
-    // now pick one
-    let opacityFunc = randItem(opacityTransforms);
-
-    // Create a function which is a periodic transform of x, y
-    function createTransform (rateMin = 0, rateMax = 1) {
-        let rate1 = randomInRange(0, rateMax/2);
-        let rate2 = randomInRange(0, rateMax/2);
-        let rate3 = randomInRange(rateMax/2, rateMax);
-        let rate4 = randomInRange(rateMax/2, rateMax);
-
-        let phase1 = randomInRange(-PI, PI);
-        let phase2 = randomInRange(-PI, PI);
-        let phase3 = randomInRange(-PI, PI);
-        let phase4 = randomInRange(-PI, PI);
-
-        let c1 = randomInRange(0, 1);
-        let c2 = randomInRange(0, 1);
-        let c3 = randomInRange(0, 1);
-        let c4 = randomInRange(0, 1);
-        return (xnorm, ynorm) => {
-            let t1 = Math.sin(xnorm * rate1 * 2 * PI + phase1);
-            let t2 = Math.sin(ynorm * rate2 * 2 * PI + phase2);
-            let t3 = Math.sin(xnorm * rate3 * 2 * PI + phase3);
-            let t4 = Math.sin(ynorm * rate4 * 2 * PI + phase4);
-            return (c1 * t1 + c2 * t2 + c3 * t3 + c4 * t4)/(c1 + c2 + c3 + c4);
-        }
-    }
-
-    function createSourceSinkTransform (count = 4) {
-        let sources = [];
-
-        while(count--) {
-            let src = {
-                strength: randomInRange(1, 20),
-                sign: 1,
-                x: randomInRange(-0.25, 1.25), // add some overscan
-                y: randomInRange(-0.25, 1.25)
-            }
-            if (Math.random() > 0.9) { // occasionally make sinks instead of sources
-                src.sign *= -1;
-            }
-            sources.push(src);
-        }
-
-        return {
-            sources: sources,
-            t: (xnorm, ynorm) => {
-                let v = [0, 0]; // force vector to return
-
-                sources.forEach((source) => {
-                    let rmin = source.strength / 1000; // magic number
-
-
-                    let dx = xnorm - source.x;
-                    let dy = ynorm - source.y;
-                    let _r = (dx * dx + dy * dy); // really r squared but that's what we want
-
-                    if(_r < rmin) {
-                        _r = rmin;
-                    }; // min r
-
-                    let scalar = source.sign * source.strength/(_r);
-
-                    let _x = scalar * (dx);
-                    let _y = scalar * (dy);
-                    v[0] += _x;
-                    v[1] += _y;
-                });
-
-                return v;
-            }
-        }
-    }
+    // Pick an opacity transform to use
+    let opacityFunc = randItem(opacityTransforms(maxLen));
 
     // a set of independent transforms to use while rendering
     let trans = {
@@ -220,13 +135,34 @@ export function fieldShape(options) {
         radius: createTransform(rateMax)
     }
 
+    // Make a reference canvas, fill it black
+    let ref = document.querySelector('#ref');
+    if (!ref) {
+        ref = document.createElement('canvas');
+        ref.setAttribute('id','ref');
+        ref.setAttribute('width', cw);
+        ref.setAttribute('height', ch);
+        ref.className = 'artContainer';
+        //document.querySelector('body').appendChild(ref);
+    }
+    let refctx = ref.getContext('2d');
+    // fill ref with black
+    refctx.fillStyle = 'black';
+    refctx.fillRect(0, 0, cw, ch);
+    // set to white to draw shapes
+    refctx.fillStyle = 'white';
 
 
+    // with a set of imageData, get the color at x,y
+    function colorFromReference(x, y, imageData) {
+        let c = [];
+        return c;
+    }
 
-    const SPACING = 15;
+    // edge spacing
+    const SPACING = SCALE/randomInRange(35, 50);
 
     // place points along shapes
-
     function circlePoints(x, y, size) {
         let theta = 0;
         let N = 200;
@@ -237,10 +173,32 @@ export function fieldShape(options) {
         }
     }
 
+    // Return an array of vertices defining a regular polygon
+    // centered at @x, @y, with @sides, @size, and @angle
+    function makeRegularVertices(sides=4, x, y, size=100, angle=0) {
+        let vertices = [];
+        var a = Math.PI * 2 / sides;
+        function _x(theta) {
+            return size * Math.cos(theta + angle - Math.PI / 2);
+        }
+        function _y(theta) {
+            return size * Math.sin(theta + angle - Math.PI / 2);
+        }
+
+        for (var i = 1; i <= sides; i++) {
+            vertices.push([_x(a * i), _y(a * i)]);
+        }
+
+        vertices = vertices.map((v, i) => {
+            return [v[0] + x, v[1] + y]
+        });
+
+        return vertices;
+    }
 
     // Create points at @spacing along polygon defined by @vertices
     // Append to @pts and return modified @pts
-    function pointsFromVertices(vertices, spacing=10) {
+    function getEdgePointsFromVertices(vertices, spacing=10) {
         // place points at vertices
         let pts = [];
         pts.push(...vertices);
@@ -279,51 +237,30 @@ export function fieldShape(options) {
     }
 
 
-    // Return an array of vertices defining a regular polygon
-    // centered at @x, @y, with @sides, @size, and @angle
-    function makeVertices(sides=4, x, y, size=100, angle=0) {
-        let vertices = [];
-        var a = Math.PI * 2 / sides;
-        function _x(theta) {
-            return size * Math.cos(theta + angle - Math.PI / 2);
-        }
-        function _y(theta) {
-            return size * Math.sin(theta + angle - Math.PI / 2);
-        }
+    // Create points at @spacing along polygon defined by @vertices
+    // Append to @pts and return modified @pts
+    function drawShapeFromVertices(ctx, vertices) {
+        //ctx.globalAlpha = 0.5;
+        ctx.fillStyle = 'white';
 
-        for (var i = 1; i <= sides; i++) {
-            vertices.push([_x(a * i), _y(a * i)]);
+        ctx.beginPath();
+        ctx.moveTo(...vertices.pop());
+        while(vertices.length){
+            ctx.lineTo(...vertices.pop());
         }
+        ctx.closePath();
+        ctx.fill();
 
-        vertices = vertices.map((v, i) => {
-            return [v[0] + x, v[1] + y]
-        });
+        ctx.globalAlpha = 1;
 
         return vertices;
     }
 
 
-    // Convenience functions that make common shapes, based on makeVertices
-
-    function squarePoints(x, y, size, angle=0) {
-        // get vertices
-        let vertices = makeVertices(4, x, y, size, angle);
-        pointsFromVertices(vertices, 20, pts);
-    }
-
-
-    function trianglePoints(x, y, size, angle=0) {
-        // get vertices
-        let vertices = makeVertices(3, x, y, size, angle);
-        pointsFromVertices(vertices, 20, pts);
-    }
-
-
-
     // Convenience function: compose the vertex and point placement functions
     // to draw a complete polygon
     function placePolygonPoints(sides=4, x, y, size=100, angle=0, spacing=20) {
-        return pointsFromVertices(makeVertices(sides, x, y, size, angle), spacing);
+        return getEdgePointsFromVertices(makeRegularVertices(sides, x, y, size, angle), spacing);
     }
 
     // util used for scaling shapes
@@ -334,8 +271,9 @@ export function fieldShape(options) {
         return Math.min(dx, dy) / LONG;
     }
 
-    // Draw N shapes placed along a ring at some random interval, which
+    // Define N shapes placed along a ring at some random interval, which
     // may loop. Move the ring a bit offset from the true center.
+    // Returns a list of vertices.
     let placeShapesOnRing = function() {
         let ringPoints = [];
 
@@ -353,14 +291,16 @@ export function fieldShape(options) {
             let _x, _y;
             _x = _cx + shapeR * Math.cos(i * shapeAngle);
             _y = _cy + shapeR * Math.sin(i * shapeAngle);
-            ringPoints = ringPoints.concat(placePolygonPoints(
-                randomInt(3, 6),
-                _x,
-                _y,
-                SCALE * randomInRange(0.1, 0.3),
-                PI * randomInRange(0, 1),
-                SCALE / randomInRange(25, 55)
-            ));
+            ringPoints = ringPoints.concat([
+                makeRegularVertices(
+                    randomInt(3, 6),
+                    _x,
+                    _y,
+                    SCALE * randomInRange(0.1, 0.3),
+                    PI * randomInRange(0, 1),
+                    SCALE / randomInRange(25, 55)
+                )
+            ]);
         }
 
         if (DEBUG) {
@@ -391,14 +331,16 @@ export function fieldShape(options) {
             let scalar = 1 - distanceFromEdge(_x, _y);
             scalar = scalar * scalar * scalar;
 
-            shapePoints = shapePoints.concat(placePolygonPoints(
-                randomInt(3, 6),
-                _x,
-                _y,
-                SCALE * randomInRange(0.3, 0.5) * scalar,
-                PI * randomInRange(0, 1),
-                SCALE / randomInRange(25, 55)
-            ));
+            shapePoints = shapePoints.concat([
+                makeRegularVertices(
+                    randomInt(3, 6),
+                    _x,
+                    _y,
+                    SCALE * randomInRange(0.3, 0.5) * scalar,
+                    PI * randomInRange(0, 1),
+                    SCALE / randomInRange(25, 55)
+                )
+            ]);
         }
 
         return shapePoints;
@@ -442,14 +384,16 @@ export function fieldShape(options) {
             let scalar = 1 - distanceFromEdge(_x, _y);
             scalar = scalar * scalar * scalar;
 
-            shapePoints = shapePoints.concat(placePolygonPoints(
-                randomInt(3, 6),
-                _x,
-                _y,
-                SCALE * randomInRange(0.3, 0.5) * scalar,
-                PI * randomInRange(0, 1),
-                SCALE / randomInRange(25, 55)
-            ));
+            shapePoints = shapePoints.concat([
+                makeRegularVertices(
+                    randomInt(3, 6),
+                    _x,
+                    _y,
+                    SCALE * randomInRange(0.3, 0.5) * scalar,
+                    PI * randomInRange(0, 1),
+                    SCALE / randomInRange(25, 55)
+                )
+            ]);
         }
 
         return shapePoints;
@@ -559,20 +503,27 @@ export function fieldShape(options) {
         });
     }
 
-    // draw stuff
 
-    // test shapes
-    //placePolygonPoints( 4, cw * .33, ch *.33, SCALE/4, PI * randomInRange(0, 1));
-    //placePolygonPoints( 3, cw * .66, ch *.66, SCALE/4, PI * randomInRange(0, 1));
-    //circlePoints(cw/2, ch/2, SCALE/4);
+    // --------------------------------------
+    // draw stuff:
+
+
+    // -> Get a set of polygon vertices
+    let polyVertices = [];
+    polyVertices = randItem(placementFunctions)();
+
+    // -> scatter a background field
 
     // Draw the background field from scattered points, with only tails
     // Use a shorter tail length and thickness to make this less dominant
     let baseScale = lineScale;
     lineScale = baseScale / 3;
 
-    drawPoints(hexScatter(tailLength, cw, ch), true, false);
+    let bgField = hexScatter(tailLength, cw, ch);
+    drawPoints(bgField, true, false);
 
+
+    // -> draw the polygon edges, if desired
 
     // Restore full tail length and thickness to draw points derived from
     // the polygons
@@ -580,9 +531,35 @@ export function fieldShape(options) {
     ctx.lineWidth = weight * 2;
 
     // Pick a random placement function and draw
-    drawPoints(randItem(placementFunctions)(), true, true);
+    polyVertices.forEach((polygon, i) => {
+        drawPoints(getEdgePointsFromVertices(polygon, SPACING), true, true);
+    });
 
 
+    // -> select the background points that overlap polygons
+
+    // draw the polys to the reference canvas
+    polyVertices.forEach((polygon, i) => {
+        drawShapeFromVertices(refctx, polygon);
+    });
+
+    // step thru the field points, check their position against reference
+    // and create a new list
+    let pointsInsidePolys = [];
+    bgField.forEach((p, i) => {
+        if (refctx.getImageData(...p, 1, 1).data[0] > 128) {
+            pointsInsidePolys.push(p);
+        }
+    });
+
+    // -> draw the polygon field points
+
+    ctx.lineWidth = weight;
+    lineScale = baseScale/2;
+    drawPoints(pointsInsidePolys, true, true);
+
+
+    // reset alpha for any following draw operations
     ctx.globalAlpha = 1;
 
     // in bloom mode, we draw a big colorful gradient over the grayscale
