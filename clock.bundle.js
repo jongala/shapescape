@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 41);
+/******/ 	return __webpack_require__(__webpack_require__.s = 43);
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -468,7 +468,7 @@ exports.default = {
 
 /***/ }),
 
-/***/ 17:
+/***/ 18:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -965,7 +965,7 @@ function drawLine(ctx, a, b) {
 
 /***/ }),
 
-/***/ 41:
+/***/ 43:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -981,13 +981,13 @@ var _palettes = __webpack_require__(2);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
-var _colorbrewer = __webpack_require__(7);
+var _colorbrewer = __webpack_require__(8);
 
 var _colorbrewer2 = _interopRequireDefault(_colorbrewer);
 
-var _truchet = __webpack_require__(17);
+var _truchet = __webpack_require__(18);
 
-var _numerals = __webpack_require__(42);
+var _numerals = __webpack_require__(44);
 
 var _utils = __webpack_require__(0);
 
@@ -1109,7 +1109,7 @@ setInterval(function () {
 
 /***/ }),
 
-/***/ 42:
+/***/ 44:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1461,7 +1461,7 @@ function numerals(options) {
 
 /***/ }),
 
-/***/ 7:
+/***/ 8:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 25);
+/******/ 	return __webpack_require__(__webpack_require__.s = 26);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -1072,6 +1072,125 @@ function hexScatter(spacing, w, h, loosen) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.createTransform = createTransform;
+exports.createSourceSinkTransform = createSourceSinkTransform;
+exports.opacityTransforms = opacityTransforms;
+
+var _utils = __webpack_require__(0);
+
+var PI = Math.PI;
+
+// Create a function which is a periodic transform of x, y
+function createTransform() {
+    var rateMin = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+    var rateMax = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+
+    var rate1 = (0, _utils.randomInRange)(0, rateMax / 2);
+    var rate2 = (0, _utils.randomInRange)(0, rateMax / 2);
+    var rate3 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
+    var rate4 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
+
+    var phase1 = (0, _utils.randomInRange)(-PI, PI);
+    var phase2 = (0, _utils.randomInRange)(-PI, PI);
+    var phase3 = (0, _utils.randomInRange)(-PI, PI);
+    var phase4 = (0, _utils.randomInRange)(-PI, PI);
+
+    var c1 = (0, _utils.randomInRange)(0, 1);
+    var c2 = (0, _utils.randomInRange)(0, 1);
+    var c3 = (0, _utils.randomInRange)(0, 1);
+    var c4 = (0, _utils.randomInRange)(0, 1);
+    return function (xnorm, ynorm) {
+        var t1 = Math.sin(xnorm * rate1 * 2 * PI + phase1);
+        var t2 = Math.sin(ynorm * rate2 * 2 * PI + phase2);
+        var t3 = Math.sin(xnorm * rate3 * 2 * PI + phase3);
+        var t4 = Math.sin(ynorm * rate4 * 2 * PI + phase4);
+        return (c1 * t1 + c2 * t2 + c3 * t3 + c4 * t4) / (c1 + c2 + c3 + c4);
+    };
+}
+
+function createSourceSinkTransform() {
+    var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 4;
+
+    var sources = [];
+
+    while (count--) {
+        var src = {
+            strength: (0, _utils.randomInRange)(1, 20),
+            sign: 1,
+            x: (0, _utils.randomInRange)(-0.25, 1.25), // add some overscan
+            y: (0, _utils.randomInRange)(-0.25, 1.25)
+        };
+        if (Math.random() > 0.9) {
+            // occasionally make sinks instead of sources
+            src.sign *= -1;
+        }
+        sources.push(src);
+    }
+
+    return {
+        sources: sources,
+        t: function t(xnorm, ynorm) {
+            var v = [0, 0]; // force vector to return
+
+            sources.forEach(function (source) {
+                var rmin = source.strength / 1000; // magic number
+
+
+                var dx = xnorm - source.x;
+                var dy = ynorm - source.y;
+                var _r = dx * dx + dy * dy; // really r squared but that's what we want
+
+                if (_r < rmin) {
+                    _r = rmin;
+                }; // min r
+
+                var scalar = source.sign * source.strength / _r;
+
+                var _x = scalar * dx;
+                var _y = scalar * dy;
+                v[0] += _x;
+                v[1] += _y;
+            });
+
+            return v;
+        }
+    };
+}
+
+function opacityTransforms(maxLen) {
+    return [function () {
+        return 1;
+    }, function (_x, _y) {
+        return Math.abs(_y / _x) / maxLen;
+    }, function (_x, _y) {
+        return 1 - Math.abs(_y / _x) / maxLen;
+    }, function (_x, _y) {
+        return Math.abs(_x / _y);
+    }, // hides verticals
+    function (_x, _y) {
+        return Math.abs(_y / _x);
+    }, // hides horizontals
+    function (_x, _y) {
+        return _x / _y;
+    }, function (_x, _y) {
+        return _y / _x;
+    }, function (_x, _y) {
+        return _y - _x;
+    }, function (_x, _y) {
+        return _x - _y;
+    }];
+}
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 var colorbrewer = {
     "Set1": { "3": ["rgb(228,26,28)", "rgb(55,126,184)", "rgb(77,175,74)"], "4": ["rgb(228,26,28)", "rgb(55,126,184)", "rgb(77,175,74)", "rgb(152,78,163)"], "5": ["rgb(228,26,28)", "rgb(55,126,184)", "rgb(77,175,74)", "rgb(152,78,163)", "rgb(255,127,0)"], "6": ["rgb(228,26,28)", "rgb(55,126,184)", "rgb(77,175,74)", "rgb(152,78,163)", "rgb(255,127,0)", "rgb(255,255,51)"], "7": ["rgb(228,26,28)", "rgb(55,126,184)", "rgb(77,175,74)", "rgb(152,78,163)", "rgb(255,127,0)", "rgb(255,255,51)", "rgb(166,86,40)"], "8": ["rgb(228,26,28)", "rgb(55,126,184)", "rgb(77,175,74)", "rgb(152,78,163)", "rgb(255,127,0)", "rgb(255,255,51)", "rgb(166,86,40)", "rgb(247,129,191)"], "9": ["rgb(228,26,28)", "rgb(55,126,184)", "rgb(77,175,74)", "rgb(152,78,163)", "rgb(255,127,0)", "rgb(255,255,51)", "rgb(166,86,40)", "rgb(247,129,191)", "rgb(153,153,153)"], "type": "qual" },
     "Set3": { "3": ["rgb(141,211,199)", "rgb(255,255,179)", "rgb(190,186,218)"], "4": ["rgb(141,211,199)", "rgb(255,255,179)", "rgb(190,186,218)", "rgb(251,128,114)"], "5": ["rgb(141,211,199)", "rgb(255,255,179)", "rgb(190,186,218)", "rgb(251,128,114)", "rgb(128,177,211)"], "6": ["rgb(141,211,199)", "rgb(255,255,179)", "rgb(190,186,218)", "rgb(251,128,114)", "rgb(128,177,211)", "rgb(253,180,98)"], "7": ["rgb(141,211,199)", "rgb(255,255,179)", "rgb(190,186,218)", "rgb(251,128,114)", "rgb(128,177,211)", "rgb(253,180,98)", "rgb(179,222,105)"], "8": ["rgb(141,211,199)", "rgb(255,255,179)", "rgb(190,186,218)", "rgb(251,128,114)", "rgb(128,177,211)", "rgb(253,180,98)", "rgb(179,222,105)", "rgb(252,205,229)"], "9": ["rgb(141,211,199)", "rgb(255,255,179)", "rgb(190,186,218)", "rgb(251,128,114)", "rgb(128,177,211)", "rgb(253,180,98)", "rgb(179,222,105)", "rgb(252,205,229)", "rgb(217,217,217)"], "10": ["rgb(141,211,199)", "rgb(255,255,179)", "rgb(190,186,218)", "rgb(251,128,114)", "rgb(128,177,211)", "rgb(253,180,98)", "rgb(179,222,105)", "rgb(252,205,229)", "rgb(217,217,217)", "rgb(188,128,189)"], "11": ["rgb(141,211,199)", "rgb(255,255,179)", "rgb(190,186,218)", "rgb(251,128,114)", "rgb(128,177,211)", "rgb(253,180,98)", "rgb(179,222,105)", "rgb(252,205,229)", "rgb(217,217,217)", "rgb(188,128,189)", "rgb(204,235,197)"], "12": ["rgb(141,211,199)", "rgb(255,255,179)", "rgb(190,186,218)", "rgb(251,128,114)", "rgb(128,177,211)", "rgb(253,180,98)", "rgb(179,222,105)", "rgb(252,205,229)", "rgb(217,217,217)", "rgb(188,128,189)", "rgb(204,235,197)", "rgb(255,237,111)"], "type": "qual" },
@@ -1090,7 +1209,7 @@ var colorbrewer = {
 exports.default = colorbrewer;
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1106,7 +1225,7 @@ exports.defineWaterline = defineWaterline;
 exports.drawWaterline = drawWaterline;
 exports.waterline = waterline;
 
-var _waterlineSchema = __webpack_require__(9);
+var _waterlineSchema = __webpack_require__(10);
 
 var _noiseutils = __webpack_require__(1);
 
@@ -1556,7 +1675,7 @@ function waterline(options) {
 }
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1608,7 +1727,7 @@ var SCHEMA = exports.SCHEMA = {
 };
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1631,9 +1750,9 @@ var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
 
-var _stacks = __webpack_require__(11);
+var _stacks = __webpack_require__(12);
 
-var _nests = __webpack_require__(12);
+var _nests = __webpack_require__(13);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1962,7 +2081,7 @@ var DEFAULTS = {
 }
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2014,7 +2133,7 @@ function drawStack(ctx, stack, x, w, colorFunc) {
 }
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2100,7 +2219,7 @@ function drawNest(ctx, nest, shapeFunction, colorFunction, o) {
 }
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2287,7 +2406,7 @@ function shapescape(options) {
 }
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2727,7 +2846,7 @@ function drawLines(ctx, p1, p2, opts) {
 }
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3158,7 +3277,7 @@ function waves(options) {
 }
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3403,7 +3522,7 @@ function grid(options) {
 }
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3707,7 +3826,7 @@ function truchet(options) {
 }
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4161,7 +4280,7 @@ function circles(options) {
 }
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4425,7 +4544,7 @@ function mesh(options) {
 }
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4842,7 +4961,7 @@ var DEFAULTS = {
 }
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5079,7 +5198,7 @@ function bands(options) {
 }
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5105,6 +5224,8 @@ var _hexScatter2 = _interopRequireDefault(_hexScatter);
 var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
+
+var _fieldUtils = __webpack_require__(7);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -5249,115 +5370,16 @@ function field(options) {
         warp = (0, _utils.randomInRange)(0.75, Math.sqrt(2));
     }
 
-    // set of functions to transform opacity across grid
-    var opacityTransforms = [function () {
-        return 1;
-    }, function (_x, _y) {
-        return Math.abs(_y / _x) / maxLen;
-    }, function (_x, _y) {
-        return 1 - Math.abs(_y / _x) / maxLen;
-    }, function (_x, _y) {
-        return Math.abs(_x / _y);
-    }, // hides verticals
-    function (_x, _y) {
-        return Math.abs(_y / _x);
-    }, // hides horizontals
-    function (_x, _y) {
-        return _x / _y;
-    }, function (_x, _y) {
-        return _y / _x;
-    }, function (_x, _y) {
-        return _y - _x;
-    }, function (_x, _y) {
-        return _x - _y;
-    }];
-    // now pick one
-    var opacityFunc = (0, _utils.randItem)(opacityTransforms);
-
-    // Create a function which is a periodic transform of x, y
-    function createTransform() {
-        var rateMin = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-        var rateMax = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-
-        var rate1 = (0, _utils.randomInRange)(0, rateMax / 2);
-        var rate2 = (0, _utils.randomInRange)(0, rateMax / 2);
-        var rate3 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
-        var rate4 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
-
-        var phase1 = (0, _utils.randomInRange)(-PI, PI);
-        var phase2 = (0, _utils.randomInRange)(-PI, PI);
-        var phase3 = (0, _utils.randomInRange)(-PI, PI);
-        var phase4 = (0, _utils.randomInRange)(-PI, PI);
-
-        var c1 = (0, _utils.randomInRange)(0, 1);
-        var c2 = (0, _utils.randomInRange)(0, 1);
-        var c3 = (0, _utils.randomInRange)(0, 1);
-        var c4 = (0, _utils.randomInRange)(0, 1);
-        return function (xnorm, ynorm) {
-            var t1 = Math.sin(xnorm * rate1 * 2 * PI + phase1);
-            var t2 = Math.sin(ynorm * rate2 * 2 * PI + phase2);
-            var t3 = Math.sin(xnorm * rate3 * 2 * PI + phase3);
-            var t4 = Math.sin(ynorm * rate4 * 2 * PI + phase4);
-            return (c1 * t1 + c2 * t2 + c3 * t3 + c4 * t4) / (c1 + c2 + c3 + c4);
-        };
-    }
-
-    function createSourceSinkTransform() {
-        var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 4;
-
-        var sources = [];
-
-        while (count--) {
-            var src = {
-                strength: (0, _utils.randomInRange)(1, 20),
-                sign: 1,
-                x: (0, _utils.randomInRange)(-0.25, 1.25), // add some overscan
-                y: (0, _utils.randomInRange)(-0.25, 1.25)
-            };
-            if (Math.random() > 0.9) {
-                // occasionally make sinks instead of sources
-                src.sign *= -1;
-            }
-            sources.push(src);
-        }
-
-        return {
-            sources: sources,
-            t: function t(xnorm, ynorm) {
-                var v = [0, 0]; // force vector to return
-
-                sources.forEach(function (source) {
-                    var rmin = source.strength / 1000; // magic number
-
-
-                    var dx = xnorm - source.x;
-                    var dy = ynorm - source.y;
-                    var _r = dx * dx + dy * dy; // really r squared but that's what we want
-
-                    if (_r < rmin) {
-                        _r = rmin;
-                    }; // min r
-
-                    var scalar = source.sign * source.strength / _r;
-
-                    var _x = scalar * dx;
-                    var _y = scalar * dy;
-                    v[0] += _x;
-                    v[1] += _y;
-                });
-
-                return v;
-            }
-        };
-    }
+    // Pick an opacity transform to use
+    var opacityFunc = (0, _utils.randItem)((0, _fieldUtils.opacityTransforms)(maxLen));
 
     // a set of independent transforms to use while rendering
     var trans = {
-        xbase: createTransform(rateMax), // (x,y)=>0,//
-        ybase: createTransform(rateMax), // (x,y)=>0,//
-        xtail: createTransform(rateMax), // (x,y)=>0,//
-        ytail: createTransform(rateMax), // (x,y)=>0,//
-        radius: createTransform(rateMax)
+        xbase: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
+        ybase: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
+        xtail: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
+        ytail: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
+        radius: (0, _fieldUtils.createTransform)(rateMax)
     };
 
     function randomScatter(size, w, h) {
@@ -5413,7 +5435,7 @@ function field(options) {
         });
     }
 
-    var sourceTransform = createSourceSinkTransform(Math.round((0, _utils.randomInRange)(5, 15)));
+    var sourceTransform = (0, _fieldUtils.createSourceSinkTransform)(Math.round((0, _utils.randomInRange)(5, 15)));
 
     // Flags for coloring by angle
     // Don't do special coloring in bloom mode, because it relies on grayscale
@@ -5562,7 +5584,7 @@ function field(options) {
 }
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5860,7 +5882,7 @@ function fragments(options) {
 }
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5930,7 +5952,7 @@ function roughen(canvas) {
 }
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5946,71 +5968,73 @@ var _palettes = __webpack_require__(2);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
-var _colorbrewer = __webpack_require__(7);
+var _colorbrewer = __webpack_require__(8);
 
 var _colorbrewer2 = _interopRequireDefault(_colorbrewer);
 
-var _waterline = __webpack_require__(8);
+var _waterline = __webpack_require__(9);
 
-var _shapestack = __webpack_require__(10);
+var _shapestack = __webpack_require__(11);
 
-var _shapescape = __webpack_require__(13);
+var _shapescape = __webpack_require__(14);
 
-var _duos = __webpack_require__(26);
+var _duos = __webpack_require__(27);
 
-var _lines = __webpack_require__(14);
+var _lines = __webpack_require__(15);
 
-var _waves = __webpack_require__(15);
+var _waves = __webpack_require__(16);
 
-var _grid = __webpack_require__(16);
+var _grid = __webpack_require__(17);
 
-var _truchet = __webpack_require__(17);
+var _truchet = __webpack_require__(18);
 
-var _truchetCurves = __webpack_require__(27);
+var _truchetCurves = __webpack_require__(28);
 
-var _grille = __webpack_require__(28);
+var _grille = __webpack_require__(29);
 
-var _circles = __webpack_require__(18);
+var _circles = __webpack_require__(19);
 
-var _mesh = __webpack_require__(19);
+var _mesh = __webpack_require__(20);
 
-var _walk = __webpack_require__(20);
+var _walk = __webpack_require__(21);
 
-var _bands = __webpack_require__(21);
+var _bands = __webpack_require__(22);
 
-var _field = __webpack_require__(22);
+var _field = __webpack_require__(23);
 
-var _trails = __webpack_require__(29);
+var _fieldShape = __webpack_require__(30);
 
-var _fragments = __webpack_require__(23);
+var _trails = __webpack_require__(31);
 
-var _clouds = __webpack_require__(30);
+var _fragments = __webpack_require__(24);
 
-var _grads = __webpack_require__(31);
+var _clouds = __webpack_require__(32);
 
-var _doodle = __webpack_require__(32);
+var _grads = __webpack_require__(33);
 
-var _pillars = __webpack_require__(33);
+var _doodle = __webpack_require__(34);
 
-var _rings = __webpack_require__(34);
+var _pillars = __webpack_require__(35);
 
-var _plants = __webpack_require__(35);
+var _rings = __webpack_require__(36);
 
-var _scales = __webpack_require__(36);
+var _plants = __webpack_require__(37);
+
+var _scales = __webpack_require__(38);
 
 var _utils = __webpack_require__(0);
 
-var _roughen = __webpack_require__(24);
+var _roughen = __webpack_require__(25);
 
 var _roughen2 = _interopRequireDefault(_roughen);
 
-var _dither = __webpack_require__(37);
+var _dither = __webpack_require__(39);
 
 var _dither2 = _interopRequireDefault(_dither);
 
-var _halftone = __webpack_require__(38);
+var _halftone = __webpack_require__(40);
 
-var _fracture = __webpack_require__(39);
+var _fracture = __webpack_require__(41);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -6031,6 +6055,7 @@ var RENDERERS = {
     mesh: _mesh.mesh,
     walk: _walk.walk,
     field: _field.field,
+    "field-Shape": _fieldShape.fieldShape,
     trails: _trails.trails,
     bands: _bands.bands,
     fragments: _fragments.fragments,
@@ -6513,7 +6538,7 @@ showRenderPicker(RENDERERS, document.getElementById('renderPickers'));
 setRenderer(initRenderer, document.querySelector("[data-renderer='" + initRenderer + "']"));
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6744,7 +6769,7 @@ function duos(options) {
 }
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7053,7 +7078,7 @@ function truchetCurves(options) {
 }
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7654,7 +7679,631 @@ function grille(options) {
 }
 
 /***/ }),
-/* 29 */
+/* 30 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.fieldShape = fieldShape;
+
+var _noiseutils = __webpack_require__(1);
+
+var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _palettes = __webpack_require__(2);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
+var _hexScatter = __webpack_require__(5);
+
+var _hexScatter2 = _interopRequireDefault(_hexScatter);
+
+var _utils = __webpack_require__(0);
+
+var _shapes = __webpack_require__(3);
+
+var _fieldUtils = __webpack_require__(7);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+var DEFAULTS = {
+    container: 'body',
+    palette: _palettes2.default.metroid_fusion,
+    addNoise: 0.04,
+    noiseInput: null,
+    clear: true,
+    debug: false,
+    colorMode: 'auto', // from COLORMODES or 'auto'
+    fieldMode: 'auto', // [auto, harmonic, flow]
+    lightMode: 'normal', // [auto, bloom, normal]
+    drawEdges: 'auto' // [auto, true, false]
+};
+
+var PI = Math.PI;
+var FIELDMODES = ['harmonic', 'flow'];
+var LIGHTMODES = ['bloom', 'normal'];
+var COLORMODES = ['single', 'angle', 'random'];
+
+// Main function
+function fieldShape(options) {
+    var opts = Object.assign({}, DEFAULTS, options);
+
+    var container = opts.container;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
+    var SCALE = Math.min(cw, ch);
+    var LONG = Math.max(cw, ch);
+    var SHORT = Math.min(cw, ch);
+    var AREA = cw * ch;
+    // canvas center x and y
+    var cx = cw / 2;
+    var cy = ch / 2;
+
+    // Find or create canvas child
+    var el = container.querySelector('canvas');
+    var newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        el.width = cw;
+        el.height = ch;
+    }
+
+    var ctx = el.getContext('2d');
+
+    // modes and styles
+    var DEBUG = opts.debug;
+    var LIGHTMODE = opts.lightMode === 'auto' ? (0, _utils.randItem)(LIGHTMODES) : opts.lightMode;
+    var FIELDMODE = opts.fieldMode === 'auto' ? (0, _utils.randItem)(FIELDMODES) : opts.fieldMode;
+    var COLORMODE = opts.colorMode === 'auto' ? (0, _utils.randItem)(COLORMODES) : opts.colorMode;
+    var POLYEDGES = opts.drawEdges === 'auto' ? (0, _utils.randItem)([true, false]) : opts.drawEdges;
+
+    console.log('FieldShape: ' + FIELDMODE + ' ' + COLORMODE + ' ' + LIGHTMODE + ' ' + POLYEDGES);
+
+    // color funcs
+    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
+
+    // how many cells are in the grid?
+    var countMin = void 0,
+        countMax = void 0;
+
+    // setup vars for each cell
+    var x = 0;
+    var y = 0;
+    var xnorm = 0;
+    var ynorm = 0;
+    var renderer = void 0;
+
+    // shared colors
+    var bg = getSolidFill();
+
+    // get palette of non-bg colors
+    var contrastPalette = [].concat(opts.palette);
+    contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
+
+    // shared foregrounds
+    var fg = getContrastColor();
+    var fg2 = getContrastColor();
+
+    // in bloom mode, we draw high-contrast grayscale, and layer
+    // palette colors on top
+    if (LIGHTMODE === 'bloom') {
+        bg = '#222222';
+        fg = fg2 = '#cccccc';
+    }
+
+    // draw background
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, cw, ch);
+
+    // set default tail color
+    ctx.strokeStyle = fg;
+    // set default dot color
+    var dotFill = fg2;
+
+    var rateMax = 3;
+
+    var tailLength = SCALE / (0, _utils.randomInRange)(30, 50);
+
+    // tail vars
+    var _x = void 0,
+        _y = void 0,
+        len = void 0;
+
+    // dotScale will be multiplied by 2. Keep below .25 to avoid bleed.
+    // Up to 0.5 will lead to full coverage.
+    var dotScale = tailLength * (0, _utils.randomInRange)(0.1, 0.25);
+    // line width
+    var weight = (0, _utils.randomInRange)(0.5, 3) * SCALE / 800;
+
+    ctx.lineWidth = weight;
+    ctx.lineCap = 'round';
+
+    // const used in normalizing transforms
+    var maxLen = 2 * Math.sqrt(2);
+
+    // It looks nice to extend lines beyond their cells. how much?
+    // Scaled against tailLength
+    var lineScale = (0, _utils.randomInRange)(0.7, 2);
+
+    // Pick an opacity transform to use
+    var opacityFunc = (0, _utils.randItem)((0, _fieldUtils.opacityTransforms)(maxLen));
+
+    // a set of independent transforms to use while rendering
+    var trans = {
+        xbase: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
+        ybase: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
+        xtail: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
+        ytail: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
+        radius: (0, _fieldUtils.createTransform)(rateMax)
+
+        // Make a reference canvas, fill it black
+    };var ref = document.querySelector('#ref');
+    if (!ref) {
+        ref = document.createElement('canvas');
+        ref.setAttribute('id', 'ref');
+        ref.setAttribute('width', cw);
+        ref.setAttribute('height', ch);
+        ref.className = 'artContainer';
+        //document.querySelector('body').appendChild(ref);
+    }
+    var refctx = ref.getContext('2d');
+    // fill ref with black
+    refctx.fillStyle = 'black';
+    refctx.fillRect(0, 0, cw, ch);
+    // set to white to draw shapes
+    refctx.fillStyle = 'white';
+
+    // with a set of imageData, get the color at x,y
+    function colorFromReference(x, y, imageData) {
+        var c = [];
+        return c;
+    }
+
+    // edge spacing
+    var SPACING = SCALE / (0, _utils.randomInRange)(35, 50);
+
+    // place points along shapes
+    function circlePoints(x, y, size) {
+        var theta = 0;
+        var N = 200;
+        var r = size;
+        for (var i = 0; i < N; i++) {
+            theta += PI * 2 / N;
+            pts.push([x + r * Math.cos(theta), y + r * Math.sin(theta)]);
+        }
+    }
+
+    // Return an array of vertices defining a regular polygon
+    // centered at @x, @y, with @sides, @size, and @angle
+    function makeRegularVertices() {
+        var sides = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 4;
+        var x = arguments[1];
+        var y = arguments[2];
+        var size = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 100;
+        var angle = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 0;
+
+        var vertices = [];
+        var a = Math.PI * 2 / sides;
+        function _x(theta) {
+            return size * Math.cos(theta + angle - Math.PI / 2);
+        }
+        function _y(theta) {
+            return size * Math.sin(theta + angle - Math.PI / 2);
+        }
+
+        for (var i = 1; i <= sides; i++) {
+            vertices.push([_x(a * i), _y(a * i)]);
+        }
+
+        vertices = vertices.map(function (v, i) {
+            return [v[0] + x, v[1] + y];
+        });
+
+        return vertices;
+    }
+
+    // Create points at @spacing along polygon defined by @vertices
+    // Append to @pts and return modified @pts
+    function getEdgePointsFromVertices(vertices) {
+        var spacing = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 10;
+
+        // place points at vertices
+        var pts = [];
+        pts.push.apply(pts, _toConsumableArray(vertices));
+
+        // for each edge:
+        // get vector for edges by subtracing vertex coordinates
+        function drawEdge(edge, pts) {
+            // for each edge, get nearest number of whole number of steps based
+            // on spacing
+
+            var steps = Math.floor(edge.length / spacing);
+            var inc = edge.length / steps;
+
+            DEBUG && console.log(steps + ' steps at ' + inc.toPrecision(3) + 'px each');
+
+            // start at vertex and move along edge vector in increments,
+            // placing points
+            // do this by dividing the edge vector by edge spacing scalar?
+            // step along in increments until end vertex is reached
+
+            for (var i = 0; i < steps; i++) {
+                pts.push([edge.x + i * inc * Math.cos(edge.angle), edge.y + i * inc * Math.sin(edge.angle)]);
+            }
+        }
+
+        vertices.forEach(function (v, i) {
+            drawEdge((0, _utils.getVector)(v, vertices[(i + 1) % vertices.length]), pts);
+        });
+
+        return pts;
+    }
+
+    // Create points at @spacing along polygon defined by @vertices
+    // Append to @pts and return modified @pts
+    function drawShapeFromVertices(ctx, vertices) {
+        //ctx.globalAlpha = 0.5;
+        ctx.fillStyle = 'white';
+
+        ctx.beginPath();
+        ctx.moveTo.apply(ctx, _toConsumableArray(vertices.pop()));
+        while (vertices.length) {
+            ctx.lineTo.apply(ctx, _toConsumableArray(vertices.pop()));
+        }
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.globalAlpha = 1;
+
+        return vertices;
+    }
+
+    // Convenience function: compose the vertex and point placement functions
+    // to draw a complete polygon
+    function placePolygonPoints() {
+        var sides = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 4;
+        var x = arguments[1];
+        var y = arguments[2];
+        var size = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 100;
+        var angle = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 0;
+        var spacing = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 20;
+
+        return getEdgePointsFromVertices(makeRegularVertices(sides, x, y, size, angle), spacing);
+    }
+
+    // util used for scaling shapes
+    function distanceFromEdge(x, y) {
+        var dx = Math.min(x, cw - x);
+        var dy = Math.min(y, ch - y);
+        // normalize gap to the larger dimension of the canvas
+        return Math.min(dx, dy) / LONG;
+    }
+
+    // Define N shapes placed along a ring at some random interval, which
+    // may loop. Move the ring a bit offset from the true center.
+    // Returns a list of vertices.
+    var placeShapesOnRing = function placeShapesOnRing() {
+        var ringPoints = [];
+
+        var shapeR = SCALE * (0, _utils.randomInRange)(0.25, 0.4);
+        var N = (0, _utils.randomInt)(2, 6);
+        var shapeAngle = PI / (0, _utils.randomInt)(1, N);
+
+        var _cx = void 0,
+            _cy = void 0; // adjusted center point
+        var _r = SCALE * (0, _utils.randomInRange)(0, 0.2);
+        _cx = cx + _r * Math.cos(shapeAngle);
+        _cy = cy + _r * Math.sin(shapeAngle);
+
+        for (var i = 0; i < N; i++) {
+            var _x10 = void 0,
+                _y2 = void 0;
+            _x10 = _cx + shapeR * Math.cos(i * shapeAngle);
+            _y2 = _cy + shapeR * Math.sin(i * shapeAngle);
+            ringPoints = ringPoints.concat([makeRegularVertices((0, _utils.randomInt)(3, 6), _x10, _y2, SCALE * (0, _utils.randomInRange)(0.1, 0.3), PI * (0, _utils.randomInRange)(0, 1), SCALE / (0, _utils.randomInRange)(25, 55))]);
+        }
+
+        if (DEBUG) {
+            ctx.globalAlpha = 0.33;
+            ctx.lineWidth = 1;
+            (0, _shapes.drawCircle)(ctx, _cx, _cy, shapeR, { stroke: fg2 });
+            ctx.lineWidth = weight;
+            ctx.globalAlpha = 1;
+        }
+
+        return ringPoints;
+    };
+
+    function placeShapesRandomly(N) {
+        N = N || (0, _utils.randomInt)(3, 6);
+        var shapePoints = [];
+
+        // place them randomly
+        // find distance to closest edge
+        // make shapes near edges large, away from edges small
+        // allow centers to be outside of area.
+
+        for (var i = 0; i < N; i++) {
+            var _x11 = void 0,
+                _y3 = void 0;
+            _x11 = (0, _utils.randomInRange)(0, cw);
+            _y3 = (0, _utils.randomInRange)(0, ch);
+
+            var scalar = 1 - distanceFromEdge(_x11, _y3);
+            scalar = scalar * scalar * scalar;
+
+            shapePoints = shapePoints.concat([makeRegularVertices((0, _utils.randomInt)(3, 6), _x11, _y3, SCALE * (0, _utils.randomInRange)(0.3, 0.5) * scalar, PI * (0, _utils.randomInRange)(0, 1), SCALE / (0, _utils.randomInRange)(25, 55))]);
+        }
+
+        return shapePoints;
+    }
+
+    function placeShapesOnLine() {
+        var N = (0, _utils.randomInt)(3, 6);
+        var shapePoints = [];
+
+        // points along each side of the canvas
+        var sides = (0, _utils.shuffle)([[cw * (0, _utils.randomInRange)(0.2, 0.8), 0], [cw, ch * (0, _utils.randomInRange)(0.2, 0.8)], [cw * (0, _utils.randomInRange)(0.2, 0.8), ch], [0, ch * (0, _utils.randomInRange)(0.2, 0.8)]]);
+
+        // choose random combo
+        var p1 = sides.pop();
+        var p2 = sides.pop();
+
+        if (DEBUG) {
+            ctx.globalAlpha = 0.5;
+            // trace line
+            ctx.strokeStyle = fg;
+            ctx.lineWidth = 1;
+            ctx.moveTo.apply(ctx, _toConsumableArray(p1));
+            ctx.lineTo.apply(ctx, _toConsumableArray(p2));
+            ctx.stroke();
+            ctx.lineWidth = weight;
+        }
+
+        // draw shapes along the line
+        for (var i = 0; i < N; i++) {
+            var _x12 = void 0,
+                _y4 = void 0,
+                d = void 0;
+            // interpolate at random spot along p1 -> p2
+            d = (0, _utils.randomInRange)(0, 1);
+            _x12 = d * p1[0] + (1 - d) * p2[0];
+            _y4 = d * p1[1] + (1 - d) * p2[1];
+
+            var scalar = 1 - distanceFromEdge(_x12, _y4);
+            scalar = scalar * scalar * scalar;
+
+            shapePoints = shapePoints.concat([makeRegularVertices((0, _utils.randomInt)(3, 6), _x12, _y4, SCALE * (0, _utils.randomInRange)(0.3, 0.5) * scalar, PI * (0, _utils.randomInRange)(0, 1), SCALE / (0, _utils.randomInRange)(25, 55))]);
+        }
+
+        return shapePoints;
+    }
+
+    // make a collection of placement functions that we can pick from
+    var placementFunctions = [placeShapesOnRing, placeShapesOnLine, placeShapesRandomly];
+
+    // create field transform
+    var sourceTransform = (0, _fieldUtils.createSourceSinkTransform)(Math.round((0, _utils.randomInRange)(5, 15)));
+
+    // Flags for coloring by angle
+    // Don't do special coloring in bloom mode, because it relies on grayscale
+    // initial rendering
+    var colorTailByAngle = false;
+    var colorDotByAngle = false;
+    var randomColorThreshold = void 0;
+    if (LIGHTMODE !== 'bloom') {
+        if (COLORMODE === 'angle') {
+            if (Math.random() < 0.6) {
+                colorTailByAngle = true;
+            }
+            if (Math.random() < 0.6) {
+                colorDotByAngle = true;
+            }
+        }
+        if (COLORMODE === 'random') {
+            randomColorThreshold = 0.66;
+        }
+    }
+
+    // console.log(`Colors: tails ${colorTailByAngle}, dots: ${colorDotByAngle}`);
+
+    // source/sink stuff
+    if (FIELDMODE === 'flow') {
+        var totalStrength = 0;
+        sourceTransform.sources.forEach(function (source) {
+            totalStrength += source.strength;
+        });
+        lineScale = 1 / totalStrength;
+    }
+
+    // draw a single point in the field
+    function drawPoints(points) {
+        var drawTails = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+        var drawDots = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
+
+        points.forEach(function (p, i) {
+            x = p[0];
+            y = p[1];
+            xnorm = x / cw;
+            ynorm = y / ch;
+
+            // get end of tail coords
+            if (FIELDMODE === 'flow') {
+                // flow fields (source-sink)
+                var flow = sourceTransform.t(xnorm, ynorm);
+                _x = flow[0];
+                _y = flow[1];
+            } else {
+                // harmonic fields
+                _x = trans.xtail(xnorm, ynorm);
+                _y = trans.ytail(xnorm, ynorm);
+            }
+
+            var theta = Math.atan2(_y, _x);
+            var fillIndex = Math.round(contrastPalette.length * theta / PI / 2);
+            var angleColor = contrastPalette[fillIndex];
+
+            if (drawDots) {
+                if (colorDotByAngle) {
+                    dotFill = angleColor;
+                }
+                if (COLORMODE === 'random' && Math.random() < randomColorThreshold) {
+                    dotFill = getContrastColor();
+                }
+
+                // draw dot
+                ctx.globalAlpha = 1;
+                (0, _shapes.drawCircle)(ctx, x, y, (trans.radius(xnorm, ynorm) + 1) * dotScale, { stroke: dotFill });
+            }
+
+            if (drawTails) {
+                ctx.globalAlpha = opacityFunc(_x, _y);
+
+                if (colorTailByAngle) {
+                    ctx.strokeStyle = angleColor;
+                }
+                if (COLORMODE === 'random' && Math.random() < randomColorThreshold) {
+                    ctx.strokeStyle = getContrastColor();
+                }
+
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + tailLength * _x * lineScale, y + tailLength * _y * lineScale);
+                ctx.stroke();
+            }
+        });
+    }
+
+    // --------------------------------------
+    // draw stuff:
+
+
+    // -> Get a set of polygon vertices
+    var polyVertices = [];
+    polyVertices = (0, _utils.randItem)(placementFunctions)();
+
+    // -> scatter a background field
+
+    // Draw the background field from scattered points, with only tails
+    // Use a shorter tail length and thickness to make this less dominant
+    var baseScale = lineScale;
+    lineScale = baseScale / 3;
+
+    var bgField = (0, _hexScatter2.default)(tailLength, cw, ch);
+    drawPoints(bgField, true, false);
+
+    // -> draw the polygon edges, if desired
+
+    // Restore full tail length and thickness to draw points derived from
+    // the polygons
+    lineScale = baseScale;
+    ctx.lineWidth = weight * 2;
+
+    // Pick a random placement function and draw the edges
+    if (POLYEDGES) {
+        polyVertices.forEach(function (polygon, i) {
+            drawPoints(getEdgePointsFromVertices(polygon, SPACING), true, true);
+        });
+    }
+
+    // -> select the background points that overlap polygons
+
+    // draw the polys to the reference canvas
+    polyVertices.forEach(function (polygon, i) {
+        drawShapeFromVertices(refctx, polygon);
+    });
+
+    // step thru the field points, check their position against reference
+    // and create a new list
+    var pointsInsidePolys = [];
+    bgField.forEach(function (p, i) {
+        if (refctx.getImageData.apply(refctx, _toConsumableArray(p).concat([1, 1])).data[0] > 128) {
+            pointsInsidePolys.push(p);
+        }
+    });
+
+    // -> draw the polygon field points
+
+    ctx.lineWidth = weight;
+    lineScale = baseScale / 2;
+    drawPoints(pointsInsidePolys, true, true);
+
+    // reset alpha for any following draw operations
+    ctx.globalAlpha = 1;
+
+    // in bloom mode, we draw a big colorful gradient over the grayscale
+    // background, using palette colors and nice blend modes
+    if (LIGHTMODE === 'bloom') {
+        ctx.globalCompositeOperation = 'color-dodge';
+
+        // bloom with linear gradient
+        ctx.fillStyle = (0, _utils.getGradientFunction)(opts.palette)(ctx, cw, ch); //getContrastColor();
+        ctx.fillRect(0, 0, cw, ch);
+
+        if (Math.random() < 0.5) {
+            // bloom with spot lights
+            var dodgeDot = function dodgeDot() {
+                var max = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1.5;
+
+                var gx = void 0,
+                    gy = void 0,
+                    gr1 = void 0,
+                    gr2 = void 0;
+                gx = (0, _utils.randomInRange)(0, cw);
+                gy = (0, _utils.randomInRange)(0, ch);
+                gr1 = (0, _utils.randomInRange)(0, 0.25);
+                gr2 = (0, _utils.randomInRange)(gr1, max);
+
+                var radial = ctx.createRadialGradient(gx, gy, gr1 * SCALE, gx, gy, gr2 * SCALE);
+                radial.addColorStop(0, (0, _utils.randItem)(opts.palette));
+                radial.addColorStop(1, '#000000');
+
+                ctx.fillStyle = radial;
+                ctx.fillRect(0, 0, cw, ch);
+            };
+            // try layering dots with varying coverage
+            ctx.globalAlpha = (0, _utils.randomInRange)(0.4, 0.7);
+            dodgeDot(1.5);
+            ctx.globalAlpha = (0, _utils.randomInRange)(0.4, 0.7);
+            dodgeDot(1.0);
+            ctx.globalAlpha = (0, _utils.randomInRange)(0.7, 0.9);
+            dodgeDot(0.5);
+            ctx.globalAlpha = 1;
+        }
+
+        ctx.globalCompositeOperation = 'normal';
+    }
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            // apply noise from supplied canvas
+            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            // create noise pattern and apply
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, cw / 3);
+        }
+    }
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
+}
+
+/***/ }),
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7680,6 +8329,8 @@ var _hexScatter2 = _interopRequireDefault(_hexScatter);
 var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
+
+var _fieldUtils = __webpack_require__(7);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -7807,119 +8458,18 @@ var DEFAULTS = {
         warp = (0, _utils.randomInRange)(0, Math.sqrt(2));
     }
 
-    // set of functions to transform opacity across grid
-    var opacityTransforms = [function () {
-        return 1;
-    }, function (_x, _y) {
-        return Math.abs(_y / _x) / maxLen;
-    }, function (_x, _y) {
-        return 1 - Math.abs(_y / _x) / maxLen;
-    }, function (_x, _y) {
-        return Math.abs(_x / _y);
-    }, // hides verticals
-    function (_x, _y) {
-        return Math.abs(_y / _x);
-    }, // hides horizontals
-    function (_x, _y) {
-        return _x / _y;
-    }, function (_x, _y) {
-        return _y / _x;
-    }, function (_x, _y) {
-        return _y - _x;
-    }, function (_x, _y) {
-        return _x - _y;
-    }];
-    // now pick one
-    var opacityFunc = (0, _utils.randItem)(opacityTransforms);
-
-    // Create a function which is a periodic transform of x, y
-    function createTransform() {
-        var rateMin = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-        var rateMax = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-
-        var rate1 = (0, _utils.randomInRange)(0, rateMax / 2);
-        var rate2 = (0, _utils.randomInRange)(0, rateMax / 2);
-        var rate3 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
-        var rate4 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
-
-        var phase1 = (0, _utils.randomInRange)(-PI, PI);
-        var phase2 = (0, _utils.randomInRange)(-PI, PI);
-        var phase3 = (0, _utils.randomInRange)(-PI, PI);
-        var phase4 = (0, _utils.randomInRange)(-PI, PI);
-
-        var c1 = (0, _utils.randomInRange)(0, 1);
-        var c2 = (0, _utils.randomInRange)(0, 1);
-        var c3 = (0, _utils.randomInRange)(0, 1);
-        var c4 = (0, _utils.randomInRange)(0, 1);
-
-        window.logs && console.log('Field scalars:', '\nx1: ' + c1.toPrecision(4) + '  rate:' + rate1.toPrecision(4) + '  phase:' + phase1.toPrecision(4), '\ny1: ' + c2.toPrecision(4) + '  rate:' + rate2.toPrecision(4) + '  phase:' + phase2.toPrecision(4), '\nx2: ' + c3.toPrecision(4) + '  rate:' + rate3.toPrecision(4) + '  phase:' + phase3.toPrecision(4), '\ny2: ' + c4.toPrecision(4) + '  rate:' + rate4.toPrecision(4) + '  phase:' + phase4.toPrecision(4), '\nRatios: x1/y1:' + (rate1 / rate2).toPrecision(4) + ' x2/y2:' + (rate3 / rate4).toPrecision(4) + ' ');
-        return function (xnorm, ynorm) {
-            var t1 = Math.sin(xnorm * rate1 * 2 * PI + phase1);
-            var t2 = Math.sin(ynorm * rate2 * 2 * PI + phase2);
-            var t3 = Math.sin(xnorm * rate3 * 2 * PI + phase3);
-            var t4 = Math.sin(ynorm * rate4 * 2 * PI + phase4);
-            return (c1 * t1 + c2 * t2 + c3 * t3 + c4 * t4) / (c1 + c2 + c3 + c4);
-        };
-    }
+    // Pick an opacity transform to use
+    var opacityFunc = (0, _utils.randItem)((0, _fieldUtils.opacityTransforms)(maxLen));
 
     // a set of independent transforms to use while rendering
     var trans = {
         //xbase: createTransform(0, rateMax),
         //ybase: createTransform(0, rateMax),
-        xtail: createTransform(0, rateMax),
-        ytail: createTransform(0, rateMax),
+        xtail: (0, _fieldUtils.createTransform)(0, rateMax),
+        ytail: (0, _fieldUtils.createTransform)(0, rateMax),
         //radius: createTransform(0, rateMax),
-        color: createTransform(0, 5 / SHORT) // change colors slowly
+        color: (0, _fieldUtils.createTransform)(0, 5 / SHORT) // change colors slowly
     };
-
-    function createSourceSinkTransform() {
-        var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 4;
-
-        var sources = [];
-
-        while (count--) {
-            var src = {
-                strength: (0, _utils.randomInRange)(1, 20),
-                sign: 1,
-                x: (0, _utils.randomInRange)(-0.25, 1.25), // add some overscan
-                y: (0, _utils.randomInRange)(-0.25, 1.25)
-            };
-            if (Math.random() > 0.9) {
-                // occasionally make sinks instead of sources
-                src.sign *= -1;
-            }
-            sources.push(src);
-        }
-
-        return {
-            sources: sources,
-            t: function t(xnorm, ynorm) {
-                var v = [0, 0]; // force vector to return
-
-                sources.forEach(function (source) {
-                    var rmin = source.strength / 1000; // magic number
-
-
-                    var dx = xnorm - source.x;
-                    var dy = ynorm - source.y;
-                    var _r = dx * dx + dy * dy; // really r squared but that's what we want
-
-                    if (_r < rmin) {
-                        _r = rmin;
-                    }; // min r
-
-                    var scalar = source.sign * source.strength / _r;
-
-                    var _x = scalar * dx;
-                    var _y = scalar * dy;
-                    v[0] += _x;
-                    v[1] += _y;
-                });
-
-                return v;
-            }
-        };
-    }
 
     function randomScatter(size, w, h) {
         var pts = [];
@@ -8010,7 +8560,7 @@ var DEFAULTS = {
     var tStart = new Date().getTime();
 
     // source/sink stuff
-    var sourceTransform = createSourceSinkTransform(Math.round((0, _utils.randomInRange)(5, 15)));
+    var sourceTransform = (0, _fieldUtils.createSourceSinkTransform)(Math.round((0, _utils.randomInRange)(5, 15)));
     if (FIELDMODE === 'flow') {
         var totalStrength = 0;
         sourceTransform.sources.forEach(function (source) {
@@ -8224,7 +8774,7 @@ var DEFAULTS = {
 }
 
 /***/ }),
-/* 30 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8467,7 +9017,7 @@ function clouds(options) {
 }
 
 /***/ }),
-/* 31 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8674,7 +9224,7 @@ function grads(options) {
 }
 
 /***/ }),
-/* 32 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8704,7 +9254,7 @@ var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
 
-var _roughen = __webpack_require__(24);
+var _roughen = __webpack_require__(25);
 
 var _roughen2 = _interopRequireDefault(_roughen);
 
@@ -9047,7 +9597,7 @@ function doodle(options) {
 }
 
 /***/ }),
-/* 33 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9316,7 +9866,7 @@ function pillars(options) {
 }
 
 /***/ }),
-/* 34 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -9719,7 +10269,7 @@ var DEFAULTS = {
 }
 
 /***/ }),
-/* 35 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10289,7 +10839,7 @@ function plants(options) {
 }
 
 /***/ }),
-/* 36 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10298,6 +10848,9 @@ function plants(options) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
 exports.scales = scales;
 
 var _noiseutils = __webpack_require__(1);
@@ -10314,6 +10867,29 @@ var _shapes = __webpack_require__(3);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+// Accepts array @options, with elements [opt, weight].
+// Returns an array with each @opt inserted @weight times.
+// This is a very stupid way to pick randItem from enumerable options with
+// different weights for each item.
+function weightedPickList(options) {
+    var list = [];
+    options.forEach(function (weighted, i) {
+        var _weighted = _slicedToArray(weighted, 2),
+            opt = _weighted[0],
+            weight = _weighted[1];
+
+        for (var n = 0; n < weight; n++) {
+            list.push(opt);
+        }
+    });
+    return list;
+}
+
+// how to pick scale styles
+var STYLES = weightedPickList([['patches', 2], ['fields', 5], ['stripes', 1]]);
+// how much of the palette to use
+var COLORDEPTHS = ['small', 'medium', 'medium', 'large'];
+
 var DEFAULTS = {
     container: 'body',
     palette: _palettes2.default.north_beach,
@@ -10321,7 +10897,11 @@ var DEFAULTS = {
     noiseInput: null,
     dust: false,
     skew: 1, // normalized skew
-    clear: true
+    clear: true,
+
+    style: 'auto', // how to arrange scales
+    colorDepth: 'auto', // how much of the palette to use
+    edges: 'auto' // consistent edge coloring
 };
 
 var PI = Math.PI;
@@ -10349,6 +10929,15 @@ function scales(options) {
     }
 
     var ctx = el.getContext('2d');
+
+    // Modes and styles
+    // --------------------------------------
+
+    var STYLE = opts.style === 'auto' ? (0, _utils.randItem)(STYLES) : opts.style;
+    var COLORDEPTH = opts.colorDepth === 'auto' ? (0, _utils.randItem)(COLORDEPTHS) : opts.colorDepth;
+    var EDGES = opts.edges === 'auto' ? Math.random() < 0.5 : opts.edges;
+
+    console.log('Scales: ' + STYLE + ', ' + COLORDEPTH + ' colors, edges: ' + EDGES);
 
     // Color funcs
     // --------------------------------------
@@ -10380,20 +10969,9 @@ function scales(options) {
     // --------------------------------------
 
     // scale styles
+    // --------------------------------------
 
     ctx.lineCap = 'round';
-
-    var scaleSimple = function scaleSimple(x, y, r, c1, c2, c3) {
-        (0, _shapes.drawCircle)(ctx, x, y, r, { fill: c1, stroke: c2 });
-    };
-
-    var scaleRings = function scaleRings(x, y, r, c1, c2, c3) {
-        (0, _shapes.drawCircle)(ctx, x, y, r * 1.0, { fill: c1 });
-        (0, _shapes.drawCircle)(ctx, x, y, r * 0.8, { fill: c2 });
-        (0, _shapes.drawCircle)(ctx, x, y, r * 0.6, { fill: c1 });
-        (0, _shapes.drawCircle)(ctx, x, y, r * 0.4, { fill: c2 });
-        (0, _shapes.drawCircle)(ctx, x, y, r * 0.2, { fill: c1 });
-    };
 
     var scaleFunctions = [function (x, y, r, c1, c2, c3) {
         // 2C simple circle
@@ -10443,6 +11021,8 @@ function scales(options) {
         (0, _shapes.drawCircle)(ctx, x, y, r * 0.9, { fill: c2 });
         (0, _shapes.drawCircle)(ctx, x, y, r * 0.55, { fill: null, stroke: c3 });
         (0, _shapes.drawCircle)(ctx, x, y, r * 0.2, { fill: c1 });
+        // reset line dashes for other renderers
+        ctx.setLineDash([]);
     }, function (x, y, r, c1, c2, c3) {
         // 3C double dots
         var lineWidth = r * 0.175;
@@ -10453,6 +11033,7 @@ function scales(options) {
         (0, _shapes.drawCircle)(ctx, x, y, r * 0.675, { fill: null, stroke: c3 });
         (0, _shapes.drawCircle)(ctx, x, y, r * 0.425, { fill: null, stroke: c3 });
         (0, _shapes.drawCircle)(ctx, x, y, r * 0.2, { fill: c3 });
+        ctx.setLineDash([]);
     }];
 
     var scaleRenderer = (0, _utils.randItem)(scaleFunctions);
@@ -10542,34 +11123,47 @@ function scales(options) {
         return Math.random() - 0.5;
     });
 
-    var PATCHES = true;
     var clusterNodes = [];
-    if (PATCHES) {
-        // scatter N points for N renderers
+    if (STYLE === 'patches') {
+        // Scatter a point for each rendering style we have
+        // At render time, we will check to see which clusterNode a given scale
+        // is closest to, then use the renderer with the same index as its
+        // closest node.
         renderSet.forEach(function (p, i) {
-            // push an x,y between 0 and 1, we will compare to normalize coords
+            // Use x,y between 0 and 1 because we will compare to normalize coords
             clusterNodes.push([(0, _utils.randomInRange)(0, 1), (0, _utils.randomInRange)(0, 1)]);
         });
-        // at render time, use the renderer closest to the point you are at
-        // console.log(clusterNodes.toString());
     }
 
-    PATCHES = false;
-    var FIELDS = true;
+    // set up vars for color cycling across styles
     var styleCount = renderSet.length;
+    var c1 = fg,
+        c2 = fg2,
+        c3 = fg3;
 
+    // How many times through the style set?
+    // Run through more times for large COLORDEPTH
+
+    var CYCLES = 1;
+    if (COLORDEPTH === 'large') {
+        CYCLES = 2;
+    }
+
+    // Finally: step through the points in the scale placements, and draw
+    // a scale at each point
     pts.forEach(function (p, i) {
         x = p[0];
         y = p[1];
         xnorm = x / cw;
         ynorm = y / ch;
 
+        var renderIndex = 0;
+
         //console.log(Math.floor(ynorm * (scaleFunctions.length - 1)));
 
-        if (PATCHES) {
+        if (STYLE === 'patches') {
             // pick renderer closest to this point
             var minR = 2; // max squared dimension for normalized vals
-            var renderIndex = null;
             var R = void 0;
             clusterNodes.forEach(function (n, i) {
                 var dx = xnorm - n[0];
@@ -10583,17 +11177,60 @@ function scales(options) {
             });
             //console.log(`picked renderer ${renderIndex} with distance ${R}`);
             scaleRenderer = renderSet[renderIndex];
-        } else if (FIELDS) {
+
+            // Define colors from the contrast palette,
+            // aligned to the render styles.
+            // Stepping through by index this way ensures that adjacent
+            // styles share some colors
+            if (COLORDEPTH !== 'small') {
+                c1 = contrastPalette[(renderIndex + 0) % contrastPalette.length];
+                c2 = contrastPalette[(renderIndex + 1) % contrastPalette.length];
+                c3 = contrastPalette[(renderIndex + 2) % contrastPalette.length];
+            }
+            if (EDGES) {
+                c1 = bg;
+            }
+        } else if (STYLE === 'fields') {
+
             // field term is periodic function, pushed into postive vals
             var f = (trans.style(xnorm, ynorm) + 1) / 2;
-            var _renderIndex = Math.round(f * (renderSet.length - 1)) % renderSet.length;
-            scaleRenderer = renderSet[_renderIndex];
+            var _renderIndex = Math.round(f * (renderSet.length - 1) * CYCLES);
+
+            scaleRenderer = renderSet[_renderIndex % renderSet.length];
+
+            // Define colors from the contrast palette,
+            // aligned to the render styles.
+            // Stepping through by index this way ensures that adjacent
+            // styles share some colors
+            if (COLORDEPTH !== 'small') {
+                c1 = contrastPalette[(_renderIndex + 0) % contrastPalette.length];
+                c2 = contrastPalette[(_renderIndex + 1) % contrastPalette.length];
+                c3 = contrastPalette[(_renderIndex + 2) % contrastPalette.length];
+            }
+            if (EDGES) {
+                c1 = bg;
+            }
         } else {
+            // STYLE === 'stripes'
             // draw in bands based on ynorm
-            scaleRenderer = renderSet[Math.round(ynorm * (renderSet.length - 1))];
+            renderIndex = Math.round(ynorm * (renderSet.length - 1));
+            scaleRenderer = renderSet[renderIndex];
+
+            // Define colors from the contrast palette,
+            // aligned to the render styles.
+            // Stepping through by index this way ensures that adjacent
+            // styles share some colors
+            if (COLORDEPTH !== 'small') {
+                c1 = contrastPalette[(renderIndex + 0) % contrastPalette.length];
+                c2 = contrastPalette[(renderIndex + 1) % contrastPalette.length];
+                c3 = contrastPalette[(renderIndex + 2) % contrastPalette.length];
+            }
+            if (EDGES) {
+                c1 = bg;
+            }
         }
 
-        scaleRenderer(x, y, size / 2, fg, fg2, fg3);
+        scaleRenderer(x, y, size / 2, c1, c2, c3);
     });
 
     // debug: draw the reference nodes
@@ -10606,10 +11243,6 @@ function scales(options) {
     //     ctx.fillText(i, cw * n[0], ch * n[1]);
     // });
 
-
-    // reset line dashes for other renderers
-    ctx.setLineDash([]);
-    ctx.lineDashOffset = 0;
 
     // Finish up
     // --------------------------------------
@@ -10632,7 +11265,7 @@ function scales(options) {
 }
 
 /***/ }),
-/* 37 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10823,7 +11456,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 38 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -11189,7 +11822,7 @@ function halftoneSpotColors(canvas) {
 } // halftoneCMYK()
 
 /***/ }),
-/* 39 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

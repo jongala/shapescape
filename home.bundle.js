@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 40);
+/******/ 	return __webpack_require__(__webpack_require__.s = 42);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -1063,8 +1063,127 @@ function hexScatter(spacing, w, h, loosen) {
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 7 */,
-/* 8 */
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.createTransform = createTransform;
+exports.createSourceSinkTransform = createSourceSinkTransform;
+exports.opacityTransforms = opacityTransforms;
+
+var _utils = __webpack_require__(0);
+
+var PI = Math.PI;
+
+// Create a function which is a periodic transform of x, y
+function createTransform() {
+    var rateMin = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+    var rateMax = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+
+    var rate1 = (0, _utils.randomInRange)(0, rateMax / 2);
+    var rate2 = (0, _utils.randomInRange)(0, rateMax / 2);
+    var rate3 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
+    var rate4 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
+
+    var phase1 = (0, _utils.randomInRange)(-PI, PI);
+    var phase2 = (0, _utils.randomInRange)(-PI, PI);
+    var phase3 = (0, _utils.randomInRange)(-PI, PI);
+    var phase4 = (0, _utils.randomInRange)(-PI, PI);
+
+    var c1 = (0, _utils.randomInRange)(0, 1);
+    var c2 = (0, _utils.randomInRange)(0, 1);
+    var c3 = (0, _utils.randomInRange)(0, 1);
+    var c4 = (0, _utils.randomInRange)(0, 1);
+    return function (xnorm, ynorm) {
+        var t1 = Math.sin(xnorm * rate1 * 2 * PI + phase1);
+        var t2 = Math.sin(ynorm * rate2 * 2 * PI + phase2);
+        var t3 = Math.sin(xnorm * rate3 * 2 * PI + phase3);
+        var t4 = Math.sin(ynorm * rate4 * 2 * PI + phase4);
+        return (c1 * t1 + c2 * t2 + c3 * t3 + c4 * t4) / (c1 + c2 + c3 + c4);
+    };
+}
+
+function createSourceSinkTransform() {
+    var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 4;
+
+    var sources = [];
+
+    while (count--) {
+        var src = {
+            strength: (0, _utils.randomInRange)(1, 20),
+            sign: 1,
+            x: (0, _utils.randomInRange)(-0.25, 1.25), // add some overscan
+            y: (0, _utils.randomInRange)(-0.25, 1.25)
+        };
+        if (Math.random() > 0.9) {
+            // occasionally make sinks instead of sources
+            src.sign *= -1;
+        }
+        sources.push(src);
+    }
+
+    return {
+        sources: sources,
+        t: function t(xnorm, ynorm) {
+            var v = [0, 0]; // force vector to return
+
+            sources.forEach(function (source) {
+                var rmin = source.strength / 1000; // magic number
+
+
+                var dx = xnorm - source.x;
+                var dy = ynorm - source.y;
+                var _r = dx * dx + dy * dy; // really r squared but that's what we want
+
+                if (_r < rmin) {
+                    _r = rmin;
+                }; // min r
+
+                var scalar = source.sign * source.strength / _r;
+
+                var _x = scalar * dx;
+                var _y = scalar * dy;
+                v[0] += _x;
+                v[1] += _y;
+            });
+
+            return v;
+        }
+    };
+}
+
+function opacityTransforms(maxLen) {
+    return [function () {
+        return 1;
+    }, function (_x, _y) {
+        return Math.abs(_y / _x) / maxLen;
+    }, function (_x, _y) {
+        return 1 - Math.abs(_y / _x) / maxLen;
+    }, function (_x, _y) {
+        return Math.abs(_x / _y);
+    }, // hides verticals
+    function (_x, _y) {
+        return Math.abs(_y / _x);
+    }, // hides horizontals
+    function (_x, _y) {
+        return _x / _y;
+    }, function (_x, _y) {
+        return _y / _x;
+    }, function (_x, _y) {
+        return _y - _x;
+    }, function (_x, _y) {
+        return _x - _y;
+    }];
+}
+
+/***/ }),
+/* 8 */,
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1080,7 +1199,7 @@ exports.defineWaterline = defineWaterline;
 exports.drawWaterline = drawWaterline;
 exports.waterline = waterline;
 
-var _waterlineSchema = __webpack_require__(9);
+var _waterlineSchema = __webpack_require__(10);
 
 var _noiseutils = __webpack_require__(1);
 
@@ -1530,7 +1649,7 @@ function waterline(options) {
 }
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1582,7 +1701,7 @@ var SCHEMA = exports.SCHEMA = {
 };
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1605,9 +1724,9 @@ var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
 
-var _stacks = __webpack_require__(11);
+var _stacks = __webpack_require__(12);
 
-var _nests = __webpack_require__(12);
+var _nests = __webpack_require__(13);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1936,7 +2055,7 @@ var DEFAULTS = {
 }
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1988,7 +2107,7 @@ function drawStack(ctx, stack, x, w, colorFunc) {
 }
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2074,7 +2193,7 @@ function drawNest(ctx, nest, shapeFunction, colorFunction, o) {
 }
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2261,7 +2380,7 @@ function shapescape(options) {
 }
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2701,7 +2820,7 @@ function drawLines(ctx, p1, p2, opts) {
 }
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3132,7 +3251,7 @@ function waves(options) {
 }
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3377,8 +3496,8 @@ function grid(options) {
 }
 
 /***/ }),
-/* 17 */,
-/* 18 */
+/* 18 */,
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3832,7 +3951,7 @@ function circles(options) {
 }
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4096,7 +4215,7 @@ function mesh(options) {
 }
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4513,7 +4632,7 @@ var DEFAULTS = {
 }
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4750,7 +4869,7 @@ function bands(options) {
 }
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4776,6 +4895,8 @@ var _hexScatter2 = _interopRequireDefault(_hexScatter);
 var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
+
+var _fieldUtils = __webpack_require__(7);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -4920,115 +5041,16 @@ function field(options) {
         warp = (0, _utils.randomInRange)(0.75, Math.sqrt(2));
     }
 
-    // set of functions to transform opacity across grid
-    var opacityTransforms = [function () {
-        return 1;
-    }, function (_x, _y) {
-        return Math.abs(_y / _x) / maxLen;
-    }, function (_x, _y) {
-        return 1 - Math.abs(_y / _x) / maxLen;
-    }, function (_x, _y) {
-        return Math.abs(_x / _y);
-    }, // hides verticals
-    function (_x, _y) {
-        return Math.abs(_y / _x);
-    }, // hides horizontals
-    function (_x, _y) {
-        return _x / _y;
-    }, function (_x, _y) {
-        return _y / _x;
-    }, function (_x, _y) {
-        return _y - _x;
-    }, function (_x, _y) {
-        return _x - _y;
-    }];
-    // now pick one
-    var opacityFunc = (0, _utils.randItem)(opacityTransforms);
-
-    // Create a function which is a periodic transform of x, y
-    function createTransform() {
-        var rateMin = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-        var rateMax = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-
-        var rate1 = (0, _utils.randomInRange)(0, rateMax / 2);
-        var rate2 = (0, _utils.randomInRange)(0, rateMax / 2);
-        var rate3 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
-        var rate4 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
-
-        var phase1 = (0, _utils.randomInRange)(-PI, PI);
-        var phase2 = (0, _utils.randomInRange)(-PI, PI);
-        var phase3 = (0, _utils.randomInRange)(-PI, PI);
-        var phase4 = (0, _utils.randomInRange)(-PI, PI);
-
-        var c1 = (0, _utils.randomInRange)(0, 1);
-        var c2 = (0, _utils.randomInRange)(0, 1);
-        var c3 = (0, _utils.randomInRange)(0, 1);
-        var c4 = (0, _utils.randomInRange)(0, 1);
-        return function (xnorm, ynorm) {
-            var t1 = Math.sin(xnorm * rate1 * 2 * PI + phase1);
-            var t2 = Math.sin(ynorm * rate2 * 2 * PI + phase2);
-            var t3 = Math.sin(xnorm * rate3 * 2 * PI + phase3);
-            var t4 = Math.sin(ynorm * rate4 * 2 * PI + phase4);
-            return (c1 * t1 + c2 * t2 + c3 * t3 + c4 * t4) / (c1 + c2 + c3 + c4);
-        };
-    }
-
-    function createSourceSinkTransform() {
-        var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 4;
-
-        var sources = [];
-
-        while (count--) {
-            var src = {
-                strength: (0, _utils.randomInRange)(1, 20),
-                sign: 1,
-                x: (0, _utils.randomInRange)(-0.25, 1.25), // add some overscan
-                y: (0, _utils.randomInRange)(-0.25, 1.25)
-            };
-            if (Math.random() > 0.9) {
-                // occasionally make sinks instead of sources
-                src.sign *= -1;
-            }
-            sources.push(src);
-        }
-
-        return {
-            sources: sources,
-            t: function t(xnorm, ynorm) {
-                var v = [0, 0]; // force vector to return
-
-                sources.forEach(function (source) {
-                    var rmin = source.strength / 1000; // magic number
-
-
-                    var dx = xnorm - source.x;
-                    var dy = ynorm - source.y;
-                    var _r = dx * dx + dy * dy; // really r squared but that's what we want
-
-                    if (_r < rmin) {
-                        _r = rmin;
-                    }; // min r
-
-                    var scalar = source.sign * source.strength / _r;
-
-                    var _x = scalar * dx;
-                    var _y = scalar * dy;
-                    v[0] += _x;
-                    v[1] += _y;
-                });
-
-                return v;
-            }
-        };
-    }
+    // Pick an opacity transform to use
+    var opacityFunc = (0, _utils.randItem)((0, _fieldUtils.opacityTransforms)(maxLen));
 
     // a set of independent transforms to use while rendering
     var trans = {
-        xbase: createTransform(rateMax), // (x,y)=>0,//
-        ybase: createTransform(rateMax), // (x,y)=>0,//
-        xtail: createTransform(rateMax), // (x,y)=>0,//
-        ytail: createTransform(rateMax), // (x,y)=>0,//
-        radius: createTransform(rateMax)
+        xbase: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
+        ybase: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
+        xtail: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
+        ytail: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
+        radius: (0, _fieldUtils.createTransform)(rateMax)
     };
 
     function randomScatter(size, w, h) {
@@ -5084,7 +5106,7 @@ function field(options) {
         });
     }
 
-    var sourceTransform = createSourceSinkTransform(Math.round((0, _utils.randomInRange)(5, 15)));
+    var sourceTransform = (0, _fieldUtils.createSourceSinkTransform)(Math.round((0, _utils.randomInRange)(5, 15)));
 
     // Flags for coloring by angle
     // Don't do special coloring in bloom mode, because it relies on grayscale
@@ -5233,7 +5255,7 @@ function field(options) {
 }
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5531,7 +5553,6 @@ function fragments(options) {
 }
 
 /***/ }),
-/* 24 */,
 /* 25 */,
 /* 26 */,
 /* 27 */,
@@ -5547,7 +5568,9 @@ function fragments(options) {
 /* 37 */,
 /* 38 */,
 /* 39 */,
-/* 40 */
+/* 40 */,
+/* 41 */,
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5563,29 +5586,29 @@ var _palettes = __webpack_require__(2);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
-var _waterline = __webpack_require__(8);
+var _waterline = __webpack_require__(9);
 
-var _shapestack = __webpack_require__(10);
+var _shapestack = __webpack_require__(11);
 
-var _shapescape = __webpack_require__(13);
+var _shapescape = __webpack_require__(14);
 
-var _lines = __webpack_require__(14);
+var _lines = __webpack_require__(15);
 
-var _waves = __webpack_require__(15);
+var _waves = __webpack_require__(16);
 
-var _grid = __webpack_require__(16);
+var _grid = __webpack_require__(17);
 
-var _circles = __webpack_require__(18);
+var _circles = __webpack_require__(19);
 
-var _mesh = __webpack_require__(19);
+var _mesh = __webpack_require__(20);
 
-var _walk = __webpack_require__(20);
+var _walk = __webpack_require__(21);
 
-var _bands = __webpack_require__(21);
+var _bands = __webpack_require__(22);
 
-var _field = __webpack_require__(22);
+var _field = __webpack_require__(23);
 
-var _fragments = __webpack_require__(23);
+var _fragments = __webpack_require__(24);
 
 var _utils = __webpack_require__(0);
 
