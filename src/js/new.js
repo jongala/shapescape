@@ -8,9 +8,7 @@ const DEFAULTS = {
     palette: palettes.ultra,
     addNoise: 0.04,
     noiseInput: null,
-    dust: false,
-    skew: 1, // normalized skew
-    clear: true
+    clear: true,
 }
 
 const PI = Math.PI;
@@ -23,6 +21,10 @@ export function newName(options) {
     let cw = container.offsetWidth;
     let ch = container.offsetHeight;
     let SCALE = Math.min(cw, ch);
+    let LONG = Math.max(cw, ch);
+    let SHORT = Math.min(cw, ch);
+    const AREA = cw * ch;
+    const ASPECT = LONG/SHORT;
 
     // Find or create canvas child
     let el = container.querySelector('canvas');
