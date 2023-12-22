@@ -19,6 +19,8 @@ const PI = Math.PI;
 const TWOPI = PI * 2;
 const STYLES = ['normal']; // TODO
 
+const DEBUG = false;
+
 // Main function
 export function checkers(options) {
     let opts = Object.assign({}, DEFAULTS, options);
@@ -56,10 +58,6 @@ export function checkers(options) {
     let getSolidFill = getSolidColorFunction(opts.palette);
 
     // setup
-
-    let xnorm = 0;
-    let ynorm = 0;
-    let renderer;
 
     // shared colors
     let bg = getSolidFill();
@@ -102,11 +100,8 @@ export function checkers(options) {
     let centerCount = randomInt(2, 2 + SCALE/400);
     // more rings per group in large and stretched layouts
     let ringsPerGroup = [5 + Math.round(SCALE/150), 10 + Math.round(ASPECT * 20)];
-    let spacing = 0; // between rings
 
-    // Radius to step outward, intial value. Keep in outer scope because
-    // rays will rely on this for drawing too.
-    let r = 0;
+
 
     // center vars
     // Scatter points coarsely
@@ -115,48 +110,46 @@ export function checkers(options) {
     let pts = hexScatter(SHORT * 0.5, cw - MARGIN * 2, ch - MARGIN * 2);
 
     pts.forEach((p, i) => {
-        p[0] += MARGIN;
-        p[1] += MARGIN;
-        // The scatter algo will place points out of bounds or near edges.
-        // Discard those points.
-        let bounds = true;
-        if (p[0] > (cw - MARGIN)) bounds = false;
-        if (p[0] < MARGIN) bounds = false;
-        if (p[1] > (ch - MARGIN)) bounds = false;
-        if (p[1] < MARGIN) bounds = false;
-
-        if (bounds) {
-            centers.push({x:p[0], y:p[1]});
-            //drawCircle(ctx,p[0], p[1], 30, {fill:'red'});
-        }
+        centers.push({x:p[0], y:p[1]});
+        DEBUG && drawCircle(ctx,p[0], p[1], 30, {fill:'red'});
     });
+
 
     // Limit centers, since hexscatter has a lot of overscan and does
     // poorly when cell size is large compared to container.
     // Allow more centers for stretched layouts.
     centers = shuffle(centers);
-    let maxCenters = Math.ceil(ASPECT);
-    centers = centers.slice(0, maxCenters);
+    //let maxCenters = Math.ceil(ASPECT);
+    //centers = centers.slice(0, maxCenters);
 
     ctx.lineCap = 'butt';//
 
     // Step through the centers and create ring clusters for each
     centers.forEach((center, i)=> {
         // intial r
-        r = SCALE * randomInRange(0.4, 0.7);
+        let r = SCALE * randomInRange(0.4, 0.7);
+        let R = r; // keep original value, as we step inward
 
+        let STRETCH = randItem([1, 1, 1, 1.618, 1.618, 2]);
+
+
+        // start with a baseline thickness
         let thickness = randomInRange(MAXWEIGHT/4, MAXWEIGHT);
         let ringCount = randomInt(...ringsPerGroup);
 
-        let dash = thickness;
+        // Assume dash length will equal thickness
+        // Find a value near thickness that will give a whole number
+        // of dashes
         let C = r * 2 * PI;
-        let n = C / (2 * dash);
-        let N = Math.ceil(n);
-        let gap = dash * (2 * n - N)/N;
+        let n = C / (thickness);
+        let N = Math.round(n);
+        let dash = C / N; // the dash length for whole number
+        let gap = dash * STRETCH; // set gap relative to dash
+        thickness = dash; // reset thickness to the gap
 
 
         // make several rings
-        while (r > 10) {
+        while (r > R/2) {
             // create a ring
             let arcLength = PI * 2;
             let arcOffset = 0;
@@ -164,12 +157,13 @@ export function checkers(options) {
             // recalculate dashes for new r
             C = r * 2 * PI;
             dash = C / N;
-            gap = dash;
+            gap = dash * STRETCH;
             thickness = dash;
 
-            // draw the solid ring, then draw dashed on top
+            // don't know why this fudge is needed. Rounding?
+            ctx.lineWidth = thickness + 2;
 
-            ctx.lineWidth = thickness + 10;
+            // draw the solid ring, then draw dashed on top
 
             ctx.setLineDash([]); // solid ring
             ctx.beginPath();
@@ -187,8 +181,8 @@ export function checkers(options) {
             ctx.strokeStyle = getSolidFill();
             ctx.stroke();
 
-            // increment r by ring thickness + spacing
-            r = r - (thickness + spacing);
+            // increment r by ring thickness
+            r = r - thickness;
         }
     });
 
