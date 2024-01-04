@@ -6,7 +6,7 @@ import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, draw
 
 const DEFAULTS = {
     container: 'body',
-    palette: palettes.plum_sauce,
+    palette: palettes.admiral,
     addNoise: 0.04,
     noiseInput: null,
     clear: true,
@@ -98,10 +98,6 @@ export function checkers(options) {
     // pick a few center points
     // more for large layouts
     let centerCount = randomInt(2, 2 + SCALE/400);
-    // more rings per group in large and stretched layouts
-    let ringsPerGroup = [5 + Math.round(SCALE/150), 10 + Math.round(ASPECT * 20)];
-
-
 
     // center vars
     // Scatter points coarsely
@@ -113,6 +109,8 @@ export function checkers(options) {
         centers.push({x:p[0], y:p[1]});
         DEBUG && drawCircle(ctx,p[0], p[1], 30, {fill:'red'});
     });
+
+    centers = [{x: cw/2, y: 0}];
 
 
     // Limit centers, since hexscatter has a lot of overscan and does
@@ -135,7 +133,6 @@ export function checkers(options) {
 
         // start with a baseline thickness
         let thickness = randomInRange(MAXWEIGHT/4, MAXWEIGHT);
-        let ringCount = randomInt(...ringsPerGroup);
 
         // Assume dash length will equal thickness
         // Find a value near thickness that will give a whole number
@@ -187,6 +184,34 @@ export function checkers(options) {
     });
 
     console.log(rings.length + ' rings around ' + centers.length + ' centers' );
+
+
+    let drawStripes = function(cx, cy, angle, thickness=20) {
+        let N = 6;
+
+        ctx.lineWidth = thickness;
+
+        let norm = angle + PI;
+        let x1 = cx;
+
+        for (var i=0; i<N; i++) {
+            ctx.strokeStyle = getSolidFill();
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.moveTo(0, cy + i * thickness);
+            ctx.lineTo(cw, cy + i * thickness);
+            ctx.stroke();
+
+            ctx.strokeStyle = getSolidFill();
+            ctx.setLineDash([thickness, thickness]);
+            ctx.beginPath();
+            ctx.moveTo(0, cy + i * thickness);
+            ctx.lineTo(cw, cy + i * thickness);
+            ctx.stroke();
+        }
+    }
+
+    drawStripes(cw/2, ch/2, 0);
 
 
     /**
