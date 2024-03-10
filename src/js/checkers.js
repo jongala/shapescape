@@ -87,7 +87,8 @@ export function checkers(options) {
 
     // max line weight depends on canvas size
     //const MAXWEIGHT = SCALE / (50 + LONG/100);
-    const MAXWEIGHT = SCALE / 20;
+    //const MAXWEIGHT = SCALE / 20;
+    const MAXWEIGHT = SCALE / 10;
     ctx.lineWidth = MAXWEIGHT;
     console.log('max thickness', MAXWEIGHT);
 
@@ -110,7 +111,7 @@ export function checkers(options) {
         DEBUG && drawCircle(ctx,p[0], p[1], 30, {fill:'red'});
     });
 
-    centers = [{x: cw/2, y: 0}];
+    centers = [{x: cw/2, y: 0 - SHORT * .9}];
 
 
     // Limit centers, since hexscatter has a lot of overscan and does
@@ -126,6 +127,7 @@ export function checkers(options) {
     centers.forEach((center, i)=> {
         // intial r
         let r = SCALE * randomInRange(0.4, 0.7);
+        r = SHORT * randomInRange(1, 2);
         let R = r; // keep original value, as we step inward
 
         let STRETCH = randItem([1, 1, 1, 1.618, 1.618, 2]);
@@ -146,7 +148,7 @@ export function checkers(options) {
 
 
         // make several rings
-        while (r > R/2) {
+        while (r > R * .7) {
             // create a ring
             let arcLength = PI * 2;
             let arcOffset = 0;
@@ -186,9 +188,7 @@ export function checkers(options) {
     console.log(rings.length + ' rings around ' + centers.length + ' centers' );
 
 
-    let drawStripes = function(cx, cy, angle, thickness=20) {
-        let N = 6;
-
+    let drawStripes = function(cx, cy, N=6, angle, thickness=MAXWEIGHT * .66) {
         ctx.lineWidth = thickness;
 
         let norm = angle + PI;
@@ -211,7 +211,7 @@ export function checkers(options) {
         }
     }
 
-    drawStripes(cw/2, ch/2, 0);
+    drawStripes(cw/2, ch - SCALE/4, randomInt(4,8), 0, MAXWEIGHT * randomInRange(0.5, 0.8));
 
 
     /**
