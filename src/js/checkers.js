@@ -146,9 +146,10 @@ export function checkers(options) {
         let gap = dash * STRETCH; // set gap relative to dash
         thickness = dash; // reset thickness to the gap
 
+        let skipStroke = 0;
 
         // make several rings
-        while (r > R * .7) {
+        while (r > SCALE/20) {
             // create a ring
             let arcLength = PI * 2;
             let arcOffset = 0;
@@ -162,13 +163,25 @@ export function checkers(options) {
             // don't know why this fudge is needed. Rounding?
             ctx.lineWidth = thickness + 2;
 
+            // Stroke skipping:
+            // Sometimes, set skipStroke to skip several lines. Then
+            // decrement the skip count as you go. Pick skip count and
+            // skip likelihood to have a nice mix of contiguous drawn
+            // and skipped lines
+            if(skipStroke) {
+                skipStroke--;
+            } else {
+                skipStroke = (Math.random() < 0.2) ? randomInt(2, 4) : 0;
+            }
+
             // draw the solid ring, then draw dashed on top
 
             ctx.setLineDash([]); // solid ring
             ctx.beginPath();
             ctx.arc(center.x, center.y, r, 0, 2 * PI);
             ctx.strokeStyle = getSolidFill();
-            ctx.stroke();
+            if (!skipStroke) ctx.stroke();
+
 
             // dashed ring
             ctx.setLineDash([dash, gap]);
@@ -178,7 +191,7 @@ export function checkers(options) {
             ctx.beginPath();
             ctx.arc(center.x, center.y, r, 0, 2 * PI);
             ctx.strokeStyle = getSolidFill();
-            ctx.stroke();
+            if (!skipStroke) ctx.stroke();
 
             // increment r by ring thickness
             r = r - thickness;
@@ -188,6 +201,7 @@ export function checkers(options) {
     console.log(rings.length + ' rings around ' + centers.length + ' centers' );
 
 
+    // func to draw a set of parallel square-patterned stripes
     let drawStripes = function(cx, cy, N=6, angle, thickness=MAXWEIGHT * .66) {
         ctx.lineWidth = thickness;
 
@@ -211,7 +225,8 @@ export function checkers(options) {
         }
     }
 
-    drawStripes(cw/2, ch - SCALE/4, randomInt(4,8), 0, MAXWEIGHT * randomInRange(0.5, 0.8));
+    // draw horizontal stripes somewhere
+    //drawStripes(cw/2, ch - SCALE/4, randomInt(4,8), 0, MAXWEIGHT * randomInRange(0.5, 0.8));
 
 
     /**
