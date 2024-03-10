@@ -111,7 +111,10 @@ export function checkers(options) {
         DEBUG && drawCircle(ctx,p[0], p[1], 30, {fill:'red'});
     });
 
-    centers = [{x: cw/2, y: 0 - SHORT * .9}];
+    // put a single center somewhere way out, radially from the center
+    let alpha = randomInRange(0, TWOPI);
+    let dist = LONG * randomInRange(1, 4);
+    centers = [{x: cw/2 + dist * Math.cos(alpha), y: ch/2 + dist * Math.sin(alpha)}];
 
 
     // Limit centers, since hexscatter has a lot of overscan and does
@@ -126,8 +129,7 @@ export function checkers(options) {
     // Step through the centers and create ring clusters for each
     centers.forEach((center, i)=> {
         // intial r
-        let r = SCALE * randomInRange(0.4, 0.7);
-        r = SHORT * randomInRange(1, 2);
+        let r = dist * randomInRange(1.2, 1.6);
         let R = r; // keep original value, as we step inward
 
         let STRETCH = randItem([1, 1, 1, 1.618, 1.618, 2]);
@@ -182,7 +184,6 @@ export function checkers(options) {
             ctx.strokeStyle = getSolidFill();
             if (!skipStroke) ctx.stroke();
 
-
             // dashed ring
             ctx.setLineDash([dash, gap]);
 
@@ -209,6 +210,7 @@ export function checkers(options) {
         let x1 = cx;
 
         for (var i=0; i<N; i++) {
+            // solid line for bg
             ctx.strokeStyle = getSolidFill();
             ctx.setLineDash([]);
             ctx.beginPath();
@@ -216,6 +218,7 @@ export function checkers(options) {
             ctx.lineTo(cw, cy + i * thickness);
             ctx.stroke();
 
+            // dashed line for checkers
             ctx.strokeStyle = getSolidFill();
             ctx.setLineDash([thickness, thickness]);
             ctx.beginPath();
@@ -227,62 +230,6 @@ export function checkers(options) {
 
     // draw horizontal stripes somewhere
     //drawStripes(cw/2, ch - SCALE/4, randomInt(4,8), 0, MAXWEIGHT * randomInRange(0.5, 0.8));
-
-
-    /**
-     * util for drawing rays
-     * from @p1 to @p2, at thickness @weight.
-     * Start solid and draws the last @dottedFraction dotted or dashed,
-     * depending on weight.
-     * Relies on a global context ctx;
-     * */
-    function dottedLine(p1, p2, weight, dottedFraction = 0.33) {
-        ctx.lineWidth = weight;
-
-        let [x1, y1] = p1;
-        let [x2, y2] = p2;
-        let dx = x2 - x1;
-        let dy = y2 - y1;
-
-        let d = Math.sqrt(dx * dx + dy * dy);
-
-        let t = Math.atan(dy / dx);
-        if (x2 < x1) t += PI;
-
-        let mx = x1 + Math.cos(t) * d * (1 - dottedFraction);
-        let my = y1 + Math.sin(t) * d * (1 - dottedFraction);
-
-        // start solid
-        ctx.lineCap = 'butt';
-        ctx.setLineDash([]);
-        ctx.lineDashOffset = 0;
-        // draw solid segment
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(mx, my);
-        ctx.stroke();
-
-        // dotted portion:
-        ctx.beginPath();
-        ctx.lineCap = 'round';
-        if (weight <= 4) {
-            // thin strokes
-            ctx.setLineDash([weight, weight * 4]);
-            ctx.lineDashOffset = 0;
-        } else {
-            // thick strokes
-            ctx.setLineDash([0, weight * 2]);
-            ctx.lineDashOffset = weight * 1;
-        }
-        ctx.moveTo(mx, my);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-
-        // reset dashes for any following drawing
-        ctx.setLineDash([]);
-        ctx.lineDashOffset = 0;
-    }
-
 
     // clear dash settings
     ctx.setLineDash([]);
