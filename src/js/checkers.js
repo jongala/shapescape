@@ -48,7 +48,7 @@ export function checkers(options) {
         el.height = ch;
     }
 
-    let ctx = el.getContext('2d');
+    let ctx = el.getContext('2d', { willReadFrequently: true });
 
     // modes and styles
     const STYLE = opts.style === 'auto' ? randItem(STYLES) : opts.style;
@@ -279,15 +279,33 @@ export function checkers(options) {
 
 
     // donegal
-    let speckleSize = SCALE / randomInRange(250, 400);
-    let speckles = hexScatter(speckleSize * 4, cw, ch);
-    speckles.forEach((p, i) => {
-        var color = ctx.getImageData(p[0], p[1], 1, 1).data;
-        drawSquare(ctx, p[0], p[1], speckleSize, {
-            fill: `rgba(${color.join(',')})`,
-            angle: randomInRange(0, PI)
+    function donegal(speckleSize=5, density=4, fillStyle='sample') {
+        let speckles = hexScatter(speckleSize * density, cw, ch);
+        let speckleColor;
+        if (fillStyle === 'random') {
+            speckleColor = getSolidFill;
+        } else {
+            speckleColor = (p) => {
+                var sample = ctx.getImageData(p[0], p[1], 1, 1).data;
+                return `rgba(${sample.join(',')})`;
+            }
+        }
+        speckles.forEach((p, i) => {
+
+            drawSquare(ctx, p[0], p[1], speckleSize, {
+                fill: speckleColor(p),
+                angle: randomInRange(0, PI)
+            });
         });
-    });
+    }
+
+    // coarse sampled speckles to break edges
+    donegal(SCALE * randomInRange(.0015, .0040), 4, 'sample');
+    // random speckles for donegal look
+    donegal(SCALE * randomInRange(.0020, .0040), randomInt(12, 24), 'random');
+    // fine sampled speckles to break edges more
+    donegal(SCALE * randomInRange(.001, .002), 3, 'sample');
+
 
 
     // add noise
