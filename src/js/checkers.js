@@ -285,8 +285,10 @@ export function checkers(options) {
         if (fillStyle === 'random') {
             speckleColor = getSolidFill;
         } else {
+            let px = ctx.getImageData(0, 0, cw, ch).data;
             speckleColor = (p) => {
-                var sample = ctx.getImageData(p[0], p[1], 1, 1).data;
+                let i = 4 * (Math.round(p[0]) + Math.round(p[1]) * cw);
+                var sample = px.slice(i, i+3);
                 return `rgba(${sample.join(',')})`;
             }
         }
@@ -305,8 +307,6 @@ export function checkers(options) {
     donegal(SCALE * randomInRange(.0020, .0040), randomInt(12, 24), 'random');
     // fine sampled speckles to break edges more
     donegal(SCALE * randomInRange(.001, .002), 3, 'sample');
-
-
 
     // add noise
     if (opts.addNoise) {
