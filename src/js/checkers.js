@@ -127,13 +127,15 @@ export function checkers(options) {
 
     ctx.lineCap = 'butt';//
 
+    let STRETCHSET = [1, 1, 1, 1.618, 1.618, 2];
+
     // Step through the centers and create ring clusters for each
     centers.forEach((center, i)=> {
         // intial r
         let r = dist * randomInRange(1.2, 1.6);
         let R = r; // keep original value, as we step inward
 
-        let STRETCH = randItem([1, 1, 1, 1.618, 1.618, 2]);
+        let STRETCH = randItem(STRETCHSET);
 
 
         // start with a baseline thickness
@@ -170,11 +172,18 @@ export function checkers(options) {
             // Sometimes, set skipStroke to skip several lines. Then
             // decrement the skip count as you go. Pick skip count and
             // skip likelihood to have a nice mix of contiguous drawn
-            // and skipped lines
+            // and skipped lines.
+            // When starting a skip sequence, reset the STRETCH style,
+            // so the following band has its own style.
             if(skipStroke) {
                 skipStroke--;
             } else {
-                skipStroke = (Math.random() < 0.2) ? randomInt(2, 4) : 0;
+                // sometimes set skipping and stretch.
+                // most of the time, do nothing, and just draw
+                if (Math.random() < 0.2) {
+                    skipStroke = randomInt(2, 4);
+                    STRETCH = randItem(STRETCHSET);
+                }
             }
 
             // draw the solid ring, then draw dashed on top
