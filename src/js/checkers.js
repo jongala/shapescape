@@ -23,6 +23,7 @@ const DEBUG = false;
 
 // Main function
 export function checkers(options) {
+    let startTime = new Date().getTime();
     let opts = Object.assign({}, DEFAULTS, options);
 
     let container = opts.container;
@@ -130,114 +131,118 @@ export function checkers(options) {
     let STRETCHSET = [1, 1, 1, 1.618, 1.618, 2];
 
     // Step through the centers and create ring clusters for each
-    centers.forEach((center, i)=> {
-        // intial r
-        let r = dist * randomInRange(1.2, 1.6);
-        let R = r; // keep original value, as we step inward
 
-        let STRETCH = randItem(STRETCHSET);
+    function doCenters(centers=[], thickness=MAXWEIGHT, CHECKER=false) {
+        let skipStrokeThreshold = CHECKER ? 0 : 0.2;
 
 
-        // start with a baseline thickness
-        let thickness = randomInRange(MINWEIGHT, MAXWEIGHT);
+        centers.forEach((center, i)=> {
+            // intial r
+            let r = dist * randomInRange(1.2, 1.6);
+            let R = r; // keep original value, as we step inward
 
-        // Assume dash length will equal thickness
-        // Find a value near thickness that will give a whole number
-        // of dashes
-        let C = r * 2 * PI;
-        let n = C / (thickness);
-        let N = Math.round(n);
-        let dash = C / N; // the dash length for whole number
-        let gap = dash * STRETCH; // set gap relative to dash
-        thickness = dash; // reset thickness to the gap
+            // set initial stretch style
+            let STRETCH = randItem(STRETCHSET);
 
-        let skipStroke = 0;
+            // baseline thickness is passed in as @thickness
 
-        // make several rings
-        while (r > SCALE/20) {
-            // create a ring
-            let arcLength = PI * 2;
-            let arcOffset = 0;
+            // Assume dash length will equal thickness
+            // Find a value near thickness that will give a whole number
+            // of dashes
+            let C = r * 2 * PI;
+            let n = C / (thickness);
+            let N = Math.round(n);
+            let dash = C / N; // the dash length for whole number
+            let gap = dash * STRETCH; // set gap relative to dash
+            thickness = dash; // reset thickness to the gap
 
-            // recalculate dashes for new r
-            C = r * 2 * PI;
-            dash = C / N;
-            gap = dash * STRETCH;
-            thickness = dash;
+            let skipStroke = 0;
 
-            // don't know why this fudge is needed. Rounding?
-            ctx.lineWidth = thickness + 2;
-
-            // Stroke skipping:
-            // Sometimes, set skipStroke to skip several lines. Then
-            // decrement the skip count as you go. Pick skip count and
-            // skip likelihood to have a nice mix of contiguous drawn
-            // and skipped lines.
-            // When starting a skip sequence, reset the STRETCH style,
-            // so the following band has its own style.
-            if(skipStroke) {
-                skipStroke--;
-            } else {
-                // sometimes set skipping and stretch.
-                // most of the time, do nothing, and just draw
-                if (Math.random() < 0.2) {
-                    skipStroke = randomInt(2, 4);
-                    STRETCH = randItem(STRETCHSET);
+            let ringColor;
+            if (CHECKER) {
+                STRETCH = 1; // force pure checker
+                ringColor = function(i) {
+                    return (i % 2) ? 'black' : 'white';
                 }
+            } else {
+                ringColor = getSolidFill;
             }
 
-            // draw the solid ring, then draw dashed on top
 
-            ctx.setLineDash([]); // solid ring
-            ctx.beginPath();
-            ctx.arc(center.x, center.y, r, 0, 2 * PI);
-            ctx.strokeStyle = getSolidFill();
-            if (!skipStroke) ctx.stroke();
+            let ring = 0;
 
-            // dashed ring
-            ctx.setLineDash([dash, gap]);
+            // make several rings
+            while (r > SCALE/20) {
+                ring++;
+                // create a ring
+                let arcLength = PI * 2;
+                let arcOffset = 0;
 
-            // draw the fg ring with a rando color
-            ctx.lineDashOffset = 0;
-            ctx.beginPath();
-            ctx.arc(center.x, center.y, r, 0, 2 * PI);
-            ctx.strokeStyle = getSolidFill();
-            if (!skipStroke) ctx.stroke();
+                // recalculate dashes for new r
+                C = r * 2 * PI;
+                dash = C / N;
+                gap = dash * STRETCH;
+                thickness = dash;
 
-            // increment r by ring thickness
-            r = r - thickness;
-        }
-    });
+                // don't know why this fudge is needed. Rounding?
+                ctx.lineWidth = thickness + 2;
+
+                // Stroke skipping:
+                // Sometimes, set skipStroke to skip several lines. Then
+                // decrement the skip count as you go. Pick skip count and
+                // skip likelihood to have a nice mix of contiguous drawn
+                // and skipped lines.
+                // When starting a skip sequence, reset the STRETCH style,
+                // so the following band has its own style.
+                if(skipStroke) {
+                    skipStroke--;
+                } else {
+                    // sometimes set skipping and stretch.
+                    // most of the time, do nothing, and just draw
+                    if (Math.random() < skipStrokeThreshold) {
+                        skipStroke = randomInt(2, 4);
+                        if (!CHECKER) STRETCH = randItem(STRETCHSET);
+                    }
+                }
+
+                // draw the solid ring, then draw dashed on top
+
+                ctx.setLineDash([]); // solid ring
+                ctx.beginPath();
+                ctx.arc(center.x, center.y, r, 0, 2 * PI);
+                ctx.strokeStyle = ringColor(ring);
+                if (!skipStroke) ctx.stroke();
+
+                // dashed ring
+                ctx.setLineDash([dash, gap]);
+
+                // draw the fg ring with a rando color
+                ctx.lineDashOffset = 0;
+                ctx.beginPath();
+                ctx.arc(center.x, center.y, r, 0, 2 * PI);
+                ctx.strokeStyle = ringColor(ring + 1);
+                if (!skipStroke) ctx.stroke();
+
+                // increment r by ring thickness
+                r = r - thickness;
+            }
+        });
+    }
+
+    // do the centers with normal settings
+    let renderThickness = randomInRange(MINWEIGHT, MAXWEIGHT);
+    doCenters(centers, renderThickness, false);
+
+    // redraw the centers overlaying with dark/light colors
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.globalAlpha = randomInt(2, 5) / 100;
+    doCenters(centers, renderThickness / randomInt(4,8), true);
+    ctx.globalCompositeOperation = 'normal';
+    ctx.globalAlpha = 1;
+
 
     console.log(rings.length + ' rings around ' + centers.length + ' centers' );
 
-
-    // draw radial traces
-    ctx.globalCompositeOperation = 'overlay';
-    ctx.globalAlpha = 0.03;
-    let rayCount = 360 * randomInt(3, 5);
-    let angleInc = TWOPI / rayCount;
-
-    ctx.lineWidth = 8 * SHORT / rayCount;
-
-
-    // clear dash settings
-    ctx.setLineDash([0, 0]);
-    //ctx.setLineDash([ctx.lineWidth * 2, ctx.lineWidth * 2]);
-
-    centers.forEach((center, i) => {
-        let angle;
-        while (rayCount--) {
-            ctx.lineDashOffset = (rayCount % 2) ? 0 : ctx.lineWidth * 2;
-            angle = rayCount * angleInc;
-            ctx.beginPath();
-            ctx.moveTo(center.x, center.y);
-            ctx.lineTo(center.x + dist * 2 * Math.cos(angle), center.y + dist * 2 * Math.sin(angle));
-            ctx.strokeStyle = (rayCount % 2) ? 'white' : 'black';
-            ctx.stroke();
-        }
-    });
-    ctx.globalCompositeOperation = 'normal';
 
     // func to draw a set of parallel square-patterned stripes
     let drawStripes = function(cx, cy, N=6, angle, thickness=MAXWEIGHT * .66) {
@@ -288,6 +293,9 @@ export function checkers(options) {
     if (newEl) {
         container.appendChild(el);
     }
+
+    let endTime = new Date().getTime();
+    console.log(`Rendered in ${endTime - startTime}ms`);
 }
 
 
