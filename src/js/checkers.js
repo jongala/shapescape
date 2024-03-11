@@ -278,6 +278,18 @@ export function checkers(options) {
     ctx.lineDashOffset = 0;
 
 
+    // donegal
+    let speckleSize = SCALE / randomInRange(250, 400);
+    let speckles = hexScatter(speckleSize * 4, cw, ch);
+    speckles.forEach((p, i) => {
+        var color = ctx.getImageData(p[0], p[1], 1, 1).data;
+        drawSquare(ctx, p[0], p[1], speckleSize, {
+            fill: `rgba(${color.join(',')})`,
+            angle: randomInRange(0, PI)
+        });
+    });
+
+
     // add noise
     if (opts.addNoise) {
         if (opts.noiseInput) {
