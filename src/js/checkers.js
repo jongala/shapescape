@@ -90,7 +90,8 @@ export function checkers(options) {
     //const MAXWEIGHT = SCALE / 20;
     const MAXWEIGHT = SCALE / 10;
     ctx.lineWidth = MAXWEIGHT;
-    console.log('max thickness', MAXWEIGHT);
+    const MINWEIGHT = MAXWEIGHT / 2.5;
+    console.log('max thickness', MAXWEIGHT, ' min thickness', MINWEIGHT.toPrecision(2));
 
 
     let centers = []; // array of center points
@@ -136,7 +137,7 @@ export function checkers(options) {
 
 
         // start with a baseline thickness
-        let thickness = randomInRange(MAXWEIGHT/4, MAXWEIGHT);
+        let thickness = randomInRange(MINWEIGHT, MAXWEIGHT);
 
         // Assume dash length will equal thickness
         // Find a value near thickness that will give a whole number
@@ -201,6 +202,33 @@ export function checkers(options) {
 
     console.log(rings.length + ' rings around ' + centers.length + ' centers' );
 
+
+    // draw radial traces
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.globalAlpha = 0.03;
+    let rayCount = 360 * randomInt(3, 5);
+    let angleInc = TWOPI / rayCount;
+
+    ctx.lineWidth = 8 * SHORT / rayCount;
+
+
+    // clear dash settings
+    ctx.setLineDash([0, 0]);
+    //ctx.setLineDash([ctx.lineWidth * 2, ctx.lineWidth * 2]);
+
+    centers.forEach((center, i) => {
+        let angle;
+        while (rayCount--) {
+            ctx.lineDashOffset = (rayCount % 2) ? 0 : ctx.lineWidth * 2;
+            angle = rayCount * angleInc;
+            ctx.beginPath();
+            ctx.moveTo(center.x, center.y);
+            ctx.lineTo(center.x + dist * 2 * Math.cos(angle), center.y + dist * 2 * Math.sin(angle));
+            ctx.strokeStyle = (rayCount % 2) ? 'white' : 'black';
+            ctx.stroke();
+        }
+    });
+    ctx.globalCompositeOperation = 'normal';
 
     // func to draw a set of parallel square-patterned stripes
     let drawStripes = function(cx, cy, N=6, angle, thickness=MAXWEIGHT * .66) {
