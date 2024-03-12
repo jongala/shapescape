@@ -28,7 +28,7 @@ import { pillars } from './pillars';
 import { rings } from './rings';
 import { plants } from './plants';
 import { scales } from './scales';
-import { checkers } from './checkers';
+import { sweater } from './sweater';
 // utils
 import { setAttrs, hexToRgb, scalarVec } from './utils';
 // postprocess
@@ -63,7 +63,7 @@ const RENDERERS = {
     rings: rings,
     plants: plants,
     scales: scales,
-    checkers: checkers,
+    sweater: sweater,
     //clouds: clouds
 };
 let initRenderer = 'waterline';

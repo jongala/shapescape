@@ -22,7 +22,7 @@ const STYLES = ['normal']; // TODO
 const DEBUG = false;
 
 // Main function
-export function checkers(options) {
+export function sweater(options) {
     let startTime = new Date().getTime();
     let opts = Object.assign({}, DEFAULTS, options);
 
@@ -53,7 +53,7 @@ export function checkers(options) {
     // modes and styles
     const STYLE = opts.style === 'auto' ? randItem(STYLES) : opts.style;
 
-    console.log('==================================\nCheckers:', STYLE);
+    console.log('==================================\nSweater:', STYLE);
 
     // color funcs
     let getSolidFill = getSolidColorFunction(opts.palette);
