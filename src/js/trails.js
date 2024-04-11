@@ -1,7 +1,7 @@
 import noiseUtils from './noiseutils';
 import palettes from './palettes';
 import hexScatter from './hexScatter';
-import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
+import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, mapKeywordToVal } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 import { createTransform, createSourceSinkTransform, opacityTransforms } from './util/fieldUtils';
 
@@ -23,6 +23,7 @@ const DEFAULTS = {
     gridMode: 'scatter', // from GRIDMODES
     colorMode: 'auto', // from COLORMODES
     style: 'auto', // from STYLES
+    fieldNoise: 'auto', // mapped to values below
     mixWeight: false,
     isolate: true
 }
@@ -59,6 +60,19 @@ export function trails(options) {
     const GRIDMODE = opts.gridMode === 'auto' ? randItem(GRIDMODES) : opts.gridMode;
     const COLORMODE = opts.colorMode === 'auto' ? randItem(COLORMODES) : opts.colorMode;
     const STYLE = opts.style === 'auto' ? randItem(STYLES) : opts.style;
+    const FIELDNOISE = mapKeywordToVal({
+        // hacky way to weight options by redundantly specifying
+        'none': 0,
+        'none2': 0,
+        'none3': 0,
+        'none4': 0,
+        'low': 0.125,
+        'low2': 0.125,
+        'low3': 0.125,
+        'med': 0.25,
+        'med2': 0.25,
+        'high': 0.5
+    })(opts.fieldNoise, 'fieldNoise');
 
     console.log('==================================\nTrails:', FIELDMODE, GRIDMODE, COLORMODE, STYLE);
 
@@ -110,6 +124,7 @@ export function trails(options) {
 
     ctx.lineWidth = weight;
     ctx.lineCap = STYLE;
+    ctx.lineJoin = "bevel";
 
     // const used in normalizing transforms
     let maxLen = 2 * Math.sqrt(2);
@@ -191,7 +206,7 @@ export function trails(options) {
         ref.className = 'artContainer';
         //document.querySelector('body').appendChild(ref);
     }
-    let rctx = ref.getContext('2d');
+    let rctx = ref.getContext('2d', { willReadFrequently: true });
 
     rctx.fillStyle = 'black';
     rctx.fillRect(0, 0, cw, ch);
@@ -248,6 +263,7 @@ export function trails(options) {
         ctx.lineWidth = weight;
     }
 
+
     pts.forEach((p, i) => {
         //ctx.strokeStyle = (i%2)? fg : fg2;
         //ctx.strokeStyle = (i%2)? 'white' : 'black';
@@ -283,6 +299,13 @@ export function trails(options) {
             xnorm = x/cw;
             ynorm = y/ch;
 
+            let xNoise = 0;
+            let yNoise = 0;
+            if (FIELDNOISE > 0) {
+                xNoise = randomInRange(-1,1) * FIELDNOISE;
+                yNoise = randomInRange(-1,1) * FIELDNOISE;
+            }
+
             if (FIELDMODE === 'flow') {
                 // flow fields (source-sink)
                 let flow = sourceTransform.t(xnorm, ynorm);
@@ -294,8 +317,10 @@ export function trails(options) {
                 _y = trans.ytail(xnorm, ynorm);
             }
 
-            dx = cellSize * _x * lineScale;
-            dy = cellSize * _y * lineScale
+            // use lineScale to scale field effects, apply cellSize to both
+            // field and noise factors
+            dx = cellSize * (_x * lineScale + xNoise);
+            dy = cellSize * (_y * lineScale + yNoise);
 
             // get ref sample
             if (opts.isolate) trace = rctx.getImageData(x + dx, y + dy, 1, 1).data;

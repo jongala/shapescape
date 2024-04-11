@@ -1,7 +1,7 @@
 import noiseUtils from './noiseutils';
 import palettes from './palettes';
 import hexScatter from './hexScatter';
-import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
+import { randItem, randomInRange, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, mapKeywordToVal} from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 import { createTransform, createSourceSinkTransform, opacityTransforms } from './util/fieldUtils';
 
@@ -18,6 +18,7 @@ const DEFAULTS = {
     lightMode: 'normal', // [auto, bloom, normal]
     gridMode: 'auto', // [auto, normal, scatter, random]
     density: 'auto', // [auto, coarse, fine]
+    fieldNoise: 'auto' // mapped to values below
 }
 
 const PI = Math.PI;
@@ -60,6 +61,15 @@ export function field(options) {
     const DENSITY = opts.density === 'auto' ? randItem(DENSITIES) : opts.density;
     const FIELDMODE = opts.fieldMode === 'auto' ? randItem(FIELDMODES) : opts.fieldMode;
     const COLORMODE = opts.colorMode === 'auto' ? randItem(COLORMODES) : opts.colorMode;
+    const FIELDNOISE = mapKeywordToVal({
+        // hacky way to weight options by redundantly specifying
+        'none': 0,
+        'none2': 0,
+        'low': 0.125,
+        'low2': 0.125,
+        'med': 0.25,
+        'high': 0.5
+    })(opts.fieldNoise, 'fieldNoise');
 
     // color funcs
     let getSolidFill = getSolidColorFunction(opts.palette);
@@ -255,6 +265,13 @@ export function field(options) {
         x = x + cellSize * trans.xbase(xnorm, ynorm) * warp;
         y = y + cellSize * trans.ybase(xnorm, ynorm) * warp;
 
+        let xNoise = 0;
+        let yNoise = 0;
+        if (FIELDNOISE > 0) {
+            xNoise = randomInRange(-1,1) * FIELDNOISE;
+            yNoise = randomInRange(-1,1) * FIELDNOISE;
+        }
+
         // get end of tail coords
         if (FIELDMODE === 'flow') {
             // flow fields (source-sink)
@@ -266,6 +283,9 @@ export function field(options) {
             _x = trans.xtail(xnorm, ynorm);
             _y = trans.ytail(xnorm, ynorm);
         }
+
+        _x += xNoise;
+        _y += yNoise;
 
         let theta = Math.atan2(_y, _x);
         let fillIndex = Math.round(contrastPalette.length * theta/PI / 2);
