@@ -284,6 +284,42 @@ export function doodle(options) {
         resetTransform(ctx);
     }
 
+    let drawStar = (ctx, x, y, size, opts) => {
+        let angle = opts.angle || randomInRange(0, PI * 2);
+
+        size *= randomInRange(1, 1.2);
+
+        // define the star
+        let pts = [];
+        pts.push([0, -1]);
+        pts.push([0.59, 0.95]);
+        pts.push([-0.86, -0.26]);
+        pts.push([0.86, -0.26]);
+        pts.push([-0.59, 0.95]);
+        pts.push([0, -1]);
+
+        // scale points and add jitter
+        let jitter = 0.2;
+        pts = pts.map((p) => {
+            return [
+                p[0] * size * (1 + jitter * randomInRange(-1, 1)),
+                p[1] * size * (1 + jitter * randomInRange(-1, 1))
+            ]
+        });
+
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+
+        ctx.beginPath();
+        ctx.moveTo(...(pts.shift()));
+        while(pts.length) {
+            ctx.lineTo(...(pts.shift()));
+        }
+
+        ctx.stroke();
+        ctx.resetTransform(ctx);
+    }
+
 
     // --------------------------------------
     // END SHAPES
@@ -316,8 +352,8 @@ export function doodle(options) {
 
     pts = hexScatter(cellSize, cw * overscan, ch * overscan);
 
-    let shapes = [drawDash2, drawDash3, drawCircle, drawTriangle, drawSquare, drawRect, drawSpiral, drawHash2, drawHash3, drawSquiggle, drawLightning];
-    //shapes = [drawDash3, drawHash3];
+    let shapes = [drawDash2, drawDash3, drawCircle, drawTriangle, drawSquare, drawRect, drawSpiral, drawHash2, drawHash3, drawSquiggle, drawLightning, drawStar];
+    //shapes = [drawStar];
 
     let colorCount = contrastPalette.length;
 
