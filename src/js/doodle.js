@@ -2,6 +2,7 @@ import noiseUtils from './noiseutils';
 import palettes from './palettes';
 import hexScatter from './hexScatter';
 import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
+import { createTransform } from './util/fieldUtils'
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
 import roughen from './roughen';
@@ -116,21 +117,27 @@ export function doodle(options) {
     ctx.lineWidth = weight;
     ctx.lineCap = 'round';
 
+    // --------------------------------------
+    // BEGIN SHAPES
+    // --------------------------------------
+
     let drawDash2 = (ctx, x, y, size, opts) => {
         let angle = opts.angle || randomInRange(0, PI);
         let d = size * randomInRange(0.75, 1);
         let gap = size / 2;
+        let jitter = 0.3;
+
         ctx.translate(x, y);
         ctx.rotate(angle)
 
         ctx.beginPath();
 
-        ctx.translate(weight * randomInRange(0, 1), weight * randomInRange(0, 1) );
+        ctx.translate(weight * randomInRange(-jitter, jitter), weight * randomInRange(-jitter, jitter) );
 
         ctx.moveTo(- d, -gap);
         ctx.lineTo(d, -gap);
 
-        ctx.translate(weight * randomInRange(0, 1), weight * randomInRange(0, 1) );
+        ctx.translate(weight * randomInRange(-jitter, jitter), weight * randomInRange(-jitter, jitter) );
 
         ctx.moveTo(- d, gap);
         ctx.lineTo(d, gap);
@@ -143,28 +150,30 @@ export function doodle(options) {
     let drawDash3 = (ctx, x, y, size, opts) => {
         let angle = opts.angle || randomInRange(0, PI);
         let d = size * randomInRange(0.75, 1);
-        let gap = size / 3;
+        let gap = size / 3 * 1.75; // make room for extra stroke
+        let jitter = 0.33;
+
         ctx.translate(x, y);
         ctx.rotate(angle)
 
         ctx.beginPath();
 
         // randomize between strokes
-        ctx.translate(weight * randomInRange(0, 0.8), weight * randomInRange(0, 0.8) );
+        ctx.translate(weight * randomInRange(-jitter, jitter), weight * randomInRange(-jitter, jitter) );
         d *= randomInRange(0.9, 1.1);
 
         ctx.moveTo(- d, -gap);
         ctx.lineTo(d, -gap);
 
         // randomize between strokes
-        ctx.translate(weight * randomInRange(0, 0.8), weight * randomInRange(0, 0.8) );
+        ctx.translate(weight * randomInRange(-jitter, jitter), weight * randomInRange(-jitter, jitter) );
         d *= randomInRange(0.9, 1.1);
 
         ctx.moveTo(- d, 0);
         ctx.lineTo(d, 0);
 
         // randomize between strokes
-        ctx.translate(weight * randomInRange(0, 0.8), weight * randomInRange(0, 0.8) );
+        ctx.translate(weight * randomInRange(-jitter, jitter), weight * randomInRange(-jitter, jitter) );
         d *= randomInRange(0.9, 1.1);
 
         ctx.moveTo(- d, gap);
@@ -220,8 +229,6 @@ export function doodle(options) {
     }
 
 
-
-
     let drawSquiggle = (ctx, x, y, size, opts) => {
         let angle = opts.angle || randomInRange(0, PI);
 
@@ -254,31 +261,34 @@ export function doodle(options) {
         resetTransform(ctx);
     }
 
+    let drawLightning = (ctx, x, y, size, opts) => {
+        let angle = opts.angle || randomInRange(0, PI * 2);
 
-    // Create a function which is a periodic transform of x, y
-    function createTransform (rateMin = 0, rateMax = 1) {
-        let rate1 = randomInRange(0, rateMax/2);
-        let rate2 = randomInRange(0, rateMax/2);
-        let rate3 = randomInRange(rateMax/2, rateMax);
-        let rate4 = randomInRange(rateMax/2, rateMax);
+        // these look a little better a little bigger
+        size *= randomInRange(1, 1.2);
 
-        let phase1 = randomInRange(-PI, PI);
-        let phase2 = randomInRange(-PI, PI);
-        let phase3 = randomInRange(-PI, PI);
-        let phase4 = randomInRange(-PI, PI);
+        ctx.translate(x, y);
+        ctx.rotate(angle);
 
-        let c1 = randomInRange(0, 1);
-        let c2 = randomInRange(0, 1);
-        let c3 = randomInRange(0, 1);
-        let c4 = randomInRange(0, 1);
-        return (xnorm, ynorm) => {
-            let t1 = Math.sin(xnorm * rate1 * 2 * PI + phase1);
-            let t2 = Math.sin(ynorm * rate2 * 2 * PI + phase2);
-            let t3 = Math.sin(xnorm * rate3 * 2 * PI + phase3);
-            let t4 = Math.sin(ynorm * rate4 * 2 * PI + phase4);
-            return (c1 * t1 + c2 * t2 + c3 * t3 + c4 * t4)/(c1 + c2 + c3 + c4);
-        }
+        ctx.beginPath();
+        ctx.moveTo(0, size * -1); // top left
+        ctx.lineTo(size * 0.7, size * -1); // top right
+        ctx.lineTo(size * 0.26, size * -0.35); // middle right
+        ctx.lineTo(size * 0.67, size * -0.35); // middle push right
+        ctx.lineTo(size * -0.55, size * 1); // bottom point
+        ctx.lineTo(size * -0.10, size * -0.08); // middle left
+        ctx.lineTo(size * -0.42, size * -0.08); // middle push left
+        ctx.closePath(); // return to top left
+
+        ctx.stroke();
+        resetTransform(ctx);
     }
+
+
+    // --------------------------------------
+    // END SHAPES
+    // --------------------------------------
+
 
     // a set of independent transforms to use while rendering
     let trans = {
@@ -306,8 +316,8 @@ export function doodle(options) {
 
     pts = hexScatter(cellSize, cw * overscan, ch * overscan);
 
-    let shapes = [drawDash2, drawDash3, drawCircle, drawTriangle, drawSquare, drawRect, drawSpiral, drawHash2, drawHash3, drawSquiggle];
-    //shapes = [drawSquiggle];
+    let shapes = [drawDash2, drawDash3, drawCircle, drawTriangle, drawSquare, drawRect, drawSpiral, drawHash2, drawHash3, drawSquiggle, drawLightning];
+    //shapes = [drawDash3, drawHash3];
 
     let colorCount = contrastPalette.length;
 
