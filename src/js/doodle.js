@@ -382,7 +382,7 @@ export function doodle(options) {
     ctx.globalAlpha = 1;
 
     // donegal
-    donegal(el, getSolidFill);
+    donegal(el, 'random');
 
     // roughen
     roughen(el, opts.roughen);

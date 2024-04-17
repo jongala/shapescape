@@ -135,16 +135,7 @@ window.roughenMain = roughenMain;
 
 function donegalMain() {
     var canvas = document.querySelector('#example canvas');
-    // Create a basic palette of black and white if no palette exists
-    let renderPalette;
-    if (visualOpts.palette && visualOpts.palette.length) {
-        // If we have a palette, add it to the black and white, and add gray
-        // for marks used in some renderers that aren't palette driven
-        renderPalette = [].concat(visualOpts.palette).concat(['#7d7d7d']);
-    } else {
-        renderPalette = ['#000000','#ffffff'];
-    }
-    donegal(canvas, getSolidColorFunction(renderPalette));
+    donegal(canvas, 'random');
 }
 
 window.donegalMain = donegalMain;
