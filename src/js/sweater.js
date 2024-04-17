@@ -1,6 +1,7 @@
 import noiseUtils from './noiseutils';
 import palettes from './palettes';
 import hexScatter from './hexScatter';
+import { speckle, donegal } from './postprocess/speckle';
 import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, shuffle } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
@@ -279,34 +280,14 @@ export function sweater(options) {
 
 
     // donegal
-    function donegal(speckleSize=5, density=4, fillStyle='sample') {
-        let speckles = hexScatter(speckleSize * density, cw, ch);
-        let speckleColor;
-        if (fillStyle === 'random') {
-            speckleColor = getSolidFill;
-        } else {
-            let px = ctx.getImageData(0, 0, cw, ch).data;
-            speckleColor = (p) => {
-                let i = 4 * (Math.round(p[0]) + Math.round(p[1]) * cw);
-                var sample = px.slice(i, i+3);
-                return `rgba(${sample.join(',')})`;
-            }
-        }
-        speckles.forEach((p, i) => {
-
-            drawSquare(ctx, p[0], p[1], speckleSize, {
-                fill: speckleColor(p),
-                angle: randomInRange(0, PI)
-            });
-        });
-    }
+    // do custom donegal with larger dots than the default
 
     // coarse sampled speckles to break edges
-    donegal(SCALE * randomInRange(.0015, .0040), 4, 'sample');
+    speckle(el, SCALE * randomInRange(.0015, .0040), 4, 'sample');
     // random speckles for donegal look
-    donegal(SCALE * randomInRange(.0020, .0040), randomInt(12, 24), 'random');
+    speckle(el, SCALE * randomInRange(.0020, .0040), randomInt(12, 24), getSolidFill);
     // fine sampled speckles to break edges more
-    donegal(SCALE * randomInRange(.001, .002), 3, 'sample');
+    speckle(el, SCALE * randomInRange(.001, .002), 3, 'sample');
 
     // add noise
     if (opts.addNoise) {
