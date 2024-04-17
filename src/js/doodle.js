@@ -4,6 +4,7 @@ import hexScatter from './hexScatter';
 import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
 import { createTransform } from './util/fieldUtils'
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
+import { speckle, donegal } from './postprocess/speckle';
 
 import roughen from './roughen';
 
@@ -380,6 +381,10 @@ export function doodle(options) {
 
     ctx.globalAlpha = 1;
 
+    // donegal
+    donegal(el, getSolidFill);
+
+    // roughen
     roughen(el, opts.roughen);
 
     // add noise

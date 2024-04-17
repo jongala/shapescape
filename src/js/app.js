@@ -30,10 +30,11 @@ import { plants } from './plants';
 import { scales } from './scales';
 import { sweater } from './sweater';
 // utils
-import { setAttrs, hexToRgb, scalarVec } from './utils';
+import { setAttrs, hexToRgb, scalarVec, getSolidColorFunction } from './utils';
 // postprocess
 import roughen from './roughen';
 import dither from './postprocess/dither';
+import { donegal } from './postprocess/speckle';
 import { halftoneCMYK, halftoneSpotColors } from './postprocess/halftone';
 import { fracture } from './postprocess/fracture';
 
@@ -131,6 +132,22 @@ function roughenMain() {
 }
 window.roughenMain = roughenMain;
 
+
+function donegalMain() {
+    var canvas = document.querySelector('#example canvas');
+    // Create a basic palette of black and white if no palette exists
+    let renderPalette;
+    if (visualOpts.palette && visualOpts.palette.length) {
+        // If we have a palette, add it to the black and white, and add gray
+        // for marks used in some renderers that aren't palette driven
+        renderPalette = [].concat(visualOpts.palette).concat(['#7d7d7d']);
+    } else {
+        renderPalette = ['#000000','#ffffff'];
+    }
+    donegal(canvas, getSolidColorFunction(renderPalette));
+}
+
+window.donegalMain = donegalMain;
 
 
 //--------------------------------------
