@@ -1,5 +1,7 @@
 import { randItem, randomInRange } from './utils';
 
+// DEPRECATED IN FAVOR OF postprocess/speckle.js:dapple
+
 export default function roughen(canvas, steps=3) {
     if (!steps) return;
     let ctx = canvas.getContext('2d');

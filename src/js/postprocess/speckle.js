@@ -1,6 +1,6 @@
 import hexScatter from '../hexScatter';
 import { randomInRange, randomInt } from '../utils'
-import { drawSquare } from '../shapes';
+import { drawSquare, drawCircle } from '../shapes';
 
 const PI = Math.PI;
 
@@ -69,10 +69,32 @@ export function speckle(canvas, speckleSize=5, spacing=4, fillWith='sample') {
 export function donegal(canvas, fillWith="random") {
     const SCALE = Math.min(canvas.width, canvas.height);
     // coarse sampled speckles to break edges
-    speckle(canvas, SCALE * randomInRange(.0015, .0040), 4, 'sample');
+    speckle(canvas, SCALE * randomInRange(.0015, .0030), 4, 'sample');
     // random speckles, widely spaced, for donegal look
     speckle(canvas, SCALE * randomInRange(.0010, .0020), randomInt(20, 40), fillWith);
     // finer sampled speckles to break edges more
     speckle(canvas, SCALE * randomInRange(.0010, .0020), 3, 'sample');
+
+    // conditional, finer still:
+    if (SCALE > 1600) {
+        // finer sampled speckles to break edges more
+        speckle(canvas, SCALE * randomInRange(.0005, .0010), 3, 'sample');
+    }
+}
+
+export function dapple(canvas) {
+    const SCALE = Math.min(canvas.width, canvas.height);
+    // coarse sampled speckles to break edges
+    speckle(canvas, SCALE * randomInRange(.0016, .0032), randomInt(5, 8), 'sample');
+    // medium
+    speckle(canvas, SCALE * randomInRange(.0012, .0024), randomInt(4, 7), 'sample');
+    // finer sampled speckles to break edges more
+    speckle(canvas, SCALE * randomInRange(.0008, .0016), randomInt(3, 5), 'sample');
+
+    // conditional, finer still:
+    if (SCALE > 1600) {
+        // finer sampled speckles to break edges more
+        speckle(canvas, SCALE * randomInRange(.0004, .0008), randomInt(3, 5), 'sample');
+    }
 }
 

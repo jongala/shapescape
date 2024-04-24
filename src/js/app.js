@@ -32,9 +32,8 @@ import { sweater } from './sweater';
 // utils
 import { setAttrs, hexToRgb, scalarVec, getSolidColorFunction } from './utils';
 // postprocess
-import roughen from './roughen';
 import dither from './postprocess/dither';
-import { donegal } from './postprocess/speckle';
+import { donegal, dapple } from './postprocess/speckle';
 import { halftoneCMYK, halftoneSpotColors } from './postprocess/halftone';
 import { fracture } from './postprocess/fracture';
 
@@ -128,7 +127,7 @@ function roughenMain() {
     var ctx = canvas.getContext('2d');
     ctx.shadowBlur = 0;
     ctx.shadowColor = 'transparent';
-    roughen(canvas, 3);
+    dapple(canvas);
 }
 window.roughenMain = roughenMain;
 

@@ -382,9 +382,11 @@ export function doodle(options) {
     ctx.globalAlpha = 1;
 
     // donegal
-    donegal(el, 'random');
-
-    // roughen
+    if (opts.roughen > 0) {
+        donegal(el, 'random');    
+    }
+    
+    // classic roughen via shifting pixels
     roughen(el, opts.roughen);
 
     // add noise
