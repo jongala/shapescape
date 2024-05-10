@@ -221,12 +221,14 @@ export function drawLines(ctx, p1, p2, opts) {
 
     let minStops;
     let maxStops;
-    let renderStyle = '';
+    let renderStyle = opts.renderStyle;
 
-    if (Math.random() > 0.5) {
-        renderStyle = 'wave';
-    } else {
-        renderStyle = 'jagged';
+    if (!renderStyle || renderStyle == 'auto') {
+        if (Math.random() > 0.5) {
+            renderStyle = 'wave';
+        } else {
+            renderStyle = 'jagged';
+        }
     }
 
     // debug!

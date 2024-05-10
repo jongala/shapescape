@@ -12,7 +12,8 @@ const DEFAULTS = {
     skew: 1, // normalized skew
     clear: true,
 
-    mode: null,
+    style: 'auto', // one of modes
+    layer: 'auto', // true | false | auto
     count: 0, // 0 for auto, or an integer
     weight: 0, // 0 for auto, or 1-10 for normalized weights
     contrast: true
@@ -72,7 +73,16 @@ export function truchet(options) {
     let ynorm = 0;
     let renderer;
 
-    let secondLayer = (Math.random() < 0.5);
+    let secondLayer;
+    if (opts.layer === true || opts.layer === 'true') {
+        secondLayer = true;
+    }
+    if (opts.layer === false || opts.layer === 'false') {
+        secondLayer = false;
+    }
+    if (opts.layer === null || opts.layer === undefined || opts.layer == 'auto') {
+        secondLayer = (Math.random() < 0.5);
+    }
 
     // play with these random seeds
     let a,b,c;
@@ -254,10 +264,18 @@ export function truchet(options) {
     }
 
     // gather our modes
-    let modes = [circles, triangles, mixed];
+    let modes = {
+        circles,
+        triangles,
+        mixed
+    };
 
     // do the loop with one of our modes
-    renderer = randItem(modes);
+    if (opts.style && modes[opts.style]) {
+        renderer = modes[opts.style]
+    } else {
+        renderer = modes[randItem(Object.keys(modes))];
+    }
     renderer(bg, weight);
 
     if (secondLayer) {

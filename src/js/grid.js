@@ -6,6 +6,7 @@ import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, draw
 const DEFAULTS = {
     container: 'body',
     palette: palettes.south_beach,
+    style: 'auto', // ['masked', 'layers']
     addNoise: 0.04,
     noiseInput: null,
     dust: false,
@@ -202,7 +203,17 @@ export function grid(options) {
     let modes = [maskAndRotate, layers];
 
     // do the loop with one of our modes
-    randItem(modes)();
+    let STYLE = opts.style;
+    if (!STYLE || STYLE == 'auto') {
+        randItem(modes)();
+    } else {
+        if (STYLE === 'masked') {
+            maskAndRotate();
+        }
+        if (STYLE === 'layers') {
+            layers();
+        }
+    }
 
     // add noise
     if (opts.addNoise) {

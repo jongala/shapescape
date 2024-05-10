@@ -427,11 +427,15 @@ export function circles(options) {
 
 
     // gather our modes
-    let modes = [snakes, rings, pattern];
-    //modes = [pattern];
+    let modes = {snakes, rings, pattern};
 
     // do the loop with one of our modes
-    randItem(modes)();
+    if (opts.style && modes[opts.style]) {
+        renderer = modes[opts.style]
+    } else {
+        renderer = modes[randItem(Object.keys(modes))];
+    }
+    renderer();
 
     // add noise
     if (opts.addNoise) {
