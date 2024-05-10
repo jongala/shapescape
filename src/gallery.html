@@ -1,0 +1,127 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>RenderLab Gallery</title>
+    <style>
+        .gallery {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .work {
+            box-sizing: border-box;
+
+            display: flex;
+            flex-flow: column wrap;
+            gap: 0.5rem;
+
+            padding: 1.1rem 1rem;
+
+            flex: 1 1 18rem;
+
+
+            border-top: 3px solid black;
+
+            opacity: 0.8;
+
+            line-height: 1.33rem;
+        }
+
+        .work > strong {
+            font-size: 1.33rem;
+
+        }
+
+        .work .description {
+            opacity: 0.82;
+        }
+
+        .work:hover {
+
+            background: white;
+            cursor: pointer;
+
+        }
+
+        .work.selected {
+            opacity: 0.75;
+
+            color: #fff;
+            background: rgba(0, 0, 0, 1);
+        }
+
+        .layout {
+            display: flex;
+            flex-flow: row-reverse nowrap;
+        }
+
+        .layout #example {
+            flex: 0 1 800px;
+        }
+
+        .layout .gallery {
+            flex: 1 1 ;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <fieldset>
+            <legend>Create &amp; save</legend>
+            <button onclick="drawNew()" id="newImageTrigger">New Image</button>
+            <button onclick="createBatch()" id="newBatchTrigger">New Batch</button>
+            <!--<button onclick="rerun()" id="rerunTrigger">ReRun</button>-->
+            <a href="#" id="downloadExample" target="_blank" title="download image">↓</a>
+        </fieldset>
+        <fieldset>
+            <legend>Colors</legend>
+            <select onchange="setPalette(this.value)" id="paletteSelector"></select>
+            <input type="text" id="customColors" placeholder="enter colors…" />
+        </fieldset>
+        <fieldset>
+            <legend>Format</legend>
+            <select onchange="setSize(this.value)">
+                <optgroup label="screen">
+                    <option value="square">square</option>
+                    <option value="wide">wide</option>
+                    <option value="tall">tall</option>
+                    <option value="sWQXGA">WQXGA</option>
+                    <option value="s4KUHD">4K UHD</option>
+                </optgroup>
+                <optgroup label="print">
+                    <option value="p4x6">4 x 6</option>
+                    <option value="p6x4">6 x 4</option>
+                    <option value="p6x6">6 x 6</option>
+                    <option value="p8x10">8 x 10</option>
+                    <option value="p10x8">10 x 8</option>
+                </optgroup>
+            </select>
+        </fieldset>
+        <fieldset>
+            <legend>Postprocess</legend>
+            <button onclick="ditherToLuminosity()" id="ditherLumeTrigger" title="Add luminosity-based dithering to base image">
+            Soft Dither</button>
+            <button onclick="ditherToPalette()" id="ditherColorTrigger" title="Dither image strictly to selected palette">Hard Dither</button>
+            <button onclick="roughenMain()" id="roughenTrigger" title="Push pixels around">Roughen</button>
+            <button onclick="donegalMain()" id="donegalTrigger" title="Add speckles">Donegal</button>
+            <button onclick="halftoneProcess()" id="halftoneProcessTrigger" title="Halftone to CMYK">Halftone Process</button>
+            <button onclick="halftoneSpot()" id="halftoneSpotTrigger" title="Halftone to Spot">Halftone Spot</button>
+            <button onclick="fractureImage()" id="fractureTrigger" title="Fracture image">Fracture</button>
+            <button onclick="shatterImage()" id="shatterTrigger" title="Shatter image">Shatter</button>
+        </fieldset>
+    </div>    
+    <div id="instructions">[space] to redraw. Click image to add to tray. Click thumbnail to preview.</div>
+    <div class="layout">
+    <div id="example"></div>
+    <div id="works" class="gallery"></div>
+    </div>
+    <div id="saved"></div>
+    <!--<div id="re-tall" class="rerun"></div>
+    <div id="re-wide" class="rerun"></div>-->
+    <script type="text/javascript">
+    </script>
+</body>
+</html>
