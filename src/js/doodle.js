@@ -1,7 +1,7 @@
 import noiseUtils from './noiseutils';
 import palettes from './palettes';
 import hexScatter from './hexScatter';
-import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction } from './utils';
+import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, shuffle } from './utils';
 import { createTransform } from './util/fieldUtils'
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 import { speckle, donegal } from './postprocess/speckle';
@@ -354,18 +354,44 @@ export function doodle(options) {
     pts = hexScatter(cellSize, cw * overscan, ch * overscan);
 
     let shapes = [drawDash2, drawDash3, drawCircle, drawTriangle, drawSquare, drawRect, drawSpiral, drawHash2, drawHash3, drawSquiggle, drawLightning, drawStar];
+
+    shapes = shuffle(shapes);
     //shapes = [drawStar];
 
     let colorCount = contrastPalette.length;
 
-    // step thru points
-    pts.forEach((p, i) => {
+    // point renderers:
+    let drawPointsWithRandomColorRandomShape = function(p, i) {
+        x = p[0];
+        y = p[1];
+        xnorm = x/cw;
+        ynorm = y/ch;
+
+        ctx.fillStyle = null;
+        ctx.strokeStyle = getContrastColor();
+
+        randItem(shapes)(ctx,
+            x,
+            y,
+            dotScale + (1 + trans.radius(xnorm, ynorm)) * (cellSize/2 - dotScale) / 2.5,
+            {
+                fill: null,
+                stroke: ctx.strokeStyle,//fg2,
+                angle: PI * trans.angle(xnorm, ynorm)
+            }
+        );
+    }
+
+    let drawPointsWithColorField = function(p, i) {
         x = p[0];
         y = p[1];
         xnorm = x/cw;
         ynorm = y/ch;
 
         let colorIndex = Math.round((trans.color(xnorm, ynorm)+1) * colorCount) % colorCount;
+
+        ctx.fillStyle = null;
+        ctx.strokeStyle = contrastPalette[colorIndex];
 
         randItem(shapes)(ctx,
             x,
@@ -377,15 +403,79 @@ export function doodle(options) {
                 angle: PI * trans.angle(xnorm, ynorm)
             }
         );
-    });
+    }
 
+    let drawPointsWithShapesFromColors = function(p, i) {
+        x = p[0];
+        y = p[1];
+        xnorm = x/cw;
+        ynorm = y/ch;
+
+        let colorIndex = Math.round((trans.color(xnorm, ynorm)+1)/2 * colorCount) % colorCount;
+
+        let shapeFunc = shapes[ colorIndex % shapes.length ];
+
+        ctx.fillStyle = null;
+        ctx.strokeStyle = contrastPalette[colorIndex];
+
+        shapeFunc(ctx,
+            x,
+            y,
+            dotScale + (1 + trans.radius(xnorm, ynorm)) * (cellSize/2 - dotScale) / 2.5,
+            {
+                fill: null,
+                stroke: contrastPalette[colorIndex],//fg2,
+                angle: randomInRange(PI * 2) //PI * trans.angle(xnorm, ynorm)
+            }
+        );
+    }
+
+    let drawPointsWithConsistentColoredShapes = function(p, i) {
+        x = p[0];
+        y = p[1];
+        xnorm = x/cw;
+        ynorm = y/ch;
+
+        let shapeIndex = randomInt(shapes.length - 1);
+
+        let colorIndex = shapeIndex % contrastPalette.length;
+
+        let shapeFunc = shapes[shapeIndex];
+
+        ctx.fillStyle = null;
+        ctx.strokeStyle = contrastPalette[colorIndex];
+
+        shapeFunc(ctx,
+            x,
+            y,
+            dotScale + (1 + trans.radius(xnorm, ynorm)) * (cellSize/2 - dotScale) / 2.5,
+            {
+                fill: null,
+                stroke: contrastPalette[colorIndex],//fg2,
+                angle: PI * trans.angle(xnorm, ynorm)
+            }
+        );
+    }
+
+    // create collection of point renderers
+    let pointRenderers = {
+        //drawPointsWithRandomColorRandomShape,
+        drawPointsWithColorField,
+        drawPointsWithShapesFromColors,
+        drawPointsWithConsistentColoredShapes
+    }
+
+    // step thru points with selected renderer
+    pts.forEach(pointRenderers[randItem(Object.keys(pointRenderers))]);
+
+    // reset canvas
     ctx.globalAlpha = 1;
 
-    // donegal
+    // donegal roughening
     if (opts.roughen > 0) {
-        donegal(el, 'random');    
+        donegal(el, 'random');
     }
-    
+
     // classic roughen via shifting pixels
     roughen(el, opts.roughen);
 
