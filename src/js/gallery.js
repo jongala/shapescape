@@ -549,7 +549,7 @@ let collection = [
         opts: {
 
         },
-        description: 'Waves with floating shapes'
+        description: 'Layers of waves with floating shapes'
     },
 
 // Grads
@@ -560,7 +560,7 @@ let collection = [
         opts: {
             
         },
-        description: 'Gradient bands'
+        description: 'Bands filled with gradients'
     },
 
 
@@ -594,7 +594,7 @@ let collection = [
         opts: {
             
         },
-        description: ''
+        description: 'Based on Camille Roux\'s Rotating Systems series'
     },
 
 // Plants
@@ -605,7 +605,7 @@ let collection = [
         opts: {
             
         },
-        description: ''
+        description: 'Branches, buds, and flowers, with varying details'
     },
 
 // Scales
@@ -939,13 +939,3 @@ if (h && RENDERERS.hasOwnProperty(h)) {
 }
 
 // setRenderer(initRenderer, document.querySelector("[data-renderer='" + initRenderer + "']"));
-
-// var gui = new GUI();
-
-// gui.add(visualOpts, 'fancy', [true, false]);
-
-// gui.onChange(e => {
-//     //drawNew();
-//     loadOpts(e.object);
-//     console.log(e);
-// })
