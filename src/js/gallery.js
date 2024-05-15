@@ -614,7 +614,7 @@ let collection = [
         name: 'Scales',
         renderer: RENDERERS['scales'],
         opts: {
-            
+            style: 'fields'  
         },
         description: 'Overlapping scales in various patterns'
     },
