@@ -1,7 +1,7 @@
 import noiseUtils from './noiseutils';
 import palettes from './palettes';
 import { drawCircle, drawRing, drawExactTriangle, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
-import { randItem, randomInRange, getGradientFunction, getSolidColorFunction } from './utils';
+import { randItem, randomInRange, getGradientFunction, getSolidColorFunction, resetTransform } from './utils';
 
 const SILVERS = ['#ffffff','#f2f2f2','#eeeeee','#e7e7e7','#e0e0e0','#d7d7d7'];
 
@@ -12,7 +12,7 @@ const TWOPI = PI * 2;
 export function grads(options) {
     var defaults = {
         container: 'body',
-        palette: palettes.terra_cotta_cactus,
+        palette: palettes.candywafer,
         middleOut: 'auto', // 'auto' 'true' 'false'
         drawShadows: false,
         addNoise: 0.04,
@@ -68,11 +68,22 @@ export function grads(options) {
         MIDDLEOUT = true;
     }
 
+    let OPTICS = true;
+
     // shadows
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-    ctx.shadowBlur = 25 * Math.min(cw, ch) / 800;
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+    function shadowsOn() {
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        ctx.shadowBlur = 25 * Math.min(cw, ch) / 800;
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    }
+
+    function shadowsOff() {
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = 0;
+    }
 
     // split into shapes
     // add some slices, add more for high aspect ratios
@@ -144,14 +155,49 @@ export function grads(options) {
 
     // A utility function to draw a single slice
     function drawSliceAtIndex(i) {
+        shadowsOn();
+
         ctx.beginPath();
-        ctx.fillStyle = getSolidFill();
-
         ctx.fillStyle = slices[i];
-
         ctx.rect(i * sw, 0, sw, ch);
         ctx.closePath();
         ctx.fill();
+
+
+        if (OPTICS) {
+            shadowsOff();
+
+            let steps = 60;
+            let inc = sw/steps;
+
+            let coef = 0.05;
+            let vscale;
+
+            ctx.save();
+            for (var j = 0; j < steps ; j++) {
+                resetTransform(ctx);
+
+                vscale = 1 + coef;
+                vscale -= 4/PI * coef * Math.sin(PI * j/steps);
+                vscale -= 4/PI * coef * 1/2 * Math.sin(PI * 2 * j/steps);
+                vscale -= 4/PI * coef * 1/4 * Math.sin(PI * 4 * j/steps);
+                // vscale -= 4/PI * coef * 1/8 * Math.sin(PI * 8 * j/steps);
+                // vscale -= 4/PI * coef * 1/16 * Math.sin(PI * 16 * j/steps);
+                // vscale -= 4/PI * coef * 1/32 * Math.sin(PI * 32 * j/steps);
+
+                ctx.translate(0, ch/2);
+                ctx.scale(1, vscale);
+                ctx.translate(0, -ch/2);
+
+                ctx.beginPath();
+                ctx.fillStyle = slices[i];
+                ctx.rect(i * sw + j * inc, 0, inc + 0.5, ch);
+
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
+        }
     }
 
     // If middle out, alternate outward from the center slice, to get nice shadow stacking
