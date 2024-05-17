@@ -12,9 +12,10 @@ const TWOPI = PI * 2;
 export function grads(options) {
     var defaults = {
         container: 'body',
-        palette: palettes.candywafer,
+        palette: palettes.plum_sauce,
         middleOut: 'auto', // 'auto' 'true' 'false'
         drawShadows: false,
+        optics: true, // 'auto', true, false
         addNoise: 0.04,
         noiseInput: null,
         clear: true
@@ -68,7 +69,14 @@ export function grads(options) {
         MIDDLEOUT = true;
     }
 
-    let OPTICS = true;
+    let OPTICS;
+    if (opts.optics === 'auto') {
+        OPTICS = (Math.random() < 0.5);
+    } else if (opts.optics === 'false') {
+        OPTICS = false;
+    } else {
+        OPTICS = !!opts.optics;
+    }
 
     // shadows
     function shadowsOn() {
