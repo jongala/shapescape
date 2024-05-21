@@ -55,6 +55,10 @@ export function tricycles(options) {
     contrastPalette.splice(opts.palette.indexOf(bg), 1);
     let getContrastColor = getSolidColorFunction(contrastPalette);
 
+    let getContrastSequence = function(i) {
+        return contrastPalette[i % contrastPalette.length];
+    }
+
     // shared foregrounds
     let fg = getContrastColor();
     let fg2 = getContrastColor();
@@ -146,51 +150,43 @@ export function tricycles(options) {
     points = shuffle(points);
 
 
+    let circles = [];
 
-    let c1 = circumcenter(...points.slice(0,3));
+    for (var i = 0; i < points.length - 2; i++) {
+        let c = circumcenter(...points.slice(i, i + 3));
 
-    ctx.lineWidth = LINE2;
-    ctx.setLineDash([LINE2 * 9, LINE2 * 6]);
-    drawTriPoints(ctx, ...points.slice(0, 3), fg2);
-    ctx.lineWidth = LINE1;
-    ctx.setLineDash([]);
+        let color = getContrastSequence(i);
 
-    //drawCircle(ctx, c1.x, c1.y, SCALE/100, {fill: fg2});
-    drawCircle(ctx, c1.x, c1.y, c1.r, {stroke: fg2});
+        ctx.lineWidth = LINE2;
+        ctx.setLineDash([LINE2 * 9, LINE2 * 6]);
+        drawTriPoints(ctx, ...points.slice(i, i + 3), color);
+        ctx.lineWidth = LINE1;
+        ctx.setLineDash([]);
 
-    // center to circle
-    //ctx.strokeStyle = fg2;
-    // ctx.beginPath();
-    // ctx.moveTo(c1.x, c1.y);
-    // ctx.lineTo(...points[1]);
-    // ctx.stroke();
+        //drawCircle(ctx, c.x, c.y, SCALE/100, {fill: color});
+        drawCircle(ctx, c.x, c.y, c.r, {stroke: color});
 
+        // center to circle
+        // ctx.strokeStyle = color;
+        // ctx.beginPath();
+        // ctx.moveTo(c.x, c.y);
+        // ctx.lineTo(...points[i]);
+        // ctx.stroke();
 
-    let c2 = circumcenter(...points.slice(1,4));
+        circles.push(c);
+    }
 
-    ctx.lineWidth = LINE2;
-    ctx.setLineDash([LINE2 * 9, LINE2 * 6]);
-    drawTriPoints(ctx, ...points.slice(1, 4), fg3);
-    ctx.lineWidth = LINE1;
-    ctx.setLineDash([]);
-
-    //drawCircle(ctx, c2.x, c2.y, SCALE/100, {fill: fg3});
-    drawCircle(ctx, c2.x, c2.y, c2.r, {stroke: fg3});
-
-    // center to circle
-    // ctx.strokeStyle = fg3;
-    // ctx.beginPath();
-    // ctx.moveTo(c2.x, c2.y);
-    // ctx.lineTo(...points[2]);
-    // ctx.stroke();
 
     // ---
 
-    ctx.strokeStyle = fg;
-    ctx.beginPath();
-    ctx.moveTo(...points[1]);
-    ctx.lineTo(...points[2]);
-    ctx.stroke();
+    // draw connecting bar between shared points
+    // ctx.strokeStyle = fg;
+    // ctx.beginPath();
+    // ctx.moveTo(...points[1]);
+    // ctx.lineTo(...points[2]);
+    // ctx.stroke();
+
+
 
 
     // ---
