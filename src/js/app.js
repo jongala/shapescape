@@ -29,6 +29,7 @@ import { rings } from './rings';
 import { plants } from './plants';
 import { scales } from './scales';
 import { sweater } from './sweater';
+import { tricycles } from './tricycles';
 // utils
 import { setAttrs, hexToRgb, scalarVec, getSolidColorFunction } from './utils';
 // postprocess
@@ -64,6 +65,7 @@ const RENDERERS = {
     plants: plants,
     scales: scales,
     sweater: sweater,
+    tricycles: tricycles
     //clouds: clouds
 };
 let initRenderer = 'waterline';

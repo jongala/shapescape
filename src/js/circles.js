@@ -205,7 +205,7 @@ export function circles(options) {
     }
 
     function triPoints(ctx, p1, p2, p3, color) {
-        ctx.beginPath;
+        ctx.beginPath();
         ctx.moveTo(...p1);
         ctx.lineTo(...p2);
         ctx.lineTo(...p3);
