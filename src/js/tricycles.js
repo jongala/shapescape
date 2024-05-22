@@ -12,6 +12,7 @@ const DEFAULTS = {
 }
 
 const PI = Math.PI;
+const TWOPI = PI * 2;
 
 // Main function
 export function tricycles(options) {
@@ -73,7 +74,8 @@ export function tricycles(options) {
 
 
     let LINE1 = Math.max(SCALE/400, 1);
-    let LINE2 = LINE1/2;
+    let LINE2 = LINE1 / 2;
+    let LINE3 = LINE1 / 3;
 
     ctx.lineWidth = LINE1;
 
@@ -152,10 +154,50 @@ export function tricycles(options) {
 
     let circles = [];
 
+
+    function radiateFromPoint(p, n=36) {
+        let step = TWOPI/n;
+        let R = LONG * 3;
+
+        for (var i = 0; i < n; i++) {
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p.x + R * Math.cos(i * step), p.y + R * Math.sin(i * step) );
+            ctx.stroke();
+        }
+    }
+
+
+    let margin = SCALE / randomInt(20, 60);
+
+    // step through points:
+    // define circles
+    // draw radiating rays
     for (var i = 0; i < points.length - 2; i++) {
         let c = circumcenter(...points.slice(i, i + 3));
 
-        let color = getContrastSequence(i);
+        let color = getContrastColor();
+        c.color = color;
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = LINE3;
+        radiateFromPoint(c, 50 + Math.round(50 * c.r/SCALE));
+
+        circles.push(c);
+    }
+
+
+    // now step through circles and draw mask
+    circles.forEach((c) => {
+        drawCircle(ctx, c.x, c.y, c.r + margin, {stroke: null, fill: bg});
+    });
+
+    // step through points:
+    // Now draw triangles
+    for (var i = 0; i < points.length - 2; i++) {
+        let c = circles[i];
+
+        let color = c.color;
 
         ctx.lineWidth = LINE2;
         ctx.setLineDash([LINE2 * 9, LINE2 * 6]);
@@ -163,18 +205,31 @@ export function tricycles(options) {
         ctx.lineWidth = LINE1;
         ctx.setLineDash([]);
 
-        //drawCircle(ctx, c.x, c.y, SCALE/100, {fill: color});
+        // draw ring
         drawCircle(ctx, c.x, c.y, c.r, {stroke: color});
 
-        // center to circle
+
+        // // draw center
+        // drawCircle(ctx, c.x, c.y, SCALE/200, {fill: color});
+
+        // // center to circle
         // ctx.strokeStyle = color;
         // ctx.beginPath();
         // ctx.moveTo(c.x, c.y);
         // ctx.lineTo(...points[i]);
         // ctx.stroke();
-
-        circles.push(c);
     }
+
+    // now step through circles and draw them
+    circles.forEach((c) => {
+        ctx.lineWidth = LINE1;
+        drawCircle(ctx, c.x, c.y, c.r, {stroke: c.color, fill: null});
+
+        // draw center
+
+
+    });
+
 
 
     // ---
