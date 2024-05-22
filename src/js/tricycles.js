@@ -144,17 +144,68 @@ export function tricycles(options) {
 
     let points = [];
 
-    points.push([randomInt(0, cw/2), randomInt(0, ch/2)]);
-    points.push([randomInt(cw/2, cw), randomInt(0, ch/2)]);
-    points.push([randomInt(0, cw/2), randomInt(ch/2, ch)]);
-    points.push([randomInt(cw/2, cw), randomInt(ch/2, ch)]);
 
-    points.push([cw/2, randomInt(0, ch/2)]);
-    points.push([cw/2, randomInt(ch/2, ch)]);
-    // points.push([randomInt(0, cw/2) , ch/2]);
-    // points.push([randomInt(cw/2, cw), ch/2]);
 
-    points = shuffle(points);
+    // point placement function
+    let quadrants = function() {
+        points.push([randomInt(0, cw/2), randomInt(0, ch/2)]);
+        points.push([randomInt(cw/2, cw), randomInt(0, ch/2)]);
+        points.push([randomInt(0, cw/2), randomInt(ch/2, ch)]);
+        points.push([randomInt(cw/2, cw), randomInt(ch/2, ch)]);
+
+        // points.push([cw/2, randomInt(0, ch/2)]);
+        // points.push([cw/2, randomInt(ch/2, ch)]);
+        // points.push([randomInt(0, cw/2) , ch/2]);
+        // points.push([randomInt(cw/2, cw), ch/2]);
+
+        points = shuffle(points);
+    }
+
+
+    // point placement function
+    let alternate = function(a, b, steps) {
+        let _x, _y;
+        // debug
+        a = [0, 0];
+        b = [cw, ch];
+
+
+        let v = getVector(a, b);
+        steps = v.length / 100;
+
+        let inc = v.length / steps;
+
+        _x = v.x
+        _y = v.y;
+
+        let offset = SCALE / 10;
+        let orthogonal;
+
+        for (var i=0; i < steps ; i++) {
+            _x += v.length/steps * Math.cos(v.angle);
+            _y += v.length/steps * Math.sin(v.angle);
+
+            orthogonal = (i % 2)? PI/2 : -PI/2;
+            orthogonal += v.angle;
+
+            offset = SCALE * randomInRange(0.1, 0.4);
+
+            _x += offset * Math.cos(orthogonal);
+            _y += offset * Math.sin(orthogonal);
+
+            points.push([_x, _y]);
+        }
+
+        // let split = randomInt(points.length);
+        // points = points.slice(0, split).concat(points.slice(split, -1));
+    }
+
+
+    // place points
+    randItem([quadrants, alternate])();
+
+
+
 
 
     let circles = [];
@@ -194,6 +245,7 @@ export function tricycles(options) {
 
     // now step through circles and draw mask
     circles.forEach((c) => {
+        margin = SCALE / randomInt(20, 60);
         drawCircle(ctx, c.x, c.y, c.r + margin, {stroke: null, fill: bg});
     });
 
@@ -216,7 +268,7 @@ export function tricycles(options) {
         // // draw center
         // drawCircle(ctx, c.x, c.y, SCALE/200, {fill: color});
 
-        // // center to circle
+        // // center to circle spoke
         // ctx.strokeStyle = color;
         // ctx.beginPath();
         // ctx.moveTo(c.x, c.y);
@@ -239,31 +291,23 @@ export function tricycles(options) {
     // draw connecting bar between shared points
     // alternates based on triangle pairs
     ctx.lineWidth = LINE1;
-    for (var i = 0; i < points.length - 2; i++) {
-        let idx = (i % 2) ? i : i + 1;
+    // for (var i = 0; i < points.length - 2; i++) {
+    //     let idx = (i % 2) ? i : i + 1;
 
-        ctx.strokeStyle = fg;
-        ctx.beginPath();
-        ctx.moveTo(...points[idx]);
-        ctx.lineTo(...points[idx + 1]);
-        ctx.stroke();
-    }
+    //     ctx.strokeStyle = fg;
+    //     ctx.beginPath();
+    //     ctx.moveTo(...points[idx]);
+    //     ctx.lineTo(...points[idx + 1]);
+    //     ctx.stroke();
+    // }
 
 
 
     // ---
-    // draw all points
-
+    // draw all points on top of everything
     points.forEach((p) => {
         drawCircle(ctx, p[0], p[1], SCALE/100, {fill:fg})
     });
-
-    // drawCircle(ctx, ...points[0], SCALE/100, {fill: fg});
-    // drawCircle(ctx, ...points[1], SCALE/100, {fill: fg});
-    // drawCircle(ctx, ...points[2], SCALE/100, {fill: fg});
-    // drawCircle(ctx, ...points[3], SCALE/100, {fill: fg});
-
-
 
 
     // Finish up
