@@ -149,6 +149,11 @@ export function tricycles(options) {
     points.push([randomInt(0, cw/2), randomInt(ch/2, ch)]);
     points.push([randomInt(cw/2, cw), randomInt(ch/2, ch)]);
 
+    points.push([cw/2, randomInt(0, ch/2)]);
+    points.push([cw/2, randomInt(ch/2, ch)]);
+    // points.push([randomInt(0, cw/2) , ch/2]);
+    // points.push([randomInt(cw/2, cw), ch/2]);
+
     points = shuffle(points);
 
 
@@ -196,7 +201,6 @@ export function tricycles(options) {
     // Now draw triangles
     for (var i = 0; i < points.length - 2; i++) {
         let c = circles[i];
-
         let color = c.color;
 
         ctx.lineWidth = LINE2;
@@ -221,26 +225,29 @@ export function tricycles(options) {
     }
 
     // now step through circles and draw them
+    ctx.lineWidth = LINE1;
     circles.forEach((c) => {
-        ctx.lineWidth = LINE1;
         drawCircle(ctx, c.x, c.y, c.r, {stroke: c.color, fill: null});
-
         // draw center
-
-
     });
 
 
 
     // ---
 
+    // step through points
     // draw connecting bar between shared points
-    // ctx.strokeStyle = fg;
-    // ctx.beginPath();
-    // ctx.moveTo(...points[1]);
-    // ctx.lineTo(...points[2]);
-    // ctx.stroke();
+    // alternates based on triangle pairs
+    ctx.lineWidth = LINE1;
+    for (var i = 0; i < points.length - 2; i++) {
+        let idx = (i % 2) ? i : i + 1;
 
+        ctx.strokeStyle = fg;
+        ctx.beginPath();
+        ctx.moveTo(...points[idx]);
+        ctx.lineTo(...points[idx + 1]);
+        ctx.stroke();
+    }
 
 
 
