@@ -80,7 +80,7 @@ export function tricycles(options) {
     ctx.lineWidth = LINE1;
 
 
-    // Draw Stuff
+    // Utils
     // --------------------------------------
 
     function avgPoints(points) {
@@ -137,6 +137,38 @@ export function tricycles(options) {
         ctx.strokeStyle = color;
         ctx.stroke();
     }
+
+    // function to draw @n radial lines out from a point
+    function radiateFromPoint(p, n=36) {
+        let step = TWOPI/n;
+        let R = LONG * 3;
+        let offset = randomInRange(0, PI);
+
+        for (var i = 0; i < n; i++) {
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p.x + R * Math.cos(i * step + offset), p.y + R * Math.sin(i * step + offset) );
+            ctx.stroke();
+        }
+    }
+
+    // function to draw many circles around a point
+    function outwardRings(p, n=36, color) {
+        let outerR = LONG * 2;
+        let step = outerR / n;
+        let expansion = 1.02;
+
+        for (var i = 0; i < n; i++) {
+            drawCircle(ctx, p.x, p.y, i * step, {stroke: color});
+            step *= expansion;
+        }
+    }
+
+    let decorators = [radiateFromPoint, outwardRings];
+
+
+    // Draw Stuff
+    // --------------------------------------
 
     // draw four points
     // two will be in common between both circles
@@ -204,27 +236,19 @@ export function tricycles(options) {
     // place points
     randItem([quadrants, alternate])();
 
-
-
-
-
+    // set up circles
     let circles = [];
 
-
-    function radiateFromPoint(p, n=36) {
-        let step = TWOPI/n;
-        let R = LONG * 3;
-
-        for (var i = 0; i < n; i++) {
-            ctx.beginPath();
-            ctx.moveTo(p.x, p.y);
-            ctx.lineTo(p.x + R * Math.cos(i * step), p.y + R * Math.sin(i * step) );
-            ctx.stroke();
-        }
-    }
-
-
+    // space between circles and background drawings
     let margin = SCALE / randomInt(20, 60);
+
+    // draw fewer rays when there will be many circles
+    let rayCount;
+    if (points.length > 10) {
+        rayCount = 10
+    } else {
+        rayCount = 10 + 40 * (1 - points.length/10);
+    }
 
     // step through points:
     // define circles
@@ -237,7 +261,11 @@ export function tricycles(options) {
 
         ctx.strokeStyle = color;
         ctx.lineWidth = LINE3;
-        radiateFromPoint(c, 50 + Math.round(50 * c.r/SCALE));
+        let decorationCount = rayCount + Math.round(rayCount * c.r/SCALE);
+        decorationCount = rayCount * 2;
+        randItem(decorators)(c, decorationCount, color);
+        //radiateFromPoint(c, dec);
+        //outwardRings(c, 90, color);
 
         circles.push(c);
     }
