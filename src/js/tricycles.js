@@ -262,7 +262,7 @@ export function tricycles(options) {
     ctx.lineWidth = LINE3;
     circles.forEach((c) => {
         ctx.strokeStyle = c.color;
-        let decorationCount = rayCount + Math.round(rayCount * c.r/SCALE);
+        let decorationCount = Math.round(rayCount + rayCount * c.r/SCALE);
 
         // for few circles, decorate all. For more, only some
         if (circles.length <= 3) {
