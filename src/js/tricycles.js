@@ -248,38 +248,38 @@ export function tricycles(options) {
 
     // step through points:
     // define circles
-    // draw radiating rays
     for (var i = 0; i < points.length - 2; i++) {
         let c = circumcenter(...points.slice(i, i + 3));
 
         let color = getContrastColor();
         c.color = color;
 
-        ctx.strokeStyle = color;
-        ctx.lineWidth = LINE3;
-
-        let decorationCount = rayCount + Math.round(rayCount * c.r/SCALE);
-
-        // for few circles, decorate all. For more, only some
-        if (points.length <= 6) {
-            randItem(decorators)(c, decorationCount, color);
-        } else if (Math.random() < decorationThreshold) {
-            randItem(decorators)(c, decorationCount, color);
-        }
-
         // add circle to collection
         circles.push(c);
     }
 
+    // now step through circles and draw background decorations
+    ctx.lineWidth = LINE3;
+    circles.forEach((c) => {
+        ctx.strokeStyle = c.color;
+        let decorationCount = rayCount + Math.round(rayCount * c.r/SCALE);
 
-    // now step through circles and draw mask
+        // for few circles, decorate all. For more, only some
+        if (circles.length <= 3) {
+            randItem(decorators)(c, decorationCount, c.color);
+        } else if (Math.random() < decorationThreshold) {
+            randItem(decorators)(c, decorationCount, c.color);
+        }
+    });
+
+
+    // now step through circles and draw bg mask over decorations
     circles.forEach((c) => {
         margin = SCALE / randomInt(20, 60);
         drawCircle(ctx, c.x, c.y, c.r + margin, {stroke: null, fill: bg});
     });
 
-    // step through points:
-    // Now draw triangles
+    // step through points to draw triangles
     for (var i = 0; i < points.length - 2; i++) {
         let c = circles[i];
         let color = c.color;
@@ -290,13 +290,6 @@ export function tricycles(options) {
         ctx.lineWidth = LINE1;
         ctx.setLineDash([]);
 
-        // draw ring
-        drawCircle(ctx, c.x, c.y, c.r, {stroke: color});
-
-
-        // // draw center
-        // drawCircle(ctx, c.x, c.y, SCALE/200, {fill: color});
-
         // // center to circle spoke
         // ctx.strokeStyle = color;
         // ctx.beginPath();
@@ -305,11 +298,12 @@ export function tricycles(options) {
         // ctx.stroke();
     }
 
-    // now step through circles and draw them
+    // now step through circles and draw the rings
     ctx.lineWidth = LINE1;
     circles.forEach((c) => {
         drawCircle(ctx, c.x, c.y, c.r, {stroke: c.color, fill: null});
         // draw center
+        // drawCircle(ctx, c.x, c.y, SCALE/200, {fill: c.color});
     });
 
 
@@ -329,7 +323,6 @@ export function tricycles(options) {
     //     ctx.lineTo(...points[idx + 1]);
     //     ctx.stroke();
     // }
-
 
 
     // ---
