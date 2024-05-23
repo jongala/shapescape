@@ -170,10 +170,8 @@ export function tricycles(options) {
     // Draw Stuff
     // --------------------------------------
 
-    // draw four points
-    // two will be in common between both circles
-    // the other two will each define a third point for two circles
-
+    // Draw some points. We will step through, looking at three at a time,
+    // and define circles. Adjacent circles will have two points in common.
     let points = [];
 
 
@@ -193,13 +191,57 @@ export function tricycles(options) {
         points = shuffle(points);
     }
 
+    // point placement function
+    let ring = function() {
+        let steps = randomInt(8, 24);
+        let inc = TWOPI / steps;
+        let startAngle = randomInRange(TWOPI);
+
+        // baseline radius of the ellipse that plots the points
+        let radiusFraction = randomInRange(20, 30) / 100;
+
+        let offset;
+        let _x, _y;
+
+        // go around the ellipse defined by canvas, dropping points
+        for (var i = 0; i < steps; i++) {
+            // alternate moving in and out by the offset fraction
+            offset = (i % 2) ? 1 : -1;
+            offset *= randomInRange(0, 20) / 100;
+
+            _x = cw/2 + cw * (radiusFraction + offset) * Math.cos(i * inc + startAngle);
+            _y = ch/2 + ch * (radiusFraction + offset) * Math.sin(i * inc + startAngle);
+
+            points.push([_x, _y]);
+        }
+
+        // remove points sometimes, for interest
+        let skip;
+        if (steps > 20) {
+            skip = randomInt(steps);
+            points.splice(skip, 1);
+        }
+        if (steps > 10) {
+            skip = randomInt(steps);
+            points.splice(skip, 1);
+        }
+    }
+
 
     // point placement function
+    // TODO fix params
     let alternate = function(a, b, steps) {
         let _x, _y;
         // debug
-        a = [0, 0];
-        b = [cw, ch];
+        if (Math.random() < 0.5) {
+            // left right
+            a = [0, randomInRange(ch)];
+            b = [cw, randomInRange(ch)];
+        } else {
+            // top bottom
+            a = [randomInRange(cw), 0];
+            b = [randomInRange(cw), ch];
+        }
 
 
         let v = getVector(a, b);
@@ -234,7 +276,8 @@ export function tricycles(options) {
 
 
     // place points
-    randItem([quadrants, alternate])();
+    randItem([quadrants, alternate, ring])();
+
 
     // set up circles
     let circles = [];
