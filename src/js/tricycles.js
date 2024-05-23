@@ -243,12 +243,8 @@ export function tricycles(options) {
     let margin = SCALE / randomInt(20, 60);
 
     // draw fewer rays when there will be many circles
-    let rayCount;
-    if (points.length > 10) {
-        rayCount = 10
-    } else {
-        rayCount = 10 + 40 * (1 - points.length/10);
-    }
+    let rayCount = 150 / Math.log(points.length);
+    let decorationThreshold = 0.66 / Math.log(points.length);
 
     // step through points:
     // define circles
@@ -261,12 +257,17 @@ export function tricycles(options) {
 
         ctx.strokeStyle = color;
         ctx.lineWidth = LINE3;
-        let decorationCount = rayCount + Math.round(rayCount * c.r/SCALE);
-        decorationCount = rayCount * 2;
-        randItem(decorators)(c, decorationCount, color);
-        //radiateFromPoint(c, dec);
-        //outwardRings(c, 90, color);
 
+        let decorationCount = rayCount + Math.round(rayCount * c.r/SCALE);
+
+        // for few circles, decorate all. For more, only some
+        if (points.length <= 6) {
+            randItem(decorators)(c, decorationCount, color);
+        } else if (Math.random() < decorationThreshold) {
+            randItem(decorators)(c, decorationCount, color);
+        }
+
+        // add circle to collection
         circles.push(c);
     }
 
