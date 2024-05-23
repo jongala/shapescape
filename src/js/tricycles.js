@@ -215,15 +215,10 @@ export function tricycles(options) {
             points.push([_x, _y]);
         }
 
-        // remove points sometimes, for interest
-        let skip;
-        if (steps > 20) {
-            skip = randomInt(steps);
-            points.splice(skip, 1);
-        }
-        if (steps > 10) {
-            skip = randomInt(steps);
-            points.splice(skip, 1);
+        // For every 10 points we have, drop 1
+        let skipCount = Math.floor(steps/10);
+        while (skipCount--) {
+            points.splice(randomInt(points.length - 1), 1);
         }
     }
 
