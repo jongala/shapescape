@@ -30,6 +30,7 @@ import { plants } from './plants';
 import { scales } from './scales';
 import { sweater } from './sweater';
 import { tricycles } from './tricycles';
+import { weave } from './weave';
 // utils
 import { setAttrs, hexToRgb, scalarVec, getSolidColorFunction } from './utils';
 // postprocess
@@ -65,7 +66,8 @@ const RENDERERS = {
     plants: plants,
     scales: scales,
     sweater: sweater,
-    tricycles: tricycles
+    tricycles: tricycles,
+    weave: weave,
     //clouds: clouds
 };
 let initRenderer = 'waterline';
