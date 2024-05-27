@@ -262,3 +262,9 @@ export function mapKeywordToVal (props, accessor=randomInRange) {
         }
     }
 }
+
+// Get boolean value, but be friendly to "false" passed as string
+export function friendlyBoolean (prop) {
+    if (prop === 'false') return false;
+    return !!prop;
+}

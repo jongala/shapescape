@@ -1,11 +1,12 @@
 import noiseUtils from './noiseutils';
 import palettes from './palettes';
-import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, getAngle, getVector, mapKeywordToVal, shuffle } from './utils';
+import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, getAngle, getVector, mapKeywordToVal, shuffle, friendlyBoolean } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
 
 const DEFAULTS = {
     container: 'body',
     palette: palettes.admiral,
+    commonColors: 'auto',
     addNoise: 0.04,
     noiseInput: null,
     clear: true,
@@ -40,6 +41,18 @@ export function weave(options) {
     }
 
     let ctx = el.getContext('2d');
+
+    // Options
+    // --------------------------------------
+
+    let COMMONCOLORS;
+    if (opts.commonColors === 'auto') {
+        COMMONCOLORS = randItem([true, false]);
+    } else {
+        COMMONCOLORS = friendlyBoolean(opts.commonColors);
+    }
+
+    console.log(`--------------------\nWeave\nCommon Colors: ${COMMONCOLORS}`);
 
 
     // Color funcs
@@ -140,9 +153,6 @@ export function weave(options) {
         weftPalette = weftPalette.concat(contrastPalette);
     }
     weftPalette = shuffle(weftPalette);
-
-
-    let COMMONCOLORS = false;
 
     for (let i = 0; i < vcount; i++) {
         // shuffle weft colors each step, so rows don't look the same.
