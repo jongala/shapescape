@@ -2,11 +2,15 @@ import noiseUtils from './noiseutils';
 import palettes from './palettes';
 import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, getAngle, getVector, mapKeywordToVal, shuffle, friendlyBoolean } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon } from './shapes';
+import { speckle, dapple, donegal } from './postprocess/speckle';
+
+const COLORMODES = ['normal', 'duo', 'trio'];
 
 const DEFAULTS = {
     container: 'body',
     palette: palettes.admiral,
     commonColors: 'auto',
+    colorMode: 'auto', // from COLORMODES
     addNoise: 0.04,
     noiseInput: null,
     clear: true,
@@ -52,7 +56,9 @@ export function weave(options) {
         COMMONCOLORS = friendlyBoolean(opts.commonColors);
     }
 
-    console.log(`--------------------\nWeave\nCommon Colors: ${COMMONCOLORS}`);
+    const COLORMODE = opts.colorMode === 'auto' ? randItem(COLORMODES) : opts.colorMode;
+
+    console.log(`--------------------\nWeave\nCommon Colors: ${COMMONCOLORS}, Color mode: ${COLORMODE}`);
 
 
     // Color funcs
@@ -66,9 +72,18 @@ export function weave(options) {
     // get palette of non-bg colors
     let contrastPalette = [].concat(opts.palette);
     contrastPalette.splice(opts.palette.indexOf(bg), 1);
+
+    // limit fg colors, depending on COLORMODE
+    if (COLORMODE === 'duo') {
+        contrastPalette = shuffle(contrastPalette).slice(0, 2);
+    }
+    if (COLORMODE === 'trio') {
+        contrastPalette = shuffle(contrastPalette).slice(0, 3);
+    }
+    // func to get contrast colors from limited palette
     let getContrastColor = getSolidColorFunction(contrastPalette);
 
-    // shared foregrounds
+    // shared foreground color
     let fg = getContrastColor();
 
     // fill background
@@ -81,7 +96,7 @@ export function weave(options) {
 
 
     // define grid
-    let count = Math.round(randomInRange(10, 20));
+    let count = Math.round(randomInRange(15, 30));
     let w = Math.ceil(cw/count);
     let h = w;
     let vcount = Math.ceil(ch/h);
@@ -154,10 +169,21 @@ export function weave(options) {
     }
     weftPalette = shuffle(weftPalette);
 
+    // build an array of strokes
+    let strokes = [];
+
     for (let i = 0; i < vcount; i++) {
         // shuffle weft colors each step, so rows don't look the same.
         // do this even with COMMONCOLORS.
         weftPalette = shuffle(weftPalette);
+
+        // build separate arrays for warp and weft so we can cull them
+        // separately
+
+        // build an array of vertical strokes
+        let warps = [];
+        // build an array of horizontal strokes
+        let wefts = [];
 
         for (let j = 0; j < count; j++) {
             // convenience vars
@@ -165,11 +191,6 @@ export function weave(options) {
             y = h * i;
             xnorm = x/cw;
             ynorm = y/ch;
-
-            ctx.translate(x, y);
-
-            // build an array of strokes
-            let strokes = [];
 
             if (!COMMONCOLORS) {
                 warpColor = getContrastColor();
@@ -184,11 +205,11 @@ export function weave(options) {
                     weftColor = weftPalette[(strokeCount + perCell * i) % weftPalette.length];
                 }
                 let s = {
-                    start: [0, spacing * strokeCount + spacing/2],
-                    end: [w, spacing * strokeCount + spacing/2],
+                    start: [x + 0, y + spacing * strokeCount + spacing/2],
+                    end: [x + w, y + spacing * strokeCount + spacing/2],
                     color: weftColor
                 };
-                strokes.push(s);
+                wefts.push(s);
             }
             // vertical
             strokeCount = perCell;
@@ -197,25 +218,35 @@ export function weave(options) {
                     warpColor = warpPalette[(strokeCount + perCell * j) % warpPalette.length];
                 }
                 let s = {
-                    start: [spacing * strokeCount + spacing/2, 0],
-                    end: [spacing * strokeCount + spacing/2, h],
+                    start: [x + spacing * strokeCount + spacing/2, y + 0],
+                    end: [x + spacing * strokeCount + spacing/2, y + h],
                     color: warpColor
                 };
-                strokes.push(s);
+                warps.push(s);
             }
-
-            // delete some random strokes
-            // coming soon …
-
-            // shuffle the array
-            strokes = shuffle(strokes);
-
-            // draw the strokes
-            strokes.forEach(drawStroke);
-
-            resetTransform(ctx);
         }
+
+        // Delete some random strokes
+        // delete half
+        let cull = randomInt(warps.length / 2);
+        while (cull--) {
+            warps.splice(randomInt(warps.length - 1), 1);
+        }
+
+        // Combine and shuffle the warp and weft arrays into strokes
+        // so they can overlap in a mixed way
+        strokes = shuffle([].concat(warps).concat(wefts));
+
+        // draw the strokes
+        strokes.forEach(drawStroke);
     }
+
+
+
+    // roughen and donegal
+
+    //dapple(el);
+    donegal(el);
 
 
     // Finish up
