@@ -103,7 +103,8 @@ function showRenderPicker (renderers, el) {
     }
 }
 
-// select a renderer to use, update the window hash, and draw it
+// select a renderer to use, update the window hash
+// does not draw anything
 function setRenderer(rname, ctrl) {
     rendererName = rname;
     Renderer = RENDERERS[rendererName];
@@ -114,7 +115,6 @@ function setRenderer(rname, ctrl) {
         activeButton && activeButton.classList.remove('activeRenderer');
         ctrl.classList.add('activeRenderer');
     }
-    drawNew();
 }
 window.setRenderer = setRenderer;
 
@@ -304,7 +304,7 @@ BEGIN STYLES
 let collection = [
     {
         name: 'Waterline',
-        renderer: RENDERERS['waterline'],
+        renderer: 'waterline',
         opts: {
 
         },
@@ -312,7 +312,7 @@ let collection = [
     },
     {
         name: 'Carmitron',
-        renderer: RENDERERS['shapestack'],
+        renderer: 'shapestack',
         opts: {
             fancy: false,
             nest: false,
@@ -324,7 +324,7 @@ let collection = [
     },
     {
         name: 'Carmi plus',
-        renderer: RENDERERS['shapestack'],
+        renderer: 'shapestack',
         opts: {
             fancy: true,
             nest: false,
@@ -336,7 +336,7 @@ let collection = [
     },
     {
         name: 'Shapescape',
-        renderer: RENDERERS['shapescape'],
+        renderer: 'shapescape',
         opts: {
 
         },
@@ -344,15 +344,15 @@ let collection = [
     },
     {
         name: 'Duos',
-        renderer: RENDERERS['duos'],
+        renderer: 'duos',
         opts: {
-            
+
         },
         description: 'Two simple shapes, and their intersections, centers, and connections'
     },
     {
         name: 'Sharp curtains',
-        renderer: RENDERERS['lines'],
+        renderer: 'lines',
         opts: {
             renderStyle: 'jagged'
         },
@@ -360,7 +360,7 @@ let collection = [
     },
     {
         name: 'Soft curtains',
-        renderer: RENDERERS['lines'],
+        renderer: 'lines',
         opts: {
             renderStyle: 'wave'
         },
@@ -368,15 +368,15 @@ let collection = [
     },
     {
         name: 'Mask in place',
-        renderer: RENDERERS['grid'],
+        renderer: 'grid',
         opts: {
-            style: 'masked'  
+            style: 'masked'
         },
         description: 'Grids of masked and rotating shapes'
     },
     {
         name: 'Cellophane',
-        renderer: RENDERERS['grid'],
+        renderer: 'grid',
         opts: {
             style: 'layers'
         },
@@ -386,7 +386,7 @@ let collection = [
 // Truchet
     {
         name: 'Truchet classic',
-        renderer: RENDERERS['truchet'],
+        renderer: 'truchet',
         opts: {
             style: 'auto',
             layer: false
@@ -395,7 +395,7 @@ let collection = [
     },
     {
         name: 'Truchet layers',
-        renderer: RENDERERS['truchet'],
+        renderer: 'truchet',
         opts: {
             style: 'auto',
             layer: true
@@ -406,9 +406,9 @@ let collection = [
 // Truchet Curves
     {
         name: 'Truchet curves',
-        renderer: RENDERERS['truchet-Curves'],
+        renderer: 'truchet-Curves',
         opts: {
-            
+
         },
         description: 'Layered Truchet circle segments'
     },
@@ -416,9 +416,9 @@ let collection = [
 // Grille
     {
         name: 'Grilles',
-        renderer: RENDERERS['grille'],
+        renderer: 'grille',
         opts: {
-            
+
         },
         description: 'Based on the iron grilles on Eastern European apt houses as photographed by Troy Litten in "Safety by Design"'
     },
@@ -426,7 +426,7 @@ let collection = [
 // Circles
     {
         name: 'Circles',
-        renderer: RENDERERS['circles'],
+        renderer: 'circles',
         opts: {
             style: 'rings'
         },
@@ -435,7 +435,7 @@ let collection = [
 
     {
         name: 'Snakes',
-        renderer: RENDERERS['circles'],
+        renderer: 'circles',
         opts: {
             style: 'snakes'
         },
@@ -444,7 +444,7 @@ let collection = [
 
     {
         name: 'Porcelain',
-        renderer: RENDERERS['circles'],
+        renderer: 'circles',
         opts: {
             style: 'pattern'
         },
@@ -454,9 +454,9 @@ let collection = [
 // Mesh
     {
         name: 'Mesh',
-        renderer: RENDERERS['mesh'],
+        renderer: 'mesh',
         opts: {
-            
+
         },
         description: 'A grid of points connecting to their neighbors'
     },
@@ -465,9 +465,9 @@ let collection = [
 
     {
         name: 'Walk',
-        renderer: RENDERERS['walk'],
+        renderer: 'walk',
         opts: {
-            
+
         },
         description: 'Survival lines, transition points, and frames'
     },
@@ -477,16 +477,27 @@ let collection = [
 
     {
         name: 'Field',
-        renderer: RENDERERS['field'],
+        renderer: 'field',
         opts: {
-            lightMode: 'normal'
+            lightMode: 'normal',
+            fieldNoise: 'none',
+            colorMode: 'single'
         },
         description: 'Flow fields overlaid with various markers'
     },
 
     {
+        name: 'Complex Field',
+        renderer: 'field',
+        opts: {
+            lightMode: 'normal'
+        },
+        description: 'Flow fields overlaid with various markers, with more complex colors and variation'
+    },
+
+    {
         name: 'Bloom Field',
-        renderer: RENDERERS['field'],
+        renderer: 'field',
         opts: {
             lightMode: 'bloom'
         },
@@ -502,7 +513,7 @@ let collection = [
 
     {
         name: 'Trails',
-        renderer: RENDERERS['trails'],
+        renderer: 'trails',
         opts: {
             fieldNoise: 'none'
         },
@@ -511,7 +522,7 @@ let collection = [
 
     {
         name: 'Rough Trails',
-        renderer: RENDERERS['trails'],
+        renderer: 'trails',
         opts: {
             fieldNoise: 'med'
         },
@@ -523,9 +534,9 @@ let collection = [
 
     {
         name: 'Bands',
-        renderer: RENDERERS['bands'],
+        renderer: 'bands',
         opts: {
-            
+
         },
         description: 'Based on a design by Erik Nitsche for a Beethoven album'
     },
@@ -534,9 +545,9 @@ let collection = [
 
     {
         name: 'Fragments',
-        renderer: RENDERERS['fragments'],
+        renderer: 'fragments',
         opts: {
-            
+
         },
         description: 'Based on painted plywood art FF24 by @plusminusdrei / plusminus3.com'
     },
@@ -545,7 +556,7 @@ let collection = [
 
     {
         name: 'Waves',
-        renderer: RENDERERS['waves'],
+        renderer: 'waves',
         opts: {
 
         },
@@ -556,9 +567,9 @@ let collection = [
 
     {
         name: 'Grads',
-        renderer: RENDERERS['grads'],
+        renderer: 'grads',
         opts: {
-            
+
         },
         description: 'Bands filled with gradients'
     },
@@ -568,9 +579,9 @@ let collection = [
 
     {
         name: 'Doodle',
-        renderer: RENDERERS['doodle'],
+        renderer: 'doodle',
         opts: {
-            
+
         },
         description: 'Scribbled shapes fill the space, based on an illustration by Amy Goodchild'
     },
@@ -579,9 +590,9 @@ let collection = [
 
     {
         name: 'Pillars',
-        renderer: RENDERERS['pillars'],
+        renderer: 'pillars',
         opts: {
-            
+
         },
         description: 'Pillars rise and fall'
     },
@@ -590,9 +601,9 @@ let collection = [
 
     {
         name: 'Rings',
-        renderer: RENDERERS['rings'],
+        renderer: 'rings',
         opts: {
-            
+
         },
         description: 'Based on Camille Roux\'s Rotating Systems series'
     },
@@ -601,9 +612,9 @@ let collection = [
 
     {
         name: 'Plants',
-        renderer: RENDERERS['plants'],
+        renderer: 'plants',
         opts: {
-            
+
         },
         description: 'Branches, buds, and flowers, with varying details'
     },
@@ -612,9 +623,9 @@ let collection = [
 
     {
         name: 'Scales',
-        renderer: RENDERERS['scales'],
+        renderer: 'scales',
         opts: {
-            style: 'fields'  
+            style: 'fields'
         },
         description: 'Overlapping scales in various patterns'
     },
@@ -623,9 +634,9 @@ let collection = [
 
     {
         name: 'Sweater',
-        renderer: RENDERERS['sweater'],
+        renderer: 'sweater',
         opts: {
-            
+
         },
         description: 'Radial checkered rings with donegal flecks'
     },
@@ -634,8 +645,7 @@ let collection = [
 ];
 
 
-let works = document.getElementById('works');
-
+let worksEl = document.getElementById('works');
 let worksHTML = '';
 
 function selectWork(div) {
@@ -645,21 +655,21 @@ function selectWork(div) {
 }
 
 collection.forEach((item) => {
+    // decorate the element
     let el = document.createElement('div');
     el.setAttribute('class', 'work');
     el.innerHTML = `<strong>${item.name}</strong><span class="description">${item.description||''}</span>`;
+    // set event handler
     let handler = function(e) {
-        console.log('clicked ', item);
         e.preventDefault();
-        Renderer = item.renderer;
-        loadOpts(Object.assign({}, visualOpts, item.opts));
+        //Renderer = item.renderer;
+        setRenderer(item.renderer);
+        loadOpts(item.opts);
         selectWork(el);
     };
     el.addEventListener('click', handler);
-    works.appendChild(el);
+    worksEl.appendChild(el);
 });
-
-
 
 
 
@@ -669,16 +679,16 @@ END STYLES
 
 
 
-
 // GUI controlled opts
-var visualOpts = {
+var baseOpts = {
     container: document.querySelector('#example'),
     clear: true,
     dust: true,
     skew: 1,
     addNoise: 0.04,
     noiseInput: noiseUtils.createNoiseCanvas(0.04, 200)
-};
+}
+var visualOpts = Object.assign({}, baseOpts);
 
 var exampleNode = document.getElementById('example');
 
@@ -687,28 +697,30 @@ var exampleNode = document.getElementById('example');
 function loadOpts(opts, fast) {
     var img = exampleNode.querySelector('img');
     img && img.remove();
-    visualOpts = Object.assign(visualOpts, opts);
+    visualOpts = Object.assign({}, baseOpts, opts);
     // render art
     Renderer(visualOpts);
-    // set up main download link
-    let a = document.getElementById('downloadExample');
-    a.onclick = ()=>{return doDownload(a, document.querySelector('#example canvas'))};
 }
+
+// set up main download link
+let a = document.getElementById('downloadExample');
+a.onclick = ()=>{return doDownload(a, document.querySelector('#example canvas'))};
 
 // Handlers for redraw, batching, and manual saving
 
-function drawNew() {
+function redraw() {
     removePreview();
-    requestAnimationFrame(loadOpts);
+    //requestAnimationFrame(loadOpts);
+    requestAnimationFrame(()=>{Renderer(visualOpts);});
     showMain();
 }
-window.drawNew = drawNew;
+window.redraw = redraw;
 
 document.addEventListener('keydown', function(e) {
     var kode = e.which || e.keyCode;
     if (kode === 32) {
         // space
-        drawNew();
+        redraw();
         e.preventDefault();
         return false;
     } else if (kode === 27) {
@@ -830,7 +842,7 @@ function setPalette(pname) {
     } else {
         visualOpts.palette = appPalettes[pname];
     }
-    return drawNew({});
+    return redraw({});
 }
 window.setPalette = setPalette;
 
@@ -912,7 +924,7 @@ function hideMain() {
 
 function setSize(className) {
     exampleNode.className = className;
-    drawNew();
+    redraw();
 }
 window.setSize = setSize;
 
