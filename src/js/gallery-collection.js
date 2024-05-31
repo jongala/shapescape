@@ -338,6 +338,21 @@ const collection = [
         description: 'Radial checkered rings with donegal flecks'
     },
 
+// Tricycles
+
+    {
+        name: 'Tricycles',
+        renderer: 'tricycles',
+        opts: {
+
+        },
+        description: 'Linked sets of triangles define linked circles over a patterned ground'
+    },
+
+// Weave
+
+
+
 
 ];
 
