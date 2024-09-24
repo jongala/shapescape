@@ -6,6 +6,7 @@ import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, draw
 const DEFAULTS = {
     container: 'body',
     palette: palettes.de_stijl,
+    style: 'auto',
     addNoise: 0.04,
     noiseInput: null,
     clear: true,
@@ -13,6 +14,8 @@ const DEFAULTS = {
 
 const PI = Math.PI;
 const TWOPI = PI * 2;
+
+const STYLES = ['simple', 'complex']; // or auto
 
 // Main function
 export function tricycles(options) {
@@ -41,6 +44,10 @@ export function tricycles(options) {
     }
 
     let ctx = el.getContext('2d');
+
+    // opts
+    // --------------------------------------
+    const STYLE = (STYLES.indexOf(opts.style) >= 0) ? opts.style : 'auto';
 
 
     // Color funcs
@@ -240,8 +247,7 @@ export function tricycles(options) {
 
 
         let v = getVector(a, b);
-        steps = v.length / 100;
-
+        steps = Math.round(8 * v.length/SHORT);
         let inc = v.length / steps;
 
         _x = v.x
@@ -254,25 +260,40 @@ export function tricycles(options) {
             _x += v.length/steps * Math.cos(v.angle);
             _y += v.length/steps * Math.sin(v.angle);
 
+            //drawCircle(ctx, _x, _y, 5, {fill:'green'});
+
             orthogonal = (i % 2)? PI/2 : -PI/2;
             orthogonal += v.angle;
 
             offset = SCALE * randomInRange(0.1, 0.4);
+            // sometimes make big steps pop out for variety
+            if (Math.random() < 0.125) {
+                offset *= 1.5;
+            }
 
-            _x += offset * Math.cos(orthogonal);
-            _y += offset * Math.sin(orthogonal);
-
-            points.push([_x, _y]);
+            points.push([_x + offset * Math.cos(orthogonal), _y + offset * Math.sin(orthogonal)]);
         }
+
+        ctx.beginPath();
+        ctx.moveTo(...a);
+        ctx.lineTo(...b);
+        ctx.stroke();
 
         // let split = randomInt(points.length);
         // points = points.slice(0, split).concat(points.slice(split, -1));
     }
 
 
-    // place points
-    randItem([quadrants, alternate, ring])();
-
+    // run setup functions according to style prop
+    let setupFuncs = [];
+    if (STYLE === 'simple') {
+        quadrants();
+    } else if (STYLE === 'complex') {
+        randItem([alternate, ring])();
+    } else {
+        // auto case
+        randItem([quadrants, alternate, ring])();
+    }
 
     // set up circles
     let circles = [];
