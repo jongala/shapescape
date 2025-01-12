@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 43);
+/******/ 	return __webpack_require__(__webpack_require__.s = 47);
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -93,6 +93,7 @@ exports.getVector = getVector;
 exports.averagePoints = averagePoints;
 exports.pointsToPath = pointsToPath;
 exports.mapKeywordToVal = mapKeywordToVal;
+exports.friendlyBoolean = friendlyBoolean;
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
@@ -343,6 +344,12 @@ function mapKeywordToVal(props) {
     };
 }
 
+// Get boolean value, but be friendly to "false" passed as string
+function friendlyBoolean(prop) {
+    if (prop === 'false') return false;
+    return !!prop;
+}
+
 /***/ }),
 
 /***/ 1:
@@ -468,7 +475,7 @@ exports.default = {
 
 /***/ }),
 
-/***/ 18:
+/***/ 19:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -504,7 +511,8 @@ var DEFAULTS = {
     skew: 1, // normalized skew
     clear: true,
 
-    mode: null,
+    style: 'auto', // one of modes
+    layer: 'auto', // true | false | auto
     count: 0, // 0 for auto, or an integer
     weight: 0, // 0 for auto, or 1-10 for normalized weights
     contrast: true
@@ -566,7 +574,16 @@ function truchet(options) {
     var ynorm = 0;
     var renderer = void 0;
 
-    var secondLayer = Math.random() < 0.5;
+    var secondLayer = void 0;
+    if (opts.layer === true || opts.layer === 'true') {
+        secondLayer = true;
+    }
+    if (opts.layer === false || opts.layer === 'false') {
+        secondLayer = false;
+    }
+    if (opts.layer === null || opts.layer === undefined || opts.layer == 'auto') {
+        secondLayer = Math.random() < 0.5;
+    }
 
     // play with these random seeds
     var a = void 0,
@@ -741,10 +758,18 @@ function truchet(options) {
     }
 
     // gather our modes
-    var modes = [circles, triangles, mixed];
+    var modes = {
+        circles: circles,
+        triangles: triangles,
+        mixed: mixed
+    };
 
     // do the loop with one of our modes
-    renderer = (0, _utils.randItem)(modes);
+    if (opts.style && modes[opts.style]) {
+        renderer = modes[opts.style];
+    } else {
+        renderer = modes[(0, _utils.randItem)(Object.keys(modes))];
+    }
     renderer(bg, weight);
 
     if (secondLayer) {
@@ -965,13 +990,13 @@ function drawLine(ctx, a, b) {
 
 /***/ }),
 
-/***/ 43:
+/***/ 47:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-__webpack_require__(6);
+__webpack_require__(8);
 
 var _noiseutils = __webpack_require__(1);
 
@@ -981,13 +1006,13 @@ var _palettes = __webpack_require__(2);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
-var _colorbrewer = __webpack_require__(8);
+var _colorbrewer = __webpack_require__(9);
 
 var _colorbrewer2 = _interopRequireDefault(_colorbrewer);
 
-var _truchet = __webpack_require__(18);
+var _truchet = __webpack_require__(19);
 
-var _numerals = __webpack_require__(44);
+var _numerals = __webpack_require__(48);
 
 var _utils = __webpack_require__(0);
 
@@ -1109,7 +1134,7 @@ setInterval(function () {
 
 /***/ }),
 
-/***/ 44:
+/***/ 48:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1454,14 +1479,14 @@ function numerals(options) {
 
 /***/ }),
 
-/***/ 6:
+/***/ 8:
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
 
-/***/ 8:
+/***/ 9:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

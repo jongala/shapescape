@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 42);
+/******/ 	return __webpack_require__(__webpack_require__.s = 46);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -92,6 +92,7 @@ exports.getVector = getVector;
 exports.averagePoints = averagePoints;
 exports.pointsToPath = pointsToPath;
 exports.mapKeywordToVal = mapKeywordToVal;
+exports.friendlyBoolean = friendlyBoolean;
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
@@ -340,6 +341,12 @@ function mapKeywordToVal(props) {
             return val;
         }
     };
+}
+
+// Get boolean value, but be friendly to "false" passed as string
+function friendlyBoolean(prop) {
+    if (prop === 'false') return false;
+    return !!prop;
 }
 
 /***/ }),
@@ -664,143 +671,6 @@ function drawLine(ctx, a, b) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.defineFill = defineFill;
-exports.expandFill = expandFill;
-
-var _utils = __webpack_require__(0);
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-/*
- * The general approach is to define fills in a generic object format,
- * which can be considered the serialized form:
- *
- * myFill = {
- *     type: ['solid', 'linear', 'radial'],
- *     params: {
- *         // whatever you need for the fill type
- *     }
- * }
- *
- * These are returned by defineFill()
- *
- * These can be deserialized by expandFill(), which dispatches to helper functions
- * for each fill type. These return an expanded fill, which is anything that
- * is valid for assignment to context.fillStyle = {}
- * e.g. a string of a hex color, or a defined canvas gradient.
- * 
- */
-
-//--------------------------------------
-// SERIALIZE
-//--------------------------------------
-
-var defineSolidFill = function defineSolidFill(palette) {
-    var f = {
-        type: 'solid',
-        params: {
-            color: (0, _utils.randItem)(palette)
-        }
-    };
-    return f;
-};
-
-/**
- * Define a linear fill
- * @param  {context} ctx  the canvas rendering context
- * @param {array} palette an array of color values
- * @param  {num} x    center x of shape, normalized
- * @param  {num} y    center y of shape, normalized
- * @param  {num} size       half the size of the shape (r for circle), normalized
- * @param  {num} skew       scalar to offset endpoints left/right for angled gradient
- * @return {fillStyle}      an object defining a linear gradient, to be processed by expandFill()
- */
-var defineLinearGradientFill = function defineLinearGradientFill(palette, x, y, size, skew) {
-    var gradient = {
-        type: 'linear',
-        params: {
-            coords: [],
-            stops: []
-        }
-    };
-    // 
-    // pick xoffset as fraction of size to get a shallow angle
-    var xoff = (0, _utils.randomInRange)(-skew / 2, skew / 2) * size;
-    // build gradient, add stops
-    gradient.params.coords = [x - xoff, y - size, x + xoff, y + size];
-    gradient.params.stops.push([0, (0, _utils.randItem)(palette)]);
-    gradient.params.stops.push([1, (0, _utils.randItem)(palette)]);
-    return gradient;
-};
-
-// generic fill definition function
-/**
- * Get a fill, either in solid or gradients
- * @param  {context} ctx  the canvas rendering context
- * @param {array} palette an array of color values
- * @param  {num} x    center x of shape, normalized
- * @param  {num} y    center y of shape, normalized
- * @param  {num} size       half the size of the shape (r for circle), normalized
- * @param  {num} skew       scalar to offset endpoints left/right for angled gradient
- * @return {fillStyle}      a custom fill object to be processed by expandFill()
- */
-function defineFill(type, palette, x, y, size, skew) {
-    // create a fill object
-    var fillGenerators = {
-        'solid': defineSolidFill,
-        'linear': defineLinearGradientFill,
-        'radial': defineSolidFill // FIXME
-    };
-    return fillGenerators[type](palette, x, y, size, skew);
-}
-
-//--------------------------------------
-// DESERIALIZE
-//--------------------------------------
-
-
-var gradientFromLinearDef = function gradientFromLinearDef(ctx, gradientDef, w, h, scale) {
-    var c = [].concat(_toConsumableArray(gradientDef.params.coords));
-    c[0] *= w;
-    c[1] *= h;
-    c[2] *= w;
-    c[3] *= h;
-    var g = ctx.createLinearGradient.apply(ctx, _toConsumableArray(c));
-    gradientDef.params.stops.forEach(function (s) {
-        return g.addColorStop.apply(g, _toConsumableArray(s));
-    });
-    return g;
-};
-
-// outer expandFill converts a fill spec to a usable 2D context fill
-function expandFill(ctx, fill, w, h, scale) {
-    var fillFuncs = {
-        'linear': gradientFromLinearDef,
-        'radial': function radial(ctx, fill) {
-            return fill.params.color;
-        }, // FIXME
-        'solid': function solid(ctx, fill) {
-            return fill.params.color;
-        }
-    };
-    if (fillFuncs[fill.type]) {
-        return fillFuncs[fill.type](ctx, fill, w, h, scale);
-    } else {
-        console.error('Could not resolve fill', fill, w, h, scale);
-        return '#808080';
-    }
-}
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
 exports.default = hexScatter;
 // Fast scattering of random-looking points
 
@@ -1057,13 +927,144 @@ function hexScatter(spacing, w, h, loosen) {
 }
 
 /***/ }),
-/* 6 */
-/***/ (function(module, exports) {
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
 
-// removed by extract-text-webpack-plugin
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.defineFill = defineFill;
+exports.expandFill = expandFill;
+
+var _utils = __webpack_require__(0);
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+/*
+ * The general approach is to define fills in a generic object format,
+ * which can be considered the serialized form:
+ *
+ * myFill = {
+ *     type: ['solid', 'linear', 'radial'],
+ *     params: {
+ *         // whatever you need for the fill type
+ *     }
+ * }
+ *
+ * These are returned by defineFill()
+ *
+ * These can be deserialized by expandFill(), which dispatches to helper functions
+ * for each fill type. These return an expanded fill, which is anything that
+ * is valid for assignment to context.fillStyle = {}
+ * e.g. a string of a hex color, or a defined canvas gradient.
+ * 
+ */
+
+//--------------------------------------
+// SERIALIZE
+//--------------------------------------
+
+var defineSolidFill = function defineSolidFill(palette) {
+    var f = {
+        type: 'solid',
+        params: {
+            color: (0, _utils.randItem)(palette)
+        }
+    };
+    return f;
+};
+
+/**
+ * Define a linear fill
+ * @param  {context} ctx  the canvas rendering context
+ * @param {array} palette an array of color values
+ * @param  {num} x    center x of shape, normalized
+ * @param  {num} y    center y of shape, normalized
+ * @param  {num} size       half the size of the shape (r for circle), normalized
+ * @param  {num} skew       scalar to offset endpoints left/right for angled gradient
+ * @return {fillStyle}      an object defining a linear gradient, to be processed by expandFill()
+ */
+var defineLinearGradientFill = function defineLinearGradientFill(palette, x, y, size, skew) {
+    var gradient = {
+        type: 'linear',
+        params: {
+            coords: [],
+            stops: []
+        }
+    };
+    // 
+    // pick xoffset as fraction of size to get a shallow angle
+    var xoff = (0, _utils.randomInRange)(-skew / 2, skew / 2) * size;
+    // build gradient, add stops
+    gradient.params.coords = [x - xoff, y - size, x + xoff, y + size];
+    gradient.params.stops.push([0, (0, _utils.randItem)(palette)]);
+    gradient.params.stops.push([1, (0, _utils.randItem)(palette)]);
+    return gradient;
+};
+
+// generic fill definition function
+/**
+ * Get a fill, either in solid or gradients
+ * @param  {context} ctx  the canvas rendering context
+ * @param {array} palette an array of color values
+ * @param  {num} x    center x of shape, normalized
+ * @param  {num} y    center y of shape, normalized
+ * @param  {num} size       half the size of the shape (r for circle), normalized
+ * @param  {num} skew       scalar to offset endpoints left/right for angled gradient
+ * @return {fillStyle}      a custom fill object to be processed by expandFill()
+ */
+function defineFill(type, palette, x, y, size, skew) {
+    // create a fill object
+    var fillGenerators = {
+        'solid': defineSolidFill,
+        'linear': defineLinearGradientFill,
+        'radial': defineSolidFill // FIXME
+    };
+    return fillGenerators[type](palette, x, y, size, skew);
+}
+
+//--------------------------------------
+// DESERIALIZE
+//--------------------------------------
+
+
+var gradientFromLinearDef = function gradientFromLinearDef(ctx, gradientDef, w, h, scale) {
+    var c = [].concat(_toConsumableArray(gradientDef.params.coords));
+    c[0] *= w;
+    c[1] *= h;
+    c[2] *= w;
+    c[3] *= h;
+    var g = ctx.createLinearGradient.apply(ctx, _toConsumableArray(c));
+    gradientDef.params.stops.forEach(function (s) {
+        return g.addColorStop.apply(g, _toConsumableArray(s));
+    });
+    return g;
+};
+
+// outer expandFill converts a fill spec to a usable 2D context fill
+function expandFill(ctx, fill, w, h, scale) {
+    var fillFuncs = {
+        'linear': gradientFromLinearDef,
+        'radial': function radial(ctx, fill) {
+            return fill.params.color;
+        }, // FIXME
+        'solid': function solid(ctx, fill) {
+            return fill.params.color;
+        }
+    };
+    if (fillFuncs[fill.type]) {
+        return fillFuncs[fill.type](ctx, fill, w, h, scale);
+    } else {
+        console.error('Could not resolve fill', fill, w, h, scale);
+        return '#808080';
+    }
+}
 
 /***/ }),
-/* 7 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1182,8 +1183,15 @@ function opacityTransforms(maxLen) {
 }
 
 /***/ }),
-/* 8 */,
-/* 9 */
+/* 7 */,
+/* 8 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 9 */,
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1199,7 +1207,7 @@ exports.defineWaterline = defineWaterline;
 exports.drawWaterline = drawWaterline;
 exports.waterline = waterline;
 
-var _waterlineSchema = __webpack_require__(10);
+var _waterlineSchema = __webpack_require__(11);
 
 var _noiseutils = __webpack_require__(1);
 
@@ -1211,7 +1219,7 @@ var _palettes2 = _interopRequireDefault(_palettes);
 
 var _utils = __webpack_require__(0);
 
-var _colors = __webpack_require__(4);
+var _colors = __webpack_require__(5);
 
 var _shapes = __webpack_require__(3);
 
@@ -1649,7 +1657,7 @@ function waterline(options) {
 }
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1701,7 +1709,7 @@ var SCHEMA = exports.SCHEMA = {
 };
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1724,9 +1732,9 @@ var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
 
-var _stacks = __webpack_require__(12);
+var _stacks = __webpack_require__(13);
 
-var _nests = __webpack_require__(13);
+var _nests = __webpack_require__(14);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2055,7 +2063,7 @@ var DEFAULTS = {
 }
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2107,7 +2115,7 @@ function drawStack(ctx, stack, x, w, colorFunc) {
 }
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2193,7 +2201,7 @@ function drawNest(ctx, nest, shapeFunction, colorFunction, o) {
 }
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2380,7 +2388,7 @@ function shapescape(options) {
 }
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2604,12 +2612,14 @@ function drawLines(ctx, p1, p2, opts) {
 
     var minStops = void 0;
     var maxStops = void 0;
-    var renderStyle = '';
+    var renderStyle = opts.renderStyle;
 
-    if (Math.random() > 0.5) {
-        renderStyle = 'wave';
-    } else {
-        renderStyle = 'jagged';
+    if (!renderStyle || renderStyle == 'auto') {
+        if (Math.random() > 0.5) {
+            renderStyle = 'wave';
+        } else {
+            renderStyle = 'jagged';
+        }
     }
 
     // debug!
@@ -2820,7 +2830,7 @@ function drawLines(ctx, p1, p2, opts) {
 }
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3251,7 +3261,7 @@ function waves(options) {
 }
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3279,6 +3289,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 var DEFAULTS = {
     container: 'body',
     palette: _palettes2.default.south_beach,
+    style: 'auto', // ['masked', 'layers']
     addNoise: 0.04,
     noiseInput: null,
     dust: false,
@@ -3476,7 +3487,17 @@ function grid(options) {
     var modes = [maskAndRotate, layers];
 
     // do the loop with one of our modes
-    (0, _utils.randItem)(modes)();
+    var STYLE = opts.style;
+    if (!STYLE || STYLE == 'auto') {
+        (0, _utils.randItem)(modes)();
+    } else {
+        if (STYLE === 'masked') {
+            maskAndRotate();
+        }
+        if (STYLE === 'layers') {
+            layers();
+        }
+    }
 
     // add noise
     if (opts.addNoise) {
@@ -3496,8 +3517,8 @@ function grid(options) {
 }
 
 /***/ }),
-/* 18 */,
-/* 19 */
+/* 19 */,
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3520,7 +3541,7 @@ var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
 
-var _colors = __webpack_require__(4);
+var _colors = __webpack_require__(5);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -3724,7 +3745,7 @@ function circles(options) {
     }
 
     function triPoints(ctx, p1, p2, p3, color) {
-        ctx.beginPath;
+        ctx.beginPath();
         ctx.moveTo.apply(ctx, _toConsumableArray(p1));
         ctx.lineTo.apply(ctx, _toConsumableArray(p2));
         ctx.lineTo.apply(ctx, _toConsumableArray(p3));
@@ -3929,11 +3950,15 @@ function circles(options) {
     }
 
     // gather our modes
-    var modes = [snakes, rings, pattern];
-    //modes = [pattern];
+    var modes = { snakes: snakes, rings: rings, pattern: pattern };
 
     // do the loop with one of our modes
-    (0, _utils.randItem)(modes)();
+    if (opts.style && modes[opts.style]) {
+        renderer = modes[opts.style];
+    } else {
+        renderer = modes[(0, _utils.randItem)(Object.keys(modes))];
+    }
+    renderer();
 
     // add noise
     if (opts.addNoise) {
@@ -3951,7 +3976,7 @@ function circles(options) {
 }
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4215,7 +4240,7 @@ function mesh(options) {
 }
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4632,7 +4657,7 @@ var DEFAULTS = {
 }
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4655,7 +4680,7 @@ var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
 
-var _colors = __webpack_require__(4);
+var _colors = __webpack_require__(5);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -4869,7 +4894,7 @@ function bands(options) {
 }
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4888,7 +4913,7 @@ var _palettes = __webpack_require__(2);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
-var _hexScatter = __webpack_require__(5);
+var _hexScatter = __webpack_require__(4);
 
 var _hexScatter2 = _interopRequireDefault(_hexScatter);
 
@@ -4896,7 +4921,7 @@ var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
 
-var _fieldUtils = __webpack_require__(7);
+var _fieldUtils = __webpack_require__(6);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -4912,7 +4937,8 @@ var DEFAULTS = {
     fieldMode: 'auto', // [auto, harmonic, flow]
     lightMode: 'normal', // [auto, bloom, normal]
     gridMode: 'auto', // [auto, normal, scatter, random]
-    density: 'auto' // [auto, coarse, fine]
+    density: 'auto', // [auto, coarse, fine]
+    fieldNoise: 'auto' // mapped to values below
 };
 
 var PI = Math.PI;
@@ -4955,6 +4981,15 @@ function field(options) {
     var DENSITY = opts.density === 'auto' ? (0, _utils.randItem)(DENSITIES) : opts.density;
     var FIELDMODE = opts.fieldMode === 'auto' ? (0, _utils.randItem)(FIELDMODES) : opts.fieldMode;
     var COLORMODE = opts.colorMode === 'auto' ? (0, _utils.randItem)(COLORMODES) : opts.colorMode;
+    var FIELDNOISE = (0, _utils.mapKeywordToVal)({
+        // hacky way to weight options by redundantly specifying
+        'none': 0,
+        'none2': 0,
+        'low': 0.125,
+        'low2': 0.125,
+        'med': 0.25,
+        'high': 0.5
+    })(opts.fieldNoise, 'fieldNoise');
 
     // color funcs
     var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
@@ -5150,6 +5185,13 @@ function field(options) {
         x = x + cellSize * trans.xbase(xnorm, ynorm) * warp;
         y = y + cellSize * trans.ybase(xnorm, ynorm) * warp;
 
+        var xNoise = 0;
+        var yNoise = 0;
+        if (FIELDNOISE > 0) {
+            xNoise = (0, _utils.randomInRange)(-1, 1) * FIELDNOISE;
+            yNoise = (0, _utils.randomInRange)(-1, 1) * FIELDNOISE;
+        }
+
         // get end of tail coords
         if (FIELDMODE === 'flow') {
             // flow fields (source-sink)
@@ -5161,6 +5203,9 @@ function field(options) {
             _x = trans.xtail(xnorm, ynorm);
             _y = trans.ytail(xnorm, ynorm);
         }
+
+        _x += xNoise;
+        _y += yNoise;
 
         var theta = Math.atan2(_y, _x);
         var fillIndex = Math.round(contrastPalette.length * theta / PI / 2);
@@ -5255,7 +5300,7 @@ function field(options) {
 }
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5553,7 +5598,6 @@ function fragments(options) {
 }
 
 /***/ }),
-/* 25 */,
 /* 26 */,
 /* 27 */,
 /* 28 */,
@@ -5570,13 +5614,17 @@ function fragments(options) {
 /* 39 */,
 /* 40 */,
 /* 41 */,
-/* 42 */
+/* 42 */,
+/* 43 */,
+/* 44 */,
+/* 45 */,
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-__webpack_require__(6);
+__webpack_require__(8);
 
 var _noiseutils = __webpack_require__(1);
 
@@ -5586,29 +5634,29 @@ var _palettes = __webpack_require__(2);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
-var _waterline = __webpack_require__(9);
+var _waterline = __webpack_require__(10);
 
-var _shapestack = __webpack_require__(11);
+var _shapestack = __webpack_require__(12);
 
-var _shapescape = __webpack_require__(14);
+var _shapescape = __webpack_require__(15);
 
-var _lines = __webpack_require__(15);
+var _lines = __webpack_require__(16);
 
-var _waves = __webpack_require__(16);
+var _waves = __webpack_require__(17);
 
-var _grid = __webpack_require__(17);
+var _grid = __webpack_require__(18);
 
-var _circles = __webpack_require__(19);
+var _circles = __webpack_require__(20);
 
-var _mesh = __webpack_require__(20);
+var _mesh = __webpack_require__(21);
 
-var _walk = __webpack_require__(21);
+var _walk = __webpack_require__(22);
 
-var _bands = __webpack_require__(22);
+var _bands = __webpack_require__(23);
 
-var _field = __webpack_require__(23);
+var _field = __webpack_require__(24);
 
-var _fragments = __webpack_require__(24);
+var _fragments = __webpack_require__(25);
 
 var _utils = __webpack_require__(0);
 
