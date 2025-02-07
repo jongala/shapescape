@@ -14,6 +14,8 @@ const DEFAULTS = {
 const PI = Math.PI;
 const TWOPI = 2 * PI;
 
+const DEBUG = false;
+
 // Main function
 export function moire(options) {
     let opts = Object.assign({}, DEFAULTS, options);
@@ -148,8 +150,9 @@ export function moire(options) {
 
         skew = skew || 0;
 
-        drawCross(ctx, ...c1, 10, {stroke:'blue'});
-        drawCross(ctx, ...c2, 10, {stroke:'green'});
+        // DEBUG
+        DEBUG && drawCross(ctx, ...c1, 10, {stroke:'blue'});
+        DEBUG && drawCross(ctx, ...c2, 10, {stroke:'green'});
 
         let t = 0;
         let inc = 1/steps;
@@ -204,21 +207,22 @@ export function moire(options) {
 
     // point placement for curve
 
-    let alpha = randomInRange(0, TWOPI);
-    let theta = randomInRange(0, PI);
-    let originR = randomInRange(0, 0.2);
+    let theta = randomInRange(0, PI); // the angle of the track axis
+    let alpha = randomInRange(0, TWOPI); // angle of origin offset from center
+    let originR = randomInRange(0, 0.2); // radius of origin offset
     let origin = [
         cw/2 + SPAN * originR * Math.cos(alpha),
         ch/2 + SPAN * originR * Math.sin(alpha)
     ];
 
-    //drawCircle(ctx, ...origin, 20, {fill:'black'});
+    DEBUG && drawCross(ctx, ...origin, 20, {fill:'black'});
 
     let start = [0, 0];
     let end = [0, 0];
 
-    let REACH = SPAN * 0.7;
+    let REACH = SPAN * 0.6;
 
+    //
     start = [
         origin[0] + REACH * Math.cos(theta),
         origin[1] + REACH * Math.sin(theta)
@@ -228,9 +232,35 @@ export function moire(options) {
         origin[1] + REACH * Math.sin(theta - PI)
     ];
 
-    // drawCircle(ctx, ...start, 200, {stroke:'red'});
-    // drawCircle(ctx, ...end, 200, {stroke:'green'});
+    // DEBUG
+    DEBUG && drawCircle(ctx, ...start, REACH/2, {stroke:'red'});
+    DEBUG && drawCircle(ctx, ...end, REACH/2, {stroke:'green'});
 
+
+    let a1 = theta;
+    let r1 = REACH * 0.5;
+    let c1 = [
+        origin[0] + r1 * Math.cos(a1),
+        origin[1] + r1 * Math.sin(a1)
+    ];
+    let a2 = theta - PI;
+    let r2 = REACH * 0.5;
+    let c2 = [
+        origin[0] + r2 * Math.cos(a2),
+        origin[1] + r2 * Math.sin(a2)
+    ];
+    let a3 = theta + PI * randomInRange(-0.3, 0.3);
+    let r3 = REACH * 0.5;
+    let c3 = [
+        origin[0] + r3 * Math.cos(a3),
+        origin[1] + r3 * Math.sin(a3)
+    ];
+    let a4 = theta - PI + PI * randomInRange(-0.3, 0.3);
+    let r4 = REACH * 0.5;
+    let c4 = [
+        origin[0] + r4 * Math.cos(a4),
+        origin[1] + r4 * Math.sin(a4)
+    ];
 
 
     // Set steps, thickness and separation of lines, skew
@@ -244,14 +274,14 @@ export function moire(options) {
 
 
     // same endpoints
-    stepCurve(start, end, origin, origin, steps, trackWidth, skew);
-    stepCurve(start, end, center, center, steps, trackWidth, skew);
+    stepCurve(start, end, c1, c2, steps, trackWidth, skew);
+    stepCurve(start, end, c3, c4, steps, trackWidth, skew);
 
     // different endpoints
     let theta2 = theta - PI * randomInRange(0.8, 1.2);
     let end2 = [
-        origin[0] + SPAN/2 * Math.cos(theta2),
-        origin[1] + SPAN/2 * Math.sin(theta2)
+        origin[0] + REACH * Math.cos(theta2),
+        origin[1] + REACH * Math.sin(theta2)
     ];
     // stepCurve(start, end, origin, origin, 150, 200);
     // stepCurve(start, end2, origin, origin, 150, 200);
