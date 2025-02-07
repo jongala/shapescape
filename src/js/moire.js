@@ -140,11 +140,13 @@ export function moire(options) {
 
     ctx.lineWidth = 2;
 
-    function stepCurve(a, b, c1, c2, steps, l) {
+    function stepCurve(a, b, c1, c2, steps, l, skew) {
         // ctx.beginPath();
         // ctx.moveTo(...a);
         // ctx.bezierCurveTo(...c1, ...c2, ...b);
         // ctx.stroke();
+
+        skew = skew || 0;
 
         drawCross(ctx, ...c1, 10, {stroke:'blue'});
         drawCross(ctx, ...c2, 10, {stroke:'green'});
@@ -177,12 +179,12 @@ export function moire(options) {
 
             // draw trasnverse line
             p1 = [
-                _x + l * Math.cos(v.angle - PI/2),
-                _y + l * Math.sin(v.angle - PI/2),
+                _x + l * Math.cos(v.angle + skew - PI/2),
+                _y + l * Math.sin(v.angle + skew - PI/2),
             ];
             p2 = [
-                _x + l * Math.cos(v.angle + PI/2),
-                _y + l * Math.sin(v.angle + PI/2),
+                _x + l * Math.cos(v.angle + skew + PI/2),
+                _y + l * Math.sin(v.angle + skew + PI/2),
             ];
 
 
@@ -215,22 +217,35 @@ export function moire(options) {
     let start = [0, 0];
     let end = [0, 0];
 
+    let REACH = SPAN * 0.7;
+
     start = [
-        origin[0] + SPAN/2 * Math.cos(theta),
-        origin[1] + SPAN/2 * Math.sin(theta)
+        origin[0] + REACH * Math.cos(theta),
+        origin[1] + REACH * Math.sin(theta)
     ];
     end = [
-        origin[0] + SPAN/2 * Math.cos(theta - PI),
-        origin[1] + SPAN/2 * Math.sin(theta - PI)
+        origin[0] + REACH * Math.cos(theta - PI),
+        origin[1] + REACH * Math.sin(theta - PI)
     ];
 
-    //drawCircle(ctx, ...start, 200, {stroke:'red'});
-    //drawCircle(ctx, ...end, 200, {stroke:'green'});
+    // drawCircle(ctx, ...start, 200, {stroke:'red'});
+    // drawCircle(ctx, ...end, 200, {stroke:'green'});
+
+
+
+    // Set steps, thickness and separation of lines, skew
+
+    let steps = Math.round(LONG * randomInRange(0.15, 0.3));
+    let weight = LONG / steps * randomInRange(0.33, 0.66);
+    ctx.lineWidth = weight;
+    // console.log(`${Math.round(steps)} steps over ${Math.round(REACH)}px; ${(REACH/steps).toPrecision(3)}px per interval; ${weight.toPrecision(3)}px lines`);
+    let trackWidth = LONG * randomInRange(0.2, 0.5);
+    let skew = randomInRange(-PI/5, PI/5);
 
 
     // same endpoints
-    stepCurve(start, end, origin, origin, 150, 200);
-    stepCurve(start, end, center, center, 150, 200);
+    stepCurve(start, end, origin, origin, steps, trackWidth, skew);
+    stepCurve(start, end, center, center, steps, trackWidth, skew);
 
     // different endpoints
     let theta2 = theta - PI * randomInRange(0.8, 1.2);
