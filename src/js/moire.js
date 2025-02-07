@@ -132,6 +132,47 @@ export function moire(options) {
     lineSteps([cw/4, ch],[3 * cw/4, 0], 100, 100);
 
 
+    ctx.strokeStyle = 'black';
+    function stepCurve(a, b, c1, c2, steps) {
+        ctx.beginPath();
+        ctx.moveTo(...a);
+        ctx.bezierCurveTo(...c1, ...c2, ...b);
+        ctx.stroke();
+
+        let t = 0;
+        let inc = 1/steps;
+
+        let x = a[0];
+        let y = a[1];
+        let _x = x; // last x
+        let _y = y; // last y
+
+        let v;
+
+        // step thru the bezier
+        for (var i = 1; i < steps; i++) {
+            console.log(t);
+            x = (1 - t) ** 3 * a[0] +       3 * (1 - t) ** 2 * t * c1[0] +      3 * (1 - t) * t ** 2 * c2[0] +      t ** 3 * b[0];
+            y = (1 - t) ** 3 * a[1] +       3 * (1 - t) ** 2 * t * c1[1] +      3 * (1 - t) * t ** 2 * c2[1] +      t ** 3 * b[1];
+            t += inc;
+
+            drawCircle(ctx, x, y, 100, {stroke:'green'});
+            console.log(x, y);
+
+
+        }
+    }
+
+    stepCurve(
+        [3*cw/4, ch],
+        [cw/4, 0],
+        [.4 * cw, .6 * ch],
+        [ .6 * cw, .4 * ch],
+        100
+    );
+
+
+
     //console.log(lines);
 
 
