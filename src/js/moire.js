@@ -12,6 +12,7 @@ const DEFAULTS = {
 }
 
 const PI = Math.PI;
+const TWOPI = 2 * PI;
 
 // Main function
 export function moire(options) {
@@ -23,8 +24,11 @@ export function moire(options) {
     let SCALE = Math.min(cw, ch);
     let LONG = Math.max(cw, ch);
     let SHORT = Math.min(cw, ch);
+    let SPAN = Math.sqrt(LONG ** 2 + SHORT ** 2);
     const AREA = cw * ch;
     const ASPECT = LONG/SHORT;
+
+    let center = [cw/2, ch/2];
 
     // Find or create canvas child
     let el = container.querySelector('canvas');
@@ -129,11 +133,14 @@ export function moire(options) {
         ctx.stroke();
     }
 
-    lineSteps([cw/4, ch],[3 * cw/4, 0], 100, 100);
+    //lineSteps([cw/4, ch],[3 * cw/4, 0], 100, 100);
 
 
     ctx.strokeStyle = 'black';
-    function stepCurve(a, b, c1, c2, steps) {
+
+    ctx.lineWidth = 2;
+
+    function stepCurve(a, b, c1, c2, steps, l) {
         // ctx.beginPath();
         // ctx.moveTo(...a);
         // ctx.bezierCurveTo(...c1, ...c2, ...b);
@@ -157,7 +164,6 @@ export function moire(options) {
         let p1 = [0, 0]; // start point of transverse line
         let p2 = [0, 0]; // end point
 
-        let l = 100;
 
         // step thru the bezier
         for (var i = 1; i <= steps; i++) {
@@ -193,19 +199,53 @@ export function moire(options) {
         }
     }
 
-    stepCurve(
-        [3*cw/4, ch],
-        [cw/4, 0],
-        [.4 * cw, .6 * ch],
-        [ .6 * cw, .4 * ch],
-        100
-    );
+
+    // point placement for curve
+
+    let alpha = randomInRange(0, TWOPI);
+    let theta = randomInRange(0, PI);
+    let originR = randomInRange(0, 0.2);
+    let origin = [
+        cw/2 + SPAN * originR * Math.cos(alpha),
+        ch/2 + SPAN * originR * Math.sin(alpha)
+    ];
+
+    //drawCircle(ctx, ...origin, 20, {fill:'black'});
+
+    let start = [0, 0];
+    let end = [0, 0];
+
+    start = [
+        origin[0] + SPAN/2 * Math.cos(theta),
+        origin[1] + SPAN/2 * Math.sin(theta)
+    ];
+    end = [
+        origin[0] + SPAN/2 * Math.cos(theta - PI),
+        origin[1] + SPAN/2 * Math.sin(theta - PI)
+    ];
+
+    //drawCircle(ctx, ...start, 200, {stroke:'red'});
+    //drawCircle(ctx, ...end, 200, {stroke:'green'});
+
+
+    // same endpoints
+    stepCurve(start, end, origin, origin, 150, 200);
+    stepCurve(start, end, center, center, 150, 200);
+
+    // different endpoints
+    let theta2 = theta - PI * randomInRange(0.8, 1.2);
+    let end2 = [
+        origin[0] + SPAN/2 * Math.cos(theta2),
+        origin[1] + SPAN/2 * Math.sin(theta2)
+    ];
+    // stepCurve(start, end, origin, origin, 150, 200);
+    // stepCurve(start, end2, origin, origin, 150, 200);
 
 
     // same density
     // different density
-    // same endpoints
-    // different endpoints
+
+
 
 
 
