@@ -124,3 +124,13 @@ export function drawLine(ctx, a, b) {
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
 }
+
+export function drawCross(ctx, x, y, r, opts) {
+    ctx.strokeStyle = opts.stroke || opts.fill;
+    ctx.beginPath();
+    ctx.moveTo(x - r, y);
+    ctx.lineTo(x + r, y);
+    ctx.moveTo(x, y - r);
+    ctx.lineTo(x, y + r);
+    ctx.stroke();
+}
