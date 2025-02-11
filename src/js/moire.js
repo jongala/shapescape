@@ -55,6 +55,7 @@ export function moire(options) {
 
     // shared colors
     let bg = getSolidFill();
+    bg = randItem(['#fcf9f0','#f3f2f1','#f3f9fc']);
 
     // get palette of non-bg colors
     let contrastPalette = [].concat(opts.palette);
@@ -63,6 +64,7 @@ export function moire(options) {
 
     // shared foregrounds
     let fg = getContrastColor();
+    let fg2 = getContrastColor();
 
     // fill background
     ctx.fillStyle = bg;
@@ -151,8 +153,8 @@ export function moire(options) {
         skew = skew || 0;
 
         // DEBUG
-        DEBUG && drawCross(ctx, ...c1, 10, {stroke:'blue'});
-        DEBUG && drawCross(ctx, ...c2, 10, {stroke:'green'});
+        DEBUG && drawCross(ctx, ...c1, 10, {stroke:fg});
+        DEBUG && drawCross(ctx, ...c2, 10, {stroke:fg});
 
         let t = 0;
         let inc = 1/steps;
@@ -191,7 +193,7 @@ export function moire(options) {
             ];
 
 
-            ctx.strokeStyle = fg;
+            //ctx.strokeStyle = fg;
 
             ctx.beginPath();
             ctx.moveTo(...p1);
@@ -220,7 +222,7 @@ export function moire(options) {
     let start = [0, 0];
     let end = [0, 0];
 
-    let REACH = SPAN * 0.6;
+    let REACH = SPAN * 0.3;
 
     //
     start = [
@@ -231,6 +233,13 @@ export function moire(options) {
         origin[0] + REACH * Math.cos(theta - PI),
         origin[1] + REACH * Math.sin(theta - PI)
     ];
+    // different endpoints
+    let theta2 = theta - PI + PI * randomInRange(-0.3, 0.3);
+    let end2 = [
+        origin[0] + REACH * Math.cos(theta2),
+        origin[1] + REACH * Math.sin(theta2)
+    ];
+
 
     // DEBUG
     DEBUG && drawCircle(ctx, ...start, REACH/2, {stroke:'red'});
@@ -265,26 +274,50 @@ export function moire(options) {
 
     // Set steps, thickness and separation of lines, skew
 
-    let steps = Math.round(LONG * randomInRange(0.15, 0.3));
-    let weight = LONG / steps * randomInRange(0.33, 0.66);
+    let steps = Math.round(REACH * randomInRange(0.15, 0.35));
+    let weight = REACH / steps * randomInRange(0.33, 0.66);
     ctx.lineWidth = weight;
     // console.log(`${Math.round(steps)} steps over ${Math.round(REACH)}px; ${(REACH/steps).toPrecision(3)}px per interval; ${weight.toPrecision(3)}px lines`);
-    let trackWidth = LONG * randomInRange(0.2, 0.5);
-    let skew = randomInRange(-PI/5, PI/5);
+    let trackWidth = LONG * randomInRange(0.1, 0.3);
+    let skew = PI * 0.3 * randomInRange(-1, 1);
 
 
-    // same endpoints
-    stepCurve(start, end, c1, c2, steps, trackWidth, skew);
-    stepCurve(start, end, c3, c4, steps, trackWidth, skew);
+    if (Math.random() < 0.3) {
+        fg2 = fg;
+    }
 
-    // different endpoints
-    let theta2 = theta - PI * randomInRange(0.8, 1.2);
-    let end2 = [
-        origin[0] + REACH * Math.cos(theta2),
-        origin[1] + REACH * Math.sin(theta2)
+    let renderModes = [
+
+        () => {
+            console.log('same endpoints, different controls');
+            ctx.strokeStyle = fg;
+            stepCurve(start, end, c1, c2, steps, trackWidth, skew);
+            ctx.strokeStyle = fg2;
+            stepCurve(start, end, c3, c4, steps, trackWidth, skew);
+        },
+
+        () => {
+            console.log('same start, different end, different controls');
+            ctx.strokeStyle = fg;
+            stepCurve(start, end, c1, c2, steps, trackWidth, skew);
+            ctx.strokeStyle = fg2;
+            stepCurve(start, end2, c3, c4, steps, trackWidth, skew);
+        },
+
+        () => {
+            console.log('same start, different end, shared control');
+            ctx.strokeStyle = fg;
+            stepCurve(start, end, c1, c2, steps, trackWidth, skew);
+            ctx.strokeStyle = fg2;
+            stepCurve(start, end2, c1, c4, steps, trackWidth, skew);
+        },
+
+        // stepCurve(start, end, origin, origin, 150, 200);
+        // stepCurve(start, end2, origin, origin, 150, 200);
+
     ];
-    // stepCurve(start, end, origin, origin, 150, 200);
-    // stepCurve(start, end2, origin, origin, 150, 200);
+
+    randItem(renderModes)();
 
 
     // same density
