@@ -209,12 +209,12 @@ export function moire(options) {
 
     // point placement for curve
 
-    let theta = randomInRange(0, PI); // the angle of the track axis
+    let theta = randomInRange(0, TWOPI); // the angle of the track axis
     let alpha = randomInRange(0, TWOPI); // angle of origin offset from center
-    let originR = randomInRange(0, 0.2); // radius of origin offset
+    let originOffset = SPAN * randomInRange(0, 0.1); // radius of origin offset
     let origin = [
-        cw/2 + SPAN * originR * Math.cos(alpha),
-        ch/2 + SPAN * originR * Math.sin(alpha)
+        cw/2 + originOffset * Math.cos(alpha),
+        ch/2 + originOffset * Math.sin(alpha)
     ];
 
     DEBUG && drawCross(ctx, ...origin, 20, {fill:'black'});
@@ -244,6 +244,7 @@ export function moire(options) {
     // DEBUG
     DEBUG && drawCircle(ctx, ...start, REACH/2, {stroke:'red'});
     DEBUG && drawCircle(ctx, ...end, REACH/2, {stroke:'green'});
+    DEBUG && drawCircle(ctx, ...end2, REACH/2, {stroke:'blue'});
 
 
     let a1 = theta;
