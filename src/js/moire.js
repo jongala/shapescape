@@ -207,6 +207,201 @@ export function moire(options) {
     }
 
 
+
+    // Create another canvas
+
+    let ref = document.querySelector('#ref');
+    if (!ref) {
+        ref = document.createElement('canvas');
+        ref.setAttribute('id','ref');
+        ref.setAttribute('width', cw);
+        ref.setAttribute('height', ch);
+        ref.className = 'artContainer';
+        //document.querySelector('body').appendChild(ref);
+    }
+    let rctx = ref.getContext('2d', { willReadFrequently: true });
+
+    rctx.fillStyle = 'black';
+    rctx.fillRect(0, 0, cw, ch);
+
+    rctx.strokeStyle = 'white';
+    //rctx.lineWidth = weight * 2; // exclusion based on stroke
+
+
+    // Function checks reference canvas at x, y and returns true
+    // if it is in bounds, and false if it is out of bounds.
+    // Eval is based on white in-bounds, black out-of-bounds
+    function checkBounds(x, y) {
+        let sample = rctx.getImageData(x, y, 1, 1).data;
+        // just a bit higher than 1 for anti-aliasing
+        return (sample[0] > 5);
+    }
+
+    function bezierX(a, b, c1, c2, t) {
+        return (1 - t) ** 3 * a[0] + 3 * (1 - t) ** 2 * t * c1[0] + 3 * (1 - t) * t ** 2 * c2[0] + t ** 3 * b[0];
+    }
+
+    function bezierY(a, b, c1, c2, t) {
+        return (1 - t) ** 3 * a[1] + 3 * (1 - t) ** 2 * t * c1[1] + 3 * (1 - t) * t ** 2 * c2[1] + t ** 3 * b[1];
+    }
+
+    function boundaryCurve(a, b, c1, c2, pathCount, steps, l, skew) {
+        /*
+        - Do bounds checking via an offscreen canvas:
+            - draw the curve with a very thick stroke
+
+        - start by doing a single step to establish vector, which
+            will allow computing the transverse angle
+        - have an array for each path in the track
+        - step finely along the path, moving forward, and
+            drifting transversely with each iteration, 
+            plotting a point each time
+        - the relative rate of forward and transverse movement sets
+            the angle/skew of the paths
+        - for each step check the bounds canvas. If the point
+            is out of bounds, end the path
+        - or check transverse val against max transversal???
+        - when a path expires for excessive drift, start a new path at the
+            minimum transversal 
+        - at each step on the source side of the track, check bounds
+            and add a new path if there is room
+        - the end result is a set of arrays of points;
+            plot them all via canvas or stitch into svg paths
+
+        */
+
+
+        let _color = ctx.strokeStyle;
+
+        ctx.globalAlpha = 0.2;
+        ctx.lineWidth = l;
+        //ctx.strokeStyle = 'black';
+
+        ctx.beginPath();
+        ctx.moveTo(...a);
+        ctx.bezierCurveTo(...c1, ...c2, ...b);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+
+        let paths = []; // array of arrays
+
+
+        paths.push({
+            active: true,
+            offset: 0,
+            pts: []
+        });
+
+        ctx.lineWidth = 1;
+        //ctx.strokeStyle = fg;
+
+        skew = 0;
+
+        let t = 0;
+        let inc = 1/steps;
+
+        let offset = 1/pathCount;
+        console.log('offset', offset);
+
+        let x = a[0];
+        let y = a[1];
+        let _x = x; // last x
+        let _y = y; // last y
+
+        // each point on curve
+        //drawCircle(ctx, x, y, 10, {stroke:'red'});
+
+        let v;
+        let p1 = [0, 0]; // start point of transverse line
+        let p2 = [0, 0]; // end point
+
+
+        // step thru the bezier
+        for (var i = 1; i <= steps; i++) {
+            t = i * inc;
+
+            x = (1 - t) ** 3 * a[0] + 3 * (1 - t) ** 2 * t * c1[0] + 3 * (1 - t) * t ** 2 * c2[0] + t ** 3 * b[0];
+            y = (1 - t) ** 3 * a[1] + 3 * (1 - t) ** 2 * t * c1[1] + 3 * (1 - t) * t ** 2 * c2[1] + t ** 3 * b[1];
+
+            // get vector from last point to this point
+            v = getVector([_x, _y], [x, y]);
+
+            let dx;
+            let dy;
+
+            // draw trasnverse line
+            p1 = [
+                _x + l * Math.cos(v.angle + skew - PI/2),
+                _y + l * Math.sin(v.angle + skew - PI/2),
+            ];
+            p2 = [
+                _x + l * Math.cos(v.angle + skew + PI/2),
+                _y + l * Math.sin(v.angle + skew + PI/2),
+            ];
+
+
+            // step through paths
+            paths.forEach((path) => {
+                // get the lateral offset of the path using
+                // the transverse line functions
+                let last = path.pts[path.pts.length - 1];
+                
+
+                // add the vector of v + drift to the last point
+                let next = [
+                    //last[0] + 
+                ]
+
+
+                // check new placement for bounds
+
+                // add point to path.pts
+
+            });
+
+
+            //ctx.strokeStyle = fg;
+
+            // draw transverse lines
+            // ctx.beginPath();
+            // ctx.moveTo(...p1);
+            // ctx.lineTo(...p2);
+            // ctx.stroke();
+
+            // path x and y
+            let px = 0;
+            let py = 0;
+            let poff = 0;
+            for (var j=0 ; j <= pathCount; j++) {
+                let poff = j * offset;
+                console.log(poff);
+                px = x + (-l/2 + j * offset * l) * Math.cos(v.angle - PI/2);
+                py = y + (-l/2 + j * offset * l) * Math.sin(v.angle - PI/2);
+                //console.log(px, py);
+                drawCircle(ctx, px, py, 1, {fill: _color});
+            }
+
+            // update point
+            _x = x;
+            _y = y;
+        }
+
+        // now go back and draw all then paths
+        paths.forEach((path) => {
+            if (!path.pts.length) return;
+            ctx.beginPath();
+            ctx.moveTo(...path.pts.shift());
+            path.pts.forEach((p) => {
+                ctx.lineTo(p[0], p[1]);
+            });
+            ctx.stroke();
+            //ctx.moveTo(path.pts[0][0], path.pts[0][1]);
+        });
+
+
+    }
+
+
     // point placement for curve
 
     let theta = randomInRange(0, TWOPI); // the angle of the track axis
@@ -318,11 +513,22 @@ export function moire(options) {
 
     ];
 
-    randItem(renderModes)();
+    //randItem(renderModes)();
 
 
-    // same density
-    // different density
+    let pathCount = 80;
+
+    ctx.strokeStyle = 'red';
+    boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, skew);
+
+    ctx.strokeStyle = 'blue';
+    boundaryCurve(start, end2, c1, c4, pathCount, steps, trackWidth, skew);
+
+    ctx.strokeStyle = fg;
+    //stepCurve(start, end, c1, c2, steps, trackWidth, skew);
+    
+    ctx.strokeStyle = fg2;
+    //stepCurve(start, end2, c1, c4, steps, trackWidth, skew);
 
 
 
