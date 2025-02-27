@@ -207,44 +207,6 @@ export function moire(options) {
     }
 
 
-
-    // Create another canvas
-
-    let ref = document.querySelector('#ref');
-    if (!ref) {
-        ref = document.createElement('canvas');
-        ref.setAttribute('id','ref');
-        ref.setAttribute('width', cw);
-        ref.setAttribute('height', ch);
-        ref.className = 'artContainer';
-        //document.querySelector('body').appendChild(ref);
-    }
-    let rctx = ref.getContext('2d', { willReadFrequently: true });
-
-    rctx.fillStyle = 'black';
-    rctx.fillRect(0, 0, cw, ch);
-
-    rctx.strokeStyle = 'white';
-    //rctx.lineWidth = weight * 2; // exclusion based on stroke
-
-
-    // Function checks reference canvas at x, y and returns true
-    // if it is in bounds, and false if it is out of bounds.
-    // Eval is based on white in-bounds, black out-of-bounds
-    function checkBounds(x, y) {
-        let sample = rctx.getImageData(x, y, 1, 1).data;
-        // just a bit higher than 1 for anti-aliasing
-        return (sample[0] > 5);
-    }
-
-    function bezierX(a, b, c1, c2, t) {
-        return (1 - t) ** 3 * a[0] + 3 * (1 - t) ** 2 * t * c1[0] + 3 * (1 - t) * t ** 2 * c2[0] + t ** 3 * b[0];
-    }
-
-    function bezierY(a, b, c1, c2, t) {
-        return (1 - t) ** 3 * a[1] + 3 * (1 - t) ** 2 * t * c1[1] + 3 * (1 - t) * t ** 2 * c2[1] + t ** 3 * b[1];
-    }
-
     function boundaryCurve(a, b, c1, c2, pathCount, steps, l, drift) {
         /*
         - Do bounds checking via an offscreen canvas:
@@ -271,36 +233,37 @@ export function moire(options) {
         */
 
 
+        let spacing = 1/pathCount;
+
         let _color = ctx.strokeStyle;
 
         // DEBUG: directly draw the ghost of the path
-        ctx.globalAlpha = 0.15;
-        ctx.lineWidth = l;
-        ctx.beginPath();
-        ctx.moveTo(...a);
-        ctx.bezierCurveTo(...c1, ...c2, ...b);
-        ctx.stroke();
-        ctx.globalAlpha = 1;
+        // ctx.globalAlpha = 0.15;
+        // ctx.lineWidth = l;
+        // ctx.beginPath();
+        // ctx.moveTo(...a);
+        // ctx.bezierCurveTo(...c1, ...c2, ...b);
+        // ctx.stroke();
+        // ctx.globalAlpha = 1;
 
         let paths = []; // array of arrays
         for (var i = 0; i <= pathCount; i++) {
-            paths.push([]); // push an array for each path
+            paths.push({
+                pts:[],
+                offset: l * (-1/2 + i * spacing),
+                active: true
+            }); // push an array for each path
         }
-
-
 
         ctx.lineWidth = 1;
         //ctx.strokeStyle = fg;
 
-        // normalize drift
-        drift = drift || 0;
-        drift = drift/100; // percentage
-
         let t = 0;
         let inc = 1/steps;
 
-        let offset = 1/pathCount;
-        console.log('offset', offset);
+         // normalize drift
+        drift = drift || 0;
+        drift = drift/100; // percentage
 
         let x = a[0];
         let y = a[1];
@@ -311,9 +274,8 @@ export function moire(options) {
         //drawCircle(ctx, x, y, 10, {stroke:'red'});
 
         let v;
-        let p1 = [0, 0]; // start point of transverse line
-        let p2 = [0, 0]; // end point
 
+        let insert = 0; // tracks when to insert a new path
 
         // step thru the bezier
         for (var i = 1; i <= steps; i++) {
@@ -325,50 +287,43 @@ export function moire(options) {
             // get vector from last point to this point
             v = getVector([_x, _y], [x, y]);
 
-            let dx;
-            let dy;
-
-            // draw trasnverse line
-            p1 = [
-                _x + l * Math.cos(v.angle + skew - PI/2),
-                _y + l * Math.sin(v.angle + skew - PI/2),
-            ];
-            p2 = [
-                _x + l * Math.cos(v.angle + skew + PI/2),
-                _y + l * Math.sin(v.angle + skew + PI/2),
-            ];
-
-
             // path x and y
             let px = 0;
             let py = 0;
             let poff = l;
             // step through paths
             paths.forEach((path, j) => {
-                px = x + (-l/2 + j * offset * l) * Math.cos(v.angle - PI/2);
-                py = y + (-l/2 + j * offset * l) * Math.sin(v.angle - PI/2);
-                path.push([px, py]);
+                if (path.active) {
+                    px = x + path.offset * Math.cos(v.angle - PI/2);
+                    py = y + path.offset * Math.sin(v.angle - PI/2);
+                    path.pts.push([px, py]);
+                    path.offset += drift;
+                }
+                if (path.offset > l/2 || path.offset < -l/2) {
+                    path.active = false;
+                }
             });
 
-
-            //ctx.strokeStyle = fg;
-
-            // draw transverse lines
-            // ctx.beginPath();
-            // ctx.moveTo(...p1);
-            // ctx.lineTo(...p2);
-            // ctx.stroke();
-
-
-            // direct draw path points
-            // for (var j=0 ; j <= pathCount; j++) {
-            //     let poff = j * offset;
-            //     console.log(poff);
-            //     px = x + (-l/2 + j * offset * l) * Math.cos(v.angle - PI/2);
-            //     py = y + (-l/2 + j * offset * l) * Math.sin(v.angle - PI/2);
-            //     //console.log(px, py);
-            //     drawCircle(ctx, px, py, 1, {fill: _color});
-            // }
+            let creep = Math.floor(i * drift/(spacing * l));
+            if (creep > insert) {
+                insert = creep;
+                // push to end
+                // unshift to start
+                if (drift > 0) {
+                    paths.unshift({
+                        active: true,
+                        offset: -l/2,
+                        pts: []
+                    });
+                }
+                if (drift < 0) {
+                    paths.push({
+                        active: true,
+                        offset: l/2,
+                        pts: []
+                    });
+                }
+            }
 
             // update point
             _x = x;
@@ -377,17 +332,14 @@ export function moire(options) {
 
         // now go back and draw all then paths
         paths.forEach((path) => {
-            if (!path.length) return;
+            if (!path.pts.length) return;
             ctx.beginPath();
-            ctx.moveTo(...path.shift());
-            path.forEach((p) => {
+            ctx.moveTo(...path.pts.shift());
+            path.pts.forEach((p) => {
                 ctx.lineTo(p[0], p[1]);
             });
             ctx.stroke();
-            //ctx.moveTo(path.pts[0][0], path.pts[0][1]);
         });
-
-
     }
 
 
@@ -462,7 +414,7 @@ export function moire(options) {
     let steps = Math.round(REACH * randomInRange(0.15, 0.35));
     let weight = REACH / steps * randomInRange(0.33, 0.66);
     ctx.lineWidth = weight;
-    // console.log(`${Math.round(steps)} steps over ${Math.round(REACH)}px; ${(REACH/steps).toPrecision(3)}px per interval; ${weight.toPrecision(3)}px lines`);
+    console.log(`${Math.round(steps)} steps over ${Math.round(REACH)}px; ${(REACH/steps).toPrecision(3)}px per interval; ${weight.toPrecision(3)}px lines`);
     let trackWidth = LONG * randomInRange(0.1, 0.3);
     let skew = PI * 0.3 * randomInRange(-1, 1);
 
@@ -508,10 +460,10 @@ export function moire(options) {
     let pathCount = 30;
 
     ctx.strokeStyle = 'red';
-    boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, 50);
+    boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, 150);
 
     ctx.strokeStyle = 'blue';
-    boundaryCurve(start, end2, c1, c4, pathCount, steps, trackWidth, 50);
+    boundaryCurve(start, end2, c1, c4, pathCount, steps, trackWidth, 550);
 
     ctx.strokeStyle = fg;
     //stepCurve(start, end, c1, c2, steps, trackWidth, skew);
