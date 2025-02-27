@@ -98,7 +98,7 @@ export function moire(options) {
         */
 
 
-        let spacing = 1/pathCount;
+        let spacing = l/pathCount;
 
         // DEBUG: directly draw the ghost of the path
         // let _weight = ctx.lineWidth;
@@ -115,7 +115,7 @@ export function moire(options) {
         for (var i = 0; i <= pathCount; i++) {
             paths.push({
                 pts:[],
-                offset: l * (-1/2 + i * spacing),
+                offset: l * -1/2 + i * spacing,
                 active: true
             }); // push an array for each path
         }
@@ -126,6 +126,11 @@ export function moire(options) {
          // normalize drift
         drift = drift || 0;
         drift = drift/100; // percentage
+        // drift * N = spacing.
+        // TODO: make drift normalized both to spacing and the step increment.
+        // current behavior is sensitive to step count.
+        drift = spacing / randomInt(1, 3);
+        console.log(`${drift.toPrecision(3)}px drift from ${spacing.toPrecision(3)}px spacing`);
 
         let x = a[0];
         let y = a[1];
@@ -166,7 +171,7 @@ export function moire(options) {
                 }
             });
 
-            let creep = Math.floor(i * drift/(spacing * l));
+            let creep = Math.floor(i * drift/spacing);
             if (creep > insert) {
                 insert = creep;
                 // push to end
@@ -276,12 +281,13 @@ export function moire(options) {
     // Set steps, thickness and separation of lines, skew
 
     let steps = Math.round(REACH * randomInRange(0.15, 0.35));
+    steps *= 2;
     let trackWidth = LONG * randomInRange(0.1, 0.3);
     let skew = PI * 0.3 * randomInRange(-1, 1);
     let pathCount = 30;
     let weight = trackWidth / pathCount * randomInRange(0.13, 0.33);
     ctx.lineWidth = weight;
-    console.log(`${Math.round(steps)} steps over ${Math.round(REACH)}px; ${(REACH/steps).toPrecision(3)}px per interval; ${weight.toPrecision(3)}px lines`);
+    console.log(`${Math.round(steps)} steps over ${Math.round(REACH)}px; ${(REACH/steps).toPrecision(3)}px per interval; ${weight.toPrecision(3)}px lines at ${(trackWidth/pathCount).toPrecision(3)}px spacing`);
 
 
     // sometimes, use the same color for both
