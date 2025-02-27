@@ -78,156 +78,21 @@ export function moire(options) {
     // --------------------------------------
 
 
-    let lines = [];
-    let lineCount = 100;
-    for (var i = 0; i <= lineCount; i++) {
-        let line = [];
-        line.push([cw/4, ch * (1 - i/lineCount)]);
-        line.push([3 * cw/4, ch * (1 - i/lineCount)]);
-        lines.push(line);
-    }
-
-    // lines.forEach(line => {
-    //     ctx.beginPath();
-    //     ctx.moveTo(...line[0]);
-    //     ctx.lineTo(...line[1]);
-    //     ctx.stroke();
-    // });
-
-
-    function lineSteps(a, b, steps, l, curve) {
-        let v = getVector(a, b);
-        let inc = v.length / steps;
-
-        let x = a[0];
-        let y = a[1];
-        let p1 = [0, 0]; // start point of transverse line
-        let p2 = [0, 0]; // end point
-
-        ctx.beginPath();
-
-        for (var i = 0; i <= steps; i++) {
-            x += inc * Math.cos(v.angle);
-            y += inc * Math.sin(v.angle);
-
-            //drawCircle(ctx, x, y, 20, {stroke:'black'});
-
-            p1 = [
-                x + l * Math.cos(v.angle - PI/2),
-                y + l * Math.sin(v.angle - PI/2),
-            ];
-            p2 = [
-                x + l * Math.cos(v.angle + PI/2),
-                y + l * Math.sin(v.angle + PI/2),
-            ];
-
-            //drawCircle(ctx, ...p1, 10, {stroke:'red'});
-            //drawCircle(ctx, ...p2, 10, {fill:'blue'});
-
-            //ctx.beginPath();
-            ctx.moveTo(...p1);
-            ctx.lineTo(...p2);
-            //ctx.stroke();
-
-
-            //ctx.lineTo(x, y);
-            //ctx.stroke();
-        }
-
-        ctx.stroke();
-    }
-
-    //lineSteps([cw/4, ch],[3 * cw/4, 0], 100, 100);
-
-
-    ctx.strokeStyle = 'black';
-
-    ctx.lineWidth = 2;
-
-    function stepCurve(a, b, c1, c2, steps, l, skew) {
-        // ctx.beginPath();
-        // ctx.moveTo(...a);
-        // ctx.bezierCurveTo(...c1, ...c2, ...b);
-        // ctx.stroke();
-
-        skew = skew || 0;
-
-        // DEBUG
-        DEBUG && drawCross(ctx, ...c1, 10, {stroke:fg});
-        DEBUG && drawCross(ctx, ...c2, 10, {stroke:fg});
-
-        let t = 0;
-        let inc = 1/steps;
-
-        let x = a[0];
-        let y = a[1];
-        let _x = x; // last x
-        let _y = y; // last y
-
-        // each point on curve
-        //drawCircle(ctx, x, y, 10, {stroke:'red'});
-
-        let v;
-        let p1 = [0, 0]; // start point of transverse line
-        let p2 = [0, 0]; // end point
-
-
-        // step thru the bezier
-        for (var i = 1; i <= steps; i++) {
-            t = i * inc;
-
-            x = (1 - t) ** 3 * a[0] +       3 * (1 - t) ** 2 * t * c1[0] +      3 * (1 - t) * t ** 2 * c2[0] +      t ** 3 * b[0];
-            y = (1 - t) ** 3 * a[1] +       3 * (1 - t) ** 2 * t * c1[1] +      3 * (1 - t) * t ** 2 * c2[1] +      t ** 3 * b[1];
-
-            // get vector from last point to this point
-            v = getVector([_x, _y], [x, y]);
-
-            // draw trasnverse line
-            p1 = [
-                _x + l * Math.cos(v.angle + skew - PI/2),
-                _y + l * Math.sin(v.angle + skew - PI/2),
-            ];
-            p2 = [
-                _x + l * Math.cos(v.angle + skew + PI/2),
-                _y + l * Math.sin(v.angle + skew + PI/2),
-            ];
-
-
-            //ctx.strokeStyle = fg;
-
-            ctx.beginPath();
-            ctx.moveTo(...p1);
-            ctx.lineTo(...p2);
-            ctx.stroke();
-
-            // update point
-            _x = x;
-            _y = y;
-        }
-    }
-
-
     function boundaryCurve(a, b, c1, c2, pathCount, steps, l, drift) {
         /*
-        - Do bounds checking via an offscreen canvas:
-            - draw the curve with a very thick stroke
 
-        - start by doing a single step to establish vector, which
-            will allow computing the transverse angle
-        - have an array for each path in the track
-        - step finely along the path, moving forward, and
-            drifting transversely with each iteration,
-            plotting a point each time
+        - make an array of path objects, which have points and track
+            their transverse offset and active/inactive status
+        - start at point a, then proceed from step 1 (vs 0)
+        - step finely along the path, moving forward, adding points to
+            each path as you go. At each step, drift transversely.
         - the relative rate of forward and transverse movement sets
             the angle/skew of the paths
-        - for each step check the bounds canvas. If the point
-            is out of bounds, end the path
-        - or check transverse val against max transversal???
-        - when a path expires for excessive drift, start a new path at the
-            minimum transversal
-        - at each step on the source side of the track, check bounds
-            and add a new path if there is room
-        - the end result is a set of arrays of points;
+        - for each step check transverse offset against the track width
+            and deactivate when it exceeds bounds
+        - track drift and when we have drifted by the spacing between paths
+            add another path
+        - the end is a set of path objects with their points; when complete
             plot them all via canvas or stitch into svg paths
 
         */
@@ -235,9 +100,8 @@ export function moire(options) {
 
         let spacing = 1/pathCount;
 
-        let _color = ctx.strokeStyle;
-
         // DEBUG: directly draw the ghost of the path
+        // let _weight = ctx.lineWidth;
         // ctx.globalAlpha = 0.15;
         // ctx.lineWidth = l;
         // ctx.beginPath();
@@ -245,6 +109,7 @@ export function moire(options) {
         // ctx.bezierCurveTo(...c1, ...c2, ...b);
         // ctx.stroke();
         // ctx.globalAlpha = 1;
+        // ctx.lineWidth = _weight;
 
         let paths = []; // array of arrays
         for (var i = 0; i <= pathCount; i++) {
@@ -270,7 +135,7 @@ export function moire(options) {
         // each point on curve
         //drawCircle(ctx, x, y, 10, {stroke:'red'});
 
-        let v;
+        let v; // the vector between steps
 
         let insert = 0; // tracks when to insert a new path
 
