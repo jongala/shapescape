@@ -255,9 +255,6 @@ export function moire(options) {
             }); // push an array for each path
         }
 
-        ctx.lineWidth = 1;
-        //ctx.strokeStyle = fg;
-
         let t = 0;
         let inc = 1/steps;
 
@@ -343,7 +340,7 @@ export function moire(options) {
     }
 
 
-    // point placement for curve
+    // point placement for main curves
 
     let theta = randomInRange(0, TWOPI); // the angle of the track axis
     let alpha = randomInRange(0, TWOPI); // angle of origin offset from center
@@ -360,7 +357,7 @@ export function moire(options) {
 
     let REACH = SPAN * 0.3;
 
-    //
+    // create start and end points
     start = [
         origin[0] + REACH * Math.cos(theta),
         origin[1] + REACH * Math.sin(theta)
@@ -383,6 +380,8 @@ export function moire(options) {
     DEBUG && drawCircle(ctx, ...end2, REACH/2, {stroke:'blue'});
 
 
+
+    // Set control points relative to the track axis
     let a1 = theta;
     let r1 = REACH * 0.5;
     let c1 = [
@@ -412,41 +411,48 @@ export function moire(options) {
     // Set steps, thickness and separation of lines, skew
 
     let steps = Math.round(REACH * randomInRange(0.15, 0.35));
-    let weight = REACH / steps * randomInRange(0.33, 0.66);
-    ctx.lineWidth = weight;
-    console.log(`${Math.round(steps)} steps over ${Math.round(REACH)}px; ${(REACH/steps).toPrecision(3)}px per interval; ${weight.toPrecision(3)}px lines`);
     let trackWidth = LONG * randomInRange(0.1, 0.3);
     let skew = PI * 0.3 * randomInRange(-1, 1);
+    let pathCount = 30;
+    let weight = trackWidth / pathCount * randomInRange(0.13, 0.33);
+    ctx.lineWidth = weight;
+    console.log(`${Math.round(steps)} steps over ${Math.round(REACH)}px; ${(REACH/steps).toPrecision(3)}px per interval; ${weight.toPrecision(3)}px lines`);
 
 
+    // sometimes, use the same color for both
     if (Math.random() < 0.3) {
         fg2 = fg;
     }
+
+    // DEBUG
+    fg = 'red';
+    fg2 = 'blue';
+
 
     let renderModes = [
 
         () => {
             console.log('same endpoints, different controls');
             ctx.strokeStyle = fg;
-            stepCurve(start, end, c1, c2, steps, trackWidth, skew);
+            boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, 150);
             ctx.strokeStyle = fg2;
-            stepCurve(start, end, c3, c4, steps, trackWidth, skew);
+            boundaryCurve(start, end, c3, c4, pathCount, steps, trackWidth, 550);
         },
 
         () => {
             console.log('same start, different end, different controls');
             ctx.strokeStyle = fg;
-            stepCurve(start, end, c1, c2, steps, trackWidth, skew);
+            boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, 150);
             ctx.strokeStyle = fg2;
-            stepCurve(start, end2, c3, c4, steps, trackWidth, skew);
+            boundaryCurve(start, end2, c3, c4, pathCount, steps, trackWidth, 550);
         },
 
         () => {
             console.log('same start, different end, shared control');
             ctx.strokeStyle = fg;
-            stepCurve(start, end, c1, c2, steps, trackWidth, skew);
+            boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, 150);
             ctx.strokeStyle = fg2;
-            stepCurve(start, end2, c1, c4, steps, trackWidth, skew);
+            boundaryCurve(start, end2, c1, c4, pathCount, steps, trackWidth, 550);
         },
 
         // stepCurve(start, end, origin, origin, 150, 200);
@@ -454,25 +460,8 @@ export function moire(options) {
 
     ];
 
-    //randItem(renderModes)();
-
-
-    let pathCount = 30;
-
-    ctx.strokeStyle = 'red';
-    boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, 150);
-
-    ctx.strokeStyle = 'blue';
-    boundaryCurve(start, end2, c1, c4, pathCount, steps, trackWidth, 550);
-
-    ctx.strokeStyle = fg;
-    //stepCurve(start, end, c1, c2, steps, trackWidth, skew);
-
-    ctx.strokeStyle = fg2;
-    //stepCurve(start, end2, c1, c4, steps, trackWidth, skew);
-
-
-
+    // Finally: draw
+    randItem(renderModes)();
 
 
     // Finish up
