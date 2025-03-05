@@ -55,7 +55,7 @@ export function moire(options) {
 
     // shared colors
     let bg = getSolidFill();
-    bg = randItem(['#fcf9f0','#f3f2f1','#f3f9fc']);
+    bg = randItem(['#fcf9f0','#f3f2f1','#f4f9fb','#f6f4f2']);
 
     // get palette of non-bg colors
     let contrastPalette = [].concat(opts.palette);
@@ -72,6 +72,16 @@ export function moire(options) {
 
     // set default stroke
     ctx.strokeStyle = fg;
+
+
+    function estimateCurveLength(a, b, c1, c2) {
+        let direct = getVector(a, b).length;
+        let hull = 0;
+        hull += getVector(a, c1).length;
+        hull += getVector(c1, c2).length;
+        hull += getVector(c2, b).length;
+        return .6 * direct + .4 * hull;
+    }
 
 
     // Draw Stuff
@@ -97,19 +107,25 @@ export function moire(options) {
 
         */
 
+        let curveLength = estimateCurveLength(a, b, c1, c2);
+        let normalizedStep = curveLength/steps;
+        console.log(`curve length about ${curveLength.toPrecision(4)}px each step about ${normalizedStep.toPrecision(4)}px`);
+
 
         let spacing = l/pathCount;
 
-        // DEBUG: directly draw the ghost of the path
-        // let _weight = ctx.lineWidth;
-        // ctx.globalAlpha = 0.15;
-        // ctx.lineWidth = l;
-        // ctx.beginPath();
-        // ctx.moveTo(...a);
-        // ctx.bezierCurveTo(...c1, ...c2, ...b);
-        // ctx.stroke();
-        // ctx.globalAlpha = 1;
-        // ctx.lineWidth = _weight;
+        //DEBUG: directly draw the ghost of the path
+        if (DEBUG) {
+            let _weight = ctx.lineWidth;
+            ctx.globalAlpha = 0.15;
+            ctx.lineWidth = l;
+            ctx.beginPath();
+            ctx.moveTo(...a);
+            ctx.bezierCurveTo(...c1, ...c2, ...b);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+            ctx.lineWidth = _weight;
+        }
 
         let paths = []; // array of arrays
         for (var i = 0; i <= pathCount; i++) {
@@ -129,7 +145,21 @@ export function moire(options) {
         // drift * N = spacing.
         // TODO: make drift normalized both to spacing and the step increment.
         // current behavior is sensitive to step count.
-        drift = spacing / randomInt(1, 3);
+
+        // a direct percentage of the average step
+        drift = normalizedStep * drift;
+
+        // re-express as a fraction of the spacing, so we get there
+        // in even numbers of steps
+        // drift * N = spacing
+        // drift = spacing / N
+        // N = spacing / normalizedDrift
+        let N = spacing / (normalizedStep * drift);
+        console.log(`DRIFT: ${N.toPrecision(3)} steps for drift from ${spacing.toPrecision(3)} spacing, ${drift.toPrecision(3)} drift`);
+        //drift = spacing / N;
+        //drift = spacing *  3 / 5;
+
+
         console.log(`${drift.toPrecision(3)}px drift from ${spacing.toPrecision(3)}px spacing`);
 
         let x = a[0];
@@ -158,20 +188,28 @@ export function moire(options) {
             let px = 0;
             let py = 0;
             let poff = l;
+            let inBounds = true;
             // step through paths
             paths.forEach((path, j) => {
-                if (path.active) {
-                    px = x + path.offset * Math.cos(v.angle - PI/2);
-                    py = y + path.offset * Math.sin(v.angle - PI/2);
-                    path.pts.push([px, py]);
-                    path.offset += drift;
-                }
-                if (path.offset > l/2 || path.offset < -l/2) {
+                path.offset += drift;
+                inBounds = (path.offset > -l/2 && path.offset < l/2);
+                if (inBounds) {
+                    if (path.active) {
+                        px = x + path.offset * Math.cos(v.angle + PI/2);
+                        py = y + path.offset * Math.sin(v.angle + PI/2);
+                        path.pts.push([px, py]);
+                    }
+                } else {
                     path.active = false;
                 }
             });
 
+            let totalDrift = i * drift;
+            let offsetTracker = totalDrift % spacing;
+
             let creep = Math.floor(i * drift/spacing);
+            let remainder = (i * drift) % spacing;
+                            /* total drift % spacing */
             if (creep > insert) {
                 insert = creep;
                 // push to end
@@ -179,14 +217,15 @@ export function moire(options) {
                 if (drift > 0) {
                     paths.unshift({
                         active: true,
-                        offset: -l/2,
+                        //offset: minOff - spacing,//-l/2,
+                        offset: -l/2 + remainder,
                         pts: []
                     });
                 }
                 if (drift < 0) {
                     paths.push({
                         active: true,
-                        offset: l/2,
+                        offset: l/2 - remainder,
                         pts: []
                     });
                 }
@@ -282,7 +321,7 @@ export function moire(options) {
 
     let steps = Math.round(REACH * randomInRange(0.15, 0.35));
     steps *= 2;
-    let trackWidth = LONG * randomInRange(0.1, 0.3);
+    let trackWidth = LONG * randomInRange(0.15, 0.3);
     let skew = PI * 0.3 * randomInRange(-1, 1);
     let pathCount = 30;
     let weight = trackWidth / pathCount * randomInRange(0.13, 0.33);
@@ -305,25 +344,25 @@ export function moire(options) {
         () => {
             console.log('same endpoints, different controls');
             ctx.strokeStyle = fg;
-            boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, 150);
+            boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, 50);
             ctx.strokeStyle = fg2;
-            boundaryCurve(start, end, c3, c4, pathCount, steps, trackWidth, 550);
+            boundaryCurve(start, end, c3, c4, pathCount, steps, trackWidth, 100);
         },
 
         () => {
             console.log('same start, different end, different controls');
             ctx.strokeStyle = fg;
-            boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, 150);
+            boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, 50);
             ctx.strokeStyle = fg2;
-            boundaryCurve(start, end2, c3, c4, pathCount, steps, trackWidth, 550);
+            boundaryCurve(start, end2, c3, c4, pathCount, steps, trackWidth, 100);
         },
 
         () => {
             console.log('same start, different end, shared control');
             ctx.strokeStyle = fg;
-            boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, 150);
+            boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, 50);
             ctx.strokeStyle = fg2;
-            boundaryCurve(start, end2, c1, c4, pathCount, steps, trackWidth, 550);
+            boundaryCurve(start, end2, c1, c4, pathCount, steps, trackWidth, 100);
         },
 
         // stepCurve(start, end, origin, origin, 150, 200);
