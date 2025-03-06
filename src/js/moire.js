@@ -139,26 +139,20 @@ export function moire(options) {
         let t = 0;
         let inc = 1/steps;
 
-         // normalize drift
+         // normalize drift input so it expresses a percentage of forward step
         drift = drift || 0;
-        drift = drift/100; // percentage
-        // drift * N = spacing.
-        // TODO: make drift normalized both to spacing and the step increment.
-        // current behavior is sensitive to step count.
-
-        // a direct percentage of the average step
-        drift = normalizedStep * drift;
+        drift = drift/100 * normalizedStep; // percentage
 
         // re-express as a fraction of the spacing, so we get there
         // in even numbers of steps
         // drift * N = spacing
         // drift = spacing / N
         // N = spacing / normalizedDrift
-        let N = spacing / (normalizedStep * drift);
+        let N = spacing / drift;
         console.log(`DRIFT: ${N.toPrecision(3)} steps for drift from ${spacing.toPrecision(3)} spacing, ${drift.toPrecision(3)} drift`);
         //drift = spacing / N;
         //drift = spacing *  3 / 5;
-
+        let M = Math.floor(N);
 
         console.log(`${drift.toPrecision(3)}px drift from ${spacing.toPrecision(3)}px spacing`);
 
@@ -174,6 +168,14 @@ export function moire(options) {
 
         let insert = 0; // tracks when to insert a new path
 
+        /*
+            Either 1 or -1. Will work with the vector angle to set
+            direction of drift. Keeping drift positive and switching
+            direction with this allows simpler bounds checking and
+            insertion of new paths.
+        */
+        let direction = 1;
+
         // step thru the bezier
         for (var i = 1; i <= steps; i++) {
             t = i * inc;
@@ -187,48 +189,44 @@ export function moire(options) {
             // path x and y
             let px = 0;
             let py = 0;
-            let poff = l;
-            let inBounds = true;
+
             // step through paths
             paths.forEach((path, j) => {
-                path.offset += drift;
-                inBounds = (path.offset > -l/2 && path.offset < l/2);
-                if (inBounds) {
-                    if (path.active) {
-                        px = x + path.offset * Math.cos(v.angle + PI/2);
-                        py = y + path.offset * Math.sin(v.angle + PI/2);
+                /*
+                    Paths can be:
+                    1. out of bounds on the negative side, drifting in
+                    2. in bounds, drifting out
+                    3. out of bounds on positive side, never to return
+                */
+                if (path.active) {
+                    px = x + path.offset * Math.cos(v.angle + direction * PI/2);
+                    py = y + path.offset * Math.sin(v.angle + direction * PI/2);
+
+                    if (path.offset > -l/2 && path.offset < l/2) {
                         path.pts.push([px, py]);
                     }
-                } else {
+                }
+                // only check positive bound to deactivate; if it is below
+                // negative bound it is drifting in and should stay active
+                if (path.offset > l/2) {
                     path.active = false;
                 }
-            });
 
-            let totalDrift = i * drift;
-            let offsetTracker = totalDrift % spacing;
+                path.offset += drift;
+            });
 
             let creep = Math.floor(i * drift/spacing);
             let remainder = (i * drift) % spacing;
                             /* total drift % spacing */
+
             if (creep > insert) {
-                insert = creep;
-                // push to end
-                // unshift to start
-                if (drift > 0) {
-                    paths.unshift({
-                        active: true,
-                        //offset: minOff - spacing,//-l/2,
-                        offset: -l/2 + remainder,
-                        pts: []
-                    });
-                }
-                if (drift < 0) {
-                    paths.push({
-                        active: true,
-                        offset: l/2 - remainder,
-                        pts: []
-                    });
-                }
+                insert = creep; // reset
+                paths.unshift({
+                    active: true,
+                    //offset: minOff - spacing,//-l/2,
+                    offset: -l/2 + remainder,
+                    pts: []
+                });
             }
 
             // update point
@@ -320,7 +318,7 @@ export function moire(options) {
     // Set steps, thickness and separation of lines, skew
 
     let steps = Math.round(REACH * randomInRange(0.15, 0.35));
-    steps *= 2;
+    steps *= 4;
     let trackWidth = LONG * randomInRange(0.15, 0.3);
     let skew = PI * 0.3 * randomInRange(-1, 1);
     let pathCount = 30;
