@@ -55,7 +55,7 @@ export function moire(options) {
 
     // shared colors
     let bg = getSolidFill();
-    bg = randItem(['#fcf9f0','#f3f2f1','#f4f9fb','#f6f4f2']);
+    //bg = randItem(['#fcf9f0','#f3f2f1','#f4f9fb','#f6f4f2']);
 
     // get palette of non-bg colors
     let contrastPalette = [].concat(opts.palette);
@@ -154,7 +154,6 @@ export function moire(options) {
         //drift = spacing *  3 / 5;
         let M = Math.floor(N);
 
-        console.log(`${drift.toPrecision(3)}px drift from ${spacing.toPrecision(3)}px spacing`);
 
         let x = a[0];
         let y = a[1];
@@ -321,10 +320,10 @@ export function moire(options) {
     steps *= 4;
     let trackWidth = LONG * randomInRange(0.15, 0.3);
     let skew = PI * 0.3 * randomInRange(-1, 1);
-    let pathCount = 30;
+    let pathCount = randomInt(20, 40);
     let weight = trackWidth / pathCount * randomInRange(0.13, 0.33);
     ctx.lineWidth = weight;
-    console.log(`${Math.round(steps)} steps over ${Math.round(REACH)}px; ${(REACH/steps).toPrecision(3)}px per interval; ${weight.toPrecision(3)}px lines at ${(trackWidth/pathCount).toPrecision(3)}px spacing`);
+    DEBUG && console.log(`${Math.round(steps)} steps over ${Math.round(REACH)}px; ${(REACH/steps).toPrecision(3)}px per interval; ${weight.toPrecision(3)}px lines at ${(trackWidth/pathCount).toPrecision(3)}px spacing`);
 
 
     // sometimes, use the same color for both
@@ -333,8 +332,14 @@ export function moire(options) {
     }
 
     // DEBUG
-    fg = 'red';
-    fg2 = 'blue';
+    // fg = 'red';
+    // fg2 = 'blue';
+
+
+    let drift1 = randomInRange(10, 100);
+    let drift2 = randomInRange(10, 100);
+    // usually sync drift
+    if (Math.random() < .80) drift2 = drift1;
 
 
     let renderModes = [
@@ -342,25 +347,25 @@ export function moire(options) {
         () => {
             console.log('same endpoints, different controls');
             ctx.strokeStyle = fg;
-            boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, 50);
+            boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, drift1);
             ctx.strokeStyle = fg2;
-            boundaryCurve(start, end, c3, c4, pathCount, steps, trackWidth, 100);
+            boundaryCurve(start, end, c3, c4, pathCount, steps, trackWidth, drift2);
         },
 
         () => {
             console.log('same start, different end, different controls');
             ctx.strokeStyle = fg;
-            boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, 50);
+            boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, drift1);
             ctx.strokeStyle = fg2;
-            boundaryCurve(start, end2, c3, c4, pathCount, steps, trackWidth, 100);
+            boundaryCurve(start, end2, c3, c4, pathCount, steps, trackWidth, drift2);
         },
 
         () => {
             console.log('same start, different end, shared control');
             ctx.strokeStyle = fg;
-            boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, 50);
+            boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, drift1);
             ctx.strokeStyle = fg2;
-            boundaryCurve(start, end2, c1, c4, pathCount, steps, trackWidth, 100);
+            boundaryCurve(start, end2, c1, c4, pathCount, steps, trackWidth, drift2);
         },
 
         // stepCurve(start, end, origin, origin, 150, 200);
