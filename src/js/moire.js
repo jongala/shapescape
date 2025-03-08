@@ -1,6 +1,6 @@
 import noiseUtils from './noiseutils';
 import palettes from './palettes';
-import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, getAngle, getVector, mapKeywordToVal } from './utils';
+import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, getAngle, getVector, mapKeywordToVal, Note } from './utils';
 import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon, drawCross } from './shapes';
 
 const DEFAULTS = {
@@ -46,6 +46,8 @@ export function moire(options) {
     }
 
     let ctx = el.getContext('2d');
+
+    let note = new Note();
 
 
     // Color funcs
@@ -109,7 +111,7 @@ export function moire(options) {
 
         let curveLength = estimateCurveLength(a, b, c1, c2);
         let normalizedStep = curveLength/steps;
-        console.log(`curve length about ${curveLength.toPrecision(4)}px each step about ${normalizedStep.toPrecision(4)}px`);
+        note.add(`curve length about ${curveLength.toPrecision(4)}px each step about ${normalizedStep.toPrecision(4)}px`);
 
 
         let spacing = l/pathCount;
@@ -149,7 +151,7 @@ export function moire(options) {
         // drift = spacing / N
         // N = spacing / normalizedDrift
         let N = spacing / drift;
-        console.log(`DRIFT: ${N.toPrecision(3)} steps for drift from ${spacing.toPrecision(3)} spacing, ${drift.toPrecision(3)} drift`);
+        note.add(`DRIFT: ${N.toPrecision(3)} steps for drift from ${spacing.toPrecision(3)} spacing, ${drift.toPrecision(3)} drift`);
         //drift = spacing / N;
         //drift = spacing *  3 / 5;
         let M = Math.floor(N);
@@ -345,7 +347,7 @@ export function moire(options) {
     let renderModes = [
 
         () => {
-            console.log('same endpoints, different controls');
+            note.add('same endpoints, different controls');
             ctx.strokeStyle = fg;
             boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, drift1);
             ctx.strokeStyle = fg2;
@@ -353,7 +355,7 @@ export function moire(options) {
         },
 
         () => {
-            console.log('same start, different end, different controls');
+            note.add('same start, different end, different controls');
             ctx.strokeStyle = fg;
             boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, drift1);
             ctx.strokeStyle = fg2;
@@ -361,7 +363,7 @@ export function moire(options) {
         },
 
         () => {
-            console.log('same start, different end, shared control');
+            note.add('same start, different end, shared control');
             ctx.strokeStyle = fg;
             boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, drift1);
             ctx.strokeStyle = fg2;
@@ -376,6 +378,7 @@ export function moire(options) {
     // Finally: draw
     randItem(renderModes)();
 
+    note.log();
 
     // Finish up
     // --------------------------------------

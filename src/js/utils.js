@@ -268,3 +268,29 @@ export function friendlyBoolean (prop) {
     if (prop === 'false') return false;
     return !!prop;
 }
+
+export function Note(divider=true, time=true) {
+    let msgs = [];
+    let start_ts = new Date().getTime();
+    let end_ts = start_ts;
+    this.add = function(t) {
+        msgs.push(t);
+    }
+    this.first = function(t) {
+        msgs.unshift(t);
+    }
+    this.print = function() {
+        return msgs.join('\n');
+    }
+    this.log = function() {
+        if (time) {
+            end_ts = new Date().getTime();
+            this.add(`> Ran in ${end_ts - start_ts}ms`);
+        }
+        if (divider) {
+            this.first('------------------------------');
+        }
+        console.log(this.print());
+    }
+    return this;
+}
