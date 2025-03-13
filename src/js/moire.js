@@ -16,6 +16,17 @@ const TWOPI = 2 * PI;
 
 const DEBUG = false;
 
+/*
+
+TODO:
+- multi-segment paths: when we have shared endpoints, if the control points
+differ then the approaches are not parallel, so we don't get gradual divergence
+We need to have shared end points and at least a control point shared.
+This probably means two paths with shared end points, and the control points
+must be on a line with the shared endpoints, for continuity.
+
+*/
+
 // Main function
 export function moire(options) {
     let opts = Object.assign({}, DEFAULTS, options);
@@ -287,8 +298,6 @@ export function moire(options) {
     DEBUG && drawCircle(ctx, ...end, REACH/2, {stroke:'green'});
     DEBUG && drawCircle(ctx, ...end2, REACH/2, {stroke:'blue'});
 
-
-
     // Set control points relative to the track axis
     let a1 = theta;
     let r1 = REACH * 0.5;
@@ -322,7 +331,7 @@ export function moire(options) {
     steps *= 4;
     let trackWidth = LONG * randomInRange(0.15, 0.3);
     let skew = PI * 0.3 * randomInRange(-1, 1);
-    let pathCount = randomInt(20, 40);
+    let pathCount = randomInt(15, 30);
     let weight = trackWidth / pathCount * randomInRange(0.13, 0.33);
     ctx.lineWidth = weight;
     DEBUG && console.log(`${Math.round(steps)} steps over ${Math.round(REACH)}px; ${(REACH/steps).toPrecision(3)}px per interval; ${weight.toPrecision(3)}px lines at ${(trackWidth/pathCount).toPrecision(3)}px spacing`);
