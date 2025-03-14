@@ -346,10 +346,10 @@ export function moire(options) {
     // fg = 'red';
     // fg2 = 'blue';
 
-
-    let drift1 = randomInRange(10, 100);
-    let drift2 = randomInRange(10, 100);
-    // usually sync drift
+    // for drift, 100 is 45deg, and 0 is parallel with path
+    let drift1 = randomInRange(10, 120);
+    let drift2 = randomInRange(10, 120);
+    // usually sync drift so the angles match
     if (Math.random() < .80) drift2 = drift1;
 
 
