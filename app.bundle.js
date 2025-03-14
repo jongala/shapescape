@@ -93,6 +93,7 @@ exports.averagePoints = averagePoints;
 exports.pointsToPath = pointsToPath;
 exports.mapKeywordToVal = mapKeywordToVal;
 exports.friendlyBoolean = friendlyBoolean;
+exports.Note = Note;
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
@@ -349,6 +350,35 @@ function friendlyBoolean(prop) {
     return !!prop;
 }
 
+function Note() {
+    var divider = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+    var time = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
+    var msgs = [];
+    var start_ts = new Date().getTime();
+    var end_ts = start_ts;
+    this.add = function (t) {
+        msgs.push(t);
+    };
+    this.first = function (t) {
+        msgs.unshift(t);
+    };
+    this.print = function () {
+        return msgs.join('\n');
+    };
+    this.log = function () {
+        if (time) {
+            end_ts = new Date().getTime();
+            this.add('> Ran in ' + (end_ts - start_ts) + 'ms');
+        }
+        if (divider) {
+            this.first('------------------------------');
+        }
+        console.log(this.print());
+    };
+    return this;
+}
+
 /***/ }),
 /* 1 */
 /***/ (function(module, exports, __webpack_require__) {
@@ -528,6 +558,7 @@ Object.defineProperty(exports, "__esModule", {
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 exports.drawLine = drawLine;
+exports.drawCross = drawCross;
 /*
  * Scaffolding for a drawing function.
  * Implements basic setup for placement, rotation, stroke, fill,
@@ -659,6 +690,16 @@ function drawLine(ctx, a, b) {
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
+}
+
+function drawCross(ctx, x, y, r, opts) {
+    ctx.strokeStyle = opts.stroke || opts.fill;
+    ctx.beginPath();
+    ctx.moveTo(x - r, y);
+    ctx.lineTo(x + r, y);
+    ctx.moveTo(x, y - r);
+    ctx.lineTo(x, y + r);
+    ctx.stroke();
 }
 
 /***/ }),
@@ -12757,6 +12798,8 @@ var _tricycles = __webpack_require__(40);
 
 var _weave = __webpack_require__(45);
 
+var _moire = __webpack_require__(46);
+
 var _utils = __webpack_require__(0);
 
 var _dither = __webpack_require__(41);
@@ -12801,7 +12844,8 @@ var RENDERERS = {
     scales: _scales.scales,
     sweater: _sweater.sweater,
     tricycles: _tricycles.tricycles,
-    weave: _weave.weave
+    weave: _weave.weave,
+    moire: _moire.moire
     //clouds: clouds
 };
 // utils
@@ -13547,6 +13591,398 @@ function weave(options) {
 
     //dapple(el);
     (0, _speckle.donegal)(el);
+
+    // Finish up
+    // --------------------------------------
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            // apply noise from supplied canvas
+            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            // create noise pattern and apply
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, w / 3);
+        }
+    }
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
+}
+
+/***/ }),
+/* 46 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.moire = moire;
+
+var _noiseutils = __webpack_require__(1);
+
+var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _palettes = __webpack_require__(2);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
+var _utils = __webpack_require__(0);
+
+var _shapes = __webpack_require__(3);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+var DEFAULTS = {
+    container: 'body',
+    palette: _palettes2.default.plum_sauce,
+    addNoise: 0.04,
+    noiseInput: null,
+    clear: true
+};
+
+var PI = Math.PI;
+var TWOPI = 2 * PI;
+
+var DEBUG = false;
+
+/*
+
+TODO:
+- multi-segment paths: when we have shared endpoints, if the control points
+differ then the approaches are not parallel, so we don't get gradual divergence
+We need to have shared end points and at least a control point shared.
+This probably means two paths with shared end points, and the control points
+must be on a line with the shared endpoints, for continuity.
+
+*/
+
+// Main function
+function moire(options) {
+    var opts = Object.assign({}, DEFAULTS, options);
+
+    var container = opts.container;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
+    var SCALE = Math.min(cw, ch);
+    var LONG = Math.max(cw, ch);
+    var SHORT = Math.min(cw, ch);
+    var SPAN = Math.sqrt(Math.pow(LONG, 2) + Math.pow(SHORT, 2));
+    var AREA = cw * ch;
+    var ASPECT = LONG / SHORT;
+
+    var center = [cw / 2, ch / 2];
+
+    // Find or create canvas child
+    var el = container.querySelector('canvas');
+    var newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        el.width = cw;
+        el.height = ch;
+    }
+
+    var ctx = el.getContext('2d');
+
+    var note = new _utils.Note();
+
+    // Color funcs
+    // --------------------------------------
+
+    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
+
+    // shared colors
+    var bg = getSolidFill();
+    //bg = randItem(['#fcf9f0','#f3f2f1','#f4f9fb','#f6f4f2']);
+
+    // get palette of non-bg colors
+    var contrastPalette = [].concat(opts.palette);
+    contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
+
+    // shared foregrounds
+    var fg = getContrastColor();
+    var fg2 = getContrastColor();
+
+    // fill background
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, cw, ch);
+
+    // set default stroke
+    ctx.strokeStyle = fg;
+
+    function estimateCurveLength(a, b, c1, c2) {
+        var direct = (0, _utils.getVector)(a, b).length;
+        var hull = 0;
+        hull += (0, _utils.getVector)(a, c1).length;
+        hull += (0, _utils.getVector)(c1, c2).length;
+        hull += (0, _utils.getVector)(c2, b).length;
+        return .6 * direct + .4 * hull;
+    }
+
+    // Draw Stuff
+    // --------------------------------------
+
+
+    function boundaryCurve(a, b, c1, c2, pathCount, steps, l, drift) {
+        /*
+         - make an array of path objects, which have points and track
+            their transverse offset and active/inactive status
+        - start at point a, then proceed from step 1 (vs 0)
+        - step finely along the path, moving forward, adding points to
+            each path as you go. At each step, drift transversely.
+        - the relative rate of forward and transverse movement sets
+            the angle/skew of the paths
+        - for each step check transverse offset against the track width
+            and deactivate when it exceeds bounds
+        - track drift and when we have drifted by the spacing between paths
+            add another path
+        - the end is a set of path objects with their points; when complete
+            plot them all via canvas or stitch into svg paths
+         */
+
+        var curveLength = estimateCurveLength(a, b, c1, c2);
+        var normalizedStep = curveLength / steps;
+        note.add('curve length about ' + curveLength.toPrecision(4) + 'px each step about ' + normalizedStep.toPrecision(4) + 'px');
+
+        var spacing = l / pathCount;
+
+        //DEBUG: directly draw the ghost of the path
+        if (DEBUG) {
+            var _weight = ctx.lineWidth;
+            ctx.globalAlpha = 0.15;
+            ctx.lineWidth = l;
+            ctx.beginPath();
+            ctx.moveTo.apply(ctx, _toConsumableArray(a));
+            ctx.bezierCurveTo.apply(ctx, _toConsumableArray(c1).concat(_toConsumableArray(c2), _toConsumableArray(b)));
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+            ctx.lineWidth = _weight;
+        }
+
+        var paths = []; // array of arrays
+        for (var i = 0; i <= pathCount; i++) {
+            paths.push({
+                pts: [],
+                offset: l * -1 / 2 + i * spacing,
+                active: true
+            }); // push an array for each path
+        }
+
+        var t = 0;
+        var inc = 1 / steps;
+
+        // normalize drift input so it expresses a percentage of forward step
+        drift = drift || 0;
+        drift = drift / 100 * normalizedStep; // percentage
+
+        // re-express as a fraction of the spacing, so we get there
+        // in even numbers of steps
+        // drift * N = spacing
+        // drift = spacing / N
+        // N = spacing / normalizedDrift
+        var N = spacing / drift;
+        note.add('DRIFT: ' + N.toPrecision(3) + ' steps for drift from ' + spacing.toPrecision(3) + ' spacing, ' + drift.toPrecision(3) + ' drift');
+        //drift = spacing / N;
+        //drift = spacing *  3 / 5;
+        var M = Math.floor(N);
+
+        var x = a[0];
+        var y = a[1];
+        var _x = x; // last x
+        var _y = y; // last y
+
+        // each point on curve
+        //drawCircle(ctx, x, y, 10, {stroke:'red'});
+
+        var v = void 0; // the vector between steps
+
+        var insert = 0; // tracks when to insert a new path
+
+        /*
+            Either 1 or -1. Will work with the vector angle to set
+            direction of drift. Keeping drift positive and switching
+            direction with this allows simpler bounds checking and
+            insertion of new paths.
+        */
+        var direction = 1;
+
+        // step thru the bezier
+
+        var _loop = function _loop() {
+            t = i * inc;
+
+            x = Math.pow(1 - t, 3) * a[0] + 3 * Math.pow(1 - t, 2) * t * c1[0] + 3 * (1 - t) * Math.pow(t, 2) * c2[0] + Math.pow(t, 3) * b[0];
+            y = Math.pow(1 - t, 3) * a[1] + 3 * Math.pow(1 - t, 2) * t * c1[1] + 3 * (1 - t) * Math.pow(t, 2) * c2[1] + Math.pow(t, 3) * b[1];
+
+            // get vector from last point to this point
+            v = (0, _utils.getVector)([_x, _y], [x, y]);
+
+            // path x and y
+            var px = 0;
+            var py = 0;
+
+            // step through paths
+            paths.forEach(function (path, j) {
+                /*
+                    Paths can be:
+                    1. out of bounds on the negative side, drifting in
+                    2. in bounds, drifting out
+                    3. out of bounds on positive side, never to return
+                */
+                if (path.active) {
+                    px = x + path.offset * Math.cos(v.angle + direction * PI / 2);
+                    py = y + path.offset * Math.sin(v.angle + direction * PI / 2);
+
+                    if (path.offset > -l / 2 && path.offset < l / 2) {
+                        path.pts.push([px, py]);
+                    }
+                }
+                // only check positive bound to deactivate; if it is below
+                // negative bound it is drifting in and should stay active
+                if (path.offset > l / 2) {
+                    path.active = false;
+                }
+
+                path.offset += drift;
+            });
+
+            var creep = Math.floor(i * drift / spacing);
+            var remainder = i * drift % spacing;
+            /* total drift % spacing */
+
+            if (creep > insert) {
+                insert = creep; // reset
+                paths.unshift({
+                    active: true,
+                    //offset: minOff - spacing,//-l/2,
+                    offset: -l / 2 + remainder,
+                    pts: []
+                });
+            }
+
+            // update point
+            _x = x;
+            _y = y;
+        };
+
+        for (var i = 1; i <= steps; i++) {
+            _loop();
+        }
+
+        // now go back and draw all then paths
+        paths.forEach(function (path) {
+            if (!path.pts.length) return;
+            ctx.beginPath();
+            ctx.moveTo.apply(ctx, _toConsumableArray(path.pts.shift()));
+            path.pts.forEach(function (p) {
+                ctx.lineTo(p[0], p[1]);
+            });
+            ctx.stroke();
+        });
+    }
+
+    // point placement for main curves
+
+    var theta = (0, _utils.randomInRange)(0, TWOPI); // the angle of the track axis
+    var alpha = (0, _utils.randomInRange)(0, TWOPI); // angle of origin offset from center
+    var originOffset = SPAN * (0, _utils.randomInRange)(0, 0.1); // radius of origin offset
+    var origin = [cw / 2 + originOffset * Math.cos(alpha), ch / 2 + originOffset * Math.sin(alpha)];
+
+    DEBUG && _shapes.drawCross.apply(undefined, [ctx].concat(origin, [20, { fill: 'black' }]));
+
+    var start = [0, 0];
+    var end = [0, 0];
+
+    var REACH = SPAN * 0.3;
+
+    // create start and end points
+    start = [origin[0] + REACH * Math.cos(theta), origin[1] + REACH * Math.sin(theta)];
+    end = [origin[0] + REACH * Math.cos(theta - PI), origin[1] + REACH * Math.sin(theta - PI)];
+    // different endpoints
+    var theta2 = theta - PI + PI * (0, _utils.randomInRange)(-0.3, 0.3);
+    var end2 = [origin[0] + REACH * Math.cos(theta2), origin[1] + REACH * Math.sin(theta2)];
+
+    // DEBUG
+    DEBUG && _shapes.drawCircle.apply(undefined, [ctx].concat(_toConsumableArray(start), [REACH / 2, { stroke: 'red' }]));
+    DEBUG && _shapes.drawCircle.apply(undefined, [ctx].concat(_toConsumableArray(end), [REACH / 2, { stroke: 'green' }]));
+    DEBUG && _shapes.drawCircle.apply(undefined, [ctx].concat(end2, [REACH / 2, { stroke: 'blue' }]));
+
+    // Set control points relative to the track axis
+    var a1 = theta;
+    var r1 = REACH * 0.5;
+    var c1 = [origin[0] + r1 * Math.cos(a1), origin[1] + r1 * Math.sin(a1)];
+    var a2 = theta - PI;
+    var r2 = REACH * 0.5;
+    var c2 = [origin[0] + r2 * Math.cos(a2), origin[1] + r2 * Math.sin(a2)];
+    var a3 = theta + PI * (0, _utils.randomInRange)(-0.3, 0.3);
+    var r3 = REACH * 0.5;
+    var c3 = [origin[0] + r3 * Math.cos(a3), origin[1] + r3 * Math.sin(a3)];
+    var a4 = theta - PI + PI * (0, _utils.randomInRange)(-0.3, 0.3);
+    var r4 = REACH * 0.5;
+    var c4 = [origin[0] + r4 * Math.cos(a4), origin[1] + r4 * Math.sin(a4)];
+
+    // Set steps, thickness and separation of lines, skew
+
+    var steps = Math.round(REACH * (0, _utils.randomInRange)(0.15, 0.35));
+    steps *= 4;
+    var trackWidth = LONG * (0, _utils.randomInRange)(0.15, 0.3);
+    var skew = PI * 0.3 * (0, _utils.randomInRange)(-1, 1);
+    var pathCount = (0, _utils.randomInt)(15, 30);
+    var weight = trackWidth / pathCount * (0, _utils.randomInRange)(0.13, 0.33);
+    ctx.lineWidth = weight;
+    DEBUG && console.log(Math.round(steps) + ' steps over ' + Math.round(REACH) + 'px; ' + (REACH / steps).toPrecision(3) + 'px per interval; ' + weight.toPrecision(3) + 'px lines at ' + (trackWidth / pathCount).toPrecision(3) + 'px spacing');
+
+    // sometimes, use the same color for both
+    if (Math.random() < 0.3) {
+        fg2 = fg;
+    }
+
+    // DEBUG
+    // fg = 'red';
+    // fg2 = 'blue';
+
+    // for drift, 100 is 45deg, and 0 is parallel with path
+    var drift1 = (0, _utils.randomInRange)(10, 120);
+    var drift2 = (0, _utils.randomInRange)(10, 120);
+    // usually sync drift so the angles match
+    if (Math.random() < .80) drift2 = drift1;
+
+    var renderModes = [function () {
+        note.add('same endpoints, different controls');
+        ctx.strokeStyle = fg;
+        boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, drift1);
+        ctx.strokeStyle = fg2;
+        boundaryCurve(start, end, c3, c4, pathCount, steps, trackWidth, drift2);
+    }, function () {
+        note.add('same start, different end, different controls');
+        ctx.strokeStyle = fg;
+        boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, drift1);
+        ctx.strokeStyle = fg2;
+        boundaryCurve(start, end2, c3, c4, pathCount, steps, trackWidth, drift2);
+    }, function () {
+        note.add('same start, different end, shared control');
+        ctx.strokeStyle = fg;
+        boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, drift1);
+        ctx.strokeStyle = fg2;
+        boundaryCurve(start, end2, c1, c4, pathCount, steps, trackWidth, drift2);
+    }];
+
+    // Finally: draw
+    (0, _utils.randItem)(renderModes)();
+
+    note.log();
 
     // Finish up
     // --------------------------------------

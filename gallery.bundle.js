@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 49);
+/******/ 	return __webpack_require__(__webpack_require__.s = 50);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -93,6 +93,7 @@ exports.averagePoints = averagePoints;
 exports.pointsToPath = pointsToPath;
 exports.mapKeywordToVal = mapKeywordToVal;
 exports.friendlyBoolean = friendlyBoolean;
+exports.Note = Note;
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
@@ -349,6 +350,35 @@ function friendlyBoolean(prop) {
     return !!prop;
 }
 
+function Note() {
+    var divider = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+    var time = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
+    var msgs = [];
+    var start_ts = new Date().getTime();
+    var end_ts = start_ts;
+    this.add = function (t) {
+        msgs.push(t);
+    };
+    this.first = function (t) {
+        msgs.unshift(t);
+    };
+    this.print = function () {
+        return msgs.join('\n');
+    };
+    this.log = function () {
+        if (time) {
+            end_ts = new Date().getTime();
+            this.add('> Ran in ' + (end_ts - start_ts) + 'ms');
+        }
+        if (divider) {
+            this.first('------------------------------');
+        }
+        console.log(this.print());
+    };
+    return this;
+}
+
 /***/ }),
 /* 1 */
 /***/ (function(module, exports, __webpack_require__) {
@@ -528,6 +558,7 @@ Object.defineProperty(exports, "__esModule", {
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 exports.drawLine = drawLine;
+exports.drawCross = drawCross;
 /*
  * Scaffolding for a drawing function.
  * Implements basic setup for placement, rotation, stroke, fill,
@@ -659,6 +690,16 @@ function drawLine(ctx, a, b) {
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
+}
+
+function drawCross(ctx, x, y, r, opts) {
+    ctx.strokeStyle = opts.stroke || opts.fill;
+    ctx.beginPath();
+    ctx.moveTo(x - r, y);
+    ctx.lineTo(x + r, y);
+    ctx.moveTo(x, y - r);
+    ctx.lineTo(x, y + r);
+    ctx.stroke();
 }
 
 /***/ }),
@@ -12686,7 +12727,8 @@ function fracture(canvas) {
 /* 46 */,
 /* 47 */,
 /* 48 */,
-/* 49 */
+/* 49 */,
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12694,7 +12736,7 @@ function fracture(canvas) {
 
 __webpack_require__(8);
 
-var _lilGui = __webpack_require__(50);
+var _lilGui = __webpack_require__(51);
 
 var _lilGui2 = _interopRequireDefault(_lilGui);
 
@@ -12776,7 +12818,7 @@ var _halftone = __webpack_require__(42);
 
 var _fracture = __webpack_require__(43);
 
-var _galleryCollection = __webpack_require__(51);
+var _galleryCollection = __webpack_require__(52);
 
 var _galleryCollection2 = _interopRequireDefault(_galleryCollection);
 
@@ -13337,7 +13379,7 @@ if (h && RENDERERS.hasOwnProperty(h)) {
 // setRenderer(initRenderer, document.querySelector("[data-renderer='" + initRenderer + "']"));
 
 /***/ }),
-/* 50 */
+/* 51 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -15746,7 +15788,7 @@ class GUI {
 
 
 /***/ }),
-/* 51 */
+/* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

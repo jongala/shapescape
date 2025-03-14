@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 47);
+/******/ 	return __webpack_require__(__webpack_require__.s = 48);
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -94,6 +94,7 @@ exports.averagePoints = averagePoints;
 exports.pointsToPath = pointsToPath;
 exports.mapKeywordToVal = mapKeywordToVal;
 exports.friendlyBoolean = friendlyBoolean;
+exports.Note = Note;
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
@@ -348,6 +349,35 @@ function mapKeywordToVal(props) {
 function friendlyBoolean(prop) {
     if (prop === 'false') return false;
     return !!prop;
+}
+
+function Note() {
+    var divider = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
+    var time = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
+    var msgs = [];
+    var start_ts = new Date().getTime();
+    var end_ts = start_ts;
+    this.add = function (t) {
+        msgs.push(t);
+    };
+    this.first = function (t) {
+        msgs.unshift(t);
+    };
+    this.print = function () {
+        return msgs.join('\n');
+    };
+    this.log = function () {
+        if (time) {
+            end_ts = new Date().getTime();
+            this.add('> Ran in ' + (end_ts - start_ts) + 'ms');
+        }
+        if (divider) {
+            this.first('------------------------------');
+        }
+        console.log(this.print());
+    };
+    return this;
 }
 
 /***/ }),
@@ -855,6 +885,7 @@ Object.defineProperty(exports, "__esModule", {
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 exports.drawLine = drawLine;
+exports.drawCross = drawCross;
 /*
  * Scaffolding for a drawing function.
  * Implements basic setup for placement, rotation, stroke, fill,
@@ -988,9 +1019,19 @@ function drawLine(ctx, a, b) {
     ctx.lineTo(x2, y2);
 }
 
+function drawCross(ctx, x, y, r, opts) {
+    ctx.strokeStyle = opts.stroke || opts.fill;
+    ctx.beginPath();
+    ctx.moveTo(x - r, y);
+    ctx.lineTo(x + r, y);
+    ctx.moveTo(x, y - r);
+    ctx.lineTo(x, y + r);
+    ctx.stroke();
+}
+
 /***/ }),
 
-/***/ 47:
+/***/ 48:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1012,7 +1053,7 @@ var _colorbrewer2 = _interopRequireDefault(_colorbrewer);
 
 var _truchet = __webpack_require__(19);
 
-var _numerals = __webpack_require__(48);
+var _numerals = __webpack_require__(49);
 
 var _utils = __webpack_require__(0);
 
@@ -1134,7 +1175,7 @@ setInterval(function () {
 
 /***/ }),
 
-/***/ 48:
+/***/ 49:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
