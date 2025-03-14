@@ -14,7 +14,7 @@ const DEFAULTS = {
 const PI = Math.PI;
 const TWOPI = 2 * PI;
 
-const DEBUG = false;
+const DEBUG = true;
 
 /*
 
@@ -285,6 +285,52 @@ export function moire(options) {
         origin[0] + REACH * Math.cos(theta - PI),
         origin[1] + REACH * Math.sin(theta - PI)
     ];
+
+    let startControlLength = REACH * randomInRange(0.6, 0.7);
+    let startControlPt = [
+        origin[0] + startControlLength * Math.cos(theta),
+        origin[1] + startControlLength * Math.sin(theta)
+    ];
+
+    let endControlLength = REACH * randomInRange(0.6, 0.7);
+    let endControlPt = [
+        origin[0] + endControlLength * Math.cos(theta - PI),
+        origin[1] + endControlLength * Math.sin(theta - PI)
+    ];
+
+    drawCircle(ctx, ...startControlPt, 20, {stroke:'green'});
+    drawCircle(ctx, ...endControlPt, 20, {stroke:'red'});
+
+    let midTheta = randomInRange(0, TWOPI);
+    let midReach = REACH * randomInRange(0.1, 0.6);
+    let mid = [
+        origin[0] + midReach * Math.cos(midTheta),
+        origin[1] + midReach * Math.sin(midTheta)
+    ];
+
+    let centerSkewAngle = theta + 0.25 * randomInRange(-PI, PI);
+    let centerSkewAmount = REACH * randomInRange(0.4, 0.4);
+    let cc1 = [
+        mid[0] + centerSkewAmount * Math.cos(centerSkewAngle),
+        mid[1] + centerSkewAmount * Math.sin(centerSkewAngle)
+    ];
+    let cc2 = [
+        mid[0] + centerSkewAmount * Math.cos(centerSkewAngle - PI),
+        mid[1] + centerSkewAmount * Math.sin(centerSkewAngle - PI)
+    ];
+
+    ctx.strokeStyle = '#ff0099';
+    ctx.beginPath();
+    ctx.moveTo(...cc1);
+    ctx.lineTo(...cc2);
+    ctx.stroke();
+
+    drawCircle(ctx, ...cc1, 20, {stroke:'#f09'});
+    drawCircle(ctx, ...cc2, 20, {stroke:'#f09'});
+
+    console.log('mid', mid);
+
+
     // different endpoints
     let theta2 = theta - PI + PI * randomInRange(-0.3, 0.3);
     let end2 = [
@@ -294,9 +340,9 @@ export function moire(options) {
 
 
     // DEBUG
-    DEBUG && drawCircle(ctx, ...start, REACH/2, {stroke:'red'});
-    DEBUG && drawCircle(ctx, ...end, REACH/2, {stroke:'green'});
-    DEBUG && drawCircle(ctx, ...end2, REACH/2, {stroke:'blue'});
+    DEBUG && drawCircle(ctx, ...start, REACH/3, {stroke:'green'});
+    DEBUG && drawCircle(ctx, ...end, REACH/3, {stroke:'red'});
+    DEBUG && drawCircle(ctx, ...mid, centerSkewAmount, {stroke:'#ff0099'});
 
     // Set control points relative to the track axis
     let a1 = theta;
@@ -385,7 +431,13 @@ export function moire(options) {
     ];
 
     // Finally: draw
-    randItem(renderModes)();
+    //randItem(renderModes)();
+
+    steps = steps/2;
+
+    ctx.strokeStyle = fg;
+    boundaryCurve(start, mid, startControlPt, cc1, pathCount, steps, trackWidth, drift1);
+    boundaryCurve(mid, end, cc2, endControlPt, pathCount, steps, trackWidth, drift1);
 
     note.log();
 
