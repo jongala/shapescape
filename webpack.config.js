@@ -19,7 +19,8 @@ module.exports = {
     app: path.join(paths.JS, 'app.js'),
     home: path.join(paths.JS, 'home.js'),
     clock: path.join(paths.JS, 'clock.js'),
-    gallery: path.join(paths.JS, 'gallery.js')
+    gallery: path.join(paths.JS, 'gallery.js'),
+    palettes_page: path.join(paths.JS, 'palettes_page.js')
   },
   output: {
     path: paths.DIST,
@@ -49,6 +50,11 @@ module.exports = {
       template: path.join(paths.SRC, 'gallery.html'),
       chunks: ['gallery'],
       filename: 'gallery.html'
+    }),
+    new HtmlWebpackPlugin({
+      template: path.join(paths.SRC, 'palettes_page.html'),
+      chunks: ['palettes_page'],
+      filename: 'palettes.html'
     }),
     new ExtractTextPlugin('style.bundle.css'), // CSS will be extracted to this bundle file -> ADDED IN THIS STEP
   ],

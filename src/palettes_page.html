@@ -1,0 +1,40 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>RenderLab Palettes</title>
+    <style>
+        .palette {
+            display: flex;
+            align-items: center;
+            justify-content: start;
+
+        }
+        .swatch {
+            display: block;
+            width: 80px;
+            height: 80px;
+        }
+        .palette_label {
+            display: block;
+            width: 160px;
+            text-align: right;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <fieldset>
+            <legend>Colors</legend>
+            <select onchange="setPalette(this.value)" id="paletteSelector"></select>
+            <input type="text" id="customColors" placeholder="enter colors…" />
+        </fieldset>
+    </div>
+    <div class="customs"></div>
+    <hr />
+    <div class="presets"></div>
+    <script type="text/javascript">
+    </script>
+</body>
+</html>
