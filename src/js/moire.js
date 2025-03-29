@@ -100,51 +100,66 @@ export function moire(options) {
     // Draw Stuff
     // --------------------------------------
 
-
-    function boundaryCurve(a, b, c1, c2, pathCount, steps, l, drift) {
+    function curveToPoints(a, b, c1, c2, steps) {
         /*
-
-        - make an array of path objects, which have points and track
-            their transverse offset and active/inactive status
-        - start at point a, then proceed from step 1 (vs 0)
-        - step finely along the path, moving forward, adding points to
-            each path as you go. At each step, drift transversely.
-        - the relative rate of forward and transverse movement sets
-            the angle/skew of the paths
-        - for each step check transverse offset against the track width
-            and deactivate when it exceeds bounds
-        - track drift and when we have drifted by the spacing between paths
-            add another path
-        - the end is a set of path objects with their points; when complete
-            plot them all via canvas or stitch into svg paths
-
+        step thru the bezier curve from @a to @b, with control points
+        @c1 and @c2 in @steps steps.
+        Return an array of vectors from each point to the next, in the form of
+        @getVector objects
         */
+        let vectors = [];
 
         let curveLength = estimateCurveLength(a, b, c1, c2);
         let normalizedStep = curveLength/steps;
         note.add(`curve length about ${curveLength.toPrecision(4)}px each step about ${normalizedStep.toPrecision(4)}px`);
 
 
-        let spacing = l/pathCount;
+        let t = 0;
+        let inc = 1/steps;
 
-        //DEBUG: directly draw the ghost of the path
-        if (DEBUG) {
-            let _weight = ctx.lineWidth;
-            ctx.globalAlpha = 0.15;
-            ctx.lineWidth = l;
-            ctx.beginPath();
-            ctx.moveTo(...a);
-            ctx.bezierCurveTo(...c1, ...c2, ...b);
-            ctx.stroke();
-            ctx.globalAlpha = 1;
-            ctx.lineWidth = _weight;
+        let x = a[0];
+        let y = a[1];
+        let _x = x; // last x
+        let _y = y; // last y
+
+        let v; // the vector between steps
+
+        // step thru the bezier
+        for (var i = 1; i <= steps; i++) {
+            t = i * inc;
+
+            x = (1 - t) ** 3 * a[0] + 3 * (1 - t) ** 2 * t * c1[0] + 3 * (1 - t) * t ** 2 * c2[0] + t ** 3 * b[0];
+            y = (1 - t) ** 3 * a[1] + 3 * (1 - t) ** 2 * t * c1[1] + 3 * (1 - t) * t ** 2 * c2[1] + t ** 3 * b[1];
+
+            // get vector from last point to this point
+            v = getVector([_x, _y], [x, y]);
+
+            vectors.push(v);
+
+            // update point
+            _x = x;
+            _y = y;
         }
+
+        return vectors;
+    }
+
+    function stepsToPaths(stepVectors, pathCount, trackWidth, drift) {
+        /*
+        Take a set of vectors representing a piecewise bezier track.
+        Make an array of @pathCount path objects, and push points in them
+        adding @drift as you go.
+        Check against @trackWidth to expire paths as they exceed bounds.
+        Draw all the paths at the end.
+        */
+
+        let spacing = trackWidth/pathCount;
 
         let paths = []; // array of arrays
         for (var i = 0; i <= pathCount; i++) {
             paths.push({
                 pts:[],
-                offset: l * -1/2 + i * spacing,
+                offset: trackWidth * -1/2 + i * spacing,
                 active: true
             }); // push an array for each path
         }
@@ -152,9 +167,25 @@ export function moire(options) {
         let t = 0;
         let inc = 1/steps;
 
-         // normalize drift input so it expresses a percentage of forward step
+        let curveLength = stepVectors.reduce((len, v, i, vecs) => {
+            return len + v.length;
+        }, 0);
+        console.log('curveLength', curveLength);
+        let normalizedStep = curveLength/steps;
+
+        // normalize drift input so it expresses a percentage of forward step
         drift = drift || 0;
         drift = drift/100 * normalizedStep; // percentage
+
+
+        /*
+            Either 1 or -1. Will work with the vector angle to set
+            direction of drift. Keeping drift positive and switching
+            direction with this allows simpler bounds checking and
+            insertion of new paths.
+        */
+        let direction = 1;
+        let insert = 0; // tracks when to insert a new path
 
         // re-express as a fraction of the spacing, so we get there
         // in even numbers of steps
@@ -168,39 +199,13 @@ export function moire(options) {
         let M = Math.floor(N);
 
 
-        let x = a[0];
-        let y = a[1];
-        let _x = x; // last x
-        let _y = y; // last y
-
-        // each point on curve
-        //drawCircle(ctx, x, y, 10, {stroke:'red'});
-
-        let v; // the vector between steps
-
-        let insert = 0; // tracks when to insert a new path
-
-        /*
-            Either 1 or -1. Will work with the vector angle to set
-            direction of drift. Keeping drift positive and switching
-            direction with this allows simpler bounds checking and
-            insertion of new paths.
-        */
-        let direction = 1;
-
-        // step thru the bezier
-        for (var i = 1; i <= steps; i++) {
-            t = i * inc;
-
-            x = (1 - t) ** 3 * a[0] + 3 * (1 - t) ** 2 * t * c1[0] + 3 * (1 - t) * t ** 2 * c2[0] + t ** 3 * b[0];
-            y = (1 - t) ** 3 * a[1] + 3 * (1 - t) ** 2 * t * c1[1] + 3 * (1 - t) * t ** 2 * c2[1] + t ** 3 * b[1];
-
-            // get vector from last point to this point
-            v = getVector([_x, _y], [x, y]);
-
+        stepVectors.forEach((v, i) => {
             // path x and y
             let px = 0;
             let py = 0;
+
+            let x = v.x;
+            let y = v.y;
 
             // step through paths
             paths.forEach((path, j) => {
@@ -214,13 +219,13 @@ export function moire(options) {
                     px = x + path.offset * Math.cos(v.angle + direction * PI/2);
                     py = y + path.offset * Math.sin(v.angle + direction * PI/2);
 
-                    if (path.offset > -l/2 && path.offset < l/2) {
+                    if (path.offset > -trackWidth/2 && path.offset < trackWidth/2) {
                         path.pts.push([px, py]);
                     }
                 }
                 // only check positive bound to deactivate; if it is below
                 // negative bound it is drifting in and should stay active
-                if (path.offset > l/2) {
+                if (path.offset > trackWidth/2) {
                     path.active = false;
                 }
 
@@ -236,15 +241,11 @@ export function moire(options) {
                 paths.unshift({
                     active: true,
                     //offset: minOff - spacing,//-l/2,
-                    offset: -l/2 + remainder,
+                    offset: -trackWidth/2 + remainder,
                     pts: []
                 });
             }
-
-            // update point
-            _x = x;
-            _y = y;
-        }
+        });
 
         // now go back and draw all then paths
         paths.forEach((path) => {
@@ -256,6 +257,14 @@ export function moire(options) {
             });
             ctx.stroke();
         });
+    }
+
+
+    // Convenience function composing curveToPoints and stepsToPaths
+    function drawSegment(a, b, c1, c2, steps, pathCount, trackWidth, drift) {
+        let vectors = curveToPoints(a, b, c1, c2, steps);
+
+        stepsToPaths(vectors, pathCount, trackWidth, drift);
     }
 
 
@@ -342,6 +351,7 @@ export function moire(options) {
     // DEBUG
     DEBUG && drawCircle(ctx, ...start, REACH/3, {stroke:'green'});
     DEBUG && drawCircle(ctx, ...end, REACH/3, {stroke:'red'});
+    DEBUG && drawCircle(ctx, ...mid, 20, {stroke:'#ff0099'});
     DEBUG && drawCircle(ctx, ...mid, centerSkewAmount, {stroke:'#ff0099'});
 
     // Set control points relative to the track axis
@@ -436,8 +446,22 @@ export function moire(options) {
     steps = steps/2;
 
     ctx.strokeStyle = fg;
-    boundaryCurve(start, mid, startControlPt, cc1, pathCount, steps, trackWidth, drift1);
-    boundaryCurve(mid, end, cc2, endControlPt, pathCount, steps, trackWidth, drift1);
+    //boundaryCurve(start, mid, startControlPt, cc1, pathCount, steps, trackWidth, drift1);
+    //boundaryCurve(mid, end, cc2, endControlPt, pathCount, steps, trackWidth, drift1);
+
+    // test: individually draw each half segment
+    //drawSegment(start, mid, startControlPt, cc1, steps, pathCount, trackWidth, drift1);
+    //drawSegment(mid, end, cc2, endControlPt, steps, pathCount, trackWidth, drift1);
+
+    // test: concat both segments into a single vector set, then draw it
+    let allVectors = [];
+    let vecs1 = curveToPoints(start, mid, startControlPt, cc1, steps);
+    let vecs2 = curveToPoints(mid,   end, cc2, endControlPt, steps);
+    allVectors = allVectors.concat( vecs1 );
+    allVectors = allVectors.concat( vecs2 );
+
+    stepsToPaths(allVectors, pathCount, trackWidth, drift1);
+
 
     note.log();
 
