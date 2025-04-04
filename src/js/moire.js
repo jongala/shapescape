@@ -96,6 +96,12 @@ export function moire(options) {
         return .6 * direct + .4 * hull;
     }
 
+    function getCurveLength(stepVectors) {
+        return stepVectors.reduce((len, v, i, vecs) => {
+            return len + v.length;
+        }, 0);
+    }
+
 
     // Draw Stuff
     // --------------------------------------
@@ -111,7 +117,7 @@ export function moire(options) {
 
         let curveLength = estimateCurveLength(a, b, c1, c2);
         let normalizedStep = curveLength/steps;
-        note.add(`curve length about ${curveLength.toPrecision(4)}px each step about ${normalizedStep.toPrecision(4)}px`);
+        DEBUG && note.add(`curve length from ${steps} steps about ${curveLength.toPrecision(4)}px each step about ${normalizedStep.toPrecision(4)}px`);
 
 
         let t = 0;
@@ -167,15 +173,16 @@ export function moire(options) {
         let t = 0;
         let inc = 1/steps;
 
-        let curveLength = stepVectors.reduce((len, v, i, vecs) => {
-            return len + v.length;
-        }, 0);
-        console.log('curveLength', curveLength);
+        let curveLength = getCurveLength(stepVectors);
+
         let normalizedStep = curveLength/steps;
+        note.add(`Stepwise curve length  ${curveLength.toPrecision(4)}px each step about ${normalizedStep.toPrecision(4)}px`);
 
         // normalize drift input so it expresses a percentage of forward step
         drift = drift || 0;
+        note.add(`Input drift is ${drift.toPrecision(3)}`);
         drift = drift/100 * normalizedStep; // percentage
+        note.add(`Normalized drift is ${drift.toPrecision(3)}`);
 
 
         /*
@@ -268,7 +275,11 @@ export function moire(options) {
     }
 
 
+    // --------------------------------------
+    //
     // point placement for main curves
+    //
+    // --------------------------------------
 
     let theta = randomInRange(0, TWOPI); // the angle of the track axis
     let alpha = randomInRange(0, TWOPI); // angle of origin offset from center
@@ -443,26 +454,42 @@ export function moire(options) {
     // Finally: draw
     //randItem(renderModes)();
 
-    steps = steps/2;
+    //steps = steps/2;
+
 
     ctx.strokeStyle = fg;
     //boundaryCurve(start, mid, startControlPt, cc1, pathCount, steps, trackWidth, drift1);
     //boundaryCurve(mid, end, cc2, endControlPt, pathCount, steps, trackWidth, drift1);
 
-    // test: individually draw each half segment
-    //drawSegment(start, mid, startControlPt, cc1, steps, pathCount, trackWidth, drift1);
-    //drawSegment(mid, end, cc2, endControlPt, steps, pathCount, trackWidth, drift1);
 
     // test: concat both segments into a single vector set, then draw it
-    let allVectors = [];
-    let vecs1 = curveToPoints(start, mid, startControlPt, cc1, steps);
-    let vecs2 = curveToPoints(mid,   end, cc2, endControlPt, steps);
-    allVectors = allVectors.concat( vecs1 );
-    allVectors = allVectors.concat( vecs2 );
+    let vecs1 = curveToPoints(start, mid, startControlPt, cc1, 1000);
+    let vecs2 = curveToPoints(mid,   end, cc2, endControlPt, 1000);
 
+
+    // Balance the number of steps between segments.
+    // Measure each segment with fine step count, get fraction of total length,
+    // then recalculate each segemt with its portion of the final step count.
+
+    let len1 = getCurveLength(vecs1);
+    let len2 = getCurveLength(vecs2);
+
+    DEBUG && note.add(`Segment lengths ${len1.toPrecision(4)}px and ${len2.toPrecision(4)}px, total ${(len1 + len2).toPrecision(4)}px`);;
+
+    let steps1 = Math.round(steps * len1/(len1 + len2));
+    let steps2 = Math.round(steps * len2/(len1 + len2));
+
+    vecs1 = curveToPoints(start, mid, startControlPt, cc1, steps1);
+    vecs2 = curveToPoints(mid,   end, cc2, endControlPt, steps2);
+
+    let allVectors = [].concat( vecs1 ).concat( vecs2 );
+
+    DEBUG && note.add(`Corrected steps: ${steps1} and ${steps2}, from ${steps}`);
+
+    // Draw it
     stepsToPaths(allVectors, pathCount, trackWidth, drift1);
 
-
+    // output any notes
     note.log();
 
     // Finish up
