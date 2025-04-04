@@ -425,25 +425,25 @@ export function moire(options) {
         () => {
             note.add('same endpoints, different controls');
             ctx.strokeStyle = fg;
-            boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, drift1);
+            drawSegment(start, end, c1, c2, steps, pathCount,  trackWidth, drift1);
             ctx.strokeStyle = fg2;
-            boundaryCurve(start, end, c3, c4, pathCount, steps, trackWidth, drift2);
+            drawSegment(start, end, c3, c4, steps, pathCount, trackWidth, drift2);
         },
 
         () => {
             note.add('same start, different end, different controls');
             ctx.strokeStyle = fg;
-            boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, drift1);
+            drawSegment(start, end, c1, c2, steps, pathCount,  trackWidth, drift1);
             ctx.strokeStyle = fg2;
-            boundaryCurve(start, end2, c3, c4, pathCount, steps, trackWidth, drift2);
+            drawSegment(start, end2, c3, c4, steps, pathCount,  trackWidth, drift2);
         },
 
         () => {
             note.add('same start, different end, shared control');
             ctx.strokeStyle = fg;
-            boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, drift1);
+            drawSegment(start, end, c1, c2, steps, pathCount,  trackWidth, drift1);
             ctx.strokeStyle = fg2;
-            boundaryCurve(start, end2, c1, c4, pathCount, steps, trackWidth, drift2);
+            drawSegment(start, end2, c1, c4, steps, pathCount,  trackWidth, drift2);
         },
 
         // stepCurve(start, end, origin, origin, 150, 200);
@@ -452,7 +452,7 @@ export function moire(options) {
     ];
 
     // Finally: draw
-    //randItem(renderModes)();
+    randItem(renderModes)();
 
     //steps = steps/2;
 
