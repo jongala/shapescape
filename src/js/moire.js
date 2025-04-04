@@ -106,7 +106,7 @@ export function moire(options) {
     // Draw Stuff
     // --------------------------------------
 
-    function curveToPoints(a, b, c1, c2, steps) {
+    function curveToSteps(a, b, c1, c2, steps) {
         /*
         step thru the bezier curve from @a to @b, with control points
         @c1 and @c2 in @steps steps.
@@ -267,9 +267,9 @@ export function moire(options) {
     }
 
 
-    // Convenience function composing curveToPoints and stepsToPaths
+    // Convenience function composing curveToSteps and stepsToPaths
     function drawSegment(a, b, c1, c2, steps, pathCount, trackWidth, drift) {
-        let vectors = curveToPoints(a, b, c1, c2, steps);
+        let vectors = curveToSteps(a, b, c1, c2, steps);
 
         stepsToPaths(vectors, pathCount, trackWidth, drift);
     }
@@ -463,8 +463,8 @@ export function moire(options) {
 
 
     // test: concat both segments into a single vector set, then draw it
-    let vecs1 = curveToPoints(start, mid, startControlPt, cc1, 1000);
-    let vecs2 = curveToPoints(mid,   end, cc2, endControlPt, 1000);
+    let vecs1 = curveToSteps(start, mid, startControlPt, cc1, 1000);
+    let vecs2 = curveToSteps(mid,   end, cc2, endControlPt, 1000);
 
 
     // Balance the number of steps between segments.
@@ -479,8 +479,8 @@ export function moire(options) {
     let steps1 = Math.round(steps * len1/(len1 + len2));
     let steps2 = Math.round(steps * len2/(len1 + len2));
 
-    vecs1 = curveToPoints(start, mid, startControlPt, cc1, steps1);
-    vecs2 = curveToPoints(mid,   end, cc2, endControlPt, steps2);
+    vecs1 = curveToSteps(start, mid, startControlPt, cc1, steps1);
+    vecs2 = curveToSteps(mid,   end, cc2, endControlPt, steps2);
 
     let allVectors = [].concat( vecs1 ).concat( vecs2 );
 
