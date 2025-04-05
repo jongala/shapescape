@@ -119,7 +119,6 @@ export function moire(options) {
         let normalizedStep = curveLength/steps;
         DEBUG && note.add(`curve length from ${steps} steps about ${curveLength.toPrecision(4)}px each step about ${normalizedStep.toPrecision(4)}px`);
 
-
         let t = 0;
         let inc = 1/steps;
 
@@ -160,30 +159,23 @@ export function moire(options) {
         */
 
         let spacing = trackWidth/pathCount;
+        let offsetBoundary = trackWidth/2;
 
         let paths = []; // array of arrays
         for (var i = 0; i <= pathCount; i++) {
             paths.push({
                 pts:[],
-                offset: trackWidth * -1/2 + i * spacing,
+                offset: -offsetBoundary + i * spacing,
                 active: true
             }); // push an array for each path
         }
 
-        let t = 0;
-        let inc = 1/steps;
+        note.add(`Track width ${trackWidth.toPrecision(4)}px`);
 
-        let curveLength = getCurveLength(stepVectors);
-
-        let normalizedStep = curveLength/steps;
-        note.add(`Stepwise curve length  ${curveLength.toPrecision(4)}px each step about ${normalizedStep.toPrecision(4)}px`);
-
-        // normalize drift input so it expresses a percentage of forward step
+        // default drift and then process as percentage of a 45deg angle
         drift = drift || 0;
-        note.add(`Input drift is ${drift.toPrecision(3)}`);
-        drift = drift/100 * normalizedStep; // percentage
-        note.add(`Normalized drift is ${drift.toPrecision(3)}`);
-
+        let driftAngle = (drift / 100) * PI/4; // 100 is 45deg
+        note.add(`Input drift is ${drift.toPrecision(3)}, about ${(driftAngle).toPrecision(3)} rad`);
 
         /*
             Either 1 or -1. Will work with the vector angle to set
@@ -192,27 +184,16 @@ export function moire(options) {
             insertion of new paths.
         */
         let direction = 1;
-        let insert = 0; // tracks when to insert a new path
 
-        // re-express as a fraction of the spacing, so we get there
-        // in even numbers of steps
-        // drift * N = spacing
-        // drift = spacing / N
-        // N = spacing / normalizedDrift
-        let N = spacing / drift;
-        note.add(`DRIFT: ${N.toPrecision(3)} steps for drift from ${spacing.toPrecision(3)} spacing, ${drift.toPrecision(3)} drift`);
-        //drift = spacing / N;
-        //drift = spacing *  3 / 5;
-        let M = Math.floor(N);
-
+        // tracking cumulative drift until we insert the next path
+        let offsetRatchet = 0;
 
         stepVectors.forEach((v, i) => {
             // path x and y
             let px = 0;
             let py = 0;
 
-            let x = v.x;
-            let y = v.y;
+            let stepDrift = v.length * Math.cos(driftAngle);
 
             // step through paths
             paths.forEach((path, j) => {
@@ -223,34 +204,33 @@ export function moire(options) {
                     3. out of bounds on positive side, never to return
                 */
                 if (path.active) {
-                    px = x + path.offset * Math.cos(v.angle + direction * PI/2);
-                    py = y + path.offset * Math.sin(v.angle + direction * PI/2);
+                    px = v.x + path.offset * Math.cos(v.angle + direction * PI/2);
+                    py = v.y + path.offset * Math.sin(v.angle + direction * PI/2);
 
-                    if (path.offset > -trackWidth/2 && path.offset < trackWidth/2) {
+                    if (path.offset > -offsetBoundary && path.offset < offsetBoundary) {
                         path.pts.push([px, py]);
                     }
                 }
                 // only check positive bound to deactivate; if it is below
                 // negative bound it is drifting in and should stay active
-                if (path.offset > trackWidth/2) {
+                if (path.active && path.offset > offsetBoundary) {
                     path.active = false;
                 }
 
-                path.offset += drift;
+                path.offset += stepDrift;
             });
 
-            let creep = Math.floor(i * drift/spacing);
-            let remainder = (i * drift) % spacing;
-                            /* total drift % spacing */
+            offsetRatchet += stepDrift;
 
-            if (creep > insert) {
-                insert = creep; // reset
+            if (offsetRatchet >= spacing ) {
+                let offsetRemainder = offsetRatchet - spacing;
                 paths.unshift({
                     active: true,
                     //offset: minOff - spacing,//-l/2,
-                    offset: -trackWidth/2 + remainder,
+                    offset: -offsetBoundary + offsetRemainder,
                     pts: []
                 });
+                offsetRatchet = offsetRemainder;
             }
         });
 
@@ -270,7 +250,6 @@ export function moire(options) {
     // Convenience function composing curveToSteps and stepsToPaths
     function drawSegment(a, b, c1, c2, steps, pathCount, trackWidth, drift) {
         let vectors = curveToSteps(a, b, c1, c2, steps);
-
         stepsToPaths(vectors, pathCount, trackWidth, drift);
     }
 
@@ -348,8 +327,6 @@ export function moire(options) {
     drawCircle(ctx, ...cc1, 20, {stroke:'#f09'});
     drawCircle(ctx, ...cc2, 20, {stroke:'#f09'});
 
-    console.log('mid', mid);
-
 
     // different endpoints
     let theta2 = theta - PI + PI * randomInRange(-0.3, 0.3);
@@ -401,7 +378,7 @@ export function moire(options) {
     let pathCount = randomInt(15, 30);
     let weight = trackWidth / pathCount * randomInRange(0.13, 0.33);
     ctx.lineWidth = weight;
-    DEBUG && console.log(`${Math.round(steps)} steps over ${Math.round(REACH)}px; ${(REACH/steps).toPrecision(3)}px per interval; ${weight.toPrecision(3)}px lines at ${(trackWidth/pathCount).toPrecision(3)}px spacing`);
+    DEBUG && note.add(`${Math.round(steps)} steps over ${Math.round(REACH)}px; ${(REACH/steps).toPrecision(3)}px per interval; ${weight.toPrecision(3)}px lines at ${(trackWidth/pathCount).toPrecision(3)}px spacing`);
 
 
     // sometimes, use the same color for both
@@ -452,7 +429,7 @@ export function moire(options) {
     ];
 
     // Finally: draw
-    randItem(renderModes)();
+    // randItem(renderModes)();
 
     //steps = steps/2;
 
