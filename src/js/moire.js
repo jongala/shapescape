@@ -16,17 +16,6 @@ const TWOPI = 2 * PI;
 
 const DEBUG = true;
 
-/*
-
-TODO:
-- multi-segment paths: when we have shared endpoints, if the control points
-differ then the approaches are not parallel, so we don't get gradual divergence
-We need to have shared end points and at least a control point shared.
-This probably means two paths with shared end points, and the control points
-must be on a line with the shared endpoints, for continuity.
-
-*/
-
 // Main function
 export function moire(options) {
     let opts = Object.assign({}, DEFAULTS, options);
@@ -303,8 +292,8 @@ export function moire(options) {
         origin[1] + endControlLength * Math.sin(theta - PI)
     ];
 
-    drawCircle(ctx, ...startControlPt, 20, {stroke:'green'});
-    drawCircle(ctx, ...endControlPt, 20, {stroke:'red'});
+    DEBUG && drawCircle(ctx, ...startControlPt, 20, {stroke:'green'});
+    DEBUG && drawCircle(ctx, ...endControlPt, 20, {stroke:'red'});
 
     let midTheta = randomInRange(0, TWOPI);
     let midReach = REACH * randomInRange(0.1, 0.6);
@@ -324,14 +313,16 @@ export function moire(options) {
         mid[1] + centerSkewAmount * Math.sin(centerSkewAngle - PI)
     ];
 
-    ctx.strokeStyle = '#ff0099';
-    ctx.beginPath();
-    ctx.moveTo(...cc1);
-    ctx.lineTo(...cc2);
-    ctx.stroke();
+    if (DEBUG) {
+        ctx.strokeStyle = '#ff0099';
+        ctx.beginPath();
+        ctx.moveTo(...cc1);
+        ctx.lineTo(...cc2);
+        ctx.stroke();
+    }
 
-    drawCircle(ctx, ...cc1, 20, {stroke:'#f09'});
-    drawCircle(ctx, ...cc2, 20, {stroke:'#f09'});
+    DEBUG && drawCircle(ctx, ...cc1, 20, {stroke:'#f09'});
+    DEBUG && drawCircle(ctx, ...cc2, 20, {stroke:'#f09'});
 
 
     // different endpoints
