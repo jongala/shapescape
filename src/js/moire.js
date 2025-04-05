@@ -234,6 +234,12 @@ export function moire(options) {
             }
         });
 
+        return paths;
+    }
+
+
+    // actually draw paths to canvas
+    function drawPaths(paths) {
         // now go back and draw all then paths
         paths.forEach((path) => {
             if (!path.pts.length) return;
@@ -250,7 +256,7 @@ export function moire(options) {
     // Convenience function composing curveToSteps and stepsToPaths
     function drawSegment(a, b, c1, c2, steps, pathCount, trackWidth, drift) {
         let vectors = curveToSteps(a, b, c1, c2, steps);
-        stepsToPaths(vectors, pathCount, trackWidth, drift);
+        drawPaths(stepsToPaths(vectors, pathCount, trackWidth, drift));
     }
 
 
@@ -464,7 +470,7 @@ export function moire(options) {
     DEBUG && note.add(`Corrected steps: ${steps1} and ${steps2}, from ${steps}`);
 
     // Draw it
-    stepsToPaths(allVectors, pathCount, trackWidth, drift1);
+    drawPaths(stepsToPaths(allVectors, pathCount, trackWidth, drift1));
 
     // output any notes
     note.log();
