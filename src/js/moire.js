@@ -193,7 +193,7 @@ export function moire(options) {
             let px = 0;
             let py = 0;
 
-            let stepDrift = v.length * Math.cos(driftAngle);
+            let stepDrift = v.length * Math.sin(driftAngle);
 
             // step through paths
             paths.forEach((path, j) => {
@@ -444,6 +444,7 @@ export function moire(options) {
     //boundaryCurve(start, mid, startControlPt, cc1, pathCount, steps, trackWidth, drift1);
     //boundaryCurve(mid, end, cc2, endControlPt, pathCount, steps, trackWidth, drift1);
 
+    //drift1 = drift2 = 0;
 
     // test: concat both segments into a single vector set, then draw it
     let vecs1 = curveToSteps(start, mid, startControlPt, cc1, 1000);
