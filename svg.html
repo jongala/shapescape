@@ -1,0 +1,49 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>RenderLab: SVG</title>
+<link href="style.bundle.css" rel="stylesheet"></head>
+<body>
+    <h1 id="renderPickers"></h1>
+    <div id="controls">
+        <fieldset>
+            <legend>Create &amp; save</legend>
+            <button onclick="drawNew()" id="newImageTrigger">New Image</button>
+            <button onclick="createBatch()" id="newBatchTrigger">New Batch</button>
+            <!--<button onclick="rerun()" id="rerunTrigger">ReRun</button>-->
+            <a href="#" id="downloadExample" target="_blank" title="download image">↓</a>
+        </fieldset>
+        <fieldset>
+            <legend>Colors</legend>
+            <select onchange="setPalette(this.value)" id="paletteSelector"></select>
+            <input type="text" id="customColors" placeholder="enter colors…" />
+        </fieldset>
+        <fieldset>
+            <legend>Format</legend>
+            <select onchange="setSize(this.value)">
+                <optgroup label="screen">
+                    <option value="square">square</option>
+                    <option value="wide">wide</option>
+                    <option value="tall">tall</option>
+                    <option value="sWQXGA">WQXGA</option>
+                    <option value="s4KUHD">4K UHD</option>
+                </optgroup>
+                <optgroup label="print">
+                    <option value="p4x6">4 x 6</option>
+                    <option value="p6x4">6 x 4</option>
+                    <option value="p6x6">6 x 6</option>
+                    <option value="p8x10">8 x 10</option>
+                    <option value="p10x8">10 x 8</option>
+                </optgroup>
+            </select>
+        </fieldset>
+    </div>
+    <div id="instructions">[space] to redraw. Click image to add to tray. Click thumbnail to preview.</div>
+    <div id="renderNode"><svg class="plotter" xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewbox="0 0 800 800"></svg></div>
+    <div id="saved"></div>
+    <!--<div id="re-tall" class="rerun"></div>
+    <div id="re-wide" class="rerun"></div>-->
+    <script type="text/javascript">
+    </script>
+<script type="text/javascript" src="svg_app.bundle.js"></script></body>
+</html>

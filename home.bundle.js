@@ -389,6 +389,51 @@ function Note() {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+// in use
+var palettes = {
+    ultra: ['#15d6d0', '#4481fc', '#bb19d8', '#f22f1c', '#ffa300', '#fff200'],
+    high_contrast: ['#111111', '#444444', '#dddddd', '#f9f9f9'],
+    low_contrast: ['#555555', '#777777', '#999999', '#cccccc', '#dddddd'],
+    black_white_red: ['#111111', '#444444', '#dddddd', '#ffffff', '#880000', '#dd0000'],
+
+    south_beach: ['#0c3646', '#11758e', '#89bed3', '#e4ca49', '#cabd9d', '#f2f0ea'],
+    north_beach: ['#1d282e', '#4b4f52', '#0089ad', '#6e92b4', '#b9a583', '#f1e1d1'],
+    twilight_beach: ['#030408', '#0c3646', '#4a828f', '#af8c70', '#aaadac', '#ffffff'],
+    admiral: ['#0a131c', '#072444', '#3b6185', '#361313', '#c47423', '#b88d40', '#f3efec'],
+    plum_sauce: ['#3C2E42', '#B4254B', '#FF804A', '#E8D1A1', '#A5C9C4'],
+    fingerspitzen: ['#f4dda8', '#eda87c', '#c8907e', '#9cacc3', '#485e80', '#3b465b'],
+    de_stijl: ['#f9f9f9', '#D9AC32', '#ED5045', '#1F3E9C', '#000142'],
+
+    terra_cotta_cactus: ['#5d576b', '#9bc1b8', '#f4f1bb', '#dcc48e', '#ed6a5a'],
+    metroid_fusion: ['#DBEED6', '#47BDC2', '#0A7DB8', '#1A3649', '#B24432'],
+
+    candywafer: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
+    blush: ['#111111', '#94552C', '#F8ADAA', '#F8E3AC', '#ffffff'],
+
+    ikb: ['#070033', '#00006b', '#00187c', '#002ea7', '#0b6fff', '#5c9eff', '#e9f4ff'],
+
+    magma: ['#000004', '#3b0f70', '#8c2981', '#de4968', '#fe9f6d', '#fcfdbf'],
+    inferno: ['#000004', '#420a68', '#932667', '#dd513a', '#fca50a', '#fcffa4'],
+    plasma: ['#0d0887', '#6a00a8', '#b12a90', '#e16462', '#fca636', '#f0f921'],
+    viridis: ['#440154', '#414487', '#2a788e', '#22a884', '#7ad151', '#fde725']
+};
+
+exports.default = palettes;
+
+// older palettes:
+
+var lemon_beach = exports.lemon_beach = ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'];
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 /**
  * Add noise to existing artwork, adding small equal values to each r,g,b
  * component of each pixel, by stepping through imageData.
@@ -500,49 +545,6 @@ exports.default = {
     createNoiseCanvas: createNoiseCanvas,
     applyNoiseCanvas: applyNoiseCanvas
 };
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-// in use
-var palettes = {
-    ultra: ['#15d6d0', '#4481fc', '#bb19d8', '#f22f1c', '#ffa300', '#fff200'],
-    high_contrast: ['#111111', '#444444', '#dddddd', '#f9f9f9'],
-    low_contrast: ['#555555', '#777777', '#999999', '#cccccc', '#dddddd'],
-    black_white_red: ['#111111', '#444444', '#dddddd', '#ffffff', '#880000', '#dd0000'],
-
-    south_beach: ['#0c3646', '#11758e', '#89bed3', '#e4ca49', '#cabd9d', '#f2f0ea'],
-    north_beach: ['#1d282e', '#4b4f52', '#0089ad', '#6e92b4', '#b9a583', '#f1e1d1'],
-    twilight_beach: ['#030408', '#0c3646', '#4a828f', '#af8c70', '#aaadac', '#ffffff'],
-    admiral: ['#0a131c', '#072444', '#3b6185', '#361313', '#c47423', '#b88d40', '#f3efec'],
-    plum_sauce: ['#3C2E42', '#B4254B', '#FF804A', '#E8D1A1', '#A5C9C4'],
-    fingerspitzen: ['#f4dda8', '#eda87c', '#c8907e', '#9cacc3', '#485e80', '#3b465b'],
-    de_stijl: ['#f9f9f9', '#D9AC32', '#ED5045', '#1F3E9C', '#000142'],
-
-    terra_cotta_cactus: ['#5d576b', '#9bc1b8', '#f4f1bb', '#dcc48e', '#ed6a5a'],
-    metroid_fusion: ['#DBEED6', '#47BDC2', '#0A7DB8', '#1A3649', '#B24432'],
-
-    candywafer: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
-    blush: ['#111111', '#94552C', '#F8ADAA', '#F8E3AC', '#ffffff'],
-
-    magma: ['#000004', '#3b0f70', '#8c2981', '#de4968', '#fe9f6d', '#fcfdbf'],
-    inferno: ['#000004', '#420a68', '#932667', '#dd513a', '#fca50a', '#fcffa4'],
-    plasma: ['#0d0887', '#6a00a8', '#b12a90', '#e16462', '#fca636', '#f0f921'],
-    viridis: ['#440154', '#414487', '#2a788e', '#22a884', '#7ad151', '#fde725']
-};
-
-exports.default = palettes;
-
-// older palettes:
-
-var lemon_beach = exports.lemon_beach = ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'];
 
 /***/ }),
 /* 3 */
@@ -977,6 +979,125 @@ function hexScatter(spacing, w, h, loosen) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.createTransform = createTransform;
+exports.createSourceSinkTransform = createSourceSinkTransform;
+exports.opacityTransforms = opacityTransforms;
+
+var _utils = __webpack_require__(0);
+
+var PI = Math.PI;
+
+// Create a function which is a periodic transform of x, y
+function createTransform() {
+    var rateMin = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+    var rateMax = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+
+    var rate1 = (0, _utils.randomInRange)(0, rateMax / 2);
+    var rate2 = (0, _utils.randomInRange)(0, rateMax / 2);
+    var rate3 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
+    var rate4 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
+
+    var phase1 = (0, _utils.randomInRange)(-PI, PI);
+    var phase2 = (0, _utils.randomInRange)(-PI, PI);
+    var phase3 = (0, _utils.randomInRange)(-PI, PI);
+    var phase4 = (0, _utils.randomInRange)(-PI, PI);
+
+    var c1 = (0, _utils.randomInRange)(0, 1);
+    var c2 = (0, _utils.randomInRange)(0, 1);
+    var c3 = (0, _utils.randomInRange)(0, 1);
+    var c4 = (0, _utils.randomInRange)(0, 1);
+    return function (xnorm, ynorm) {
+        var t1 = Math.sin(xnorm * rate1 * 2 * PI + phase1);
+        var t2 = Math.sin(ynorm * rate2 * 2 * PI + phase2);
+        var t3 = Math.sin(xnorm * rate3 * 2 * PI + phase3);
+        var t4 = Math.sin(ynorm * rate4 * 2 * PI + phase4);
+        return (c1 * t1 + c2 * t2 + c3 * t3 + c4 * t4) / (c1 + c2 + c3 + c4);
+    };
+}
+
+function createSourceSinkTransform() {
+    var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 4;
+
+    var sources = [];
+
+    while (count--) {
+        var src = {
+            strength: (0, _utils.randomInRange)(1, 20),
+            sign: 1,
+            x: (0, _utils.randomInRange)(-0.25, 1.25), // add some overscan
+            y: (0, _utils.randomInRange)(-0.25, 1.25)
+        };
+        if (Math.random() > 0.9) {
+            // occasionally make sinks instead of sources
+            src.sign *= -1;
+        }
+        sources.push(src);
+    }
+
+    return {
+        sources: sources,
+        t: function t(xnorm, ynorm) {
+            var v = [0, 0]; // force vector to return
+
+            sources.forEach(function (source) {
+                var rmin = source.strength / 1000; // magic number
+
+
+                var dx = xnorm - source.x;
+                var dy = ynorm - source.y;
+                var _r = dx * dx + dy * dy; // really r squared but that's what we want
+
+                if (_r < rmin) {
+                    _r = rmin;
+                }; // min r
+
+                var scalar = source.sign * source.strength / _r;
+
+                var _x = scalar * dx;
+                var _y = scalar * dy;
+                v[0] += _x;
+                v[1] += _y;
+            });
+
+            return v;
+        }
+    };
+}
+
+function opacityTransforms(maxLen) {
+    return [function () {
+        return 1;
+    }, function (_x, _y) {
+        return Math.abs(_y / _x) / maxLen;
+    }, function (_x, _y) {
+        return 1 - Math.abs(_y / _x) / maxLen;
+    }, function (_x, _y) {
+        return Math.abs(_x / _y);
+    }, // hides verticals
+    function (_x, _y) {
+        return Math.abs(_y / _x);
+    }, // hides horizontals
+    function (_x, _y) {
+        return _x / _y;
+    }, function (_x, _y) {
+        return _y / _x;
+    }, function (_x, _y) {
+        return _y - _x;
+    }, function (_x, _y) {
+        return _x - _y;
+    }];
+}
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 exports.defineFill = defineFill;
 exports.expandFill = expandFill;
 
@@ -1105,7 +1226,15 @@ function expandFill(ctx, fill, w, h, scale) {
 }
 
 /***/ }),
-/* 6 */
+/* 7 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 8 */,
+/* 9 */,
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1114,125 +1243,404 @@ function expandFill(ctx, fill, w, h, scale) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.createTransform = createTransform;
-exports.createSourceSinkTransform = createSourceSinkTransform;
-exports.opacityTransforms = opacityTransforms;
+exports.field = field;
+
+var _noiseutils = __webpack_require__(2);
+
+var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _palettes = __webpack_require__(1);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
+var _hexScatter = __webpack_require__(4);
+
+var _hexScatter2 = _interopRequireDefault(_hexScatter);
 
 var _utils = __webpack_require__(0);
 
+var _shapes = __webpack_require__(3);
+
+var _fieldUtils = __webpack_require__(5);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var DEFAULTS = {
+    container: 'body',
+    palette: _palettes2.default.de_stijl,
+    addNoise: 0.04,
+    noiseInput: null,
+    dust: false,
+    skew: 1, // normalized skew
+    clear: true,
+    colorMode: 'auto', // from COLORMODES or 'auto'
+    fieldMode: 'auto', // [auto, harmonic, flow]
+    lightMode: 'normal', // [auto, bloom, normal]
+    gridMode: 'auto', // [auto, normal, scatter, random]
+    density: 'auto', // [auto, coarse, fine]
+    fieldNoise: 'auto' // mapped to values below
+};
+
 var PI = Math.PI;
+var FIELDMODES = ['harmonic', 'flow'];
+var LIGHTMODES = ['bloom', 'normal'];
+var GRIDMODES = ['normal', 'scatter', 'random'];
+var DENSITIES = ['coarse', 'fine'];
+var COLORMODES = ['single', 'angle', 'random'];
 
-// Create a function which is a periodic transform of x, y
-function createTransform() {
-    var rateMin = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-    var rateMax = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+// Main function
+function field(options) {
+    var opts = Object.assign({}, DEFAULTS, options);
 
-    var rate1 = (0, _utils.randomInRange)(0, rateMax / 2);
-    var rate2 = (0, _utils.randomInRange)(0, rateMax / 2);
-    var rate3 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
-    var rate4 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
+    var container = opts.container;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
+    var SCALE = Math.min(cw, ch);
+    var LONG = Math.max(cw, ch);
+    var SHORT = Math.min(cw, ch);
+    var AREA = cw * ch;
 
-    var phase1 = (0, _utils.randomInRange)(-PI, PI);
-    var phase2 = (0, _utils.randomInRange)(-PI, PI);
-    var phase3 = (0, _utils.randomInRange)(-PI, PI);
-    var phase4 = (0, _utils.randomInRange)(-PI, PI);
-
-    var c1 = (0, _utils.randomInRange)(0, 1);
-    var c2 = (0, _utils.randomInRange)(0, 1);
-    var c3 = (0, _utils.randomInRange)(0, 1);
-    var c4 = (0, _utils.randomInRange)(0, 1);
-    return function (xnorm, ynorm) {
-        var t1 = Math.sin(xnorm * rate1 * 2 * PI + phase1);
-        var t2 = Math.sin(ynorm * rate2 * 2 * PI + phase2);
-        var t3 = Math.sin(xnorm * rate3 * 2 * PI + phase3);
-        var t4 = Math.sin(ynorm * rate4 * 2 * PI + phase4);
-        return (c1 * t1 + c2 * t2 + c3 * t3 + c4 * t4) / (c1 + c2 + c3 + c4);
-    };
-}
-
-function createSourceSinkTransform() {
-    var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 4;
-
-    var sources = [];
-
-    while (count--) {
-        var src = {
-            strength: (0, _utils.randomInRange)(1, 20),
-            sign: 1,
-            x: (0, _utils.randomInRange)(-0.25, 1.25), // add some overscan
-            y: (0, _utils.randomInRange)(-0.25, 1.25)
-        };
-        if (Math.random() > 0.9) {
-            // occasionally make sinks instead of sources
-            src.sign *= -1;
-        }
-        sources.push(src);
+    // Find or create canvas child
+    var el = container.querySelector('canvas');
+    var newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        el.width = cw;
+        el.height = ch;
     }
 
-    return {
-        sources: sources,
-        t: function t(xnorm, ynorm) {
-            var v = [0, 0]; // force vector to return
+    var ctx = el.getContext('2d');
 
-            sources.forEach(function (source) {
-                var rmin = source.strength / 1000; // magic number
+    // modes and styles
+    var LIGHTMODE = opts.lightMode === 'auto' ? (0, _utils.randItem)(LIGHTMODES) : opts.lightMode;
+    var GRIDMODE = opts.gridMode === 'auto' ? (0, _utils.randItem)(GRIDMODES) : opts.gridMode;
+    var DENSITY = opts.density === 'auto' ? (0, _utils.randItem)(DENSITIES) : opts.density;
+    var FIELDMODE = opts.fieldMode === 'auto' ? (0, _utils.randItem)(FIELDMODES) : opts.fieldMode;
+    var COLORMODE = opts.colorMode === 'auto' ? (0, _utils.randItem)(COLORMODES) : opts.colorMode;
+    var FIELDNOISE = (0, _utils.mapKeywordToVal)({
+        // hacky way to weight options by redundantly specifying
+        'none': 0,
+        'none2': 0,
+        'low': 0.125,
+        'low2': 0.125,
+        'med': 0.25,
+        'high': 0.5
+    })(opts.fieldNoise, 'fieldNoise');
 
+    // color funcs
+    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
 
-                var dx = xnorm - source.x;
-                var dy = ynorm - source.y;
-                var _r = dx * dx + dy * dy; // really r squared but that's what we want
+    // how many cells are in the grid?
+    var countMin = void 0,
+        countMax = void 0;
+    if (DENSITY === 'coarse') {
+        countMin = 10;
+        countMax = 30;
+    } else {
+        countMin = 60;
+        countMax = 100;
+    }
 
-                if (_r < rmin) {
-                    _r = rmin;
-                }; // min r
+    var cellSize = Math.round(SHORT / (0, _utils.randomInRange)(countMin, countMax));
+    console.log('Field: ' + DENSITY + '(' + cellSize + 'px) ' + GRIDMODE + ' ' + FIELDMODE + ' ' + COLORMODE);
 
-                var scalar = source.sign * source.strength / _r;
+    // setup vars for each cell
+    var x = 0;
+    var y = 0;
+    var xnorm = 0;
+    var ynorm = 0;
+    var renderer = void 0;
 
-                var _x = scalar * dx;
-                var _y = scalar * dy;
-                v[0] += _x;
-                v[1] += _y;
-            });
+    // shared colors
+    var bg = getSolidFill();
 
-            return v;
-        }
+    // get palette of non-bg colors
+    var contrastPalette = [].concat(opts.palette);
+    contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
+
+    // shared foregrounds
+    var fg = getContrastColor();
+    var fg2 = getContrastColor();
+
+    // in bloom mode, we draw high-contrast grayscale, and layer
+    // palette colors on top
+    if (LIGHTMODE === 'bloom') {
+        bg = '#222222';
+        fg = fg2 = '#cccccc';
+    }
+
+    // draw background
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, cw, ch);
+
+    // set default tail color
+    ctx.strokeStyle = fg;
+    // set default dot color
+    var dotFill = fg2;
+
+    var rateMax = 3;
+    if (DENSITY === 'fine' && Math.random() < 0.5) {
+        rateMax = 6;
+    }
+
+    // tail vars
+    var _x = void 0,
+        _y = void 0,
+        len = void 0;
+
+    // dotScale will be multiplied by 2. Keep below .25 to avoid bleed.
+    // Up to 0.5 will lead to full coverage.
+    var dotScale = cellSize * (0, _utils.randomInRange)(0.1, 0.25);
+    // line width
+    var weight = (0, _utils.randomInRange)(0.5, 3) * SCALE / 800;
+
+    ctx.lineWidth = weight;
+    ctx.lineCap = 'round';
+
+    // const used in normalizing transforms
+    var maxLen = 2 * Math.sqrt(2);
+
+    // It looks nice to extend lines beyond their cells. how much?
+    // Scaled against cellSize
+    var lineScale = (0, _utils.randomInRange)(0.7, 2);
+
+    // Displace the center point of each cell by this factor
+    // Only do this sometimes, and not when scattering
+    var warp = 0;
+    if (GRIDMODE !== 'scatter' && Math.random() < 0.5) {
+        warp = (0, _utils.randomInRange)(0.75, Math.sqrt(2));
+    }
+
+    // Pick an opacity transform to use
+    var opacityFunc = (0, _utils.randItem)((0, _fieldUtils.opacityTransforms)(maxLen));
+
+    // a set of independent transforms to use while rendering
+    var trans = {
+        xbase: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
+        ybase: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
+        xtail: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
+        ytail: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
+        radius: (0, _fieldUtils.createTransform)(rateMax)
     };
-}
 
-function opacityTransforms(maxLen) {
-    return [function () {
-        return 1;
-    }, function (_x, _y) {
-        return Math.abs(_y / _x) / maxLen;
-    }, function (_x, _y) {
-        return 1 - Math.abs(_y / _x) / maxLen;
-    }, function (_x, _y) {
-        return Math.abs(_x / _y);
-    }, // hides verticals
-    function (_x, _y) {
-        return Math.abs(_y / _x);
-    }, // hides horizontals
-    function (_x, _y) {
-        return _x / _y;
-    }, function (_x, _y) {
-        return _y / _x;
-    }, function (_x, _y) {
-        return _y - _x;
-    }, function (_x, _y) {
-        return _x - _y;
-    }];
+    function randomScatter(size, w, h) {
+        var pts = [];
+        var xcount = Math.ceil(w / size);
+        var ycount = Math.ceil(h / size);
+        var count = xcount * ycount;
+        while (count--) {
+            pts.push([(0, _utils.randomInRange)(0, w), (0, _utils.randomInRange)(0, h)]);
+        }
+        return pts;
+    }
+
+    function placeNormal(size, w, h) {
+        var pts = [];
+        var xcount = Math.ceil(w / size) + 2;
+        var ycount = Math.ceil(h / size) + 2;
+        var count = xcount * ycount;
+        var x = void 0,
+            y = void 0;
+        for (var i = 0; i < count; i++) {
+            x = size * (i % xcount - 1) + size / 2;
+            y = size * (Math.floor(i / xcount) - 1) + size / 2;
+            pts.push([x, y]);
+        }
+        return pts;
+    }
+
+    var pts = [];
+
+    // If we are warping the grid, we should plot points outside of the canvas
+    // bounds to avoid gaps at the edges. Shift them over below.
+    var overscan = 1;
+    if (warp) {
+        overscan = 1.2;
+    }
+
+    switch (GRIDMODE) {
+        case 'scatter':
+            pts = (0, _hexScatter2.default)(cellSize, cw * overscan, ch * overscan);
+            break;
+        case 'random':
+            pts = randomScatter(cellSize, cw * overscan, ch * overscan);
+            break;
+        default:
+            pts = placeNormal(cellSize, cw * overscan, ch * overscan);
+    }
+
+    // compensate for overscan by shifting pts back
+    if (warp) {
+        pts.map(function (p, i) {
+            return [p[0] - cw * .1, p[1] - ch * .1];
+        });
+    }
+
+    var sourceTransform = (0, _fieldUtils.createSourceSinkTransform)(Math.round((0, _utils.randomInRange)(5, 15)));
+
+    // Flags for coloring by angle
+    // Don't do special coloring in bloom mode, because it relies on grayscale
+    // initial rendering
+    var colorTailByAngle = false;
+    var colorDotByAngle = false;
+    var randomColorThreshold = void 0;
+    if (LIGHTMODE !== 'bloom') {
+        if (COLORMODE === 'angle') {
+            if (Math.random() < 0.6) {
+                colorTailByAngle = true;
+            }
+            if (Math.random() < 0.6) {
+                colorDotByAngle = true;
+            }
+        }
+        if (COLORMODE === 'random') {
+            randomColorThreshold = 0.66;
+        }
+    }
+
+    // console.log(`Colors: tails ${colorTailByAngle}, dots: ${colorDotByAngle}`);
+
+    // source/sink stuff
+    if (FIELDMODE === 'flow') {
+        var totalStrength = 0;
+        sourceTransform.sources.forEach(function (source) {
+            totalStrength += source.strength;
+        });
+        lineScale = 1 / totalStrength;
+    }
+
+    // step thru points
+    pts.forEach(function (p, i) {
+        x = p[0];
+        y = p[1];
+        xnorm = x / cw;
+        ynorm = y / ch;
+
+        // shift base points to their warped coordinates
+        x = x + cellSize * trans.xbase(xnorm, ynorm) * warp;
+        y = y + cellSize * trans.ybase(xnorm, ynorm) * warp;
+
+        var xNoise = 0;
+        var yNoise = 0;
+        if (FIELDNOISE > 0) {
+            xNoise = (0, _utils.randomInRange)(-1, 1) * FIELDNOISE;
+            yNoise = (0, _utils.randomInRange)(-1, 1) * FIELDNOISE;
+        }
+
+        // get end of tail coords
+        if (FIELDMODE === 'flow') {
+            // flow fields (source-sink)
+            var flow = sourceTransform.t(xnorm, ynorm);
+            _x = flow[0];
+            _y = flow[1];
+        } else {
+            // harmonic fields
+            _x = trans.xtail(xnorm, ynorm);
+            _y = trans.ytail(xnorm, ynorm);
+        }
+
+        _x += xNoise;
+        _y += yNoise;
+
+        var theta = Math.atan2(_y, _x);
+        var fillIndex = Math.round(contrastPalette.length * theta / PI / 2);
+        var angleColor = contrastPalette[fillIndex];
+
+        if (colorDotByAngle) {
+            dotFill = angleColor;
+        }
+        if (COLORMODE === 'random' && Math.random() < randomColorThreshold) {
+            dotFill = getContrastColor();
+        }
+
+        // draw dot
+        ctx.globalAlpha = 1;
+        (0, _shapes.drawCircle)(ctx, x, y, (trans.radius(xnorm, ynorm) + 1) * dotScale, { fill: dotFill });
+
+        ctx.globalAlpha = opacityFunc(_x, _y);
+
+        if (colorTailByAngle) {
+            ctx.strokeStyle = angleColor;
+        }
+        if (COLORMODE === 'random' && Math.random() < randomColorThreshold) {
+            ctx.strokeStyle = getContrastColor();
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + cellSize * _x * lineScale, y + cellSize * _y * lineScale);
+        ctx.stroke();
+    });
+
+    ctx.globalAlpha = 1;
+
+    // in bloom mode, we draw a big colorful gradient over the grayscale
+    // background, using palette colors and nice blend modes
+    if (LIGHTMODE === 'bloom') {
+        ctx.globalCompositeOperation = 'color-dodge';
+
+        // bloom with linear gradient
+        ctx.fillStyle = (0, _utils.getGradientFunction)(opts.palette)(ctx, cw, ch); //getContrastColor();
+        ctx.fillRect(0, 0, cw, ch);
+
+        if (Math.random() < 0.5) {
+            // bloom with spot lights
+            var dodgeDot = function dodgeDot() {
+                var max = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1.5;
+
+                var gx = void 0,
+                    gy = void 0,
+                    gr1 = void 0,
+                    gr2 = void 0;
+                gx = (0, _utils.randomInRange)(0, cw);
+                gy = (0, _utils.randomInRange)(0, ch);
+                gr1 = (0, _utils.randomInRange)(0, 0.25);
+                gr2 = (0, _utils.randomInRange)(gr1, max);
+
+                var radial = ctx.createRadialGradient(gx, gy, gr1 * SCALE, gx, gy, gr2 * SCALE);
+                radial.addColorStop(0, (0, _utils.randItem)(opts.palette));
+                radial.addColorStop(1, '#000000');
+
+                ctx.fillStyle = radial;
+                ctx.fillRect(0, 0, cw, ch);
+            };
+            // try layering dots with varying coverage
+            ctx.globalAlpha = (0, _utils.randomInRange)(0.4, 0.7);
+            dodgeDot(1.5);
+            ctx.globalAlpha = (0, _utils.randomInRange)(0.4, 0.7);
+            dodgeDot(1.0);
+            ctx.globalAlpha = (0, _utils.randomInRange)(0.7, 0.9);
+            dodgeDot(0.5);
+            ctx.globalAlpha = 1;
+        }
+
+        ctx.globalCompositeOperation = 'normal';
+    }
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            // apply noise from supplied canvas
+            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            // create noise pattern and apply
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, cw / 3);
+        }
+    }
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
 }
 
 /***/ }),
-/* 7 */,
-/* 8 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 9 */,
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1248,19 +1656,19 @@ exports.defineWaterline = defineWaterline;
 exports.drawWaterline = drawWaterline;
 exports.waterline = waterline;
 
-var _waterlineSchema = __webpack_require__(11);
+var _waterlineSchema = __webpack_require__(12);
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
 var _utils = __webpack_require__(0);
 
-var _colors = __webpack_require__(5);
+var _colors = __webpack_require__(6);
 
 var _shapes = __webpack_require__(3);
 
@@ -1698,7 +2106,7 @@ function waterline(options) {
 }
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1750,7 +2158,7 @@ var SCHEMA = exports.SCHEMA = {
 };
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1761,11 +2169,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.shapestack = shapestack;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -1773,9 +2181,9 @@ var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
 
-var _stacks = __webpack_require__(13);
+var _stacks = __webpack_require__(14);
 
-var _nests = __webpack_require__(14);
+var _nests = __webpack_require__(15);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2104,7 +2512,7 @@ var DEFAULTS = {
 }
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2156,7 +2564,7 @@ function drawStack(ctx, stack, x, w, colorFunc) {
 }
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2242,7 +2650,7 @@ function drawNest(ctx, nest, shapeFunction, colorFunction, o) {
 }
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2253,11 +2661,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.shapescape = shapescape;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -2429,7 +2837,7 @@ function shapescape(options) {
 }
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2441,11 +2849,11 @@ Object.defineProperty(exports, "__esModule", {
 exports.lines = lines;
 exports.drawLines = drawLines;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -2871,7 +3279,7 @@ function drawLines(ctx, p1, p2, opts) {
 }
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2882,11 +3290,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.waves = waves;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -3302,7 +3710,7 @@ function waves(options) {
 }
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3313,11 +3721,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.grid = grid;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -3558,8 +3966,8 @@ function grid(options) {
 }
 
 /***/ }),
-/* 19 */,
-/* 20 */
+/* 20 */,
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3570,11 +3978,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.circles = circles;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -3582,7 +3990,7 @@ var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
 
-var _colors = __webpack_require__(5);
+var _colors = __webpack_require__(6);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -4017,7 +4425,7 @@ function circles(options) {
 }
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4028,11 +4436,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.mesh = mesh;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -4281,7 +4689,7 @@ function mesh(options) {
 }
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4292,11 +4700,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.walk = walk;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -4698,7 +5106,7 @@ var DEFAULTS = {
 }
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4709,11 +5117,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.bands = bands;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -4721,7 +5129,7 @@ var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
 
-var _colors = __webpack_require__(5);
+var _colors = __webpack_require__(6);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -4935,413 +5343,8 @@ function bands(options) {
 }
 
 /***/ }),
-/* 24 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.field = field;
-
-var _noiseutils = __webpack_require__(1);
-
-var _noiseutils2 = _interopRequireDefault(_noiseutils);
-
-var _palettes = __webpack_require__(2);
-
-var _palettes2 = _interopRequireDefault(_palettes);
-
-var _hexScatter = __webpack_require__(4);
-
-var _hexScatter2 = _interopRequireDefault(_hexScatter);
-
-var _utils = __webpack_require__(0);
-
-var _shapes = __webpack_require__(3);
-
-var _fieldUtils = __webpack_require__(6);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var DEFAULTS = {
-    container: 'body',
-    palette: _palettes2.default.de_stijl,
-    addNoise: 0.04,
-    noiseInput: null,
-    dust: false,
-    skew: 1, // normalized skew
-    clear: true,
-    colorMode: 'auto', // from COLORMODES or 'auto'
-    fieldMode: 'auto', // [auto, harmonic, flow]
-    lightMode: 'normal', // [auto, bloom, normal]
-    gridMode: 'auto', // [auto, normal, scatter, random]
-    density: 'auto', // [auto, coarse, fine]
-    fieldNoise: 'auto' // mapped to values below
-};
-
-var PI = Math.PI;
-var FIELDMODES = ['harmonic', 'flow'];
-var LIGHTMODES = ['bloom', 'normal'];
-var GRIDMODES = ['normal', 'scatter', 'random'];
-var DENSITIES = ['coarse', 'fine'];
-var COLORMODES = ['single', 'angle', 'random'];
-
-// Main function
-function field(options) {
-    var opts = Object.assign({}, DEFAULTS, options);
-
-    var container = opts.container;
-    var cw = container.offsetWidth;
-    var ch = container.offsetHeight;
-    var SCALE = Math.min(cw, ch);
-    var LONG = Math.max(cw, ch);
-    var SHORT = Math.min(cw, ch);
-    var AREA = cw * ch;
-
-    // Find or create canvas child
-    var el = container.querySelector('canvas');
-    var newEl = false;
-    if (!el) {
-        container.innerHTML = '';
-        el = document.createElement('canvas');
-        newEl = true;
-    }
-    if (newEl || opts.clear) {
-        el.width = cw;
-        el.height = ch;
-    }
-
-    var ctx = el.getContext('2d');
-
-    // modes and styles
-    var LIGHTMODE = opts.lightMode === 'auto' ? (0, _utils.randItem)(LIGHTMODES) : opts.lightMode;
-    var GRIDMODE = opts.gridMode === 'auto' ? (0, _utils.randItem)(GRIDMODES) : opts.gridMode;
-    var DENSITY = opts.density === 'auto' ? (0, _utils.randItem)(DENSITIES) : opts.density;
-    var FIELDMODE = opts.fieldMode === 'auto' ? (0, _utils.randItem)(FIELDMODES) : opts.fieldMode;
-    var COLORMODE = opts.colorMode === 'auto' ? (0, _utils.randItem)(COLORMODES) : opts.colorMode;
-    var FIELDNOISE = (0, _utils.mapKeywordToVal)({
-        // hacky way to weight options by redundantly specifying
-        'none': 0,
-        'none2': 0,
-        'low': 0.125,
-        'low2': 0.125,
-        'med': 0.25,
-        'high': 0.5
-    })(opts.fieldNoise, 'fieldNoise');
-
-    // color funcs
-    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
-
-    // how many cells are in the grid?
-    var countMin = void 0,
-        countMax = void 0;
-    if (DENSITY === 'coarse') {
-        countMin = 10;
-        countMax = 30;
-    } else {
-        countMin = 60;
-        countMax = 100;
-    }
-
-    var cellSize = Math.round(SHORT / (0, _utils.randomInRange)(countMin, countMax));
-    console.log('Field: ' + DENSITY + '(' + cellSize + 'px) ' + GRIDMODE + ' ' + FIELDMODE + ' ' + COLORMODE);
-
-    // setup vars for each cell
-    var x = 0;
-    var y = 0;
-    var xnorm = 0;
-    var ynorm = 0;
-    var renderer = void 0;
-
-    // shared colors
-    var bg = getSolidFill();
-
-    // get palette of non-bg colors
-    var contrastPalette = [].concat(opts.palette);
-    contrastPalette.splice(opts.palette.indexOf(bg), 1);
-    var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
-
-    // shared foregrounds
-    var fg = getContrastColor();
-    var fg2 = getContrastColor();
-
-    // in bloom mode, we draw high-contrast grayscale, and layer
-    // palette colors on top
-    if (LIGHTMODE === 'bloom') {
-        bg = '#222222';
-        fg = fg2 = '#cccccc';
-    }
-
-    // draw background
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, cw, ch);
-
-    // set default tail color
-    ctx.strokeStyle = fg;
-    // set default dot color
-    var dotFill = fg2;
-
-    var rateMax = 3;
-    if (DENSITY === 'fine' && Math.random() < 0.5) {
-        rateMax = 6;
-    }
-
-    // tail vars
-    var _x = void 0,
-        _y = void 0,
-        len = void 0;
-
-    // dotScale will be multiplied by 2. Keep below .25 to avoid bleed.
-    // Up to 0.5 will lead to full coverage.
-    var dotScale = cellSize * (0, _utils.randomInRange)(0.1, 0.25);
-    // line width
-    var weight = (0, _utils.randomInRange)(0.5, 3) * SCALE / 800;
-
-    ctx.lineWidth = weight;
-    ctx.lineCap = 'round';
-
-    // const used in normalizing transforms
-    var maxLen = 2 * Math.sqrt(2);
-
-    // It looks nice to extend lines beyond their cells. how much?
-    // Scaled against cellSize
-    var lineScale = (0, _utils.randomInRange)(0.7, 2);
-
-    // Displace the center point of each cell by this factor
-    // Only do this sometimes, and not when scattering
-    var warp = 0;
-    if (GRIDMODE !== 'scatter' && Math.random() < 0.5) {
-        warp = (0, _utils.randomInRange)(0.75, Math.sqrt(2));
-    }
-
-    // Pick an opacity transform to use
-    var opacityFunc = (0, _utils.randItem)((0, _fieldUtils.opacityTransforms)(maxLen));
-
-    // a set of independent transforms to use while rendering
-    var trans = {
-        xbase: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
-        ybase: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
-        xtail: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
-        ytail: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
-        radius: (0, _fieldUtils.createTransform)(rateMax)
-    };
-
-    function randomScatter(size, w, h) {
-        var pts = [];
-        var xcount = Math.ceil(w / size);
-        var ycount = Math.ceil(h / size);
-        var count = xcount * ycount;
-        while (count--) {
-            pts.push([(0, _utils.randomInRange)(0, w), (0, _utils.randomInRange)(0, h)]);
-        }
-        return pts;
-    }
-
-    function placeNormal(size, w, h) {
-        var pts = [];
-        var xcount = Math.ceil(w / size) + 2;
-        var ycount = Math.ceil(h / size) + 2;
-        var count = xcount * ycount;
-        var x = void 0,
-            y = void 0;
-        for (var i = 0; i < count; i++) {
-            x = size * (i % xcount - 1) + size / 2;
-            y = size * (Math.floor(i / xcount) - 1) + size / 2;
-            pts.push([x, y]);
-        }
-        return pts;
-    }
-
-    var pts = [];
-
-    // If we are warping the grid, we should plot points outside of the canvas
-    // bounds to avoid gaps at the edges. Shift them over below.
-    var overscan = 1;
-    if (warp) {
-        overscan = 1.2;
-    }
-
-    switch (GRIDMODE) {
-        case 'scatter':
-            pts = (0, _hexScatter2.default)(cellSize, cw * overscan, ch * overscan);
-            break;
-        case 'random':
-            pts = randomScatter(cellSize, cw * overscan, ch * overscan);
-            break;
-        default:
-            pts = placeNormal(cellSize, cw * overscan, ch * overscan);
-    }
-
-    // compensate for overscan by shifting pts back
-    if (warp) {
-        pts.map(function (p, i) {
-            return [p[0] - cw * .1, p[1] - ch * .1];
-        });
-    }
-
-    var sourceTransform = (0, _fieldUtils.createSourceSinkTransform)(Math.round((0, _utils.randomInRange)(5, 15)));
-
-    // Flags for coloring by angle
-    // Don't do special coloring in bloom mode, because it relies on grayscale
-    // initial rendering
-    var colorTailByAngle = false;
-    var colorDotByAngle = false;
-    var randomColorThreshold = void 0;
-    if (LIGHTMODE !== 'bloom') {
-        if (COLORMODE === 'angle') {
-            if (Math.random() < 0.6) {
-                colorTailByAngle = true;
-            }
-            if (Math.random() < 0.6) {
-                colorDotByAngle = true;
-            }
-        }
-        if (COLORMODE === 'random') {
-            randomColorThreshold = 0.66;
-        }
-    }
-
-    // console.log(`Colors: tails ${colorTailByAngle}, dots: ${colorDotByAngle}`);
-
-    // source/sink stuff
-    if (FIELDMODE === 'flow') {
-        var totalStrength = 0;
-        sourceTransform.sources.forEach(function (source) {
-            totalStrength += source.strength;
-        });
-        lineScale = 1 / totalStrength;
-    }
-
-    // step thru points
-    pts.forEach(function (p, i) {
-        x = p[0];
-        y = p[1];
-        xnorm = x / cw;
-        ynorm = y / ch;
-
-        // shift base points to their warped coordinates
-        x = x + cellSize * trans.xbase(xnorm, ynorm) * warp;
-        y = y + cellSize * trans.ybase(xnorm, ynorm) * warp;
-
-        var xNoise = 0;
-        var yNoise = 0;
-        if (FIELDNOISE > 0) {
-            xNoise = (0, _utils.randomInRange)(-1, 1) * FIELDNOISE;
-            yNoise = (0, _utils.randomInRange)(-1, 1) * FIELDNOISE;
-        }
-
-        // get end of tail coords
-        if (FIELDMODE === 'flow') {
-            // flow fields (source-sink)
-            var flow = sourceTransform.t(xnorm, ynorm);
-            _x = flow[0];
-            _y = flow[1];
-        } else {
-            // harmonic fields
-            _x = trans.xtail(xnorm, ynorm);
-            _y = trans.ytail(xnorm, ynorm);
-        }
-
-        _x += xNoise;
-        _y += yNoise;
-
-        var theta = Math.atan2(_y, _x);
-        var fillIndex = Math.round(contrastPalette.length * theta / PI / 2);
-        var angleColor = contrastPalette[fillIndex];
-
-        if (colorDotByAngle) {
-            dotFill = angleColor;
-        }
-        if (COLORMODE === 'random' && Math.random() < randomColorThreshold) {
-            dotFill = getContrastColor();
-        }
-
-        // draw dot
-        ctx.globalAlpha = 1;
-        (0, _shapes.drawCircle)(ctx, x, y, (trans.radius(xnorm, ynorm) + 1) * dotScale, { fill: dotFill });
-
-        ctx.globalAlpha = opacityFunc(_x, _y);
-
-        if (colorTailByAngle) {
-            ctx.strokeStyle = angleColor;
-        }
-        if (COLORMODE === 'random' && Math.random() < randomColorThreshold) {
-            ctx.strokeStyle = getContrastColor();
-        }
-
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x + cellSize * _x * lineScale, y + cellSize * _y * lineScale);
-        ctx.stroke();
-    });
-
-    ctx.globalAlpha = 1;
-
-    // in bloom mode, we draw a big colorful gradient over the grayscale
-    // background, using palette colors and nice blend modes
-    if (LIGHTMODE === 'bloom') {
-        ctx.globalCompositeOperation = 'color-dodge';
-
-        // bloom with linear gradient
-        ctx.fillStyle = (0, _utils.getGradientFunction)(opts.palette)(ctx, cw, ch); //getContrastColor();
-        ctx.fillRect(0, 0, cw, ch);
-
-        if (Math.random() < 0.5) {
-            // bloom with spot lights
-            var dodgeDot = function dodgeDot() {
-                var max = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1.5;
-
-                var gx = void 0,
-                    gy = void 0,
-                    gr1 = void 0,
-                    gr2 = void 0;
-                gx = (0, _utils.randomInRange)(0, cw);
-                gy = (0, _utils.randomInRange)(0, ch);
-                gr1 = (0, _utils.randomInRange)(0, 0.25);
-                gr2 = (0, _utils.randomInRange)(gr1, max);
-
-                var radial = ctx.createRadialGradient(gx, gy, gr1 * SCALE, gx, gy, gr2 * SCALE);
-                radial.addColorStop(0, (0, _utils.randItem)(opts.palette));
-                radial.addColorStop(1, '#000000');
-
-                ctx.fillStyle = radial;
-                ctx.fillRect(0, 0, cw, ch);
-            };
-            // try layering dots with varying coverage
-            ctx.globalAlpha = (0, _utils.randomInRange)(0.4, 0.7);
-            dodgeDot(1.5);
-            ctx.globalAlpha = (0, _utils.randomInRange)(0.4, 0.7);
-            dodgeDot(1.0);
-            ctx.globalAlpha = (0, _utils.randomInRange)(0.7, 0.9);
-            dodgeDot(0.5);
-            ctx.globalAlpha = 1;
-        }
-
-        ctx.globalCompositeOperation = 'normal';
-    }
-
-    // add noise
-    if (opts.addNoise) {
-        if (opts.noiseInput) {
-            // apply noise from supplied canvas
-            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
-        } else {
-            // create noise pattern and apply
-            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, cw / 3);
-        }
-    }
-
-    // if new canvas child was created, append it
-    if (newEl) {
-        container.appendChild(el);
-    }
-}
-
-/***/ }),
-/* 25 */
+/* 25 */,
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5352,11 +5355,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.fragments = fragments;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -5639,7 +5642,6 @@ function fragments(options) {
 }
 
 /***/ }),
-/* 26 */,
 /* 27 */,
 /* 28 */,
 /* 29 */,
@@ -5666,39 +5668,39 @@ function fragments(options) {
 "use strict";
 
 
-__webpack_require__(8);
+__webpack_require__(7);
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
-var _waterline = __webpack_require__(10);
+var _waterline = __webpack_require__(11);
 
-var _shapestack = __webpack_require__(12);
+var _shapestack = __webpack_require__(13);
 
-var _shapescape = __webpack_require__(15);
+var _shapescape = __webpack_require__(16);
 
-var _lines = __webpack_require__(16);
+var _lines = __webpack_require__(17);
 
-var _waves = __webpack_require__(17);
+var _waves = __webpack_require__(18);
 
-var _grid = __webpack_require__(18);
+var _grid = __webpack_require__(19);
 
-var _circles = __webpack_require__(20);
+var _circles = __webpack_require__(21);
 
-var _mesh = __webpack_require__(21);
+var _mesh = __webpack_require__(22);
 
-var _walk = __webpack_require__(22);
+var _walk = __webpack_require__(23);
 
-var _bands = __webpack_require__(23);
+var _bands = __webpack_require__(24);
 
-var _field = __webpack_require__(24);
+var _field = __webpack_require__(10);
 
-var _fragments = __webpack_require__(25);
+var _fragments = __webpack_require__(26);
 
 var _utils = __webpack_require__(0);
 

@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 44);
+/******/ 	return __webpack_require__(__webpack_require__.s = 45);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -389,6 +389,51 @@ function Note() {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+// in use
+var palettes = {
+    ultra: ['#15d6d0', '#4481fc', '#bb19d8', '#f22f1c', '#ffa300', '#fff200'],
+    high_contrast: ['#111111', '#444444', '#dddddd', '#f9f9f9'],
+    low_contrast: ['#555555', '#777777', '#999999', '#cccccc', '#dddddd'],
+    black_white_red: ['#111111', '#444444', '#dddddd', '#ffffff', '#880000', '#dd0000'],
+
+    south_beach: ['#0c3646', '#11758e', '#89bed3', '#e4ca49', '#cabd9d', '#f2f0ea'],
+    north_beach: ['#1d282e', '#4b4f52', '#0089ad', '#6e92b4', '#b9a583', '#f1e1d1'],
+    twilight_beach: ['#030408', '#0c3646', '#4a828f', '#af8c70', '#aaadac', '#ffffff'],
+    admiral: ['#0a131c', '#072444', '#3b6185', '#361313', '#c47423', '#b88d40', '#f3efec'],
+    plum_sauce: ['#3C2E42', '#B4254B', '#FF804A', '#E8D1A1', '#A5C9C4'],
+    fingerspitzen: ['#f4dda8', '#eda87c', '#c8907e', '#9cacc3', '#485e80', '#3b465b'],
+    de_stijl: ['#f9f9f9', '#D9AC32', '#ED5045', '#1F3E9C', '#000142'],
+
+    terra_cotta_cactus: ['#5d576b', '#9bc1b8', '#f4f1bb', '#dcc48e', '#ed6a5a'],
+    metroid_fusion: ['#DBEED6', '#47BDC2', '#0A7DB8', '#1A3649', '#B24432'],
+
+    candywafer: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
+    blush: ['#111111', '#94552C', '#F8ADAA', '#F8E3AC', '#ffffff'],
+
+    ikb: ['#070033', '#00006b', '#00187c', '#002ea7', '#0b6fff', '#5c9eff', '#e9f4ff'],
+
+    magma: ['#000004', '#3b0f70', '#8c2981', '#de4968', '#fe9f6d', '#fcfdbf'],
+    inferno: ['#000004', '#420a68', '#932667', '#dd513a', '#fca50a', '#fcffa4'],
+    plasma: ['#0d0887', '#6a00a8', '#b12a90', '#e16462', '#fca636', '#f0f921'],
+    viridis: ['#440154', '#414487', '#2a788e', '#22a884', '#7ad151', '#fde725']
+};
+
+exports.default = palettes;
+
+// older palettes:
+
+var lemon_beach = exports.lemon_beach = ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'];
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 /**
  * Add noise to existing artwork, adding small equal values to each r,g,b
  * component of each pixel, by stepping through imageData.
@@ -500,49 +545,6 @@ exports.default = {
     createNoiseCanvas: createNoiseCanvas,
     applyNoiseCanvas: applyNoiseCanvas
 };
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-// in use
-var palettes = {
-    ultra: ['#15d6d0', '#4481fc', '#bb19d8', '#f22f1c', '#ffa300', '#fff200'],
-    high_contrast: ['#111111', '#444444', '#dddddd', '#f9f9f9'],
-    low_contrast: ['#555555', '#777777', '#999999', '#cccccc', '#dddddd'],
-    black_white_red: ['#111111', '#444444', '#dddddd', '#ffffff', '#880000', '#dd0000'],
-
-    south_beach: ['#0c3646', '#11758e', '#89bed3', '#e4ca49', '#cabd9d', '#f2f0ea'],
-    north_beach: ['#1d282e', '#4b4f52', '#0089ad', '#6e92b4', '#b9a583', '#f1e1d1'],
-    twilight_beach: ['#030408', '#0c3646', '#4a828f', '#af8c70', '#aaadac', '#ffffff'],
-    admiral: ['#0a131c', '#072444', '#3b6185', '#361313', '#c47423', '#b88d40', '#f3efec'],
-    plum_sauce: ['#3C2E42', '#B4254B', '#FF804A', '#E8D1A1', '#A5C9C4'],
-    fingerspitzen: ['#f4dda8', '#eda87c', '#c8907e', '#9cacc3', '#485e80', '#3b465b'],
-    de_stijl: ['#f9f9f9', '#D9AC32', '#ED5045', '#1F3E9C', '#000142'],
-
-    terra_cotta_cactus: ['#5d576b', '#9bc1b8', '#f4f1bb', '#dcc48e', '#ed6a5a'],
-    metroid_fusion: ['#DBEED6', '#47BDC2', '#0A7DB8', '#1A3649', '#B24432'],
-
-    candywafer: ['#222222', '#fae1f6', '#b966d3', '#8ED2EE', '#362599', '#fff9de', '#FFC874'],
-    blush: ['#111111', '#94552C', '#F8ADAA', '#F8E3AC', '#ffffff'],
-
-    magma: ['#000004', '#3b0f70', '#8c2981', '#de4968', '#fe9f6d', '#fcfdbf'],
-    inferno: ['#000004', '#420a68', '#932667', '#dd513a', '#fca50a', '#fcffa4'],
-    plasma: ['#0d0887', '#6a00a8', '#b12a90', '#e16462', '#fca636', '#f0f921'],
-    viridis: ['#440154', '#414487', '#2a788e', '#22a884', '#7ad151', '#fde725']
-};
-
-exports.default = palettes;
-
-// older palettes:
-
-var lemon_beach = exports.lemon_beach = ['#d7d7d7', '#979797', '#cabd9d', '#e4ca49', '#89bed3', '#11758e'];
 
 /***/ }),
 /* 3 */
@@ -977,6 +979,125 @@ function hexScatter(spacing, w, h, loosen) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.createTransform = createTransform;
+exports.createSourceSinkTransform = createSourceSinkTransform;
+exports.opacityTransforms = opacityTransforms;
+
+var _utils = __webpack_require__(0);
+
+var PI = Math.PI;
+
+// Create a function which is a periodic transform of x, y
+function createTransform() {
+    var rateMin = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+    var rateMax = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+
+    var rate1 = (0, _utils.randomInRange)(0, rateMax / 2);
+    var rate2 = (0, _utils.randomInRange)(0, rateMax / 2);
+    var rate3 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
+    var rate4 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
+
+    var phase1 = (0, _utils.randomInRange)(-PI, PI);
+    var phase2 = (0, _utils.randomInRange)(-PI, PI);
+    var phase3 = (0, _utils.randomInRange)(-PI, PI);
+    var phase4 = (0, _utils.randomInRange)(-PI, PI);
+
+    var c1 = (0, _utils.randomInRange)(0, 1);
+    var c2 = (0, _utils.randomInRange)(0, 1);
+    var c3 = (0, _utils.randomInRange)(0, 1);
+    var c4 = (0, _utils.randomInRange)(0, 1);
+    return function (xnorm, ynorm) {
+        var t1 = Math.sin(xnorm * rate1 * 2 * PI + phase1);
+        var t2 = Math.sin(ynorm * rate2 * 2 * PI + phase2);
+        var t3 = Math.sin(xnorm * rate3 * 2 * PI + phase3);
+        var t4 = Math.sin(ynorm * rate4 * 2 * PI + phase4);
+        return (c1 * t1 + c2 * t2 + c3 * t3 + c4 * t4) / (c1 + c2 + c3 + c4);
+    };
+}
+
+function createSourceSinkTransform() {
+    var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 4;
+
+    var sources = [];
+
+    while (count--) {
+        var src = {
+            strength: (0, _utils.randomInRange)(1, 20),
+            sign: 1,
+            x: (0, _utils.randomInRange)(-0.25, 1.25), // add some overscan
+            y: (0, _utils.randomInRange)(-0.25, 1.25)
+        };
+        if (Math.random() > 0.9) {
+            // occasionally make sinks instead of sources
+            src.sign *= -1;
+        }
+        sources.push(src);
+    }
+
+    return {
+        sources: sources,
+        t: function t(xnorm, ynorm) {
+            var v = [0, 0]; // force vector to return
+
+            sources.forEach(function (source) {
+                var rmin = source.strength / 1000; // magic number
+
+
+                var dx = xnorm - source.x;
+                var dy = ynorm - source.y;
+                var _r = dx * dx + dy * dy; // really r squared but that's what we want
+
+                if (_r < rmin) {
+                    _r = rmin;
+                }; // min r
+
+                var scalar = source.sign * source.strength / _r;
+
+                var _x = scalar * dx;
+                var _y = scalar * dy;
+                v[0] += _x;
+                v[1] += _y;
+            });
+
+            return v;
+        }
+    };
+}
+
+function opacityTransforms(maxLen) {
+    return [function () {
+        return 1;
+    }, function (_x, _y) {
+        return Math.abs(_y / _x) / maxLen;
+    }, function (_x, _y) {
+        return 1 - Math.abs(_y / _x) / maxLen;
+    }, function (_x, _y) {
+        return Math.abs(_x / _y);
+    }, // hides verticals
+    function (_x, _y) {
+        return Math.abs(_y / _x);
+    }, // hides horizontals
+    function (_x, _y) {
+        return _x / _y;
+    }, function (_x, _y) {
+        return _y / _x;
+    }, function (_x, _y) {
+        return _y - _x;
+    }, function (_x, _y) {
+        return _x - _y;
+    }];
+}
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 exports.defineFill = defineFill;
 exports.expandFill = expandFill;
 
@@ -1105,126 +1226,13 @@ function expandFill(ctx, fill, w, h, scale) {
 }
 
 /***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
+/* 7 */
+/***/ (function(module, exports) {
 
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.createTransform = createTransform;
-exports.createSourceSinkTransform = createSourceSinkTransform;
-exports.opacityTransforms = opacityTransforms;
-
-var _utils = __webpack_require__(0);
-
-var PI = Math.PI;
-
-// Create a function which is a periodic transform of x, y
-function createTransform() {
-    var rateMin = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-    var rateMax = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-
-    var rate1 = (0, _utils.randomInRange)(0, rateMax / 2);
-    var rate2 = (0, _utils.randomInRange)(0, rateMax / 2);
-    var rate3 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
-    var rate4 = (0, _utils.randomInRange)(rateMax / 2, rateMax);
-
-    var phase1 = (0, _utils.randomInRange)(-PI, PI);
-    var phase2 = (0, _utils.randomInRange)(-PI, PI);
-    var phase3 = (0, _utils.randomInRange)(-PI, PI);
-    var phase4 = (0, _utils.randomInRange)(-PI, PI);
-
-    var c1 = (0, _utils.randomInRange)(0, 1);
-    var c2 = (0, _utils.randomInRange)(0, 1);
-    var c3 = (0, _utils.randomInRange)(0, 1);
-    var c4 = (0, _utils.randomInRange)(0, 1);
-    return function (xnorm, ynorm) {
-        var t1 = Math.sin(xnorm * rate1 * 2 * PI + phase1);
-        var t2 = Math.sin(ynorm * rate2 * 2 * PI + phase2);
-        var t3 = Math.sin(xnorm * rate3 * 2 * PI + phase3);
-        var t4 = Math.sin(ynorm * rate4 * 2 * PI + phase4);
-        return (c1 * t1 + c2 * t2 + c3 * t3 + c4 * t4) / (c1 + c2 + c3 + c4);
-    };
-}
-
-function createSourceSinkTransform() {
-    var count = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 4;
-
-    var sources = [];
-
-    while (count--) {
-        var src = {
-            strength: (0, _utils.randomInRange)(1, 20),
-            sign: 1,
-            x: (0, _utils.randomInRange)(-0.25, 1.25), // add some overscan
-            y: (0, _utils.randomInRange)(-0.25, 1.25)
-        };
-        if (Math.random() > 0.9) {
-            // occasionally make sinks instead of sources
-            src.sign *= -1;
-        }
-        sources.push(src);
-    }
-
-    return {
-        sources: sources,
-        t: function t(xnorm, ynorm) {
-            var v = [0, 0]; // force vector to return
-
-            sources.forEach(function (source) {
-                var rmin = source.strength / 1000; // magic number
-
-
-                var dx = xnorm - source.x;
-                var dy = ynorm - source.y;
-                var _r = dx * dx + dy * dy; // really r squared but that's what we want
-
-                if (_r < rmin) {
-                    _r = rmin;
-                }; // min r
-
-                var scalar = source.sign * source.strength / _r;
-
-                var _x = scalar * dx;
-                var _y = scalar * dy;
-                v[0] += _x;
-                v[1] += _y;
-            });
-
-            return v;
-        }
-    };
-}
-
-function opacityTransforms(maxLen) {
-    return [function () {
-        return 1;
-    }, function (_x, _y) {
-        return Math.abs(_y / _x) / maxLen;
-    }, function (_x, _y) {
-        return 1 - Math.abs(_y / _x) / maxLen;
-    }, function (_x, _y) {
-        return Math.abs(_x / _y);
-    }, // hides verticals
-    function (_x, _y) {
-        return Math.abs(_y / _x);
-    }, // hides horizontals
-    function (_x, _y) {
-        return _x / _y;
-    }, function (_x, _y) {
-        return _y / _x;
-    }, function (_x, _y) {
-        return _y - _x;
-    }, function (_x, _y) {
-        return _x - _y;
-    }];
-}
+// removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1350,12 +1358,6 @@ function dapple(canvas) {
 }
 
 /***/ }),
-/* 8 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
 /* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -1392,6 +1394,412 @@ exports.default = colorbrewer;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.field = field;
+
+var _noiseutils = __webpack_require__(2);
+
+var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _palettes = __webpack_require__(1);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
+var _hexScatter = __webpack_require__(4);
+
+var _hexScatter2 = _interopRequireDefault(_hexScatter);
+
+var _utils = __webpack_require__(0);
+
+var _shapes = __webpack_require__(3);
+
+var _fieldUtils = __webpack_require__(5);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var DEFAULTS = {
+    container: 'body',
+    palette: _palettes2.default.de_stijl,
+    addNoise: 0.04,
+    noiseInput: null,
+    dust: false,
+    skew: 1, // normalized skew
+    clear: true,
+    colorMode: 'auto', // from COLORMODES or 'auto'
+    fieldMode: 'auto', // [auto, harmonic, flow]
+    lightMode: 'normal', // [auto, bloom, normal]
+    gridMode: 'auto', // [auto, normal, scatter, random]
+    density: 'auto', // [auto, coarse, fine]
+    fieldNoise: 'auto' // mapped to values below
+};
+
+var PI = Math.PI;
+var FIELDMODES = ['harmonic', 'flow'];
+var LIGHTMODES = ['bloom', 'normal'];
+var GRIDMODES = ['normal', 'scatter', 'random'];
+var DENSITIES = ['coarse', 'fine'];
+var COLORMODES = ['single', 'angle', 'random'];
+
+// Main function
+function field(options) {
+    var opts = Object.assign({}, DEFAULTS, options);
+
+    var container = opts.container;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
+    var SCALE = Math.min(cw, ch);
+    var LONG = Math.max(cw, ch);
+    var SHORT = Math.min(cw, ch);
+    var AREA = cw * ch;
+
+    // Find or create canvas child
+    var el = container.querySelector('canvas');
+    var newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        el.width = cw;
+        el.height = ch;
+    }
+
+    var ctx = el.getContext('2d');
+
+    // modes and styles
+    var LIGHTMODE = opts.lightMode === 'auto' ? (0, _utils.randItem)(LIGHTMODES) : opts.lightMode;
+    var GRIDMODE = opts.gridMode === 'auto' ? (0, _utils.randItem)(GRIDMODES) : opts.gridMode;
+    var DENSITY = opts.density === 'auto' ? (0, _utils.randItem)(DENSITIES) : opts.density;
+    var FIELDMODE = opts.fieldMode === 'auto' ? (0, _utils.randItem)(FIELDMODES) : opts.fieldMode;
+    var COLORMODE = opts.colorMode === 'auto' ? (0, _utils.randItem)(COLORMODES) : opts.colorMode;
+    var FIELDNOISE = (0, _utils.mapKeywordToVal)({
+        // hacky way to weight options by redundantly specifying
+        'none': 0,
+        'none2': 0,
+        'low': 0.125,
+        'low2': 0.125,
+        'med': 0.25,
+        'high': 0.5
+    })(opts.fieldNoise, 'fieldNoise');
+
+    // color funcs
+    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
+
+    // how many cells are in the grid?
+    var countMin = void 0,
+        countMax = void 0;
+    if (DENSITY === 'coarse') {
+        countMin = 10;
+        countMax = 30;
+    } else {
+        countMin = 60;
+        countMax = 100;
+    }
+
+    var cellSize = Math.round(SHORT / (0, _utils.randomInRange)(countMin, countMax));
+    console.log('Field: ' + DENSITY + '(' + cellSize + 'px) ' + GRIDMODE + ' ' + FIELDMODE + ' ' + COLORMODE);
+
+    // setup vars for each cell
+    var x = 0;
+    var y = 0;
+    var xnorm = 0;
+    var ynorm = 0;
+    var renderer = void 0;
+
+    // shared colors
+    var bg = getSolidFill();
+
+    // get palette of non-bg colors
+    var contrastPalette = [].concat(opts.palette);
+    contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
+
+    // shared foregrounds
+    var fg = getContrastColor();
+    var fg2 = getContrastColor();
+
+    // in bloom mode, we draw high-contrast grayscale, and layer
+    // palette colors on top
+    if (LIGHTMODE === 'bloom') {
+        bg = '#222222';
+        fg = fg2 = '#cccccc';
+    }
+
+    // draw background
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, cw, ch);
+
+    // set default tail color
+    ctx.strokeStyle = fg;
+    // set default dot color
+    var dotFill = fg2;
+
+    var rateMax = 3;
+    if (DENSITY === 'fine' && Math.random() < 0.5) {
+        rateMax = 6;
+    }
+
+    // tail vars
+    var _x = void 0,
+        _y = void 0,
+        len = void 0;
+
+    // dotScale will be multiplied by 2. Keep below .25 to avoid bleed.
+    // Up to 0.5 will lead to full coverage.
+    var dotScale = cellSize * (0, _utils.randomInRange)(0.1, 0.25);
+    // line width
+    var weight = (0, _utils.randomInRange)(0.5, 3) * SCALE / 800;
+
+    ctx.lineWidth = weight;
+    ctx.lineCap = 'round';
+
+    // const used in normalizing transforms
+    var maxLen = 2 * Math.sqrt(2);
+
+    // It looks nice to extend lines beyond their cells. how much?
+    // Scaled against cellSize
+    var lineScale = (0, _utils.randomInRange)(0.7, 2);
+
+    // Displace the center point of each cell by this factor
+    // Only do this sometimes, and not when scattering
+    var warp = 0;
+    if (GRIDMODE !== 'scatter' && Math.random() < 0.5) {
+        warp = (0, _utils.randomInRange)(0.75, Math.sqrt(2));
+    }
+
+    // Pick an opacity transform to use
+    var opacityFunc = (0, _utils.randItem)((0, _fieldUtils.opacityTransforms)(maxLen));
+
+    // a set of independent transforms to use while rendering
+    var trans = {
+        xbase: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
+        ybase: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
+        xtail: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
+        ytail: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
+        radius: (0, _fieldUtils.createTransform)(rateMax)
+    };
+
+    function randomScatter(size, w, h) {
+        var pts = [];
+        var xcount = Math.ceil(w / size);
+        var ycount = Math.ceil(h / size);
+        var count = xcount * ycount;
+        while (count--) {
+            pts.push([(0, _utils.randomInRange)(0, w), (0, _utils.randomInRange)(0, h)]);
+        }
+        return pts;
+    }
+
+    function placeNormal(size, w, h) {
+        var pts = [];
+        var xcount = Math.ceil(w / size) + 2;
+        var ycount = Math.ceil(h / size) + 2;
+        var count = xcount * ycount;
+        var x = void 0,
+            y = void 0;
+        for (var i = 0; i < count; i++) {
+            x = size * (i % xcount - 1) + size / 2;
+            y = size * (Math.floor(i / xcount) - 1) + size / 2;
+            pts.push([x, y]);
+        }
+        return pts;
+    }
+
+    var pts = [];
+
+    // If we are warping the grid, we should plot points outside of the canvas
+    // bounds to avoid gaps at the edges. Shift them over below.
+    var overscan = 1;
+    if (warp) {
+        overscan = 1.2;
+    }
+
+    switch (GRIDMODE) {
+        case 'scatter':
+            pts = (0, _hexScatter2.default)(cellSize, cw * overscan, ch * overscan);
+            break;
+        case 'random':
+            pts = randomScatter(cellSize, cw * overscan, ch * overscan);
+            break;
+        default:
+            pts = placeNormal(cellSize, cw * overscan, ch * overscan);
+    }
+
+    // compensate for overscan by shifting pts back
+    if (warp) {
+        pts.map(function (p, i) {
+            return [p[0] - cw * .1, p[1] - ch * .1];
+        });
+    }
+
+    var sourceTransform = (0, _fieldUtils.createSourceSinkTransform)(Math.round((0, _utils.randomInRange)(5, 15)));
+
+    // Flags for coloring by angle
+    // Don't do special coloring in bloom mode, because it relies on grayscale
+    // initial rendering
+    var colorTailByAngle = false;
+    var colorDotByAngle = false;
+    var randomColorThreshold = void 0;
+    if (LIGHTMODE !== 'bloom') {
+        if (COLORMODE === 'angle') {
+            if (Math.random() < 0.6) {
+                colorTailByAngle = true;
+            }
+            if (Math.random() < 0.6) {
+                colorDotByAngle = true;
+            }
+        }
+        if (COLORMODE === 'random') {
+            randomColorThreshold = 0.66;
+        }
+    }
+
+    // console.log(`Colors: tails ${colorTailByAngle}, dots: ${colorDotByAngle}`);
+
+    // source/sink stuff
+    if (FIELDMODE === 'flow') {
+        var totalStrength = 0;
+        sourceTransform.sources.forEach(function (source) {
+            totalStrength += source.strength;
+        });
+        lineScale = 1 / totalStrength;
+    }
+
+    // step thru points
+    pts.forEach(function (p, i) {
+        x = p[0];
+        y = p[1];
+        xnorm = x / cw;
+        ynorm = y / ch;
+
+        // shift base points to their warped coordinates
+        x = x + cellSize * trans.xbase(xnorm, ynorm) * warp;
+        y = y + cellSize * trans.ybase(xnorm, ynorm) * warp;
+
+        var xNoise = 0;
+        var yNoise = 0;
+        if (FIELDNOISE > 0) {
+            xNoise = (0, _utils.randomInRange)(-1, 1) * FIELDNOISE;
+            yNoise = (0, _utils.randomInRange)(-1, 1) * FIELDNOISE;
+        }
+
+        // get end of tail coords
+        if (FIELDMODE === 'flow') {
+            // flow fields (source-sink)
+            var flow = sourceTransform.t(xnorm, ynorm);
+            _x = flow[0];
+            _y = flow[1];
+        } else {
+            // harmonic fields
+            _x = trans.xtail(xnorm, ynorm);
+            _y = trans.ytail(xnorm, ynorm);
+        }
+
+        _x += xNoise;
+        _y += yNoise;
+
+        var theta = Math.atan2(_y, _x);
+        var fillIndex = Math.round(contrastPalette.length * theta / PI / 2);
+        var angleColor = contrastPalette[fillIndex];
+
+        if (colorDotByAngle) {
+            dotFill = angleColor;
+        }
+        if (COLORMODE === 'random' && Math.random() < randomColorThreshold) {
+            dotFill = getContrastColor();
+        }
+
+        // draw dot
+        ctx.globalAlpha = 1;
+        (0, _shapes.drawCircle)(ctx, x, y, (trans.radius(xnorm, ynorm) + 1) * dotScale, { fill: dotFill });
+
+        ctx.globalAlpha = opacityFunc(_x, _y);
+
+        if (colorTailByAngle) {
+            ctx.strokeStyle = angleColor;
+        }
+        if (COLORMODE === 'random' && Math.random() < randomColorThreshold) {
+            ctx.strokeStyle = getContrastColor();
+        }
+
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + cellSize * _x * lineScale, y + cellSize * _y * lineScale);
+        ctx.stroke();
+    });
+
+    ctx.globalAlpha = 1;
+
+    // in bloom mode, we draw a big colorful gradient over the grayscale
+    // background, using palette colors and nice blend modes
+    if (LIGHTMODE === 'bloom') {
+        ctx.globalCompositeOperation = 'color-dodge';
+
+        // bloom with linear gradient
+        ctx.fillStyle = (0, _utils.getGradientFunction)(opts.palette)(ctx, cw, ch); //getContrastColor();
+        ctx.fillRect(0, 0, cw, ch);
+
+        if (Math.random() < 0.5) {
+            // bloom with spot lights
+            var dodgeDot = function dodgeDot() {
+                var max = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1.5;
+
+                var gx = void 0,
+                    gy = void 0,
+                    gr1 = void 0,
+                    gr2 = void 0;
+                gx = (0, _utils.randomInRange)(0, cw);
+                gy = (0, _utils.randomInRange)(0, ch);
+                gr1 = (0, _utils.randomInRange)(0, 0.25);
+                gr2 = (0, _utils.randomInRange)(gr1, max);
+
+                var radial = ctx.createRadialGradient(gx, gy, gr1 * SCALE, gx, gy, gr2 * SCALE);
+                radial.addColorStop(0, (0, _utils.randItem)(opts.palette));
+                radial.addColorStop(1, '#000000');
+
+                ctx.fillStyle = radial;
+                ctx.fillRect(0, 0, cw, ch);
+            };
+            // try layering dots with varying coverage
+            ctx.globalAlpha = (0, _utils.randomInRange)(0.4, 0.7);
+            dodgeDot(1.5);
+            ctx.globalAlpha = (0, _utils.randomInRange)(0.4, 0.7);
+            dodgeDot(1.0);
+            ctx.globalAlpha = (0, _utils.randomInRange)(0.7, 0.9);
+            dodgeDot(0.5);
+            ctx.globalAlpha = 1;
+        }
+
+        ctx.globalCompositeOperation = 'normal';
+    }
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            // apply noise from supplied canvas
+            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            // create noise pattern and apply
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, cw / 3);
+        }
+    }
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
+}
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
@@ -1399,19 +1807,19 @@ exports.defineWaterline = defineWaterline;
 exports.drawWaterline = drawWaterline;
 exports.waterline = waterline;
 
-var _waterlineSchema = __webpack_require__(11);
+var _waterlineSchema = __webpack_require__(12);
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
 var _utils = __webpack_require__(0);
 
-var _colors = __webpack_require__(5);
+var _colors = __webpack_require__(6);
 
 var _shapes = __webpack_require__(3);
 
@@ -1849,7 +2257,7 @@ function waterline(options) {
 }
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1901,7 +2309,7 @@ var SCHEMA = exports.SCHEMA = {
 };
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1912,11 +2320,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.shapestack = shapestack;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -1924,9 +2332,9 @@ var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
 
-var _stacks = __webpack_require__(13);
+var _stacks = __webpack_require__(14);
 
-var _nests = __webpack_require__(14);
+var _nests = __webpack_require__(15);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2255,7 +2663,7 @@ var DEFAULTS = {
 }
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2307,7 +2715,7 @@ function drawStack(ctx, stack, x, w, colorFunc) {
 }
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2393,7 +2801,7 @@ function drawNest(ctx, nest, shapeFunction, colorFunction, o) {
 }
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2404,11 +2812,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.shapescape = shapescape;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -2580,7 +2988,7 @@ function shapescape(options) {
 }
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2592,11 +3000,11 @@ Object.defineProperty(exports, "__esModule", {
 exports.lines = lines;
 exports.drawLines = drawLines;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -3022,7 +3430,7 @@ function drawLines(ctx, p1, p2, opts) {
 }
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3033,11 +3441,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.waves = waves;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -3453,7 +3861,7 @@ function waves(options) {
 }
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3464,11 +3872,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.grid = grid;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -3709,7 +4117,7 @@ function grid(options) {
 }
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -3720,11 +4128,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.truchet = truchet;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -4031,7 +4439,7 @@ function truchet(options) {
 }
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4042,11 +4450,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.circles = circles;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -4054,7 +4462,7 @@ var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
 
-var _colors = __webpack_require__(5);
+var _colors = __webpack_require__(6);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -4489,7 +4897,7 @@ function circles(options) {
 }
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4500,11 +4908,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.mesh = mesh;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -4753,7 +5161,7 @@ function mesh(options) {
 }
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4764,11 +5172,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.walk = walk;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -5170,7 +5578,7 @@ var DEFAULTS = {
 }
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5181,11 +5589,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.bands = bands;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -5193,7 +5601,7 @@ var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
 
-var _colors = __webpack_require__(5);
+var _colors = __webpack_require__(6);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -5407,7 +5815,7 @@ function bands(options) {
 }
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5416,13 +5824,13 @@ function bands(options) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.field = field;
+exports.trails = trails;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -5434,9 +5842,17 @@ var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
 
-var _fieldUtils = __webpack_require__(6);
+var _fieldUtils = __webpack_require__(5);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+var PI = Math.PI;
+var FIELDMODES = ['harmonic', 'flow'];
+var GRIDMODES = ['normal', 'scatter', 'random'];
+var COLORMODES = ['length', 'curve', 'change', /*'origin',*/'mono', 'duo', 'random'];
+var STYLES = ['round', 'square'];
 
 var DEFAULTS = {
     container: 'body',
@@ -5446,24 +5862,19 @@ var DEFAULTS = {
     dust: false,
     skew: 1, // normalized skew
     clear: true,
-    colorMode: 'auto', // from COLORMODES or 'auto'
     fieldMode: 'auto', // [auto, harmonic, flow]
-    lightMode: 'normal', // [auto, bloom, normal]
-    gridMode: 'auto', // [auto, normal, scatter, random]
-    density: 'auto', // [auto, coarse, fine]
-    fieldNoise: 'auto' // mapped to values below
-};
+    gridMode: 'scatter', // from GRIDMODES
+    colorMode: 'auto', // from COLORMODES
+    style: 'auto', // from STYLES
+    fieldNoise: 'auto', // mapped to values below
+    mixWeight: false,
+    isolate: true
 
-var PI = Math.PI;
-var FIELDMODES = ['harmonic', 'flow'];
-var LIGHTMODES = ['bloom', 'normal'];
-var GRIDMODES = ['normal', 'scatter', 'random'];
-var DENSITIES = ['coarse', 'fine'];
-var COLORMODES = ['single', 'angle', 'random'];
-
-// Main function
-function field(options) {
+    // Main function
+};function trails(options) {
     var opts = Object.assign({}, DEFAULTS, options);
+
+    var RENDERTOSVG = opts.renderTo === 'svg';
 
     var container = opts.container;
     var cw = container.offsetWidth;
@@ -5474,10 +5885,20 @@ function field(options) {
     var AREA = cw * ch;
 
     // Find or create canvas child
+    var svg = void 0;
+    if (RENDERTOSVG) {
+        svg = container.querySelector('svg');
+        svg.innerHTML = '';
+        svg.setAttribute('width', cw);
+        svg.setAttribute('height', ch);
+        svg.setAttribute('viewBox', '0 0 ' + cw + ' ' + ch);
+    }
+    // for RENDERTOSVG
+    var allpaths = '';
+
     var el = container.querySelector('canvas');
     var newEl = false;
     if (!el) {
-        container.innerHTML = '';
         el = document.createElement('canvas');
         newEl = true;
     }
@@ -5489,20 +5910,29 @@ function field(options) {
     var ctx = el.getContext('2d');
 
     // modes and styles
-    var LIGHTMODE = opts.lightMode === 'auto' ? (0, _utils.randItem)(LIGHTMODES) : opts.lightMode;
-    var GRIDMODE = opts.gridMode === 'auto' ? (0, _utils.randItem)(GRIDMODES) : opts.gridMode;
-    var DENSITY = opts.density === 'auto' ? (0, _utils.randItem)(DENSITIES) : opts.density;
+
     var FIELDMODE = opts.fieldMode === 'auto' ? (0, _utils.randItem)(FIELDMODES) : opts.fieldMode;
+    var GRIDMODE = opts.gridMode === 'auto' ? (0, _utils.randItem)(GRIDMODES) : opts.gridMode;
     var COLORMODE = opts.colorMode === 'auto' ? (0, _utils.randItem)(COLORMODES) : opts.colorMode;
+    var STYLE = opts.style === 'auto' ? (0, _utils.randItem)(STYLES) : opts.style;
     var FIELDNOISE = (0, _utils.mapKeywordToVal)({
         // hacky way to weight options by redundantly specifying
         'none': 0,
         'none2': 0,
+        'none3': 0,
+        'none4': 0,
         'low': 0.125,
         'low2': 0.125,
+        'low3': 0.125,
         'med': 0.25,
+        'med2': 0.25,
         'high': 0.5
     })(opts.fieldNoise, 'fieldNoise');
+
+    console.log('==================================\nTrails:', FIELDMODE, GRIDMODE, COLORMODE, STYLE);
+    if (RENDERTOSVG) {
+        console.log('----> SVG rendering mode');
+    }
 
     // color funcs
     var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
@@ -5510,16 +5940,10 @@ function field(options) {
     // how many cells are in the grid?
     var countMin = void 0,
         countMax = void 0;
-    if (DENSITY === 'coarse') {
-        countMin = 10;
-        countMax = 30;
-    } else {
-        countMin = 60;
-        countMax = 100;
-    }
+    countMin = 80;
+    countMax = 160;
 
     var cellSize = Math.round(SHORT / (0, _utils.randomInRange)(countMin, countMax));
-    console.log('Field: ' + DENSITY + '(' + cellSize + 'px) ' + GRIDMODE + ' ' + FIELDMODE + ' ' + COLORMODE);
 
     // setup vars for each cell
     var x = 0;
@@ -5534,59 +5958,47 @@ function field(options) {
     // get palette of non-bg colors
     var contrastPalette = [].concat(opts.palette);
     contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    //contrastPalette.sort(()=>(randomInRange(-1, 1)));
     var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
+    var colorCount = contrastPalette.length;
 
     // shared foregrounds
     var fg = getContrastColor();
     var fg2 = getContrastColor();
 
-    // in bloom mode, we draw high-contrast grayscale, and layer
-    // palette colors on top
-    if (LIGHTMODE === 'bloom') {
-        bg = '#222222';
-        fg = fg2 = '#cccccc';
-    }
-
     // draw background
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, cw, ch);
 
-    // set default tail color
     ctx.strokeStyle = fg;
-    // set default dot color
-    var dotFill = fg2;
 
-    var rateMax = 3;
-    if (DENSITY === 'fine' && Math.random() < 0.5) {
-        rateMax = 6;
-    }
+    // trails:
+    var rateMax = (0, _utils.randomInRange)(0.5, 5); // this is a bit meta and silly
 
     // tail vars
     var _x = void 0,
         _y = void 0,
         len = void 0;
 
-    // dotScale will be multiplied by 2. Keep below .25 to avoid bleed.
-    // Up to 0.5 will lead to full coverage.
-    var dotScale = cellSize * (0, _utils.randomInRange)(0.1, 0.25);
     // line width
-    var weight = (0, _utils.randomInRange)(0.5, 3) * SCALE / 800;
+    var weight = SHORT / (0, _utils.randomInRange)(400, 75);
 
     ctx.lineWidth = weight;
-    ctx.lineCap = 'round';
+    ctx.lineCap = STYLE;
+    ctx.lineJoin = "bevel";
 
     // const used in normalizing transforms
     var maxLen = 2 * Math.sqrt(2);
 
     // It looks nice to extend lines beyond their cells. how much?
     // Scaled against cellSize
-    var lineScale = (0, _utils.randomInRange)(0.7, 2);
+    var lineScale = (0, _utils.randomInRange)(0.7, 3);
 
     // Displace the center point of each cell by this factor
     // Only do this sometimes, and not when scattering
     var warp = 0;
     if (GRIDMODE !== 'scatter' && Math.random() < 0.5) {
-        warp = (0, _utils.randomInRange)(0.75, Math.sqrt(2));
+        warp = (0, _utils.randomInRange)(0, Math.sqrt(2));
     }
 
     // Pick an opacity transform to use
@@ -5594,11 +6006,12 @@ function field(options) {
 
     // a set of independent transforms to use while rendering
     var trans = {
-        xbase: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
-        ybase: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
-        xtail: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
-        ytail: (0, _fieldUtils.createTransform)(rateMax), // (x,y)=>0,//
-        radius: (0, _fieldUtils.createTransform)(rateMax)
+        //xbase: createTransform(0, rateMax),
+        //ybase: createTransform(0, rateMax),
+        xtail: (0, _fieldUtils.createTransform)(0, rateMax),
+        ytail: (0, _fieldUtils.createTransform)(0, rateMax),
+        //radius: createTransform(0, rateMax),
+        color: (0, _fieldUtils.createTransform)(0, 5 / SHORT) // change colors slowly
     };
 
     function randomScatter(size, w, h) {
@@ -5621,7 +6034,7 @@ function field(options) {
             y = void 0;
         for (var i = 0; i < count; i++) {
             x = size * (i % xcount - 1) + size / 2;
-            y = size * (Math.floor(i / xcount) - 1) + size / 2;
+            y = size * (Math.floor(i / ycount) - 1) + size / 2;
             pts.push([x, y]);
         }
         return pts;
@@ -5629,56 +6042,68 @@ function field(options) {
 
     var pts = [];
 
-    // If we are warping the grid, we should plot points outside of the canvas
-    // bounds to avoid gaps at the edges. Shift them over below.
-    var overscan = 1;
-    if (warp) {
-        overscan = 1.2;
-    }
-
     switch (GRIDMODE) {
         case 'scatter':
-            pts = (0, _hexScatter2.default)(cellSize, cw * overscan, ch * overscan);
+            //pts = hexScatter(Math.round(SCALE/randomInRange(60,120)), cw, ch);
+            pts = (0, _hexScatter2.default)(cellSize, cw, ch);
             break;
         case 'random':
-            pts = randomScatter(cellSize, cw * overscan, ch * overscan);
+            pts = randomScatter(cellSize, cw, ch);
             break;
         default:
-            pts = placeNormal(cellSize, cw * overscan, ch * overscan);
+            pts = placeNormal(cellSize, cw, ch);
     }
 
-    // compensate for overscan by shifting pts back
-    if (warp) {
-        pts.map(function (p, i) {
-            return [p[0] - cw * .1, p[1] - ch * .1];
-        });
+    // shuffle the points so trails are initialized randomly
+    pts.sort(function () {
+        return (0, _utils.randomInRange)(-1, 1);
+    });
+
+    // Create another canvas
+
+    var ref = document.querySelector('#ref');
+    if (!ref) {
+        ref = document.createElement('canvas');
+        ref.setAttribute('id', 'ref');
+        ref.setAttribute('width', cw);
+        ref.setAttribute('height', ch);
+        ref.className = 'artContainer';
+        //document.querySelector('body').appendChild(ref);
     }
+    var rctx = ref.getContext('2d', { willReadFrequently: true });
 
-    var sourceTransform = (0, _fieldUtils.createSourceSinkTransform)(Math.round((0, _utils.randomInRange)(5, 15)));
+    rctx.fillStyle = 'black';
+    rctx.fillRect(0, 0, cw, ch);
 
-    // Flags for coloring by angle
-    // Don't do special coloring in bloom mode, because it relies on grayscale
-    // initial rendering
-    var colorTailByAngle = false;
-    var colorDotByAngle = false;
-    var randomColorThreshold = void 0;
-    if (LIGHTMODE !== 'bloom') {
-        if (COLORMODE === 'angle') {
-            if (Math.random() < 0.6) {
-                colorTailByAngle = true;
-            }
-            if (Math.random() < 0.6) {
-                colorDotByAngle = true;
-            }
-        }
-        if (COLORMODE === 'random') {
-            randomColorThreshold = 0.66;
-        }
-    }
+    rctx.strokeStyle = 'white';
+    rctx.lineWidth = weight * 2; // exclusion based on stroke
+    rctx.lineCap = STYLE;
 
-    // console.log(`Colors: tails ${colorTailByAngle}, dots: ${colorDotByAngle}`);
+    // Field trails: for each point, follow the tail functions for
+    // a bunch of steps. Seems to work well for 20-100 steps. With more steps
+    // you have to fade out opacity as you go to remain legible
+    var steps = void 0;
+    var stepBase = (0, _utils.randomInRange)(6, 30); // vary this for each trail. See loop.
+    lineScale = 0.7; // scalar of the function at each step. small=smooth.
+
+    var dx = void 0,
+        dy = void 0;
+
+    ctx.globalAlpha = 1;
+    //ctx.globalAlpha = 0.5;
+    //ctx.globalCompositeOperation = 'overlay';
+
+    ctx.lineWidth = weight;
+
+    var colorVal = void 0; // color transform value
+    var colorNorm = void 0; // color val normalized to palette
+
+    var trace = [0, 0]; // color sample
+
+    var tStart = new Date().getTime();
 
     // source/sink stuff
+    var sourceTransform = (0, _fieldUtils.createSourceSinkTransform)(Math.round((0, _utils.randomInRange)(5, 15)));
     if (FIELDMODE === 'flow') {
         var totalStrength = 0;
         sourceTransform.sources.forEach(function (source) {
@@ -5687,113 +6112,225 @@ function field(options) {
         lineScale = 1 / totalStrength;
     }
 
-    // step thru points
+    // to avoid self blocking,
+    // hold each trail and defer reference rendering till each is done.
+    // This allows self intersection, but avoids self-interference when
+    // each step is too small to avoid colliding with the last.
+    var trail = [];
+
+    if (!opts.isolate) {
+        ctx.globalAlpha = (0, _utils.randomInRange)(0.5, 0.75);
+        //ctx.globalCompositeOperation = 'overlay';
+        stepBase = (0, _utils.randomInRange)(20, 40); // near normal max. TODO make this more interesting
+        weight = (0, _utils.randomInRange)(0.5, 1.5); // thinner lines
+        ctx.lineWidth = weight;
+    }
+
     pts.forEach(function (p, i) {
+        //ctx.strokeStyle = (i%2)? fg : fg2;
+        //ctx.strokeStyle = (i%2)? 'white' : 'black';
+        //ctx.strokeStyle = getContrastColor();
+
+        steps = stepBase * (0, _utils.randomInRange)(1, 2);
+
         x = p[0];
         y = p[1];
-        xnorm = x / cw;
-        ynorm = y / ch;
 
-        // shift base points to their warped coordinates
-        x = x + cellSize * trans.xbase(xnorm, ynorm) * warp;
-        y = y + cellSize * trans.ybase(xnorm, ynorm) * warp;
-
-        var xNoise = 0;
-        var yNoise = 0;
-        if (FIELDNOISE > 0) {
-            xNoise = (0, _utils.randomInRange)(-1, 1) * FIELDNOISE;
-            yNoise = (0, _utils.randomInRange)(-1, 1) * FIELDNOISE;
+        // check reference canvas at start point.
+        if (opts.isolate) trace = rctx.getImageData(x, y, 1, 1).data;
+        if (trace[0] > 5) {
+            return;
         }
 
-        // get end of tail coords
-        if (FIELDMODE === 'flow') {
-            // flow fields (source-sink)
-            var flow = sourceTransform.t(xnorm, ynorm);
-            _x = flow[0];
-            _y = flow[1];
-        } else {
-            // harmonic fields
-            _x = trans.xtail(xnorm, ynorm);
-            _y = trans.ytail(xnorm, ynorm);
+        var tlen = 0;
+        var tCurve = 0;
+        var tChange = 0;
+        var angle = 0;
+        var lastAngle = 0;
+        var ddx = void 0,
+            ddy = void 0;
+        var lastDelta = [0, 0];
+
+        if (opts.mixWeight) {
+            ctx.lineWidth = weight * Math.tan(PI * (0, _utils.randomInRange)(0, 0.27));
+            rctx.lineWidth = ctx.lineWidth * 2;
         }
 
-        _x += xNoise;
-        _y += yNoise;
+        for (var z = 0; z <= steps; z++) {
+            x = p[0];
+            y = p[1];
+            xnorm = x / cw;
+            ynorm = y / ch;
 
-        var theta = Math.atan2(_y, _x);
-        var fillIndex = Math.round(contrastPalette.length * theta / PI / 2);
-        var angleColor = contrastPalette[fillIndex];
+            var xNoise = 0;
+            var yNoise = 0;
+            if (FIELDNOISE > 0) {
+                xNoise = (0, _utils.randomInRange)(-1, 1) * FIELDNOISE;
+                yNoise = (0, _utils.randomInRange)(-1, 1) * FIELDNOISE;
+            }
 
-        if (colorDotByAngle) {
-            dotFill = angleColor;
+            if (FIELDMODE === 'flow') {
+                // flow fields (source-sink)
+                var flow = sourceTransform.t(xnorm, ynorm);
+                _x = flow[0];
+                _y = flow[1];
+            } else {
+                // harmonic fields
+                _x = trans.xtail(xnorm, ynorm);
+                _y = trans.ytail(xnorm, ynorm);
+            }
+
+            // use lineScale to scale field effects, apply cellSize to both
+            // field and noise factors
+            dx = cellSize * (_x * lineScale + xNoise);
+            dy = cellSize * (_y * lineScale + yNoise);
+
+            // get ref sample
+            if (opts.isolate) trace = rctx.getImageData(x + dx, y + dy, 1, 1).data;
+            // stop if white
+            if (trace[0] > 5) {
+                continue;
+            }
+
+            // direct draw
+            //ctx.beginPath();
+            //ctx.moveTo(x, y);
+            //ctx.lineTo(
+            //    x + dx,
+            //    y + dy
+            //);
+            //ctx.stroke();
+
+            trail.push([x + dx, y + dy]);
+            if (COLORMODE === 'length') {
+                // tally up the length
+                tlen += Math.sqrt(dx * dx + dy * dy);
+            }
+            if (COLORMODE === 'curve') {
+                // add abs change in angle
+                // tCurve += Math.abs((Math.atan((y+dy)/(x+dx)) - Math.atan(y/x)));
+                angle = Math.atan(dy / dx);
+                if (z > 0) {
+                    // don't accumulate until second point, otherwise we include
+                    // the initial angle of the root position in the tally
+                    tCurve += Math.abs(angle - lastAngle);
+                }
+                lastAngle = angle;
+            }
+            if (COLORMODE === 'change') {
+                ddx = dx - lastDelta[0];
+                ddy = dy - lastDelta[1];
+                tChange += Math.sqrt(ddx * ddx + ddy * ddy);
+                lastDelta = [dx, dy];
+            }
+
+            p[0] = x + dx;
+            p[1] = y + dy;
         }
-        if (COLORMODE === 'random' && Math.random() < randomColorThreshold) {
-            dotFill = getContrastColor();
+
+        var trailStart = void 0;
+        var trailEnd = void 0;
+
+        // for RENDERTOSVG
+        var plotpath = '';
+
+        // Deferred drawing
+        // foreach trail, render it
+        if (trail.length) {
+            trailStart = trail.shift();
+            trailEnd = trail[trail.length - 1];
+
+            if (RENDERTOSVG) {
+                plotpath = '<path                 stroke-width="' + weight + '"                 stroke-linecap="' + STYLE + '" ';
+            }
+
+            // Colors
+
+            if (COLORMODE === 'origin') {
+                // set color as a function of position of trail origin
+                colorVal = (trans.color(x, y) + 1) / 2;
+                colorNorm = Math.round(colorVal * (contrastPalette.length - 1));
+                ctx.strokeStyle = contrastPalette[colorNorm] || 'green';
+            }
+
+            if (COLORMODE === 'length') {
+                colorVal = tlen / (stepBase * 2 * 3); // roughly the expected max length
+                //console.log(colorVal);
+                colorNorm = Math.round(colorVal * (colorCount - 1));
+                ctx.strokeStyle = contrastPalette[colorNorm % colorCount] || 'green';
+            }
+
+            if (COLORMODE === 'curve') {
+                colorVal = tCurve * 1.2; // magic number
+                colorVal = colorVal % PI;
+                //console.log(colorVal.toFixed(1));
+                colorNorm = Math.round(colorVal * (colorCount - 1));
+                ctx.strokeStyle = contrastPalette[colorNorm % colorCount] || 'green';
+            }
+
+            if (COLORMODE === 'change') {
+                colorVal = tChange * 0.2; // magic number
+                //console.log(colorVal.toFixed(1));
+                colorNorm = Math.round(colorVal * (colorCount - 1));
+                ctx.strokeStyle = contrastPalette[colorNorm % colorCount] || 'green';
+            }
+
+            if (COLORMODE === 'mono') {
+                ctx.strokeStyle = fg;
+            }
+
+            if (COLORMODE === 'duo') {
+                ctx.strokeStyle = (0, _utils.randItem)([fg, fg2]);
+            }
+
+            if (COLORMODE === 'random') {
+                ctx.strokeStyle = getContrastColor();
+            }
+
+            // Start drawing
+
+            ctx.beginPath();
+            ctx.moveTo.apply(ctx, _toConsumableArray(trailStart));
+
+            if (RENDERTOSVG) {
+                plotpath += ' stroke="' + ctx.strokeStyle + '" ';
+                plotpath += ' d="';
+                plotpath += 'M' + trailStart[0].toPrecision(4) + ',' + trailStart[1].toPrecision(4);
+            }
+
+            if (opts.isolate) {
+                rctx.beginPath();
+                rctx.moveTo.apply(rctx, _toConsumableArray(trailStart));
+            }
+
+            trail.forEach(function (pt, i) {
+                ctx.lineTo(pt[0], pt[1]);
+                opts.isolate && rctx.lineTo(pt[0], pt[1]);
+                if (RENDERTOSVG) {
+                    plotpath += 'L' + pt[0].toPrecision(4) + ',' + pt[1].toPrecision(4);
+                }
+            });
+            ctx.stroke();
+            opts.isolate && rctx.stroke();
+            trail = [];
+            if (RENDERTOSVG) {
+                plotpath += '" />';
+                allpaths += plotpath;
+            }
         }
-
-        // draw dot
-        ctx.globalAlpha = 1;
-        (0, _shapes.drawCircle)(ctx, x, y, (trans.radius(xnorm, ynorm) + 1) * dotScale, { fill: dotFill });
-
-        ctx.globalAlpha = opacityFunc(_x, _y);
-
-        if (colorTailByAngle) {
-            ctx.strokeStyle = angleColor;
-        }
-        if (COLORMODE === 'random' && Math.random() < randomColorThreshold) {
-            ctx.strokeStyle = getContrastColor();
-        }
-
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x + cellSize * _x * lineScale, y + cellSize * _y * lineScale);
-        ctx.stroke();
     });
+
+    if (RENDERTOSVG) {
+        svg.innerHTML += allpaths;
+    }
 
     ctx.globalAlpha = 1;
 
-    // in bloom mode, we draw a big colorful gradient over the grayscale
-    // background, using palette colors and nice blend modes
-    if (LIGHTMODE === 'bloom') {
-        ctx.globalCompositeOperation = 'color-dodge';
+    var tEnd = new Date().getTime();
 
-        // bloom with linear gradient
-        ctx.fillStyle = (0, _utils.getGradientFunction)(opts.palette)(ctx, cw, ch); //getContrastColor();
-        ctx.fillRect(0, 0, cw, ch);
+    console.log('rendered in ' + (tEnd - tStart) + 'ms');
 
-        if (Math.random() < 0.5) {
-            // bloom with spot lights
-            var dodgeDot = function dodgeDot() {
-                var max = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1.5;
-
-                var gx = void 0,
-                    gy = void 0,
-                    gr1 = void 0,
-                    gr2 = void 0;
-                gx = (0, _utils.randomInRange)(0, cw);
-                gy = (0, _utils.randomInRange)(0, ch);
-                gr1 = (0, _utils.randomInRange)(0, 0.25);
-                gr2 = (0, _utils.randomInRange)(gr1, max);
-
-                var radial = ctx.createRadialGradient(gx, gy, gr1 * SCALE, gx, gy, gr2 * SCALE);
-                radial.addColorStop(0, (0, _utils.randItem)(opts.palette));
-                radial.addColorStop(1, '#000000');
-
-                ctx.fillStyle = radial;
-                ctx.fillRect(0, 0, cw, ch);
-            };
-            // try layering dots with varying coverage
-            ctx.globalAlpha = (0, _utils.randomInRange)(0.4, 0.7);
-            dodgeDot(1.5);
-            ctx.globalAlpha = (0, _utils.randomInRange)(0.4, 0.7);
-            dodgeDot(1.0);
-            ctx.globalAlpha = (0, _utils.randomInRange)(0.7, 0.9);
-            dodgeDot(0.5);
-            ctx.globalAlpha = 1;
-        }
-
-        ctx.globalCompositeOperation = 'normal';
-    }
+    window.ctx = ctx;
 
     // add noise
     if (opts.addNoise) {
@@ -5807,13 +6344,14 @@ function field(options) {
     }
 
     // if new canvas child was created, append it
-    if (newEl) {
+    if (newEl && !RENDERTOSVG) {
+        container.innerHTML = '';
         container.appendChild(el);
     }
 }
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5824,11 +6362,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.fragments = fragments;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -6111,7 +6649,7 @@ function fragments(options) {
 }
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6122,11 +6660,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.duos = duos;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -6342,7 +6880,7 @@ function duos(options) {
 }
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6353,11 +6891,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.truchetCurves = truchetCurves;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -6651,7 +7189,7 @@ function truchetCurves(options) {
 }
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -6662,11 +7200,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.grille = grille;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -7252,7 +7790,7 @@ function grille(options) {
 }
 
 /***/ }),
-/* 29 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -7263,11 +7801,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.fieldShape = fieldShape;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -7279,7 +7817,7 @@ var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
 
-var _fieldUtils = __webpack_require__(6);
+var _fieldUtils = __webpack_require__(5);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -7876,501 +8414,6 @@ function fieldShape(options) {
 }
 
 /***/ }),
-/* 30 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.trails = trails;
-
-var _noiseutils = __webpack_require__(1);
-
-var _noiseutils2 = _interopRequireDefault(_noiseutils);
-
-var _palettes = __webpack_require__(2);
-
-var _palettes2 = _interopRequireDefault(_palettes);
-
-var _hexScatter = __webpack_require__(4);
-
-var _hexScatter2 = _interopRequireDefault(_hexScatter);
-
-var _utils = __webpack_require__(0);
-
-var _shapes = __webpack_require__(3);
-
-var _fieldUtils = __webpack_require__(6);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-var PI = Math.PI;
-var FIELDMODES = ['harmonic', 'flow'];
-var GRIDMODES = ['normal', 'scatter', 'random'];
-var COLORMODES = ['length', 'curve', 'change', /*'origin',*/'mono', 'duo', 'random'];
-var STYLES = ['round', 'square'];
-
-var DEFAULTS = {
-    container: 'body',
-    palette: _palettes2.default.de_stijl,
-    addNoise: 0.04,
-    noiseInput: null,
-    dust: false,
-    skew: 1, // normalized skew
-    clear: true,
-    fieldMode: 'auto', // [auto, harmonic, flow]
-    gridMode: 'scatter', // from GRIDMODES
-    colorMode: 'auto', // from COLORMODES
-    style: 'auto', // from STYLES
-    fieldNoise: 'auto', // mapped to values below
-    mixWeight: false,
-    isolate: true
-
-    // Main function
-};function trails(options) {
-    var opts = Object.assign({}, DEFAULTS, options);
-
-    var container = opts.container;
-    var cw = container.offsetWidth;
-    var ch = container.offsetHeight;
-    var SCALE = Math.min(cw, ch);
-    var LONG = Math.max(cw, ch);
-    var SHORT = Math.min(cw, ch);
-    var AREA = cw * ch;
-
-    // Find or create canvas child
-    var el = container.querySelector('canvas');
-    var newEl = false;
-    if (!el) {
-        container.innerHTML = '';
-        el = document.createElement('canvas');
-        newEl = true;
-    }
-    if (newEl || opts.clear) {
-        el.width = cw;
-        el.height = ch;
-    }
-
-    var ctx = el.getContext('2d');
-
-    // modes and styles
-    var FIELDMODE = opts.fieldMode === 'auto' ? (0, _utils.randItem)(FIELDMODES) : opts.fieldMode;
-    var GRIDMODE = opts.gridMode === 'auto' ? (0, _utils.randItem)(GRIDMODES) : opts.gridMode;
-    var COLORMODE = opts.colorMode === 'auto' ? (0, _utils.randItem)(COLORMODES) : opts.colorMode;
-    var STYLE = opts.style === 'auto' ? (0, _utils.randItem)(STYLES) : opts.style;
-    var FIELDNOISE = (0, _utils.mapKeywordToVal)({
-        // hacky way to weight options by redundantly specifying
-        'none': 0,
-        'none2': 0,
-        'none3': 0,
-        'none4': 0,
-        'low': 0.125,
-        'low2': 0.125,
-        'low3': 0.125,
-        'med': 0.25,
-        'med2': 0.25,
-        'high': 0.5
-    })(opts.fieldNoise, 'fieldNoise');
-
-    console.log('==================================\nTrails:', FIELDMODE, GRIDMODE, COLORMODE, STYLE);
-
-    // color funcs
-    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
-
-    // how many cells are in the grid?
-    var countMin = void 0,
-        countMax = void 0;
-    countMin = 80;
-    countMax = 160;
-
-    var cellSize = Math.round(SHORT / (0, _utils.randomInRange)(countMin, countMax));
-
-    // setup vars for each cell
-    var x = 0;
-    var y = 0;
-    var xnorm = 0;
-    var ynorm = 0;
-    var renderer = void 0;
-
-    // shared colors
-    var bg = getSolidFill();
-
-    // get palette of non-bg colors
-    var contrastPalette = [].concat(opts.palette);
-    contrastPalette.splice(opts.palette.indexOf(bg), 1);
-    //contrastPalette.sort(()=>(randomInRange(-1, 1)));
-    var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
-    var colorCount = contrastPalette.length;
-
-    // shared foregrounds
-    var fg = getContrastColor();
-    var fg2 = getContrastColor();
-
-    // draw background
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, cw, ch);
-
-    ctx.strokeStyle = fg;
-
-    // trails:
-    var rateMax = (0, _utils.randomInRange)(0.5, 5); // this is a bit meta and silly
-
-    // tail vars
-    var _x = void 0,
-        _y = void 0,
-        len = void 0;
-
-    // line width
-    var weight = SHORT / (0, _utils.randomInRange)(400, 75);
-
-    ctx.lineWidth = weight;
-    ctx.lineCap = STYLE;
-    ctx.lineJoin = "bevel";
-
-    // const used in normalizing transforms
-    var maxLen = 2 * Math.sqrt(2);
-
-    // It looks nice to extend lines beyond their cells. how much?
-    // Scaled against cellSize
-    var lineScale = (0, _utils.randomInRange)(0.7, 3);
-
-    // Displace the center point of each cell by this factor
-    // Only do this sometimes, and not when scattering
-    var warp = 0;
-    if (GRIDMODE !== 'scatter' && Math.random() < 0.5) {
-        warp = (0, _utils.randomInRange)(0, Math.sqrt(2));
-    }
-
-    // Pick an opacity transform to use
-    var opacityFunc = (0, _utils.randItem)((0, _fieldUtils.opacityTransforms)(maxLen));
-
-    // a set of independent transforms to use while rendering
-    var trans = {
-        //xbase: createTransform(0, rateMax),
-        //ybase: createTransform(0, rateMax),
-        xtail: (0, _fieldUtils.createTransform)(0, rateMax),
-        ytail: (0, _fieldUtils.createTransform)(0, rateMax),
-        //radius: createTransform(0, rateMax),
-        color: (0, _fieldUtils.createTransform)(0, 5 / SHORT) // change colors slowly
-    };
-
-    function randomScatter(size, w, h) {
-        var pts = [];
-        var xcount = Math.ceil(w / size);
-        var ycount = Math.ceil(h / size);
-        var count = xcount * ycount;
-        while (count--) {
-            pts.push([(0, _utils.randomInRange)(0, w), (0, _utils.randomInRange)(0, h)]);
-        }
-        return pts;
-    }
-
-    function placeNormal(size, w, h) {
-        var pts = [];
-        var xcount = Math.ceil(w / size) + 2;
-        var ycount = Math.ceil(h / size) + 2;
-        var count = xcount * ycount;
-        var x = void 0,
-            y = void 0;
-        for (var i = 0; i < count; i++) {
-            x = size * (i % xcount - 1) + size / 2;
-            y = size * (Math.floor(i / ycount) - 1) + size / 2;
-            pts.push([x, y]);
-        }
-        return pts;
-    }
-
-    var pts = [];
-
-    switch (GRIDMODE) {
-        case 'scatter':
-            //pts = hexScatter(Math.round(SCALE/randomInRange(60,120)), cw, ch);
-            pts = (0, _hexScatter2.default)(cellSize, cw, ch);
-            break;
-        case 'random':
-            pts = randomScatter(cellSize, cw, ch);
-            break;
-        default:
-            pts = placeNormal(cellSize, cw, ch);
-    }
-
-    // shuffle the points so trails are initialized randomly
-    pts.sort(function () {
-        return (0, _utils.randomInRange)(-1, 1);
-    });
-
-    // Create another canvas
-
-    var ref = document.querySelector('#ref');
-    if (!ref) {
-        ref = document.createElement('canvas');
-        ref.setAttribute('id', 'ref');
-        ref.setAttribute('width', cw);
-        ref.setAttribute('height', ch);
-        ref.className = 'artContainer';
-        //document.querySelector('body').appendChild(ref);
-    }
-    var rctx = ref.getContext('2d', { willReadFrequently: true });
-
-    rctx.fillStyle = 'black';
-    rctx.fillRect(0, 0, cw, ch);
-
-    rctx.strokeStyle = 'white';
-    rctx.lineWidth = weight * 2; // exclusion based on stroke
-    rctx.lineCap = STYLE;
-
-    // Field trails: for each point, follow the tail functions for
-    // a bunch of steps. Seems to work well for 20-100 steps. With more steps
-    // you have to fade out opacity as you go to remain legible
-    var steps = void 0;
-    var stepBase = (0, _utils.randomInRange)(6, 30); // vary this for each trail. See loop.
-    lineScale = 0.7; // scalar of the function at each step. small=smooth.
-
-    var dx = void 0,
-        dy = void 0;
-
-    ctx.globalAlpha = 1;
-    //ctx.globalAlpha = 0.5;
-    //ctx.globalCompositeOperation = 'overlay';
-
-    ctx.lineWidth = weight;
-
-    var colorVal = void 0; // color transform value
-    var colorNorm = void 0; // color val normalized to palette
-
-    var trace = [0, 0]; // color sample
-
-    var tStart = new Date().getTime();
-
-    // source/sink stuff
-    var sourceTransform = (0, _fieldUtils.createSourceSinkTransform)(Math.round((0, _utils.randomInRange)(5, 15)));
-    if (FIELDMODE === 'flow') {
-        var totalStrength = 0;
-        sourceTransform.sources.forEach(function (source) {
-            totalStrength += source.strength;
-        });
-        lineScale = 1 / totalStrength;
-    }
-
-    // to avoid self blocking,
-    // hold each trail and defer reference rendering till each is done.
-    // This allows self intersection, but avoids self-interference when
-    // each step is too small to avoid colliding with the last.
-    var trail = [];
-
-    if (!opts.isolate) {
-        ctx.globalAlpha = (0, _utils.randomInRange)(0.5, 0.75);
-        //ctx.globalCompositeOperation = 'overlay';
-        stepBase = (0, _utils.randomInRange)(20, 40); // near normal max. TODO make this more interesting
-        weight = (0, _utils.randomInRange)(0.5, 1.5); // thinner lines
-        ctx.lineWidth = weight;
-    }
-
-    pts.forEach(function (p, i) {
-        //ctx.strokeStyle = (i%2)? fg : fg2;
-        //ctx.strokeStyle = (i%2)? 'white' : 'black';
-        //ctx.strokeStyle = getContrastColor();
-
-        steps = stepBase * (0, _utils.randomInRange)(1, 2);
-
-        x = p[0];
-        y = p[1];
-
-        // check reference canvas at start point.
-        if (opts.isolate) trace = rctx.getImageData(x, y, 1, 1).data;
-        if (trace[0] > 5) {
-            return;
-        }
-
-        var tlen = 0;
-        var tCurve = 0;
-        var tChange = 0;
-        var angle = 0;
-        var lastAngle = 0;
-        var ddx = void 0,
-            ddy = void 0;
-        var lastDelta = [0, 0];
-
-        if (opts.mixWeight) {
-            ctx.lineWidth = weight * Math.tan(PI * (0, _utils.randomInRange)(0, 0.27));
-            rctx.lineWidth = ctx.lineWidth * 2;
-        }
-
-        for (var z = 0; z <= steps; z++) {
-            x = p[0];
-            y = p[1];
-            xnorm = x / cw;
-            ynorm = y / ch;
-
-            var xNoise = 0;
-            var yNoise = 0;
-            if (FIELDNOISE > 0) {
-                xNoise = (0, _utils.randomInRange)(-1, 1) * FIELDNOISE;
-                yNoise = (0, _utils.randomInRange)(-1, 1) * FIELDNOISE;
-            }
-
-            if (FIELDMODE === 'flow') {
-                // flow fields (source-sink)
-                var flow = sourceTransform.t(xnorm, ynorm);
-                _x = flow[0];
-                _y = flow[1];
-            } else {
-                // harmonic fields
-                _x = trans.xtail(xnorm, ynorm);
-                _y = trans.ytail(xnorm, ynorm);
-            }
-
-            // use lineScale to scale field effects, apply cellSize to both
-            // field and noise factors
-            dx = cellSize * (_x * lineScale + xNoise);
-            dy = cellSize * (_y * lineScale + yNoise);
-
-            // get ref sample
-            if (opts.isolate) trace = rctx.getImageData(x + dx, y + dy, 1, 1).data;
-            // stop if white
-            if (trace[0] > 5) {
-                continue;
-            }
-
-            // direct draw
-            //ctx.beginPath();
-            //ctx.moveTo(x, y);
-            //ctx.lineTo(
-            //    x + dx,
-            //    y + dy
-            //);
-            //ctx.stroke();
-
-            trail.push([x + dx, y + dy]);
-            if (COLORMODE === 'length') {
-                // tally up the length
-                tlen += Math.sqrt(dx * dx + dy * dy);
-            }
-            if (COLORMODE === 'curve') {
-                // add abs change in angle
-                // tCurve += Math.abs((Math.atan((y+dy)/(x+dx)) - Math.atan(y/x)));
-                angle = Math.atan(dy / dx);
-                if (z > 0) {
-                    // don't accumulate until second point, otherwise we include
-                    // the initial angle of the root position in the tally
-                    tCurve += Math.abs(angle - lastAngle);
-                }
-                lastAngle = angle;
-            }
-            if (COLORMODE === 'change') {
-                ddx = dx - lastDelta[0];
-                ddy = dy - lastDelta[1];
-                tChange += Math.sqrt(ddx * ddx + ddy * ddy);
-                lastDelta = [dx, dy];
-            }
-
-            p[0] = x + dx;
-            p[1] = y + dy;
-        }
-
-        var trailStart = void 0;
-        var trailEnd = void 0;
-
-        // Deferred drawing
-        // foreach trail, render it
-        if (trail.length) {
-            trailStart = trail.shift();
-            trailEnd = trail[trail.length - 1];
-
-            // Colors
-
-            if (COLORMODE === 'origin') {
-                // set color as a function of position of trail origin
-                colorVal = (trans.color(x, y) + 1) / 2;
-                colorNorm = Math.round(colorVal * (contrastPalette.length - 1));
-                ctx.strokeStyle = contrastPalette[colorNorm] || 'green';
-            }
-
-            if (COLORMODE === 'length') {
-                colorVal = tlen / (stepBase * 2 * 3); // roughly the expected max length
-                //console.log(colorVal);
-                colorNorm = Math.round(colorVal * (colorCount - 1));
-                ctx.strokeStyle = contrastPalette[colorNorm % colorCount] || 'green';
-            }
-
-            if (COLORMODE === 'curve') {
-                colorVal = tCurve * 1.2; // magic number
-                colorVal = colorVal % PI;
-                //console.log(colorVal.toFixed(1));
-                colorNorm = Math.round(colorVal * (colorCount - 1));
-                ctx.strokeStyle = contrastPalette[colorNorm % colorCount] || 'green';
-            }
-
-            if (COLORMODE === 'change') {
-                colorVal = tChange * 0.2; // magic number
-                //console.log(colorVal.toFixed(1));
-                colorNorm = Math.round(colorVal * (colorCount - 1));
-                ctx.strokeStyle = contrastPalette[colorNorm % colorCount] || 'green';
-            }
-
-            if (COLORMODE === 'mono') {
-                ctx.strokeStyle = fg;
-            }
-
-            if (COLORMODE === 'duo') {
-                ctx.strokeStyle = (0, _utils.randItem)([fg, fg2]);
-            }
-
-            if (COLORMODE === 'random') {
-                ctx.strokeStyle = getContrastColor();
-            }
-
-            // Start drawing
-
-            ctx.beginPath();
-            ctx.moveTo.apply(ctx, _toConsumableArray(trailStart));
-
-            if (opts.isolate) {
-                rctx.beginPath();
-                rctx.moveTo.apply(rctx, _toConsumableArray(trailStart));
-            }
-
-            trail.forEach(function (pt, i) {
-                ctx.lineTo(pt[0], pt[1]);
-                opts.isolate && rctx.lineTo(pt[0], pt[1]);
-            });
-            ctx.stroke();
-            opts.isolate && rctx.stroke();
-            trail = [];
-        }
-    });
-
-    ctx.globalAlpha = 1;
-
-    var tEnd = new Date().getTime();
-
-    console.log('rendered in ' + (tEnd - tStart) + 'ms');
-
-    window.ctx = ctx;
-
-    // add noise
-    if (opts.addNoise) {
-        if (opts.noiseInput) {
-            // apply noise from supplied canvas
-            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
-        } else {
-            // create noise pattern and apply
-            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, cw / 3);
-        }
-    }
-
-    // if new canvas child was created, append it
-    if (newEl) {
-        container.appendChild(el);
-    }
-}
-
-/***/ }),
 /* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -8382,11 +8425,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.clouds = clouds;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -8625,11 +8668,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.grads = grads;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -8888,11 +8931,11 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 exports.doodle = doodle;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -8902,11 +8945,11 @@ var _hexScatter2 = _interopRequireDefault(_hexScatter);
 
 var _utils = __webpack_require__(0);
 
-var _fieldUtils = __webpack_require__(6);
+var _fieldUtils = __webpack_require__(5);
 
 var _shapes = __webpack_require__(3);
 
-var _speckle = __webpack_require__(7);
+var _speckle = __webpack_require__(8);
 
 var _roughen = __webpack_require__(34);
 
@@ -9457,11 +9500,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.pillars = pillars;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -9729,11 +9772,11 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 exports.rings = rings;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -10132,11 +10175,11 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 exports.plants = plants;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -10702,11 +10745,11 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 exports.scales = scales;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -11125,11 +11168,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.sweater = sweater;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -11137,7 +11180,7 @@ var _hexScatter = __webpack_require__(4);
 
 var _hexScatter2 = _interopRequireDefault(_hexScatter);
 
-var _speckle = __webpack_require__(7);
+var _speckle = __webpack_require__(8);
 
 var _utils = __webpack_require__(0);
 
@@ -11460,11 +11503,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.tricycles = tricycles;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -11891,6 +11934,398 @@ function tricycles(options) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.moire = moire;
+
+var _noiseutils = __webpack_require__(2);
+
+var _noiseutils2 = _interopRequireDefault(_noiseutils);
+
+var _palettes = __webpack_require__(1);
+
+var _palettes2 = _interopRequireDefault(_palettes);
+
+var _utils = __webpack_require__(0);
+
+var _shapes = __webpack_require__(3);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+var DEFAULTS = {
+    container: 'body',
+    palette: _palettes2.default.plum_sauce,
+    addNoise: 0.04,
+    noiseInput: null,
+    clear: true
+};
+
+var PI = Math.PI;
+var TWOPI = 2 * PI;
+
+var DEBUG = false;
+
+/*
+
+TODO:
+- multi-segment paths: when we have shared endpoints, if the control points
+differ then the approaches are not parallel, so we don't get gradual divergence
+We need to have shared end points and at least a control point shared.
+This probably means two paths with shared end points, and the control points
+must be on a line with the shared endpoints, for continuity.
+
+*/
+
+// Main function
+function moire(options) {
+    var opts = Object.assign({}, DEFAULTS, options);
+
+    var container = opts.container;
+    var cw = container.offsetWidth;
+    var ch = container.offsetHeight;
+    var SCALE = Math.min(cw, ch);
+    var LONG = Math.max(cw, ch);
+    var SHORT = Math.min(cw, ch);
+    var SPAN = Math.sqrt(Math.pow(LONG, 2) + Math.pow(SHORT, 2));
+    var AREA = cw * ch;
+    var ASPECT = LONG / SHORT;
+
+    var center = [cw / 2, ch / 2];
+
+    // Find or create canvas child
+    var el = container.querySelector('canvas');
+    var newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        el.width = cw;
+        el.height = ch;
+    }
+
+    var ctx = el.getContext('2d');
+
+    var note = new _utils.Note();
+
+    // Color funcs
+    // --------------------------------------
+
+    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
+
+    // shared colors
+    var bg = getSolidFill();
+    //bg = randItem(['#fcf9f0','#f3f2f1','#f4f9fb','#f6f4f2']);
+
+    // get palette of non-bg colors
+    var contrastPalette = [].concat(opts.palette);
+    contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
+
+    // shared foregrounds
+    var fg = getContrastColor();
+    var fg2 = getContrastColor();
+
+    // fill background
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, cw, ch);
+
+    // set default stroke
+    ctx.strokeStyle = fg;
+
+    function estimateCurveLength(a, b, c1, c2) {
+        var direct = (0, _utils.getVector)(a, b).length;
+        var hull = 0;
+        hull += (0, _utils.getVector)(a, c1).length;
+        hull += (0, _utils.getVector)(c1, c2).length;
+        hull += (0, _utils.getVector)(c2, b).length;
+        return .6 * direct + .4 * hull;
+    }
+
+    // Draw Stuff
+    // --------------------------------------
+
+
+    function boundaryCurve(a, b, c1, c2, pathCount, steps, l, drift) {
+        /*
+         - make an array of path objects, which have points and track
+            their transverse offset and active/inactive status
+        - start at point a, then proceed from step 1 (vs 0)
+        - step finely along the path, moving forward, adding points to
+            each path as you go. At each step, drift transversely.
+        - the relative rate of forward and transverse movement sets
+            the angle/skew of the paths
+        - for each step check transverse offset against the track width
+            and deactivate when it exceeds bounds
+        - track drift and when we have drifted by the spacing between paths
+            add another path
+        - the end is a set of path objects with their points; when complete
+            plot them all via canvas or stitch into svg paths
+         */
+
+        var curveLength = estimateCurveLength(a, b, c1, c2);
+        var normalizedStep = curveLength / steps;
+        note.add('curve length about ' + curveLength.toPrecision(4) + 'px each step about ' + normalizedStep.toPrecision(4) + 'px');
+
+        var spacing = l / pathCount;
+
+        //DEBUG: directly draw the ghost of the path
+        if (DEBUG) {
+            var _weight = ctx.lineWidth;
+            ctx.globalAlpha = 0.15;
+            ctx.lineWidth = l;
+            ctx.beginPath();
+            ctx.moveTo.apply(ctx, _toConsumableArray(a));
+            ctx.bezierCurveTo.apply(ctx, _toConsumableArray(c1).concat(_toConsumableArray(c2), _toConsumableArray(b)));
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+            ctx.lineWidth = _weight;
+        }
+
+        var paths = []; // array of arrays
+        for (var i = 0; i <= pathCount; i++) {
+            paths.push({
+                pts: [],
+                offset: l * -1 / 2 + i * spacing,
+                active: true
+            }); // push an array for each path
+        }
+
+        var t = 0;
+        var inc = 1 / steps;
+
+        // normalize drift input so it expresses a percentage of forward step
+        drift = drift || 0;
+        drift = drift / 100 * normalizedStep; // percentage
+
+        // re-express as a fraction of the spacing, so we get there
+        // in even numbers of steps
+        // drift * N = spacing
+        // drift = spacing / N
+        // N = spacing / normalizedDrift
+        var N = spacing / drift;
+        note.add('DRIFT: ' + N.toPrecision(3) + ' steps for drift from ' + spacing.toPrecision(3) + ' spacing, ' + drift.toPrecision(3) + ' drift');
+        //drift = spacing / N;
+        //drift = spacing *  3 / 5;
+        var M = Math.floor(N);
+
+        var x = a[0];
+        var y = a[1];
+        var _x = x; // last x
+        var _y = y; // last y
+
+        // each point on curve
+        //drawCircle(ctx, x, y, 10, {stroke:'red'});
+
+        var v = void 0; // the vector between steps
+
+        var insert = 0; // tracks when to insert a new path
+
+        /*
+            Either 1 or -1. Will work with the vector angle to set
+            direction of drift. Keeping drift positive and switching
+            direction with this allows simpler bounds checking and
+            insertion of new paths.
+        */
+        var direction = 1;
+
+        // step thru the bezier
+
+        var _loop = function _loop() {
+            t = i * inc;
+
+            x = Math.pow(1 - t, 3) * a[0] + 3 * Math.pow(1 - t, 2) * t * c1[0] + 3 * (1 - t) * Math.pow(t, 2) * c2[0] + Math.pow(t, 3) * b[0];
+            y = Math.pow(1 - t, 3) * a[1] + 3 * Math.pow(1 - t, 2) * t * c1[1] + 3 * (1 - t) * Math.pow(t, 2) * c2[1] + Math.pow(t, 3) * b[1];
+
+            // get vector from last point to this point
+            v = (0, _utils.getVector)([_x, _y], [x, y]);
+
+            // path x and y
+            var px = 0;
+            var py = 0;
+
+            // step through paths
+            paths.forEach(function (path, j) {
+                /*
+                    Paths can be:
+                    1. out of bounds on the negative side, drifting in
+                    2. in bounds, drifting out
+                    3. out of bounds on positive side, never to return
+                */
+                if (path.active) {
+                    px = x + path.offset * Math.cos(v.angle + direction * PI / 2);
+                    py = y + path.offset * Math.sin(v.angle + direction * PI / 2);
+
+                    if (path.offset > -l / 2 && path.offset < l / 2) {
+                        path.pts.push([px, py]);
+                    }
+                }
+                // only check positive bound to deactivate; if it is below
+                // negative bound it is drifting in and should stay active
+                if (path.offset > l / 2) {
+                    path.active = false;
+                }
+
+                path.offset += drift;
+            });
+
+            var creep = Math.floor(i * drift / spacing);
+            var remainder = i * drift % spacing;
+            /* total drift % spacing */
+
+            if (creep > insert) {
+                insert = creep; // reset
+                paths.unshift({
+                    active: true,
+                    //offset: minOff - spacing,//-l/2,
+                    offset: -l / 2 + remainder,
+                    pts: []
+                });
+            }
+
+            // update point
+            _x = x;
+            _y = y;
+        };
+
+        for (var i = 1; i <= steps; i++) {
+            _loop();
+        }
+
+        // now go back and draw all then paths
+        paths.forEach(function (path) {
+            if (!path.pts.length) return;
+            ctx.beginPath();
+            ctx.moveTo.apply(ctx, _toConsumableArray(path.pts.shift()));
+            path.pts.forEach(function (p) {
+                ctx.lineTo(p[0], p[1]);
+            });
+            ctx.stroke();
+        });
+    }
+
+    // point placement for main curves
+
+    var theta = (0, _utils.randomInRange)(0, TWOPI); // the angle of the track axis
+    var alpha = (0, _utils.randomInRange)(0, TWOPI); // angle of origin offset from center
+    var originOffset = SPAN * (0, _utils.randomInRange)(0, 0.1); // radius of origin offset
+    var origin = [cw / 2 + originOffset * Math.cos(alpha), ch / 2 + originOffset * Math.sin(alpha)];
+
+    DEBUG && _shapes.drawCross.apply(undefined, [ctx].concat(origin, [20, { fill: 'black' }]));
+
+    var start = [0, 0];
+    var end = [0, 0];
+
+    var REACH = SPAN * 0.3;
+
+    // create start and end points
+    start = [origin[0] + REACH * Math.cos(theta), origin[1] + REACH * Math.sin(theta)];
+    end = [origin[0] + REACH * Math.cos(theta - PI), origin[1] + REACH * Math.sin(theta - PI)];
+    // different endpoints
+    var theta2 = theta - PI + PI * (0, _utils.randomInRange)(-0.3, 0.3);
+    var end2 = [origin[0] + REACH * Math.cos(theta2), origin[1] + REACH * Math.sin(theta2)];
+
+    // DEBUG
+    DEBUG && _shapes.drawCircle.apply(undefined, [ctx].concat(_toConsumableArray(start), [REACH / 2, { stroke: 'red' }]));
+    DEBUG && _shapes.drawCircle.apply(undefined, [ctx].concat(_toConsumableArray(end), [REACH / 2, { stroke: 'green' }]));
+    DEBUG && _shapes.drawCircle.apply(undefined, [ctx].concat(end2, [REACH / 2, { stroke: 'blue' }]));
+
+    // Set control points relative to the track axis
+    var a1 = theta;
+    var r1 = REACH * 0.5;
+    var c1 = [origin[0] + r1 * Math.cos(a1), origin[1] + r1 * Math.sin(a1)];
+    var a2 = theta - PI;
+    var r2 = REACH * 0.5;
+    var c2 = [origin[0] + r2 * Math.cos(a2), origin[1] + r2 * Math.sin(a2)];
+    var a3 = theta + PI * (0, _utils.randomInRange)(-0.3, 0.3);
+    var r3 = REACH * 0.5;
+    var c3 = [origin[0] + r3 * Math.cos(a3), origin[1] + r3 * Math.sin(a3)];
+    var a4 = theta - PI + PI * (0, _utils.randomInRange)(-0.3, 0.3);
+    var r4 = REACH * 0.5;
+    var c4 = [origin[0] + r4 * Math.cos(a4), origin[1] + r4 * Math.sin(a4)];
+
+    // Set steps, thickness and separation of lines, skew
+
+    var steps = Math.round(REACH * (0, _utils.randomInRange)(0.15, 0.35));
+    steps *= 4;
+    var trackWidth = LONG * (0, _utils.randomInRange)(0.15, 0.3);
+    var skew = PI * 0.3 * (0, _utils.randomInRange)(-1, 1);
+    var pathCount = (0, _utils.randomInt)(15, 30);
+    var weight = trackWidth / pathCount * (0, _utils.randomInRange)(0.13, 0.33);
+    ctx.lineWidth = weight;
+    DEBUG && console.log(Math.round(steps) + ' steps over ' + Math.round(REACH) + 'px; ' + (REACH / steps).toPrecision(3) + 'px per interval; ' + weight.toPrecision(3) + 'px lines at ' + (trackWidth / pathCount).toPrecision(3) + 'px spacing');
+
+    // sometimes, use the same color for both
+    if (Math.random() < 0.3) {
+        fg2 = fg;
+    }
+
+    // DEBUG
+    // fg = 'red';
+    // fg2 = 'blue';
+
+    // for drift, 100 is 45deg, and 0 is parallel with path
+    var drift1 = (0, _utils.randomInRange)(10, 120);
+    var drift2 = (0, _utils.randomInRange)(10, 120);
+    // usually sync drift so the angles match
+    if (Math.random() < .80) drift2 = drift1;
+
+    var renderModes = [function () {
+        note.add('same endpoints, different controls');
+        ctx.strokeStyle = fg;
+        boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, drift1);
+        ctx.strokeStyle = fg2;
+        boundaryCurve(start, end, c3, c4, pathCount, steps, trackWidth, drift2);
+    }, function () {
+        note.add('same start, different end, different controls');
+        ctx.strokeStyle = fg;
+        boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, drift1);
+        ctx.strokeStyle = fg2;
+        boundaryCurve(start, end2, c3, c4, pathCount, steps, trackWidth, drift2);
+    }, function () {
+        note.add('same start, different end, shared control');
+        ctx.strokeStyle = fg;
+        boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, drift1);
+        ctx.strokeStyle = fg2;
+        boundaryCurve(start, end2, c1, c4, pathCount, steps, trackWidth, drift2);
+    }];
+
+    // Finally: draw
+    (0, _utils.randItem)(renderModes)();
+
+    note.log();
+
+    // Finish up
+    // --------------------------------------
+
+    // add noise
+    if (opts.addNoise) {
+        if (opts.noiseInput) {
+            // apply noise from supplied canvas
+            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
+        } else {
+            // create noise pattern and apply
+            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, w / 3);
+        }
+    }
+
+    // if new canvas child was created, append it
+    if (newEl) {
+        container.appendChild(el);
+    }
+}
+
+/***/ }),
+/* 42 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
@@ -12073,7 +12508,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 42 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12439,7 +12874,7 @@ function halftoneSpotColors(canvas) {
 } // halftoneCMYK()
 
 /***/ }),
-/* 43 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -12722,19 +13157,19 @@ function fracture(canvas) {
 }
 
 /***/ }),
-/* 44 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-__webpack_require__(8);
+__webpack_require__(7);
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -12742,41 +13177,41 @@ var _colorbrewer = __webpack_require__(9);
 
 var _colorbrewer2 = _interopRequireDefault(_colorbrewer);
 
-var _waterline = __webpack_require__(10);
+var _waterline = __webpack_require__(11);
 
-var _shapestack = __webpack_require__(12);
+var _shapestack = __webpack_require__(13);
 
-var _shapescape = __webpack_require__(15);
+var _shapescape = __webpack_require__(16);
 
-var _duos = __webpack_require__(26);
+var _duos = __webpack_require__(27);
 
-var _lines = __webpack_require__(16);
+var _lines = __webpack_require__(17);
 
-var _waves = __webpack_require__(17);
+var _waves = __webpack_require__(18);
 
-var _grid = __webpack_require__(18);
+var _grid = __webpack_require__(19);
 
-var _truchet = __webpack_require__(19);
+var _truchet = __webpack_require__(20);
 
-var _truchetCurves = __webpack_require__(27);
+var _truchetCurves = __webpack_require__(28);
 
-var _grille = __webpack_require__(28);
+var _grille = __webpack_require__(29);
 
-var _circles = __webpack_require__(20);
+var _circles = __webpack_require__(21);
 
-var _mesh = __webpack_require__(21);
+var _mesh = __webpack_require__(22);
 
-var _walk = __webpack_require__(22);
+var _walk = __webpack_require__(23);
 
-var _bands = __webpack_require__(23);
+var _bands = __webpack_require__(24);
 
-var _field = __webpack_require__(24);
+var _field = __webpack_require__(10);
 
-var _fieldShape = __webpack_require__(29);
+var _fieldShape = __webpack_require__(30);
 
-var _trails = __webpack_require__(30);
+var _trails = __webpack_require__(25);
 
-var _fragments = __webpack_require__(25);
+var _fragments = __webpack_require__(26);
 
 var _clouds = __webpack_require__(31);
 
@@ -12796,21 +13231,21 @@ var _sweater = __webpack_require__(39);
 
 var _tricycles = __webpack_require__(40);
 
-var _weave = __webpack_require__(45);
+var _weave = __webpack_require__(46);
 
-var _moire = __webpack_require__(46);
+var _moire = __webpack_require__(41);
 
 var _utils = __webpack_require__(0);
 
-var _dither = __webpack_require__(41);
+var _dither = __webpack_require__(42);
 
 var _dither2 = _interopRequireDefault(_dither);
 
-var _speckle = __webpack_require__(7);
+var _speckle = __webpack_require__(8);
 
-var _halftone = __webpack_require__(42);
+var _halftone = __webpack_require__(43);
 
-var _fracture = __webpack_require__(43);
+var _fracture = __webpack_require__(44);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -12905,7 +13340,7 @@ window.setRenderer = setRenderer;
 //======================================
 
 function roughenMain() {
-    var canvas = document.querySelector('#example canvas');
+    var canvas = document.querySelector('#renderNode canvas');
     var ctx = canvas.getContext('2d');
     ctx.shadowBlur = 0;
     ctx.shadowColor = 'transparent';
@@ -12914,7 +13349,7 @@ function roughenMain() {
 window.roughenMain = roughenMain;
 
 function donegalMain() {
-    var canvas = document.querySelector('#example canvas');
+    var canvas = document.querySelector('#renderNode canvas');
     (0, _speckle.donegal)(canvas, 'random');
 }
 
@@ -12923,7 +13358,7 @@ window.donegalMain = donegalMain;
 //--------------------------------------
 
 function ditherToLuminosity() {
-    var canvas = document.querySelector('#example canvas');
+    var canvas = document.querySelector('#renderNode canvas');
     var ctx = canvas.getContext('2d');
     var idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
     var dithered = _dither2.default.ditherLuminosity(idata, 'atkinson');
@@ -12952,7 +13387,7 @@ window.ditherToLuminosity = ditherToLuminosity;
 
 
 function ditherToPalette() {
-    var canvas = document.querySelector('#example canvas');
+    var canvas = document.querySelector('#renderNode canvas');
 
     // Create a basic palette of black and white if no palette exists
     var basePalette = ['#000000', '#ffffff'];
@@ -12979,7 +13414,7 @@ window.ditherToPalette = ditherToPalette;
 function halftoneProcess() {
     var tStart = new Date().getTime();
 
-    var canvas = document.querySelector('#example canvas');
+    var canvas = document.querySelector('#renderNode canvas');
     canvas.setAttribute('willReadFrequently', true);
 
     var cmyk = [{
@@ -13011,7 +13446,7 @@ window.halftoneProcess = halftoneProcess;
 function halftoneSpot() {
     var tStart = new Date().getTime();
 
-    var canvas = document.querySelector('#example canvas');
+    var canvas = document.querySelector('#renderNode canvas');
     var palette = [];
 
     // use working palette, or fall back to rgb + black
@@ -13036,14 +13471,14 @@ window.halftoneSpot = halftoneSpot;
 -------------------------------------- */
 
 var fractureImage = function fractureImage() {
-    var canvas = document.querySelector('#example canvas');
+    var canvas = document.querySelector('#renderNode canvas');
     (0, _fracture.fracture)(canvas, 2);
 };
 
 window.fractureImage = fractureImage;
 
 var shatterImage = function shatterImage() {
-    var canvas = document.querySelector('#example canvas');
+    var canvas = document.querySelector('#renderNode canvas');
     //fracture(canvas, 64);
     var steps = 5;
     while (steps--) {
@@ -13059,7 +13494,7 @@ END POSTPROCESS
 
 // GUI controlled opts
 var visualOpts = {
-    container: document.querySelector('#example'),
+    container: document.querySelector('#renderNode'),
     clear: true,
     dust: true,
     skew: 1,
@@ -13067,12 +13502,12 @@ var visualOpts = {
     noiseInput: _noiseutils2.default.createNoiseCanvas(0.04, 200)
 };
 
-var exampleNode = document.getElementById('example');
+var renderNode = document.getElementById('renderNode');
 
 // @fast skips re-rendering the canvas in place as an img,
 // which makes for easy saving but slows down rendering
 function loadOpts(opts, fast) {
-    var img = exampleNode.querySelector('img');
+    var img = renderNode.querySelector('img');
     img && img.remove();
     visualOpts = Object.assign(visualOpts, opts);
     // render art
@@ -13080,7 +13515,7 @@ function loadOpts(opts, fast) {
     // set up main download link
     var a = document.getElementById('downloadExample');
     a.onclick = function () {
-        return doDownload(a, document.querySelector('#example canvas'));
+        return doDownload(a, document.querySelector('#renderNode canvas'));
     };
 }
 
@@ -13182,7 +13617,7 @@ function createBatch(opts, N) {
 
     hideMain();
 
-    var canvas = document.querySelector('#example canvas');
+    var canvas = document.querySelector('#renderNode canvas');
     var container = document.querySelector('#saved');
 
     // render the batch
@@ -13286,17 +13721,17 @@ function removePreview() {
 }
 
 function showMain() {
-    exampleNode.className = exampleNode.className.replace(/isHidden/g, '');
+    renderNode.className = renderNode.className.replace(/isHidden/g, '');
 }
 
 function hideMain() {
-    if (exampleNode.className.indexOf('isHidden') === -1) {
-        exampleNode.className += ' isHidden ';
+    if (renderNode.className.indexOf('isHidden') === -1) {
+        renderNode.className += ' isHidden ';
     }
 }
 
 function setSize(className) {
-    exampleNode.className = className;
+    renderNode.className = className;
     drawNew();
 }
 window.setSize = setSize;
@@ -13308,8 +13743,8 @@ document.querySelector('#saved').addEventListener('click', function (e) {
     }
 });
 
-exampleNode.addEventListener('click', function (e) {
-    renderCanvasToImg(exampleNode.querySelector('canvas'), document.querySelector('#saved'));
+renderNode.addEventListener('click', function (e) {
+    renderCanvasToImg(renderNode.querySelector('canvas'), document.querySelector('#saved'));
 });
 
 // expose for play
@@ -13325,7 +13760,7 @@ showRenderPicker(RENDERERS, document.getElementById('renderPickers'));
 setRenderer(initRenderer, document.querySelector("[data-renderer='" + initRenderer + "']"));
 
 /***/ }),
-/* 45 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13336,11 +13771,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.weave = weave;
 
-var _noiseutils = __webpack_require__(1);
+var _noiseutils = __webpack_require__(2);
 
 var _noiseutils2 = _interopRequireDefault(_noiseutils);
 
-var _palettes = __webpack_require__(2);
+var _palettes = __webpack_require__(1);
 
 var _palettes2 = _interopRequireDefault(_palettes);
 
@@ -13348,7 +13783,7 @@ var _utils = __webpack_require__(0);
 
 var _shapes = __webpack_require__(3);
 
-var _speckle = __webpack_require__(7);
+var _speckle = __webpack_require__(8);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -13591,398 +14026,6 @@ function weave(options) {
 
     //dapple(el);
     (0, _speckle.donegal)(el);
-
-    // Finish up
-    // --------------------------------------
-
-    // add noise
-    if (opts.addNoise) {
-        if (opts.noiseInput) {
-            // apply noise from supplied canvas
-            _noiseutils2.default.applyNoiseCanvas(el, opts.noiseInput);
-        } else {
-            // create noise pattern and apply
-            _noiseutils2.default.addNoiseFromPattern(el, opts.addNoise, w / 3);
-        }
-    }
-
-    // if new canvas child was created, append it
-    if (newEl) {
-        container.appendChild(el);
-    }
-}
-
-/***/ }),
-/* 46 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.moire = moire;
-
-var _noiseutils = __webpack_require__(1);
-
-var _noiseutils2 = _interopRequireDefault(_noiseutils);
-
-var _palettes = __webpack_require__(2);
-
-var _palettes2 = _interopRequireDefault(_palettes);
-
-var _utils = __webpack_require__(0);
-
-var _shapes = __webpack_require__(3);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-var DEFAULTS = {
-    container: 'body',
-    palette: _palettes2.default.plum_sauce,
-    addNoise: 0.04,
-    noiseInput: null,
-    clear: true
-};
-
-var PI = Math.PI;
-var TWOPI = 2 * PI;
-
-var DEBUG = false;
-
-/*
-
-TODO:
-- multi-segment paths: when we have shared endpoints, if the control points
-differ then the approaches are not parallel, so we don't get gradual divergence
-We need to have shared end points and at least a control point shared.
-This probably means two paths with shared end points, and the control points
-must be on a line with the shared endpoints, for continuity.
-
-*/
-
-// Main function
-function moire(options) {
-    var opts = Object.assign({}, DEFAULTS, options);
-
-    var container = opts.container;
-    var cw = container.offsetWidth;
-    var ch = container.offsetHeight;
-    var SCALE = Math.min(cw, ch);
-    var LONG = Math.max(cw, ch);
-    var SHORT = Math.min(cw, ch);
-    var SPAN = Math.sqrt(Math.pow(LONG, 2) + Math.pow(SHORT, 2));
-    var AREA = cw * ch;
-    var ASPECT = LONG / SHORT;
-
-    var center = [cw / 2, ch / 2];
-
-    // Find or create canvas child
-    var el = container.querySelector('canvas');
-    var newEl = false;
-    if (!el) {
-        container.innerHTML = '';
-        el = document.createElement('canvas');
-        newEl = true;
-    }
-    if (newEl || opts.clear) {
-        el.width = cw;
-        el.height = ch;
-    }
-
-    var ctx = el.getContext('2d');
-
-    var note = new _utils.Note();
-
-    // Color funcs
-    // --------------------------------------
-
-    var getSolidFill = (0, _utils.getSolidColorFunction)(opts.palette);
-
-    // shared colors
-    var bg = getSolidFill();
-    //bg = randItem(['#fcf9f0','#f3f2f1','#f4f9fb','#f6f4f2']);
-
-    // get palette of non-bg colors
-    var contrastPalette = [].concat(opts.palette);
-    contrastPalette.splice(opts.palette.indexOf(bg), 1);
-    var getContrastColor = (0, _utils.getSolidColorFunction)(contrastPalette);
-
-    // shared foregrounds
-    var fg = getContrastColor();
-    var fg2 = getContrastColor();
-
-    // fill background
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, cw, ch);
-
-    // set default stroke
-    ctx.strokeStyle = fg;
-
-    function estimateCurveLength(a, b, c1, c2) {
-        var direct = (0, _utils.getVector)(a, b).length;
-        var hull = 0;
-        hull += (0, _utils.getVector)(a, c1).length;
-        hull += (0, _utils.getVector)(c1, c2).length;
-        hull += (0, _utils.getVector)(c2, b).length;
-        return .6 * direct + .4 * hull;
-    }
-
-    // Draw Stuff
-    // --------------------------------------
-
-
-    function boundaryCurve(a, b, c1, c2, pathCount, steps, l, drift) {
-        /*
-         - make an array of path objects, which have points and track
-            their transverse offset and active/inactive status
-        - start at point a, then proceed from step 1 (vs 0)
-        - step finely along the path, moving forward, adding points to
-            each path as you go. At each step, drift transversely.
-        - the relative rate of forward and transverse movement sets
-            the angle/skew of the paths
-        - for each step check transverse offset against the track width
-            and deactivate when it exceeds bounds
-        - track drift and when we have drifted by the spacing between paths
-            add another path
-        - the end is a set of path objects with their points; when complete
-            plot them all via canvas or stitch into svg paths
-         */
-
-        var curveLength = estimateCurveLength(a, b, c1, c2);
-        var normalizedStep = curveLength / steps;
-        note.add('curve length about ' + curveLength.toPrecision(4) + 'px each step about ' + normalizedStep.toPrecision(4) + 'px');
-
-        var spacing = l / pathCount;
-
-        //DEBUG: directly draw the ghost of the path
-        if (DEBUG) {
-            var _weight = ctx.lineWidth;
-            ctx.globalAlpha = 0.15;
-            ctx.lineWidth = l;
-            ctx.beginPath();
-            ctx.moveTo.apply(ctx, _toConsumableArray(a));
-            ctx.bezierCurveTo.apply(ctx, _toConsumableArray(c1).concat(_toConsumableArray(c2), _toConsumableArray(b)));
-            ctx.stroke();
-            ctx.globalAlpha = 1;
-            ctx.lineWidth = _weight;
-        }
-
-        var paths = []; // array of arrays
-        for (var i = 0; i <= pathCount; i++) {
-            paths.push({
-                pts: [],
-                offset: l * -1 / 2 + i * spacing,
-                active: true
-            }); // push an array for each path
-        }
-
-        var t = 0;
-        var inc = 1 / steps;
-
-        // normalize drift input so it expresses a percentage of forward step
-        drift = drift || 0;
-        drift = drift / 100 * normalizedStep; // percentage
-
-        // re-express as a fraction of the spacing, so we get there
-        // in even numbers of steps
-        // drift * N = spacing
-        // drift = spacing / N
-        // N = spacing / normalizedDrift
-        var N = spacing / drift;
-        note.add('DRIFT: ' + N.toPrecision(3) + ' steps for drift from ' + spacing.toPrecision(3) + ' spacing, ' + drift.toPrecision(3) + ' drift');
-        //drift = spacing / N;
-        //drift = spacing *  3 / 5;
-        var M = Math.floor(N);
-
-        var x = a[0];
-        var y = a[1];
-        var _x = x; // last x
-        var _y = y; // last y
-
-        // each point on curve
-        //drawCircle(ctx, x, y, 10, {stroke:'red'});
-
-        var v = void 0; // the vector between steps
-
-        var insert = 0; // tracks when to insert a new path
-
-        /*
-            Either 1 or -1. Will work with the vector angle to set
-            direction of drift. Keeping drift positive and switching
-            direction with this allows simpler bounds checking and
-            insertion of new paths.
-        */
-        var direction = 1;
-
-        // step thru the bezier
-
-        var _loop = function _loop() {
-            t = i * inc;
-
-            x = Math.pow(1 - t, 3) * a[0] + 3 * Math.pow(1 - t, 2) * t * c1[0] + 3 * (1 - t) * Math.pow(t, 2) * c2[0] + Math.pow(t, 3) * b[0];
-            y = Math.pow(1 - t, 3) * a[1] + 3 * Math.pow(1 - t, 2) * t * c1[1] + 3 * (1 - t) * Math.pow(t, 2) * c2[1] + Math.pow(t, 3) * b[1];
-
-            // get vector from last point to this point
-            v = (0, _utils.getVector)([_x, _y], [x, y]);
-
-            // path x and y
-            var px = 0;
-            var py = 0;
-
-            // step through paths
-            paths.forEach(function (path, j) {
-                /*
-                    Paths can be:
-                    1. out of bounds on the negative side, drifting in
-                    2. in bounds, drifting out
-                    3. out of bounds on positive side, never to return
-                */
-                if (path.active) {
-                    px = x + path.offset * Math.cos(v.angle + direction * PI / 2);
-                    py = y + path.offset * Math.sin(v.angle + direction * PI / 2);
-
-                    if (path.offset > -l / 2 && path.offset < l / 2) {
-                        path.pts.push([px, py]);
-                    }
-                }
-                // only check positive bound to deactivate; if it is below
-                // negative bound it is drifting in and should stay active
-                if (path.offset > l / 2) {
-                    path.active = false;
-                }
-
-                path.offset += drift;
-            });
-
-            var creep = Math.floor(i * drift / spacing);
-            var remainder = i * drift % spacing;
-            /* total drift % spacing */
-
-            if (creep > insert) {
-                insert = creep; // reset
-                paths.unshift({
-                    active: true,
-                    //offset: minOff - spacing,//-l/2,
-                    offset: -l / 2 + remainder,
-                    pts: []
-                });
-            }
-
-            // update point
-            _x = x;
-            _y = y;
-        };
-
-        for (var i = 1; i <= steps; i++) {
-            _loop();
-        }
-
-        // now go back and draw all then paths
-        paths.forEach(function (path) {
-            if (!path.pts.length) return;
-            ctx.beginPath();
-            ctx.moveTo.apply(ctx, _toConsumableArray(path.pts.shift()));
-            path.pts.forEach(function (p) {
-                ctx.lineTo(p[0], p[1]);
-            });
-            ctx.stroke();
-        });
-    }
-
-    // point placement for main curves
-
-    var theta = (0, _utils.randomInRange)(0, TWOPI); // the angle of the track axis
-    var alpha = (0, _utils.randomInRange)(0, TWOPI); // angle of origin offset from center
-    var originOffset = SPAN * (0, _utils.randomInRange)(0, 0.1); // radius of origin offset
-    var origin = [cw / 2 + originOffset * Math.cos(alpha), ch / 2 + originOffset * Math.sin(alpha)];
-
-    DEBUG && _shapes.drawCross.apply(undefined, [ctx].concat(origin, [20, { fill: 'black' }]));
-
-    var start = [0, 0];
-    var end = [0, 0];
-
-    var REACH = SPAN * 0.3;
-
-    // create start and end points
-    start = [origin[0] + REACH * Math.cos(theta), origin[1] + REACH * Math.sin(theta)];
-    end = [origin[0] + REACH * Math.cos(theta - PI), origin[1] + REACH * Math.sin(theta - PI)];
-    // different endpoints
-    var theta2 = theta - PI + PI * (0, _utils.randomInRange)(-0.3, 0.3);
-    var end2 = [origin[0] + REACH * Math.cos(theta2), origin[1] + REACH * Math.sin(theta2)];
-
-    // DEBUG
-    DEBUG && _shapes.drawCircle.apply(undefined, [ctx].concat(_toConsumableArray(start), [REACH / 2, { stroke: 'red' }]));
-    DEBUG && _shapes.drawCircle.apply(undefined, [ctx].concat(_toConsumableArray(end), [REACH / 2, { stroke: 'green' }]));
-    DEBUG && _shapes.drawCircle.apply(undefined, [ctx].concat(end2, [REACH / 2, { stroke: 'blue' }]));
-
-    // Set control points relative to the track axis
-    var a1 = theta;
-    var r1 = REACH * 0.5;
-    var c1 = [origin[0] + r1 * Math.cos(a1), origin[1] + r1 * Math.sin(a1)];
-    var a2 = theta - PI;
-    var r2 = REACH * 0.5;
-    var c2 = [origin[0] + r2 * Math.cos(a2), origin[1] + r2 * Math.sin(a2)];
-    var a3 = theta + PI * (0, _utils.randomInRange)(-0.3, 0.3);
-    var r3 = REACH * 0.5;
-    var c3 = [origin[0] + r3 * Math.cos(a3), origin[1] + r3 * Math.sin(a3)];
-    var a4 = theta - PI + PI * (0, _utils.randomInRange)(-0.3, 0.3);
-    var r4 = REACH * 0.5;
-    var c4 = [origin[0] + r4 * Math.cos(a4), origin[1] + r4 * Math.sin(a4)];
-
-    // Set steps, thickness and separation of lines, skew
-
-    var steps = Math.round(REACH * (0, _utils.randomInRange)(0.15, 0.35));
-    steps *= 4;
-    var trackWidth = LONG * (0, _utils.randomInRange)(0.15, 0.3);
-    var skew = PI * 0.3 * (0, _utils.randomInRange)(-1, 1);
-    var pathCount = (0, _utils.randomInt)(15, 30);
-    var weight = trackWidth / pathCount * (0, _utils.randomInRange)(0.13, 0.33);
-    ctx.lineWidth = weight;
-    DEBUG && console.log(Math.round(steps) + ' steps over ' + Math.round(REACH) + 'px; ' + (REACH / steps).toPrecision(3) + 'px per interval; ' + weight.toPrecision(3) + 'px lines at ' + (trackWidth / pathCount).toPrecision(3) + 'px spacing');
-
-    // sometimes, use the same color for both
-    if (Math.random() < 0.3) {
-        fg2 = fg;
-    }
-
-    // DEBUG
-    // fg = 'red';
-    // fg2 = 'blue';
-
-    // for drift, 100 is 45deg, and 0 is parallel with path
-    var drift1 = (0, _utils.randomInRange)(10, 120);
-    var drift2 = (0, _utils.randomInRange)(10, 120);
-    // usually sync drift so the angles match
-    if (Math.random() < .80) drift2 = drift1;
-
-    var renderModes = [function () {
-        note.add('same endpoints, different controls');
-        ctx.strokeStyle = fg;
-        boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, drift1);
-        ctx.strokeStyle = fg2;
-        boundaryCurve(start, end, c3, c4, pathCount, steps, trackWidth, drift2);
-    }, function () {
-        note.add('same start, different end, different controls');
-        ctx.strokeStyle = fg;
-        boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, drift1);
-        ctx.strokeStyle = fg2;
-        boundaryCurve(start, end2, c3, c4, pathCount, steps, trackWidth, drift2);
-    }, function () {
-        note.add('same start, different end, shared control');
-        ctx.strokeStyle = fg;
-        boundaryCurve(start, end, c1, c2, pathCount, steps, trackWidth, drift1);
-        ctx.strokeStyle = fg2;
-        boundaryCurve(start, end2, c1, c4, pathCount, steps, trackWidth, drift2);
-    }];
-
-    // Finally: draw
-    (0, _utils.randItem)(renderModes)();
-
-    note.log();
 
     // Finish up
     // --------------------------------------
