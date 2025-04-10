@@ -88,7 +88,7 @@ function loadOpts(opts, fast) {
     Renderer(visualOpts);
     // set up main download link
     let a = document.getElementById('downloadExample');
-    a.onclick = ()=>{return doDownload(a, document.querySelector('#renderNode canvas'))};
+    a.onclick = ()=>{return doDownload(a, document.querySelector('#renderNode svg'))};
 }
 
 // Handlers for redraw, batching, and manual saving
@@ -154,6 +154,27 @@ function doDownload(anchor, el) {
             };
             anchor.click();
         }, 'image/png');
+    } else if (el.nodeName === 'svg') {
+
+        /*
+        let svg = document.querySelector('svg').outerHTML;
+        let blob = new Blob([svg], {type : 'image/svg+xml'});
+        e.target.href = URL.createObjectURL(blob);
+        */
+
+        console.log('Tried to download SVG');
+
+        let markup = el.outerHTML;
+        let blob = new Blob([markup], {type : 'image/svg+xml'});
+        anchor.href = URL.createObjectURL(blob);
+        anchor.onclick = () => {
+            anchor.onclick = ()=>{};
+            setTimeout(() => {
+                window.URL.revokeObjectURL(blob);
+                anchor.removeAttribute('href');
+            });
+        };
+        anchor.click();
     }
 
     return false;

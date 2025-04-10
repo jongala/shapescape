@@ -451,7 +451,7 @@ export function trails(options) {
             ctx.moveTo(...trailStart);
 
             if (RENDERTOSVG) {
-                plotpath += ` stroke="${ctx.strokeStyle}" `;
+                plotpath += ` stroke="${ctx.strokeStyle}" fill="none" stroke-linecap="${STYLE}" `;
                 plotpath += ` d="`;
                 plotpath += 'M' + trailStart[0].toPrecision(4) + ',' + trailStart[1].toPrecision(4);
             }
