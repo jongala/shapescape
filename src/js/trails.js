@@ -32,6 +32,8 @@ const DEFAULTS = {
 export function trails(options) {
     let opts = Object.assign({}, DEFAULTS, options);
 
+    const RENDERTOSVG = opts.renderTo === 'svg';
+
     let container = opts.container;
     let cw = container.offsetWidth;
     let ch = container.offsetHeight;
@@ -41,10 +43,21 @@ export function trails(options) {
     const AREA = cw * ch;
 
     // Find or create canvas child
+    let svg;
+    if (RENDERTOSVG) {
+        svg = container.querySelector('svg');
+        svg.innerHTML = '';
+        svg.setAttribute('width', cw);
+        svg.setAttribute('height', ch);
+        svg.setAttribute(`viewBox`,`0 0 ${cw} ${ch}`);
+
+    }
+    // for RENDERTOSVG
+    let allpaths = '';
+
     let el = container.querySelector('canvas');
     let newEl = false;
     if (!el) {
-        container.innerHTML = '';
         el = document.createElement('canvas');
         newEl = true;
     }
@@ -55,7 +68,9 @@ export function trails(options) {
 
     let ctx = el.getContext('2d');
 
+
     // modes and styles
+
     const FIELDMODE = opts.fieldMode === 'auto' ? randItem(FIELDMODES) : opts.fieldMode;
     const GRIDMODE = opts.gridMode === 'auto' ? randItem(GRIDMODES) : opts.gridMode;
     const COLORMODE = opts.colorMode === 'auto' ? randItem(COLORMODES) : opts.colorMode;
@@ -75,6 +90,9 @@ export function trails(options) {
     })(opts.fieldNoise, 'fieldNoise');
 
     console.log('==================================\nTrails:', FIELDMODE, GRIDMODE, COLORMODE, STYLE);
+    if (RENDERTOSVG) {
+        console.log('----> SVG rendering mode');
+    }
 
     // color funcs
     let getSolidFill = getSolidColorFunction(opts.palette);
@@ -368,12 +386,20 @@ export function trails(options) {
         let trailStart;
         let trailEnd;
 
+        // for RENDERTOSVG
+        let plotpath = '';
 
         // Deferred drawing
         // foreach trail, render it
         if (trail.length) {
             trailStart = trail.shift();
             trailEnd = trail[trail.length - 1];
+
+            if (RENDERTOSVG) {
+                plotpath  = `<path \
+                stroke-width="${weight}" \
+                stroke-linecap="${STYLE}" `;
+            }
 
             // Colors
 
@@ -424,6 +450,12 @@ export function trails(options) {
             ctx.beginPath();
             ctx.moveTo(...trailStart);
 
+            if (RENDERTOSVG) {
+                plotpath += ` stroke="${ctx.strokeStyle}" `;
+                plotpath += ` d="`;
+                plotpath += 'M' + trailStart[0].toPrecision(4) + ',' + trailStart[1].toPrecision(4);
+            }
+
             if(opts.isolate) {
                 rctx.beginPath();
                 rctx.moveTo(...trailStart);
@@ -438,13 +470,24 @@ export function trails(options) {
                     pt[0],
                     pt[1]
                 );
+                if (RENDERTOSVG) {
+                    plotpath += 'L' + pt[0].toPrecision(4) + ',' + pt[1].toPrecision(4);
+                }
             });
             ctx.stroke();
             opts.isolate && rctx.stroke();
             trail = [];
+            if (RENDERTOSVG) {
+                plotpath += '" />';
+                allpaths += plotpath;
+            }
         }
 
     });
+
+    if (RENDERTOSVG) {
+        svg.innerHTML += allpaths;
+    }
 
     ctx.globalAlpha = 1;
 
@@ -466,7 +509,8 @@ export function trails(options) {
     }
 
     // if new canvas child was created, append it
-    if (newEl) {
+    if (newEl && !RENDERTOSVG) {
+        container.innerHTML = '';
         container.appendChild(el);
     }
 }

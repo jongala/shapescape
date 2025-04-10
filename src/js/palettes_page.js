@@ -1,7 +1,5 @@
 import '../css/style.css';
 
-import GUI from 'lil-gui';
-
 import noiseUtils from './noiseutils';
 import palettes from './palettes';
 import colorbrewer from './colorbrewer';

@@ -49,7 +49,7 @@ button.activeRenderer {
     color: #000;
     border-bottom: 3px solid rgba(0, 0, 0, 0.2);
 }
-#example {
+#renderNode {
     margin: 20px;
     position: relative;
     width: 800px;
@@ -66,9 +66,9 @@ button.activeRenderer {
     transform-origin: 0 0;
     box-shadow: 0 1px 20px rgba(0, 0, 0, 0.2);
 }
-#example canvas,
-#example img,
-#example a,
+#renderNode canvas,
+#renderNode img,
+#renderNode a,
 .rerun canvas {
     position: absolute;
     top: 0;
@@ -77,53 +77,53 @@ button.activeRenderer {
     right: 0;
 }
 
-#example.wide {
+#renderNode.wide {
     width: 1600px;
     height: 800px;
 }
 
-#example.tall {
+#renderNode.tall {
     width: 800px;
     height: 1600px;
 }
 
-#example.p4x6 {
+#renderNode.p4x6 {
     width: 1200px;
     height: 1800px;
     transform: scale(0.5);
 }
 
-#example.p6x4 {
+#renderNode.p6x4 {
     width: 1800px;
     height: 1200px;
     transform: scale(0.5);
 }
 
-#example.p6x6 {
+#renderNode.p6x6 {
     width: 1800px;
     height: 1800px;
     transform: scale(0.50);
 }
 
-#example.p8x10 {
+#renderNode.p8x10 {
     width: 2400px;
     height: 3000px;
     transform: scale(0.33);
 }
 
-#example.p10x8 {
+#renderNode.p10x8 {
     width: 3000px;
     height: 2400px;
     transform: scale(0.33);
 }
 
-#example.sWQXGA {
+#renderNode.sWQXGA {
     width: 2560px;
     height: 1600px;
     transform: scale(0.33);
 }
 
-#example.s4KUHD {
+#renderNode.s4KUHD {
     width: 3840px;
     height: 2160px;
     transform: scale(0.33);
@@ -141,7 +141,7 @@ button.activeRenderer {
     right: 0;
 }
 
-#example.isHidden {
+#renderNode.isHidden {
     position: absolute;
     visibility: hidden;
 }
@@ -181,7 +181,7 @@ button.activeRenderer {
 
 #saved {
     position: relative;
-    /* abs position when #example is being scaled */
+    /* abs position when #renderNode is being scaled */
     /*position: absolute;
     left: 0;
     top: 1000px;*/
@@ -292,6 +292,23 @@ button.activeRenderer {
     padding: 0 1em;
     color: #999;
 }
+
+/*
+Plotter / SVG rendering
+*/
+
+svg.plotter {
+    border: 1px solid black;
+}
+
+.plotter path {
+  fill: none;
+  /*stroke: #000;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: 0.2s;*/
+}
+
 
 /*
 Home page

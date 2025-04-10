@@ -129,7 +129,7 @@ window.setRenderer = setRenderer;
 //======================================
 
 function roughenMain() {
-    var canvas = document.querySelector('#example canvas');
+    var canvas = document.querySelector('#renderNode canvas');
     var ctx = canvas.getContext('2d');
     ctx.shadowBlur = 0;
     ctx.shadowColor = 'transparent';
@@ -139,7 +139,7 @@ window.roughenMain = roughenMain;
 
 
 function donegalMain() {
-    var canvas = document.querySelector('#example canvas');
+    var canvas = document.querySelector('#renderNode canvas');
     donegal(canvas, 'random');
 }
 
@@ -149,7 +149,7 @@ window.donegalMain = donegalMain;
 //--------------------------------------
 
 function ditherToLuminosity(){
-    var canvas = document.querySelector('#example canvas');
+    var canvas = document.querySelector('#renderNode canvas');
     let ctx = canvas.getContext('2d');
     let idata = ctx.getImageData(0, 0, canvas.width, canvas.height);
     let dithered = dither.ditherLuminosity(idata, 'atkinson');
@@ -180,7 +180,7 @@ window.ditherToLuminosity = ditherToLuminosity;
 
 
 function ditherToPalette(){
-    var canvas = document.querySelector('#example canvas');
+    var canvas = document.querySelector('#renderNode canvas');
 
     // Create a basic palette of black and white if no palette exists
     let basePalette = ['#000000','#ffffff'];
@@ -209,7 +209,7 @@ window.ditherToPalette = ditherToPalette;
 function halftoneProcess() {
     var tStart = new Date().getTime();
 
-    var canvas = document.querySelector('#example canvas');
+    var canvas = document.querySelector('#renderNode canvas');
     canvas.setAttribute('willReadFrequently', true);
 
     let cmyk = [
@@ -247,7 +247,7 @@ window.halftoneProcess = halftoneProcess;
 function halftoneSpot() {
     var tStart = new Date().getTime();
 
-    var canvas = document.querySelector('#example canvas');
+    var canvas = document.querySelector('#renderNode canvas');
     let palette = [];
 
     // use working palette, or fall back to rgb + black
@@ -274,7 +274,7 @@ window.halftoneSpot = halftoneSpot;
 -------------------------------------- */
 
 let fractureImage = function() {
-    var canvas = document.querySelector('#example canvas');
+    var canvas = document.querySelector('#renderNode canvas');
     fracture(canvas, 2);
 }
 
@@ -282,7 +282,7 @@ window.fractureImage = fractureImage;
 
 
 let shatterImage = function() {
-    var canvas = document.querySelector('#example canvas');
+    var canvas = document.querySelector('#renderNode canvas');
     //fracture(canvas, 64);
     let steps = 5;
     while (steps--) {
@@ -300,7 +300,7 @@ END POSTPROCESS
 
 // GUI controlled opts
 var visualOpts = {
-    container: document.querySelector('#example'),
+    container: document.querySelector('#renderNode'),
     clear: true,
     dust: true,
     skew: 1,
@@ -308,19 +308,19 @@ var visualOpts = {
     noiseInput: noiseUtils.createNoiseCanvas(0.04, 200)
 };
 
-var exampleNode = document.getElementById('example');
+var renderNode = document.getElementById('renderNode');
 
 // @fast skips re-rendering the canvas in place as an img,
 // which makes for easy saving but slows down rendering
 function loadOpts(opts, fast) {
-    var img = exampleNode.querySelector('img');
+    var img = renderNode.querySelector('img');
     img && img.remove();
     visualOpts = Object.assign(visualOpts, opts);
     // render art
     Renderer(visualOpts);
     // set up main download link
     let a = document.getElementById('downloadExample');
-    a.onclick = ()=>{return doDownload(a, document.querySelector('#example canvas'))};
+    a.onclick = ()=>{return doDownload(a, document.querySelector('#renderNode canvas'))};
 }
 
 // Handlers for redraw, batching, and manual saving
@@ -427,7 +427,7 @@ function createBatch(opts, N) {
 
     hideMain()
 
-    var canvas = document.querySelector('#example canvas');
+    var canvas = document.querySelector('#renderNode canvas');
     var container = document.querySelector('#saved');
 
     // render the batch
@@ -529,17 +529,17 @@ function removePreview() {
 }
 
 function showMain() {
-    exampleNode.className = exampleNode.className.replace(/isHidden/g,'');
+    renderNode.className = renderNode.className.replace(/isHidden/g,'');
 }
 
 function hideMain() {
-    if (exampleNode.className.indexOf('isHidden') === -1) {
-        exampleNode.className += ' isHidden ';
+    if (renderNode.className.indexOf('isHidden') === -1) {
+        renderNode.className += ' isHidden ';
     }
 }
 
 function setSize(className) {
-    exampleNode.className = className;
+    renderNode.className = className;
     drawNew();
 }
 window.setSize = setSize;
@@ -552,8 +552,8 @@ document.querySelector('#saved').addEventListener('click', function(e) {
 });
 
 
-exampleNode.addEventListener('click', function(e) {
-    renderCanvasToImg(exampleNode.querySelector('canvas'), document.querySelector('#saved'));
+renderNode.addEventListener('click', function(e) {
+    renderCanvasToImg(renderNode.querySelector('canvas'), document.querySelector('#saved'));
 });
 
 // expose for play
