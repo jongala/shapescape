@@ -57,6 +57,7 @@ export function flames(options) {
 
     // shared foregrounds
     let fg = getContrastColor();
+    let fg2 = getContrastColor();
 
     // fill background
     ctx.fillStyle = bg;
@@ -64,9 +65,10 @@ export function flames(options) {
 
     // set default stroke
     ctx.strokeStyle = fg;
+    ctx.fillStyle = fg2;
 
 
-    let DEBUG = false ;
+    let DEBUG = true;
 
     // Draw Stuff
     // --------------------------------------
@@ -97,6 +99,8 @@ export function flames(options) {
     // ctx.stroke();
 
     let ctlRad = 0.4;
+    let innerStretch = 0.3;
+    let outerStretch = 0.5;
 
 
     let dir1 = 1;
@@ -104,31 +108,26 @@ export function flames(options) {
     let angle1 = v.angle + dir1 * PI * randomInRange(0.2, 0.4);
 
     let c1 = [
-        p1[0] + ctlRad * v.length * Math.cos(angle1),
-        p1[1] + ctlRad * v.length * Math.sin(angle1)
+        p1[0] + outerStretch * v.length * Math.cos(angle1),
+        p1[1] + outerStretch * v.length * Math.sin(angle1)
     ];
 
     let angle2 = v.angle +  dir1 * PI * randomInRange(0.1, 0.2);
 
     let c2 = [
-        p2[0] - ctlRad * v.length * Math.cos(angle2),
-        p2[1] - ctlRad * v.length * Math.sin(angle2)
+        p2[0] - innerStretch * v.length * Math.cos(angle2),
+        p2[1] - innerStretch * v.length * Math.sin(angle2)
     ];
 
     DEBUG && drawCircle(ctx, ...c1, 4, {fill: fg});
     DEBUG && drawCircle(ctx, ...c2, 4, {fill: fg});
 
-    ctx.beginPath();
-    ctx.moveTo(...p1);
-    ctx.bezierCurveTo(...c1, ...c2, ...p2);
-    ctx.stroke();
-
 
     let angle3 = angle2 + PI * 0.2;
 
     let c3 = [
-        p2[0] - ctlRad * v.length * Math.cos(angle3),
-        p2[1] - ctlRad * v.length * Math.sin(angle3)
+        p2[0] - outerStretch * v.length * Math.cos(angle3),
+        p2[1] - outerStretch * v.length * Math.sin(angle3)
     ];
 
     DEBUG && drawCross(ctx, ...c3, 9, {stroke: fg});
@@ -136,17 +135,25 @@ export function flames(options) {
     let angle4 = angle1 - PI * 0.2;
 
     let c4 = [
-        p1[0] + ctlRad * v.length * Math.cos(angle4),
-        p1[1] + ctlRad * v.length * Math.sin(angle4)
+        p1[0] + innerStretch * v.length * Math.cos(angle4),
+        p1[1] + innerStretch * v.length * Math.sin(angle4)
     ];
 
-   DEBUG &&  drawCross(ctx, ...c4, 9, {stroke: fg});
-
+    DEBUG &&  drawCross(ctx, ...c4, 9, {stroke: fg});
 
     ctx.beginPath();
+    // outer stroke
+    ctx.moveTo(...p1);
+    ctx.bezierCurveTo(...c1, ...c2, ...p2);
+
+    // return stroke
     ctx.moveTo(...p2);
     ctx.bezierCurveTo(...c3, ...c4, ...p1);
+
+    // draw
     ctx.stroke();
+    ctx.fillStyle = fg2;
+    ctx.fill();
 
 
 
