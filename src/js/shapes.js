@@ -117,6 +117,8 @@ export var drawPentagon = _drawPolygon(5, 1.1);
 export var drawHexagon = _drawPolygon(6, 1.05);
 
 // Draw a line from @a to @b, where they are of form [x, y]
+// TODO: turn this into plotLine and replace, then add
+// a true drawLine with same API as drawCross
 export function drawLine(ctx, a, b) {
     let [x1, y1] = a;
     let [x2, y2] = b;

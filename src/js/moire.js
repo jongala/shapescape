@@ -1,7 +1,7 @@
 import noiseUtils from './noiseutils';
 import palettes from './palettes';
 import { randItem, randomInRange, randomInt, resetTransform, rotateCanvas, getGradientFunction, getSolidColorFunction, getAngle, getVector, mapKeywordToVal, Note } from './utils';
-import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon, drawCross } from './shapes';
+import { drawCircle, drawRing, drawTriangle, drawSquare, drawRect, drawBox, drawPentagon, drawHexagon, drawLine, drawCross } from './shapes';
 
 const DEFAULTS = {
     container: 'body',
@@ -95,7 +95,7 @@ export function moire(options) {
     // Draw Stuff
     // --------------------------------------
 
-    function curveToSteps(a, b, c1, c2, steps) {
+    function curveToSteps(a, c1, c2, b, steps) {
         /*
         step thru the bezier curve from @a to @b, with control points
         @c1 and @c2 in @steps steps.
@@ -243,7 +243,7 @@ export function moire(options) {
 
 
     // Convenience function composing curveToSteps and stepsToPaths
-    function drawSegment(a, b, c1, c2, steps, pathCount, trackWidth, drift) {
+    function drawSegment(a, c1, c2, b, steps, pathCount, trackWidth, drift) {
         let vectors = curveToSteps(a, b, c1, c2, steps);
         drawPaths(stepsToPaths(vectors, pathCount, trackWidth, drift));
     }
@@ -255,127 +255,189 @@ export function moire(options) {
     //
     // --------------------------------------
 
-    let theta = randomInRange(0, TWOPI); // the angle of the track axis
-    let alpha = randomInRange(0, TWOPI); // angle of origin offset from center
-    let originOffset = SPAN * randomInRange(0, 0.1); // radius of origin offset
-    let origin = [
-        cw/2 + originOffset * Math.cos(alpha),
-        ch/2 + originOffset * Math.sin(alpha)
-    ];
 
-    DEBUG && drawCross(ctx, ...origin, 20, {fill:'black'});
-
-    let start = [0, 0];
-    let end = [0, 0];
-
-    let REACH = SPAN * 0.3;
-
-    // create start and end points
-    start = [
-        origin[0] + REACH * Math.cos(theta),
-        origin[1] + REACH * Math.sin(theta)
-    ];
-    end = [
-        origin[0] + REACH * Math.cos(theta - PI),
-        origin[1] + REACH * Math.sin(theta - PI)
-    ];
-
-    let startControlLength = REACH * randomInRange(0.6, 0.7);
-    let startControlPt = [
-        origin[0] + startControlLength * Math.cos(theta),
-        origin[1] + startControlLength * Math.sin(theta)
-    ];
-
-    let endControlLength = REACH * randomInRange(0.6, 0.7);
-    let endControlPt = [
-        origin[0] + endControlLength * Math.cos(theta - PI),
-        origin[1] + endControlLength * Math.sin(theta - PI)
-    ];
-
-    DEBUG && drawCircle(ctx, ...startControlPt, 20, {stroke:'green'});
-    DEBUG && drawCircle(ctx, ...endControlPt, 20, {stroke:'red'});
-
-    let midTheta = randomInRange(0, TWOPI);
-    let midReach = REACH * randomInRange(0.1, 0.6);
-    let mid = [
-        origin[0] + midReach * Math.cos(midTheta),
-        origin[1] + midReach * Math.sin(midTheta)
-    ];
-
-    let centerSkewAngle = theta + 0.25 * randomInRange(-PI, PI);
-    let centerSkewAmount = REACH * randomInRange(0.4, 0.4);
-    let cc1 = [
-        mid[0] + centerSkewAmount * Math.cos(centerSkewAngle),
-        mid[1] + centerSkewAmount * Math.sin(centerSkewAngle)
-    ];
-    let cc2 = [
-        mid[0] + centerSkewAmount * Math.cos(centerSkewAngle - PI),
-        mid[1] + centerSkewAmount * Math.sin(centerSkewAngle - PI)
-    ];
-
-    if (DEBUG) {
-        ctx.strokeStyle = '#ff0099';
-        ctx.beginPath();
-        ctx.moveTo(...cc1);
-        ctx.lineTo(...cc2);
-        ctx.stroke();
+    let jitterPoint = function(p, r) {
+        let _r = randomInRange(0, r);
+        let _theta = randomInRange(Math.PI * 2);
+        return [
+            p[0] + _r * Math.cos(_theta),
+            p[1] + _r * Math.sin(_theta)
+        ];
     }
 
-    DEBUG && drawCircle(ctx, ...cc1, 20, {stroke:'#f09'});
-    DEBUG && drawCircle(ctx, ...cc2, 20, {stroke:'#f09'});
+    let pointOnCanvasEllipse = function(theta, margin) {
+        return [
+            cw/2 + (1 - margin) * cw/2 * Math.cos(theta),
+            ch/2 + (1 - margin) * ch/2 * Math.sin(theta)
+        ];
+    }
+
+    /*
+
+    input margin, theta, theta skew?
+
+    */
+
+    function createTrack(margin = 0.15, theta, skew) {
+        let start, ctlstart, ctlm1, mid, ctlm2, ctlend, end;
+        if (theta === undefined) {
+            theta = randomInRange(TWOPI);
+        }
+        if (skew === undefined) {
+            skew = PI * (1 + randomInRange(-.25, .25));
+        }
+        let theta2 = theta + skew;
+        start = pointOnCanvasEllipse(theta, margin);
+        end = pointOnCanvasEllipse(theta2, margin);
+        let v = getVector(start, end);
 
 
-    // different endpoints
-    let theta2 = theta - PI + PI * randomInRange(-0.3, 0.3);
-    let end2 = [
-        origin[0] + REACH * Math.cos(theta2),
-        origin[1] + REACH * Math.sin(theta2)
-    ];
+        // mid point and controls
+
+        mid = [
+            ( start[0] + end[0] ) / 2,
+            ( start[1] + end[1] ) / 2
+        ];
+        mid = jitterPoint(mid, v.length / 5);
+
+        let midAngle = v.angle + PI * randomInRange(-0.2, 0.2);
+
+        let mc1; // mid control point 1
+        let mc2; // mid control point 2
+
+        let midSpan = trackVector.length * randomInRange(0.1, 0.2);
+
+        ctlm1 = [
+            mid[0] + midSpan * Math.cos(midAngle + PI),
+            mid[1] + midSpan * Math.sin(midAngle + PI)
+        ];
+
+        ctlm2 = [
+            mid[0] + midSpan * Math.cos(midAngle),
+            mid[1] + midSpan * Math.sin(midAngle)
+        ];
 
 
-    // DEBUG
-    DEBUG && drawCircle(ctx, ...start, REACH/3, {stroke:'green'});
-    DEBUG && drawCircle(ctx, ...end, REACH/3, {stroke:'red'});
-    DEBUG && drawCircle(ctx, ...mid, 20, {stroke:'#ff0099'});
-    DEBUG && drawCircle(ctx, ...mid, centerSkewAmount, {stroke:'#ff0099'});
 
-    // Set control points relative to the track axis
-    let a1 = theta;
-    let r1 = REACH * 0.5;
-    let c1 = [
-        origin[0] + r1 * Math.cos(a1),
-        origin[1] + r1 * Math.sin(a1)
+        // end control points are along track by default
+
+        ctlstart = [
+            start[0] + v.length * 0.2 * Math.cos(v.angle),
+            start[1] + v.length * 0.2 * Math.sin(v.angle)
+        ];
+        ctlend = [
+            end[0] + v.length * 0.2 * Math.cos(v.angle - PI),
+            end[1] + v.length * 0.2 * Math.sin(v.angle - PI)
+        ];
+
+
+        return [start, ctlstart, ctlm1, mid, ctlm2, ctlend, end];
+    }
+
+
+
+
+
+    let ringpts = [];
+    let ringMargin = randomInRange(0.1, 0.2);
+
+
+    for (var i = 0; i < 90 ; i++) {
+        ringpts.push(pointOnCanvasEllipse(i * TWOPI/90, ringMargin));
+    }
+    ringpts.forEach((p)=> {
+        drawCircle(ctx, ...p, 2, {fill:'red'});
+    });
+
+    let trackAngle1 = randomInRange(0, TWOPI);
+    let trackAngle2 = trackAngle1 + PI * (1 + randomInRange(-.25, .25));
+
+    let trackStart = pointOnCanvasEllipse(trackAngle1, ringMargin);
+    let trackEnd = pointOnCanvasEllipse(trackAngle2, ringMargin);
+
+    let trackVector = getVector(trackStart, trackEnd);
+
+    let trackSpan = trackVector.length;
+
+    drawCircle(ctx, ...trackStart, 6, {fill:'green'});
+    drawCircle(ctx, ...trackStart, 106, {stroke:'green'});
+    drawCircle(ctx, ...trackEnd, 6, {fill:'red'});
+    drawCircle(ctx, ...trackEnd, 106, {stroke:'red'});
+
+
+    let midTrack = [
+        ( trackStart[0] + trackEnd[0] ) / 2,
+        ( trackStart[1] + trackEnd[1] ) / 2
     ];
-    let a2 = theta - PI;
-    let r2 = REACH * 0.5;
-    let c2 = [
-        origin[0] + r2 * Math.cos(a2),
-        origin[1] + r2 * Math.sin(a2)
+    midTrack = jitterPoint(midTrack, trackVector.length / 5);
+
+    drawCircle(ctx, ...midTrack, 6, {fill:'magenta'});
+    drawCircle(ctx, ...midTrack, 56, {stroke:'magenta'});
+
+
+
+
+    let midAngle = trackVector.angle + PI * randomInRange(-0.2, 0.2);
+
+    let mc1; // mid control point 1
+    let mc2; // mid control point 2
+
+    let midSpan = trackVector.length * randomInRange(0.1, 0.2);
+
+    mc1 = [
+        midTrack[0] + midSpan * Math.cos(midAngle + PI),
+        midTrack[1] + midSpan * Math.sin(midAngle + PI)
+    ]
+
+    mc2 = [
+        midTrack[0] + midSpan * Math.cos(midAngle),
+        midTrack[1] + midSpan * Math.sin(midAngle)
+    ]
+
+    drawCircle(ctx, ...mc1, 6, {fill:'magenta'});
+    drawCircle(ctx, ...mc2, 6, {fill:'magenta'});
+
+    ctx.strokeStyle = 'magenta';
+    drawLine(ctx, mc1, mc2);
+    ctx.stroke();
+
+    // control points for the ends
+    let trackStartCtl;
+    let trackEndCtl;
+
+    trackStartCtl = [
+        trackStart[0] + trackVector.length * 0.2 * Math.cos(trackVector.angle),
+        trackStart[1] + trackVector.length * 0.2 * Math.sin(trackVector.angle),
     ];
-    let a3 = theta + PI * randomInRange(-0.3, 0.3);
-    let r3 = REACH * 0.5;
-    let c3 = [
-        origin[0] + r3 * Math.cos(a3),
-        origin[1] + r3 * Math.sin(a3)
+    trackEndCtl = [
+        trackEnd[0] + trackVector.length * 0.2 * Math.cos(trackVector.angle - PI),
+        trackEnd[1] + trackVector.length * 0.2 * Math.sin(trackVector.angle - PI),
     ];
-    let a4 = theta - PI + PI * randomInRange(-0.3, 0.3);
-    let r4 = REACH * 0.5;
-    let c4 = [
-        origin[0] + r4 * Math.cos(a4),
-        origin[1] + r4 * Math.sin(a4)
-    ];
+    drawCircle(ctx, ...trackStartCtl, 6, {fill:'green'});
+    drawCircle(ctx, ...trackEndCtl, 6, {fill:'red'});
+
+    ctx.strokeStyle = 'green';
+    drawLine(ctx, trackStart, trackStartCtl);
+    ctx.stroke();
+    ctx.strokeStyle = 'red';
+    drawLine(ctx, trackEnd, trackEndCtl);
+    ctx.stroke();
 
 
     // Set steps, thickness and separation of lines, skew
 
-    let steps = Math.round(REACH * randomInRange(0.15, 0.35));
-    steps *= 4;
+    let steps = trackVector.length / 5;
     let trackWidth = LONG * randomInRange(0.15, 0.3);
-    let skew = PI * 0.3 * randomInRange(-1, 1);
     let pathCount = randomInt(15, 30);
     let weight = trackWidth / pathCount * randomInRange(0.13, 0.33);
     ctx.lineWidth = weight;
-    DEBUG && note.add(`${Math.round(steps)} steps over ${Math.round(REACH)}px; ${(REACH/steps).toPrecision(3)}px per interval; ${weight.toPrecision(3)}px lines at ${(trackWidth/pathCount).toPrecision(3)}px spacing`);
+
+
+    // for drift, 100 is 45deg, and 0 is parallel with path
+    let drift1 = randomInRange(10, 120);
+    let drift2 = randomInRange(10, 120);
+    // usually sync drift so the angles match
+    if (Math.random() < .80) drift2 = drift1;
 
 
     // sometimes, use the same color for both
@@ -383,15 +445,54 @@ export function moire(options) {
         fg2 = fg;
     }
 
-    // DEBUG
-    // fg = 'red';
-    // fg2 = 'blue';
 
-    // for drift, 100 is 45deg, and 0 is parallel with path
-    let drift1 = randomInRange(10, 120);
-    let drift2 = randomInRange(10, 120);
-    // usually sync drift so the angles match
-    if (Math.random() < .80) drift2 = drift1;
+    ctx.strokeStyle = fg;
+
+
+    let createMultiSegmentTrack = function(start, ctlstart, ctlm1, mid, ctlm2, ctlend, end, steps) {
+        let vecs1 = curveToSteps(start, ctlstart, ctlm1, mid, 1000);
+        let vecs2 = curveToSteps(mid,  ctlm2, ctlend, end, 1000);
+
+
+        // Balance the number of steps between segments.
+        // Measure each segment with fine step count, get fraction of total length,
+        // then recalculate each segemt with its portion of the final step count.
+
+        let len1 = getCurveLength(vecs1);
+        let len2 = getCurveLength(vecs2);
+
+        DEBUG && note.add(`Segment lengths ${len1.toPrecision(4)}px and ${len2.toPrecision(4)}px, total ${(len1 + len2).toPrecision(4)}px`);;
+
+        let steps1 = Math.round(steps * len1/(len1 + len2));
+        let steps2 = Math.round(steps * len2/(len1 + len2));
+
+        vecs1 = curveToSteps(start, ctlstart, ctlm1, mid, steps1);
+        vecs2 = curveToSteps(mid,  ctlm2, ctlend, end, steps2);
+
+        let allVectors = [].concat( vecs1 ).concat( vecs2 );
+
+        DEBUG && note.add(`Corrected steps: ${steps1} and ${steps2}, from ${steps}`);
+
+        return allVectors;
+    }
+
+
+    let trackParams = createTrack(0.15);
+    let allVectors = createMultiSegmentTrack(...trackParams, steps);
+
+    // DEBUG && note.add(`Corrected steps: ${steps1} and ${steps2}, from ${steps}`);
+
+    // Draw it
+    drawPaths(stepsToPaths(allVectors, pathCount, trackWidth, drift1));
+
+
+
+
+
+
+    //--------------------------------------
+
+
 
 
     let renderModes = [
@@ -437,32 +538,32 @@ export function moire(options) {
 
     //drift1 = drift2 = 0;
 
-    // test: concat both segments into a single vector set, then draw it
-    let vecs1 = curveToSteps(start, mid, startControlPt, cc1, 1000);
-    let vecs2 = curveToSteps(mid,   end, cc2, endControlPt, 1000);
+    // // test: concat both segments into a single vector set, then draw it
+    // let vecs1 = curveToSteps(start, mid, startControlPt, cc1, 1000);
+    // let vecs2 = curveToSteps(mid,   end, cc2, endControlPt, 1000);
 
 
-    // Balance the number of steps between segments.
-    // Measure each segment with fine step count, get fraction of total length,
-    // then recalculate each segemt with its portion of the final step count.
+    // // Balance the number of steps between segments.
+    // // Measure each segment with fine step count, get fraction of total length,
+    // // then recalculate each segemt with its portion of the final step count.
 
-    let len1 = getCurveLength(vecs1);
-    let len2 = getCurveLength(vecs2);
+    // let len1 = getCurveLength(vecs1);
+    // let len2 = getCurveLength(vecs2);
 
-    DEBUG && note.add(`Segment lengths ${len1.toPrecision(4)}px and ${len2.toPrecision(4)}px, total ${(len1 + len2).toPrecision(4)}px`);;
+    // DEBUG && note.add(`Segment lengths ${len1.toPrecision(4)}px and ${len2.toPrecision(4)}px, total ${(len1 + len2).toPrecision(4)}px`);;
 
-    let steps1 = Math.round(steps * len1/(len1 + len2));
-    let steps2 = Math.round(steps * len2/(len1 + len2));
+    // let steps1 = Math.round(steps * len1/(len1 + len2));
+    // let steps2 = Math.round(steps * len2/(len1 + len2));
 
-    vecs1 = curveToSteps(start, mid, startControlPt, cc1, steps1);
-    vecs2 = curveToSteps(mid,   end, cc2, endControlPt, steps2);
+    // vecs1 = curveToSteps(start, mid, startControlPt, cc1, steps1);
+    // vecs2 = curveToSteps(mid,   end, cc2, endControlPt, steps2);
 
-    let allVectors = [].concat( vecs1 ).concat( vecs2 );
+    // let allVectors = [].concat( vecs1 ).concat( vecs2 );
 
-    DEBUG && note.add(`Corrected steps: ${steps1} and ${steps2}, from ${steps}`);
+    // DEBUG && note.add(`Corrected steps: ${steps1} and ${steps2}, from ${steps}`);
 
-    // Draw it
-    drawPaths(stepsToPaths(allVectors, pathCount, trackWidth, drift1));
+    // // Draw it
+    // drawPaths(stepsToPaths(allVectors, pathCount, trackWidth, drift1));
 
     // output any notes
     note.log();
