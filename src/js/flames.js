@@ -68,92 +68,103 @@ export function flames(options) {
     ctx.fillStyle = fg2;
 
 
-    let DEBUG = true;
+    let DEBUG = false;
 
     // Draw Stuff
     // --------------------------------------
 
 
-    // pick a point anywhere
+    let drawFlame = function(p, angle) {
+        // pick a point anywhere
 
-    let p1 = [
-        randomInRange(cw),
-        randomInRange(ch)
-    ];
-
-
-    let p2 = [
-        randomInRange(cw),
-        randomInRange(ch)
-    ];
-
-    let v = getVector(p1, p2);
-
-    DEBUG && drawCircle(ctx, ...p1, 9, {fill: fg});
-    DEBUG && drawCircle(ctx, ...p1, 39, {stroke: fg});
-    DEBUG && drawCircle(ctx, ...p2, 9, {fill: fg});
-
-    // draw center line
-    // ctx.strokeStyle = fg;
-    // drawLine(ctx, p1, p2);
-    // ctx.stroke();
-
-    let ctlRad = 0.4;
-    let innerStretch = 0.3;
-    let outerStretch = 0.5;
+        let p1 = [
+            randomInRange(cw),
+            randomInRange(ch)
+        ];
 
 
-    let dir1 = 1;
+        let p2 = [
+            randomInRange(cw),
+            randomInRange(ch)
+        ];
 
-    let angle1 = v.angle + dir1 * PI * randomInRange(0.2, 0.4);
-
-    let c1 = [
-        p1[0] + outerStretch * v.length * Math.cos(angle1),
-        p1[1] + outerStretch * v.length * Math.sin(angle1)
-    ];
-
-    let angle2 = v.angle +  dir1 * PI * randomInRange(0.1, 0.2);
-
-    let c2 = [
-        p2[0] - innerStretch * v.length * Math.cos(angle2),
-        p2[1] - innerStretch * v.length * Math.sin(angle2)
-    ];
-
-    DEBUG && drawCircle(ctx, ...c1, 4, {fill: fg});
-    DEBUG && drawCircle(ctx, ...c2, 4, {fill: fg});
+        let v = getVector(p1, p2);
 
 
-    let angle3 = angle2 + PI * 0.2;
+        let direction = (Math.random() < 0.5) ? -1 : 1 ;
 
-    let c3 = [
-        p2[0] - outerStretch * v.length * Math.cos(angle3),
-        p2[1] - outerStretch * v.length * Math.sin(angle3)
-    ];
 
-    DEBUG && drawCross(ctx, ...c3, 9, {stroke: fg});
+        DEBUG && drawCircle(ctx, ...p1, 9, {fill: fg});
+        DEBUG && drawCircle(ctx, ...p1, 39, {stroke: fg});
+        DEBUG && drawCircle(ctx, ...p2, 9, {fill: fg});
 
-    let angle4 = angle1 - PI * 0.2;
+        // draw center line
+        // ctx.strokeStyle = fg;
+        // drawLine(ctx, p1, p2);
+        // ctx.stroke();
 
-    let c4 = [
-        p1[0] + innerStretch * v.length * Math.cos(angle4),
-        p1[1] + innerStretch * v.length * Math.sin(angle4)
-    ];
+        let innerStretch = 0.3;
+        let outerStretch = 0.5;
 
-    DEBUG &&  drawCross(ctx, ...c4, 9, {stroke: fg});
+        let angle1 = v.angle + direction * PI * randomInRange(0.2, 0.4);
 
-    ctx.beginPath();
-    // outer stroke
-    ctx.moveTo(...p1);
-    ctx.bezierCurveTo(...c1, ...c2, ...p2);
+        let c1 = [
+            p1[0] + outerStretch * v.length * Math.cos(angle1),
+            p1[1] + outerStretch * v.length * Math.sin(angle1)
+        ];
 
-    // return stroke
-    ctx.moveTo(...p2);
-    ctx.bezierCurveTo(...c3, ...c4, ...p1);
+        let angle2 = v.angle + direction * PI * randomInRange(0.1, 0.2);
 
-    // draw
-    ctx.stroke();
-    ctx.fillStyle = fg2;
-    ctx.fill();
+        let c2 = [
+            p2[0] - innerStretch * v.length * Math.cos(angle2),
+            p2[1] - innerStretch * v.length * Math.sin(angle2)
+        ];
+
+        DEBUG && drawCircle(ctx, ...c1, 4, {fill: fg});
+        DEBUG && drawCircle(ctx, ...c2, 4, {fill: fg});
+
+
+        let angle3 = angle2 + direction * PI * 0.2;
+
+        let c3 = [
+            p2[0] - outerStretch * v.length * Math.cos(angle3),
+            p2[1] - outerStretch * v.length * Math.sin(angle3)
+        ];
+
+        DEBUG && drawCross(ctx, ...c3, 9, {stroke: fg});
+
+        let angle4 = angle1 - direction * PI * 0.2;
+
+        let c4 = [
+            p1[0] + innerStretch * v.length * Math.cos(angle4),
+            p1[1] + innerStretch * v.length * Math.sin(angle4)
+        ];
+
+        DEBUG &&  drawCross(ctx, ...c4, 9, {stroke: fg});
+
+        ctx.beginPath();
+        // outer stroke
+        ctx.moveTo(...p1);
+        ctx.bezierCurveTo(...c1, ...c2, ...p2);
+
+        // return stroke
+        ctx.moveTo(...p2);
+        ctx.bezierCurveTo(...c3, ...c4, ...p1);
+
+        // draw
+        ctx.stroke();
+        ctx.fillStyle = fg2;
+        ctx.fill();
+
+    }
+
+
+    drawFlame();
+
+    let N = 10;
+    while (N--) {
+        drawFlame();
+    }
 
 
 
