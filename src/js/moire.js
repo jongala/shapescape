@@ -292,20 +292,39 @@ export function moire(options) {
         let v = getVector(start, end);
 
 
-        // mid point and controls
+        DEBUG && drawCircle(ctx, ...start, 6, {fill: 'green'});
+        DEBUG && drawCircle(ctx, ...start, 56, {stroke: 'green'});
+        DEBUG && drawCircle(ctx, ...end, 6, {fill: 'red'});
 
+        // end control points are along track by default
+        ctlstart = [
+            start[0] + v.length * 0.2 * Math.cos(v.angle),
+            start[1] + v.length * 0.2 * Math.sin(v.angle)
+        ];
+        ctlend = [
+            end[0] + v.length * 0.2 * Math.cos(v.angle - PI),
+            end[1] + v.length * 0.2 * Math.sin(v.angle - PI)
+        ];
+
+
+        DEBUG && drawCross(ctx, ...ctlstart, 16, {stroke: 'green'});
+        DEBUG && drawCross(ctx, ...ctlend, 16, {stroke: 'red'});
+
+
+
+        // mid point and controls
         mid = [
             ( start[0] + end[0] ) / 2,
             ( start[1] + end[1] ) / 2
         ];
+        DEBUG && drawCircle(ctx, ...mid, 16, {stroke: 'magenta'});
+
         mid = jitterPoint(mid, v.length / 5);
 
+        DEBUG && drawCircle(ctx, ...mid, 6, {fill: 'magenta'});
+
         let midAngle = v.angle + PI * randomInRange(-0.2, 0.2);
-
-        let mc1; // mid control point 1
-        let mc2; // mid control point 2
-
-        let midSpan = trackVector.length * randomInRange(0.1, 0.2);
+        let midSpan = v.length * randomInRange(0.1, 0.2);
 
         ctlm1 = [
             mid[0] + midSpan * Math.cos(midAngle + PI),
@@ -317,142 +336,17 @@ export function moire(options) {
             mid[1] + midSpan * Math.sin(midAngle)
         ];
 
-
-
-        // end control points are along track by default
-
-        ctlstart = [
-            start[0] + v.length * 0.2 * Math.cos(v.angle),
-            start[1] + v.length * 0.2 * Math.sin(v.angle)
-        ];
-        ctlend = [
-            end[0] + v.length * 0.2 * Math.cos(v.angle - PI),
-            end[1] + v.length * 0.2 * Math.sin(v.angle - PI)
-        ];
+        DEBUG && drawCross(ctx, ...ctlm1, 16, {stroke: 'magenta'});
+        DEBUG && drawCross(ctx, ...ctlm2, 16, {stroke: 'magenta'});
 
 
         return [start, ctlstart, ctlm1, mid, ctlm2, ctlend, end];
     }
 
 
-
-
-
-    let ringpts = [];
-    let ringMargin = randomInRange(0.1, 0.2);
-
-
-    for (var i = 0; i < 90 ; i++) {
-        ringpts.push(pointOnCanvasEllipse(i * TWOPI/90, ringMargin));
-    }
-    ringpts.forEach((p)=> {
-        drawCircle(ctx, ...p, 2, {fill:'red'});
-    });
-
-    let trackAngle1 = randomInRange(0, TWOPI);
-    let trackAngle2 = trackAngle1 + PI * (1 + randomInRange(-.25, .25));
-
-    let trackStart = pointOnCanvasEllipse(trackAngle1, ringMargin);
-    let trackEnd = pointOnCanvasEllipse(trackAngle2, ringMargin);
-
-    let trackVector = getVector(trackStart, trackEnd);
-
-    let trackSpan = trackVector.length;
-
-    drawCircle(ctx, ...trackStart, 6, {fill:'green'});
-    drawCircle(ctx, ...trackStart, 106, {stroke:'green'});
-    drawCircle(ctx, ...trackEnd, 6, {fill:'red'});
-    drawCircle(ctx, ...trackEnd, 106, {stroke:'red'});
-
-
-    let midTrack = [
-        ( trackStart[0] + trackEnd[0] ) / 2,
-        ( trackStart[1] + trackEnd[1] ) / 2
-    ];
-    midTrack = jitterPoint(midTrack, trackVector.length / 5);
-
-    drawCircle(ctx, ...midTrack, 6, {fill:'magenta'});
-    drawCircle(ctx, ...midTrack, 56, {stroke:'magenta'});
-
-
-
-
-    let midAngle = trackVector.angle + PI * randomInRange(-0.2, 0.2);
-
-    let mc1; // mid control point 1
-    let mc2; // mid control point 2
-
-    let midSpan = trackVector.length * randomInRange(0.1, 0.2);
-
-    mc1 = [
-        midTrack[0] + midSpan * Math.cos(midAngle + PI),
-        midTrack[1] + midSpan * Math.sin(midAngle + PI)
-    ]
-
-    mc2 = [
-        midTrack[0] + midSpan * Math.cos(midAngle),
-        midTrack[1] + midSpan * Math.sin(midAngle)
-    ]
-
-    drawCircle(ctx, ...mc1, 6, {fill:'magenta'});
-    drawCircle(ctx, ...mc2, 6, {fill:'magenta'});
-
-    ctx.strokeStyle = 'magenta';
-    drawLine(ctx, mc1, mc2);
-    ctx.stroke();
-
-    // control points for the ends
-    let trackStartCtl;
-    let trackEndCtl;
-
-    trackStartCtl = [
-        trackStart[0] + trackVector.length * 0.2 * Math.cos(trackVector.angle),
-        trackStart[1] + trackVector.length * 0.2 * Math.sin(trackVector.angle),
-    ];
-    trackEndCtl = [
-        trackEnd[0] + trackVector.length * 0.2 * Math.cos(trackVector.angle - PI),
-        trackEnd[1] + trackVector.length * 0.2 * Math.sin(trackVector.angle - PI),
-    ];
-    drawCircle(ctx, ...trackStartCtl, 6, {fill:'green'});
-    drawCircle(ctx, ...trackEndCtl, 6, {fill:'red'});
-
-    ctx.strokeStyle = 'green';
-    drawLine(ctx, trackStart, trackStartCtl);
-    ctx.stroke();
-    ctx.strokeStyle = 'red';
-    drawLine(ctx, trackEnd, trackEndCtl);
-    ctx.stroke();
-
-
-    // Set steps, thickness and separation of lines, skew
-
-    let steps = trackVector.length / 5;
-    let trackWidth = LONG * randomInRange(0.15, 0.3);
-    let pathCount = randomInt(15, 30);
-    let weight = trackWidth / pathCount * randomInRange(0.13, 0.33);
-    ctx.lineWidth = weight;
-
-
-    // for drift, 100 is 45deg, and 0 is parallel with path
-    let drift1 = randomInRange(10, 120);
-    let drift2 = randomInRange(10, 120);
-    // usually sync drift so the angles match
-    if (Math.random() < .80) drift2 = drift1;
-
-
-    // sometimes, use the same color for both
-    if (Math.random() < 0.3) {
-        fg2 = fg;
-    }
-
-
-    ctx.strokeStyle = fg;
-
-
-    let createMultiSegmentTrack = function(start, ctlstart, ctlm1, mid, ctlm2, ctlend, end, steps) {
+    let createMultiSegmentCurve = function(start, ctlstart, ctlm1, mid, ctlm2, ctlend, end, steps) {
         let vecs1 = curveToSteps(start, ctlstart, ctlm1, mid, 1000);
         let vecs2 = curveToSteps(mid,  ctlm2, ctlend, end, 1000);
-
 
         // Balance the number of steps between segments.
         // Measure each segment with fine step count, get fraction of total length,
@@ -477,8 +371,48 @@ export function moire(options) {
     }
 
 
+    if (DEBUG) {
+        let ringpts = [];
+        let ringMargin = randomInRange(0.1, 0.2);
+        for (var i = 0; i < 90 ; i++) {
+            ringpts.push(pointOnCanvasEllipse(i * TWOPI/90, ringMargin));
+        }
+        ringpts.forEach((p)=> {
+            drawCircle(ctx, ...p, 2, {fill:'red'});
+        });
+    }
+
+    // Generate a main track, use random angle and skew
     let trackParams = createTrack(0.15);
-    let allVectors = createMultiSegmentTrack(...trackParams, steps);
+
+    // Set steps, thickness and separation of lines
+    let trackVector = getVector(trackParams[0], trackParams[trackParams.length -1]);
+    let steps = trackVector.length / 5;
+    let trackWidth = LONG * randomInRange(0.15, 0.3);
+    let pathCount = randomInt(15, 30);
+    // set line weight based on number of paths
+    let weight = trackWidth / pathCount * randomInRange(0.13, 0.33);
+    ctx.lineWidth = weight;
+
+
+    // for drift, 100 is 45deg, and 0 is parallel with path
+    let drift1 = randomInRange(10, 120);
+    let drift2 = randomInRange(10, 120);
+    // usually sync drift so the angles match
+    if (Math.random() < .80) drift2 = drift1;
+
+
+    // sometimes, use the same color for both
+    if (Math.random() < 0.3) {
+        fg2 = fg;
+    }
+
+
+    ctx.strokeStyle = fg;
+
+    // create a set of bezier step vectors in two segments, based on the
+    // points defined in the main track
+    let allVectors = createMultiSegmentCurve(...trackParams, steps);
 
     // DEBUG && note.add(`Corrected steps: ${steps1} and ${steps2}, from ${steps}`);
 
