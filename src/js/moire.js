@@ -16,7 +16,7 @@ const TWOPI = 2 * PI;
 
 const STEP_PRECISION = 5;
 
-const DEBUG = true;
+const DEBUG = false;
 
 // Main function
 export function moire(options) {
@@ -415,19 +415,19 @@ export function moire(options) {
     // Create tracks and path vectors
     // --------------------------------------
 
-    // Generate a main track, use random angle and skew
-    let trackParams = createTrack(0.15 /* angle, skew */);
+    // // Generate a main track, use random angle and skew
+    // let trackParams = createTrack(0.15 /* angle, skew */);
 
-    // Create a set of bezier step vectors in two segments, based on the
-    // points defined in the main track
-    let allVectors = createMultiSegmentCurve(...trackParams);
+    // // Create a set of bezier step vectors in two segments, based on the
+    // // points defined in the main track
+    // let allVectors = createMultiSegmentCurve(...trackParams);
 
-    // set style just before rendering because debug drawing may alter
-    ctx.strokeStyle = fg;
-    ctx.lineWidth = weight;
+    // // set style just before rendering because debug drawing may alter
+    // ctx.strokeStyle = fg;
+    // ctx.lineWidth = weight;
 
-    // Draw it
-    drawPaths(stepsToPaths(allVectors, pathCount, trackWidth, drift1));
+    // // Draw it
+    // drawPaths(stepsToPaths(allVectors, pathCount, trackWidth, drift1));
 
 
     //--------------------------------------
@@ -437,71 +437,115 @@ export function moire(options) {
 
         () => {
             note.add('same endpoints, different controls');
+
+            let trackAngle = randomInRange(0, TWOPI);
+            let skew = PI * (1 + randomInRange(-.25, .25));
+            let v1 = createMultiSegmentCurve(
+                ...createTrack(0.15, trackAngle, skew)
+            );
+
+            // set style just before rendering because debug drawing may alter
             ctx.strokeStyle = fg;
+            ctx.lineWidth = weight;
+
+            // Draw it
+            drawPaths(stepsToPaths(v1, pathCount, trackWidth, drift1));
+
+            let v2 = createMultiSegmentCurve(
+                ...createTrack(0.15, trackAngle, skew)
+            );
+
+            // set style just before rendering because debug drawing may alter
+            ctx.strokeStyle = fg2;
+            ctx.lineWidth = weight;
+
+            // Draw it
+            drawPaths(stepsToPaths(v2, pathCount, trackWidth, drift1));
+
+
+            /*ctx.strokeStyle = fg;
             drawSegment(start, end, c1, c2, steps, pathCount,  trackWidth, drift1);
             ctx.strokeStyle = fg2;
-            drawSegment(start, end, c3, c4, steps, pathCount, trackWidth, drift2);
+            drawSegment(start, end, c3, c4, steps, pathCount, trackWidth, drift2);*/
         },
 
         () => {
             note.add('same start, different end, different controls');
+
+            let trackAngle = randomInRange(0, TWOPI);
+            let v1 = createMultiSegmentCurve(
+                ...createTrack(0.15, trackAngle /* skew*/)
+            );
+
+            // set style just before rendering because debug drawing may alter
             ctx.strokeStyle = fg;
-            drawSegment(start, end, c1, c2, steps, pathCount,  trackWidth, drift1);
+            ctx.lineWidth = weight;
+
+            // Draw it
+            drawPaths(stepsToPaths(v1, pathCount, trackWidth, drift1));
+
+            let v2 = createMultiSegmentCurve(
+                ...createTrack(0.15, trackAngle /* skew*/)
+            );
+
+            // set style just before rendering because debug drawing may alter
             ctx.strokeStyle = fg2;
-            drawSegment(start, end2, c3, c4, steps, pathCount,  trackWidth, drift2);
+            ctx.lineWidth = weight;
+
+            // Draw it
+            drawPaths(stepsToPaths(v2, pathCount, trackWidth, drift1));
+
+
+            // ctx.strokeStyle = fg;
+            // drawSegment(start, end, c1, c2, steps, pathCount,  trackWidth, drift1);
+            // ctx.strokeStyle = fg2;
+            // drawSegment(start, end2, c3, c4, steps, pathCount,  trackWidth, drift2);
         },
 
         () => {
+            note.add('separate paths, no relation');
+
+            // set style just before rendering because debug drawing may alter
+            ctx.strokeStyle = fg;
+            ctx.lineWidth = weight;
+
+            // Draw it
+            drawPaths(stepsToPaths(
+                createMultiSegmentCurve(
+                    ...createTrack(0.15 /* angle, skew */)
+                )
+                , pathCount
+                , trackWidth
+                , drift1)
+            );
+
+
+            // set style just before rendering because debug drawing may alter
+            ctx.strokeStyle = fg2;
+            ctx.lineWidth = weight;
+
+            // Draw it
+            drawPaths(stepsToPaths(
+                createMultiSegmentCurve(
+                    ...createTrack(0.15 /* angle, skew */)
+                )
+                , pathCount
+                , trackWidth
+                , drift1)
+            );
+        },
+
+        /*() => {
             note.add('same start, different end, shared control');
             ctx.strokeStyle = fg;
             drawSegment(start, end, c1, c2, steps, pathCount,  trackWidth, drift1);
             ctx.strokeStyle = fg2;
             drawSegment(start, end2, c1, c4, steps, pathCount,  trackWidth, drift2);
-        },
-
-        // stepCurve(start, end, origin, origin, 150, 200);
-        // stepCurve(start, end2, origin, origin, 150, 200);
-
+        },*/
     ];
 
     // Finally: draw
-    // randItem(renderModes)();
-
-    //steps = steps/2;
-
-
-    ctx.strokeStyle = fg;
-    //boundaryCurve(start, mid, startControlPt, cc1, pathCount, steps, trackWidth, drift1);
-    //boundaryCurve(mid, end, cc2, endControlPt, pathCount, steps, trackWidth, drift1);
-
-    //drift1 = drift2 = 0;
-
-    // // test: concat both segments into a single vector set, then draw it
-    // let vecs1 = curveToSteps(start, mid, startControlPt, cc1, 1000);
-    // let vecs2 = curveToSteps(mid,   end, cc2, endControlPt, 1000);
-
-
-    // // Balance the number of steps between segments.
-    // // Measure each segment with fine step count, get fraction of total length,
-    // // then recalculate each segemt with its portion of the final step count.
-
-    // let len1 = getCurveLength(vecs1);
-    // let len2 = getCurveLength(vecs2);
-
-    // DEBUG && note.add(`Segment lengths ${len1.toPrecision(4)}px and ${len2.toPrecision(4)}px, total ${(len1 + len2).toPrecision(4)}px`);;
-
-    // let steps1 = Math.round(steps * len1/(len1 + len2));
-    // let steps2 = Math.round(steps * len2/(len1 + len2));
-
-    // vecs1 = curveToSteps(start, mid, startControlPt, cc1, steps1);
-    // vecs2 = curveToSteps(mid,   end, cc2, endControlPt, steps2);
-
-    // let allVectors = [].concat( vecs1 ).concat( vecs2 );
-
-    // DEBUG && note.add(`Corrected steps: ${steps1} and ${steps2}, from ${steps}`);
-
-    // // Draw it
-    // drawPaths(stepsToPaths(allVectors, pathCount, trackWidth, drift1));
+    randItem(renderModes)();
 
     // output any notes
     note.log();
