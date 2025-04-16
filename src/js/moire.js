@@ -14,6 +14,8 @@ const DEFAULTS = {
 const PI = Math.PI;
 const TWOPI = 2 * PI;
 
+const STEP_PRECISION = 5;
+
 const DEBUG = true;
 
 // Main function
@@ -106,7 +108,7 @@ export function moire(options) {
 
         let curveLength = estimateCurveLength(a, b, c1, c2);
         let normalizedStep = curveLength/steps;
-        DEBUG && note.add(`curve length from ${steps} steps about ${curveLength.toPrecision(4)}px each step about ${normalizedStep.toPrecision(4)}px`);
+        //DEBUG && note.add(`curve length from ${steps} steps about ${curveLength.toPrecision(4)}px each step about ${normalizedStep.toPrecision(4)}px`);
 
         let t = 0;
         let inc = 1/steps;
@@ -164,7 +166,7 @@ export function moire(options) {
         // default drift and then process as percentage of a 45deg angle
         drift = drift || 0;
         let driftAngle = (drift / 100) * PI/4; // 100 is 45deg
-        note.add(`Input drift is ${drift.toPrecision(3)}, about ${(driftAngle).toPrecision(3)} rad`);
+        note.add(`Input drift is ${drift.toPrecision(3)}, about ${(driftAngle * 180/PI).toPrecision(3)} deg`);
 
         /*
             Either 1 or -1. Will work with the vector angle to set
@@ -296,20 +298,21 @@ export function moire(options) {
         DEBUG && drawCircle(ctx, ...start, 56, {stroke: 'green'});
         DEBUG && drawCircle(ctx, ...end, 6, {fill: 'red'});
 
+        let endControlLength = randomInRange(0.1, 0.2) * v.length;
+
         // end control points are along track by default
         ctlstart = [
-            start[0] + v.length * 0.2 * Math.cos(v.angle),
-            start[1] + v.length * 0.2 * Math.sin(v.angle)
+            start[0] + endControlLength * Math.cos(v.angle),
+            start[1] + endControlLength * Math.sin(v.angle)
         ];
         ctlend = [
-            end[0] + v.length * 0.2 * Math.cos(v.angle - PI),
-            end[1] + v.length * 0.2 * Math.sin(v.angle - PI)
+            end[0] + endControlLength * Math.cos(v.angle - PI),
+            end[1] + endControlLength * Math.sin(v.angle - PI)
         ];
 
 
         DEBUG && drawCross(ctx, ...ctlstart, 16, {stroke: 'green'});
         DEBUG && drawCross(ctx, ...ctlend, 16, {stroke: 'red'});
-
 
 
         // mid point and controls
@@ -344,7 +347,7 @@ export function moire(options) {
     }
 
 
-    let createMultiSegmentCurve = function(start, ctlstart, ctlm1, mid, ctlm2, ctlend, end, steps) {
+    let createMultiSegmentCurve = function(start, ctlstart, ctlm1, mid, ctlm2, ctlend, end) {
         let vecs1 = curveToSteps(start, ctlstart, ctlm1, mid, 1000);
         let vecs2 = curveToSteps(mid,  ctlm2, ctlend, end, 1000);
 
@@ -355,7 +358,9 @@ export function moire(options) {
         let len1 = getCurveLength(vecs1);
         let len2 = getCurveLength(vecs2);
 
-        DEBUG && note.add(`Segment lengths ${len1.toPrecision(4)}px and ${len2.toPrecision(4)}px, total ${(len1 + len2).toPrecision(4)}px`);;
+        DEBUG && note.add(`Segment lengths ${len1.toPrecision(4)}px and ${len2.toPrecision(4)}px, total ${(len1 + len2).toPrecision(4)}px`);
+
+        let steps = (len1 + len2) / STEP_PRECISION;
 
         let steps1 = Math.round(steps * len1/(len1 + len2));
         let steps2 = Math.round(steps * len2/(len1 + len2));
@@ -365,7 +370,7 @@ export function moire(options) {
 
         let allVectors = [].concat( vecs1 ).concat( vecs2 );
 
-        DEBUG && note.add(`Corrected steps: ${steps1} and ${steps2}, from ${steps}`);
+        DEBUG && note.add(`Corrected steps: ${steps1} and ${steps2} = ${steps1 + steps2}, from ${Math.round(steps)}`);
 
         return allVectors;
     }
@@ -382,19 +387,16 @@ export function moire(options) {
         });
     }
 
-    // Generate a main track, use random angle and skew
-    let trackParams = createTrack(0.15);
 
-    // Set steps, thickness and separation of lines
-    let trackVector = getVector(trackParams[0], trackParams[trackParams.length -1]);
-    let steps = trackVector.length / 5;
-    let trackWidth = LONG * randomInRange(0.15, 0.3);
+
+
+    // Drawing params independent of the track definition
+    // --------------------------------------
+    let trackWidth = SHORT * randomInRange(0.15, 0.3);
     let pathCount = randomInt(15, 30);
     // set line weight based on number of paths
     let weight = trackWidth / pathCount * randomInRange(0.13, 0.33);
     ctx.lineWidth = weight;
-
-
     // for drift, 100 is 45deg, and 0 is parallel with path
     let drift1 = randomInRange(10, 120);
     let drift2 = randomInRange(10, 120);
@@ -402,31 +404,33 @@ export function moire(options) {
     if (Math.random() < .80) drift2 = drift1;
 
 
+    // COLOR
     // sometimes, use the same color for both
     if (Math.random() < 0.3) {
         fg2 = fg;
     }
 
 
-    ctx.strokeStyle = fg;
 
-    // create a set of bezier step vectors in two segments, based on the
+    // Create tracks and path vectors
+    // --------------------------------------
+
+    // Generate a main track, use random angle and skew
+    let trackParams = createTrack(0.15 /* angle, skew */);
+
+    // Create a set of bezier step vectors in two segments, based on the
     // points defined in the main track
-    let allVectors = createMultiSegmentCurve(...trackParams, steps);
+    let allVectors = createMultiSegmentCurve(...trackParams);
 
-    // DEBUG && note.add(`Corrected steps: ${steps1} and ${steps2}, from ${steps}`);
+    // set style just before rendering because debug drawing may alter
+    ctx.strokeStyle = fg;
+    ctx.lineWidth = weight;
 
     // Draw it
     drawPaths(stepsToPaths(allVectors, pathCount, trackWidth, drift1));
 
 
-
-
-
-
     //--------------------------------------
-
-
 
 
     let renderModes = [
