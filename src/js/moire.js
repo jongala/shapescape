@@ -280,7 +280,52 @@ export function moire(options) {
 
     */
 
-    function createTrack(margin = 0.15, theta, skew) {
+    function createSimpleTrack(margin = 0.15, theta, skew) {
+        let start, ctlstart, ctlm1, mid, ctlm2, ctlend, end;
+        if (theta === undefined) {
+            theta = randomInRange(TWOPI);
+        }
+        if (skew === undefined) {
+            skew = PI * (1 + randomInRange(-.25, .25));
+        }
+        let theta2 = theta + skew;
+        start = pointOnCanvasEllipse(theta, margin);
+        end = pointOnCanvasEllipse(theta2, margin);
+        let v = getVector(start, end);
+
+
+        DEBUG && drawCircle(ctx, ...start, 6, {fill: 'green'});
+        DEBUG && drawCircle(ctx, ...start, 56, {stroke: 'green'});
+        DEBUG && drawCircle(ctx, ...end, 6, {fill: 'red'});
+
+        let endControlLength = randomInRange(0.2, 0.4) * v.length;
+
+        let direction = (Math.random() < 0.5) ? -1 : 1;
+        let transverse = v.angle + direction * PI/2;
+        let offset = randomInRange(0.1, 0.4) * v.length;
+
+        let tx = offset * Math.cos(transverse);
+        let ty = offset * Math.sin(transverse);
+
+        // end control points are along track by default
+        ctlstart = [
+            start[0] + tx + endControlLength * Math.cos(v.angle),
+            start[1] + ty + endControlLength * Math.sin(v.angle)
+        ];
+        ctlend = [
+            end[0] + tx + endControlLength * Math.cos(v.angle - PI),
+            end[1] + ty + endControlLength * Math.sin(v.angle - PI)
+        ];
+
+
+        DEBUG && drawCross(ctx, ...ctlstart, 16, {stroke: 'green'});
+        DEBUG && drawCross(ctx, ...ctlend, 16, {stroke: 'red'});
+
+        return [start, ctlstart, ctlend, end];
+    }
+
+
+    function createTwoStepTrack(margin = 0.15, theta, skew) {
         let start, ctlstart, ctlm1, mid, ctlm2, ctlend, end;
         if (theta === undefined) {
             theta = randomInRange(TWOPI);
@@ -347,6 +392,15 @@ export function moire(options) {
     }
 
 
+    // Return a set of step vectors following a single segment bezier curve
+    let createSingleSegmentCurve = function(start, ctlstart, ctlend, end) {
+        let vecs = curveToSteps(start, ctlstart, ctlend, end, 1000);
+        let len = getCurveLength(vecs);
+        let steps = len / STEP_PRECISION;
+        return curveToSteps(start, ctlstart, ctlend, end, steps);
+    }
+
+    // Return a set of step vectors following a two segment bezier curve
     let createMultiSegmentCurve = function(start, ctlstart, ctlm1, mid, ctlm2, ctlend, end) {
         let vecs1 = curveToSteps(start, ctlstart, ctlm1, mid, 1000);
         let vecs2 = curveToSteps(mid,  ctlm2, ctlend, end, 1000);
@@ -416,7 +470,7 @@ export function moire(options) {
     // --------------------------------------
 
     // // Generate a main track, use random angle and skew
-    // let trackParams = createTrack(0.15 /* angle, skew */);
+    // let trackParams = createTwoStepTrack(0.15 /* angle, skew */);
 
     // // Create a set of bezier step vectors in two segments, based on the
     // // points defined in the main track
@@ -441,7 +495,7 @@ export function moire(options) {
             let trackAngle = randomInRange(0, TWOPI);
             let skew = PI * (1 + randomInRange(-.25, .25));
             let v1 = createMultiSegmentCurve(
-                ...createTrack(0.15, trackAngle, skew)
+                ...createTwoStepTrack(0.15, trackAngle, skew)
             );
 
             // set style just before rendering because debug drawing may alter
@@ -452,7 +506,7 @@ export function moire(options) {
             drawPaths(stepsToPaths(v1, pathCount, trackWidth, drift1));
 
             let v2 = createMultiSegmentCurve(
-                ...createTrack(0.15, trackAngle, skew)
+                ...createTwoStepTrack(0.15, trackAngle, skew)
             );
 
             // set style just before rendering because debug drawing may alter
@@ -474,7 +528,7 @@ export function moire(options) {
 
             let trackAngle = randomInRange(0, TWOPI);
             let v1 = createMultiSegmentCurve(
-                ...createTrack(0.15, trackAngle /* skew*/)
+                ...createTwoStepTrack(0.15, trackAngle /* skew*/)
             );
 
             // set style just before rendering because debug drawing may alter
@@ -485,7 +539,7 @@ export function moire(options) {
             drawPaths(stepsToPaths(v1, pathCount, trackWidth, drift1));
 
             let v2 = createMultiSegmentCurve(
-                ...createTrack(0.15, trackAngle /* skew*/)
+                ...createTwoStepTrack(0.15, trackAngle /* skew*/)
             );
 
             // set style just before rendering because debug drawing may alter
@@ -512,7 +566,7 @@ export function moire(options) {
             // Draw it
             drawPaths(stepsToPaths(
                 createMultiSegmentCurve(
-                    ...createTrack(0.15 /* angle, skew */)
+                    ...createTwoStepTrack(0.15 /* angle, skew */)
                 )
                 , pathCount
                 , trackWidth
@@ -527,7 +581,33 @@ export function moire(options) {
             // Draw it
             drawPaths(stepsToPaths(
                 createMultiSegmentCurve(
-                    ...createTrack(0.15 /* angle, skew */)
+                    ...createTwoStepTrack(0.15 /* angle, skew */)
+                )
+                , pathCount
+                , trackWidth
+                , drift1)
+            );
+        },
+
+        () => {
+            note.add('single segment curves');
+
+            ctx.strokeStyle = fg;
+            // Draw it
+            drawPaths(stepsToPaths(
+                createSingleSegmentCurve(
+                    ...createSimpleTrack(0.15 /* angle, skew */)
+                )
+                , pathCount
+                , trackWidth
+                , drift1)
+            );
+
+            ctx.strokeStyle = fg2;
+            // Draw it
+            drawPaths(stepsToPaths(
+                createSingleSegmentCurve(
+                    ...createSimpleTrack(0.15 /* angle, skew */)
                 )
                 , pathCount
                 , trackWidth
@@ -546,6 +626,7 @@ export function moire(options) {
 
     // Finally: draw
     randItem(renderModes)();
+    //renderModes[3]();
 
     // output any notes
     note.log();
