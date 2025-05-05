@@ -338,17 +338,26 @@ export function moire(options) {
         end = pointOnCanvasEllipse(theta2, margin);
         let v = getVector(start, end);
 
+        let unskewedEnd = pointOnCanvasEllipse(theta + PI, margin);
+        let trueMiddle = [
+            start[0] + (unskewedEnd[0] - start[0]) / 2,
+            start[1] + (unskewedEnd[1] - start[1]) / 2
+        ];
+
+        let vm = getVector(start, trueMiddle);
 
         DEBUG && drawCircle(ctx, ...start, 6, {fill: 'green'});
         DEBUG && drawCircle(ctx, ...start, 56, {stroke: 'green'});
         DEBUG && drawCircle(ctx, ...end, 6, {fill: 'red'});
 
+        DEBUG && drawCircle(ctx, ...trueMiddle, 26, {stroke:'green'});
+
         let endControlLength = randomInRange(0.1, 0.2) * v.length;
 
         // end control points are along track by default
         ctlstart = [
-            start[0] + endControlLength * Math.cos(v.angle),
-            start[1] + endControlLength * Math.sin(v.angle)
+            start[0] + endControlLength * Math.cos(vm.angle),
+            start[1] + endControlLength * Math.sin(vm.angle)
         ];
         ctlend = [
             end[0] + endControlLength * Math.cos(v.angle - PI),
@@ -490,7 +499,7 @@ export function moire(options) {
     let renderModes = [
 
         () => {
-            note.add('same endpoints, different controls');
+            note.add('same endpoints, different middle');
 
             let trackAngle = randomInRange(0, TWOPI);
             let skew = PI * (1 + randomInRange(-.25, .25));
@@ -626,7 +635,7 @@ export function moire(options) {
 
     // Finally: draw
     randItem(renderModes)();
-    //renderModes[3]();
+    //renderModes[0]();
 
     // output any notes
     note.log();
