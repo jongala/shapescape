@@ -27,6 +27,8 @@ const palettes = {
     inferno: ['#000004', '#420a68', '#932667', '#dd513a', '#fca50a', '#fcffa4'],
     plasma: ['#0d0887', '#6a00a8', '#b12a90', '#e16462', '#fca636', '#f0f921'],
     viridis: ['#440154', '#414487', '#2a788e', '#22a884', '#7ad151', '#fde725'],
+
+    morley_rainbow: ['#817', '#a35', '#c66', '#e94', '#ed0', '#9d5', '#4d8', '#2cb', '#0bc', '#09c', '#36b', '#639']
 };
 
 export default palettes;
