@@ -94,6 +94,52 @@ export function moire(options) {
     }
 
 
+    /*
+
+    HOW IT WORKS:
+
+
+    1. Define a general track that each drawing will run along.
+
+    This is based on an ellipse that covers the canvas, with endpoints
+    connected along some @angle. Add @skew so they do not connect directly
+    across the center of the canvas.
+
+    The track returns control points for bezier curves, and can be in one
+    or two segments.
+
+    // one segment track:
+    let simpleTrackParams = createSimpleTrack(0.15, angle, skew );
+
+    // two segment track:
+    let twoStepTrackParams = createTwoStepTrack(0.15, angle, skew );
+
+
+    2. Convert the bezier curves from step 1 into many small straight segments.
+
+
+    // Create a set of bezier step vectors in two segments, based on the
+    // points defined in the main track
+    let simpleVectors = createSingleSegmentCurve(...simpleTrackParams);
+    let twoStepVectors = createMultiSegmentCurve(...twoStepTrackParams);
+
+
+    3. Draw the paths based on those steps.  First convert stepsToPaths, then
+    use drawPaths.
+    , which takes the step vectors
+    and draws many lines along them across the width, adding side drift for
+    diagonal direction.
+
+    // set style just before rendering because debug drawing may alter
+    ctx.strokeStyle = fg;
+    ctx.lineWidth = weight;
+
+    // Draw it
+    drawPaths(stepsToPaths(simpleVectors, pathCount, trackWidth, drift1));
+
+    */
+
+
     // Draw Stuff
     // --------------------------------------
 
@@ -478,19 +524,9 @@ export function moire(options) {
     // Create tracks and path vectors
     // --------------------------------------
 
-    // // Generate a main track, use random angle and skew
-    // let trackParams = createTwoStepTrack(0.15 /* angle, skew */);
 
-    // // Create a set of bezier step vectors in two segments, based on the
-    // // points defined in the main track
-    // let allVectors = createMultiSegmentCurve(...trackParams);
 
-    // // set style just before rendering because debug drawing may alter
-    // ctx.strokeStyle = fg;
-    // ctx.lineWidth = weight;
 
-    // // Draw it
-    // drawPaths(stepsToPaths(allVectors, pathCount, trackWidth, drift1));
 
 
     //--------------------------------------
@@ -573,13 +609,15 @@ export function moire(options) {
             ctx.lineWidth = weight;
 
             // Draw it
-            drawPaths(stepsToPaths(
-                createMultiSegmentCurve(
-                    ...createTwoStepTrack(0.15 /* angle, skew */)
+            drawPaths(
+                stepsToPaths(
+                    createMultiSegmentCurve(
+                        ...createTwoStepTrack(0.15 /* angle, skew */)
+                    )
+                    , pathCount
+                    , trackWidth
+                    , drift1
                 )
-                , pathCount
-                , trackWidth
-                , drift1)
             );
 
 
@@ -588,13 +626,15 @@ export function moire(options) {
             ctx.lineWidth = weight;
 
             // Draw it
-            drawPaths(stepsToPaths(
-                createMultiSegmentCurve(
-                    ...createTwoStepTrack(0.15 /* angle, skew */)
+            drawPaths(
+                stepsToPaths(
+                    createMultiSegmentCurve(
+                        ...createTwoStepTrack(0.15 /* angle, skew */)
+                    )
+                    , pathCount
+                    , trackWidth
+                    , drift1
                 )
-                , pathCount
-                , trackWidth
-                , drift1)
             );
         },
 
@@ -603,24 +643,28 @@ export function moire(options) {
 
             ctx.strokeStyle = fg;
             // Draw it
-            drawPaths(stepsToPaths(
-                createSingleSegmentCurve(
-                    ...createSimpleTrack(0.15 /* angle, skew */)
+            drawPaths(
+                stepsToPaths(
+                    createSingleSegmentCurve(
+                        ...createSimpleTrack(0.15 /* angle, skew */)
+                        )
+                    , pathCount
+                    , trackWidth
+                    , drift1
                 )
-                , pathCount
-                , trackWidth
-                , drift1)
             );
 
             ctx.strokeStyle = fg2;
             // Draw it
-            drawPaths(stepsToPaths(
-                createSingleSegmentCurve(
-                    ...createSimpleTrack(0.15 /* angle, skew */)
+            drawPaths(
+                stepsToPaths(
+                    createSingleSegmentCurve(
+                        ...createSimpleTrack(0.15 /* angle, skew */)
+                        )
+                    , pathCount
+                    , trackWidth
+                    , drift1
                 )
-                , pathCount
-                , trackWidth
-                , drift1)
             );
         },
 
