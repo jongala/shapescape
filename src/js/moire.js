@@ -16,7 +16,7 @@ const TWOPI = 2 * PI;
 
 const STEP_PRECISION = 5;
 
-const DEBUG = false;
+const DEBUG = true;
 
 // Main function
 export function moire(options) {
@@ -367,6 +367,19 @@ export function moire(options) {
         DEBUG && drawCross(ctx, ...ctlstart, 16, {stroke: 'green'});
         DEBUG && drawCross(ctx, ...ctlend, 16, {stroke: 'red'});
 
+        if (DEBUG) {
+            let _w = ctx.lineWidth;
+            ctx.lineWidth = _w/2;
+            ctx.strokeStyle = 'green';
+            drawLine(ctx, start, ctlstart);
+            ctx.stroke();
+
+            ctx.strokeStyle = 'red';
+            drawLine(ctx, end, ctlend);
+            ctx.stroke();
+            ctx.lineWidth = _w;
+        }
+
         return [start, ctlstart, ctlend, end];
     }
 
@@ -441,6 +454,25 @@ export function moire(options) {
 
         DEBUG && drawCross(ctx, ...ctlm1, 16, {stroke: 'magenta'});
         DEBUG && drawCross(ctx, ...ctlm2, 16, {stroke: 'magenta'});
+
+        if (DEBUG) {
+            let _w = ctx.lineWidth;
+            ctx.lineWidth = _w/2;
+
+            ctx.strokeStyle = 'green';
+            drawLine(ctx, start, ctlstart);
+            ctx.stroke();
+
+            ctx.strokeStyle = 'red';
+            drawLine(ctx, end, ctlend);
+            ctx.stroke();
+
+            ctx.strokeStyle = 'magenta';
+            drawLine(ctx, ctlm1, ctlm2);
+            ctx.stroke();
+
+            ctx.lineWidth = _w;
+        }
 
 
         return [start, ctlstart, ctlm1, mid, ctlm2, ctlend, end];
