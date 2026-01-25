@@ -16,7 +16,7 @@ const TWOPI = 2 * PI;
 
 const STEP_PRECISION = 5;
 
-const DEBUG = true;
+const DEBUG = false;
 
 // Main function
 export function moire(options) {
@@ -370,6 +370,8 @@ export function moire(options) {
         if (DEBUG) {
             let _w = ctx.lineWidth;
             ctx.lineWidth = _w/2;
+            let _c = ctx.strokeStyle;
+
             ctx.strokeStyle = 'green';
             drawLine(ctx, start, ctlstart);
             ctx.stroke();
@@ -377,7 +379,9 @@ export function moire(options) {
             ctx.strokeStyle = 'red';
             drawLine(ctx, end, ctlend);
             ctx.stroke();
+
             ctx.lineWidth = _w;
+            ctx.strokeStyle = _c;
         }
 
         return [start, ctlstart, ctlend, end];
@@ -439,8 +443,8 @@ export function moire(options) {
 
         DEBUG && drawCircle(ctx, ...mid, 6, {fill: 'magenta'});
 
-        let midAngle = v.angle + PI * randomInRange(-0.2, 0.2);
-        let midSpan = v.length * randomInRange(0.1, 0.2);
+        let midAngle = v.angle + PI * randomInRange(-0.1, 0.1);
+        let midSpan = v.length * randomInRange(0.15, 0.25);
 
         ctlm1 = [
             mid[0] + midSpan * Math.cos(midAngle + PI),
@@ -458,6 +462,7 @@ export function moire(options) {
         if (DEBUG) {
             let _w = ctx.lineWidth;
             ctx.lineWidth = _w/2;
+            let _c = ctx.strokeStyle;
 
             ctx.strokeStyle = 'green';
             drawLine(ctx, start, ctlstart);
@@ -472,6 +477,7 @@ export function moire(options) {
             ctx.stroke();
 
             ctx.lineWidth = _w;
+            ctx.strokeStyle = _c;
         }
 
 
