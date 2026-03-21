@@ -100,7 +100,7 @@ function loadOpts(opts, fast) {
     Renderer(visualOpts);
     // set up main download link
     let a = document.getElementById('downloadExample');
-    a.onclick = ()=>{return doDownload(a, document.querySelector('#example canvas'))};
+    a.onclick = ()=>{return doDownload(a, document.querySelector('svg.plotter'))};
 }
 
 // Handlers for redraw, batching, and manual saving
@@ -166,6 +166,18 @@ function doDownload(anchor, el) {
             };
             anchor.click();
         }, 'image/png');
+    } else if (el.nodeName === 'svg') {
+        const blob = new Blob([el.outerHTML], { type: 'image/svg+xml' });
+
+        anchor.href = window.URL.createObjectURL(blob);
+        anchor.onclick = () => {
+            anchor.onclick = ()=>{};
+            setTimeout(() => {
+                window.URL.revokeObjectURL(blob);
+                anchor.removeAttribute('href');
+            });
+        };
+        anchor.click();
     }
 
     return false;

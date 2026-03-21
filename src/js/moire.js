@@ -715,6 +715,7 @@ export function moire_svg(options) {
             if (!path.pts.length) return;
 
             let plotpath  = `<path \
+                fill="none" \
                 stroke-width="${weight}" \
                 stroke-linecap="round" `;
 
