@@ -402,3 +402,19 @@ body.clock #time {
     width: 100vw;
     height: 100vh;
 }
+
+/*
+Plotter
+*/
+
+svg.plotter {
+    border: 1px solid black;
+}
+
+.plotter path {
+  fill: none;
+  /*stroke: #000;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: 0.2s;*/
+}

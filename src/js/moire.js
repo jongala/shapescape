@@ -18,8 +18,9 @@ const STEP_PRECISION = 5;
 
 const DEBUG = false;
 
-// Main function
-export function moire(options) {
+
+
+function define_moire(options) {
     let opts = Object.assign({}, DEFAULTS, options);
 
     let container = opts.container;
@@ -50,32 +51,6 @@ export function moire(options) {
     let ctx = el.getContext('2d');
 
     let note = new Note();
-
-
-    // Color funcs
-    // --------------------------------------
-
-    let getSolidFill = getSolidColorFunction(opts.palette);
-
-    // shared colors
-    let bg = getSolidFill();
-    //bg = randItem(['#fcf9f0','#f3f2f1','#f4f9fb','#f6f4f2']);
-
-    // get palette of non-bg colors
-    let contrastPalette = [].concat(opts.palette);
-    contrastPalette.splice(opts.palette.indexOf(bg), 1);
-    let getContrastColor = getSolidColorFunction(contrastPalette);
-
-    // shared foregrounds
-    let fg = getContrastColor();
-    let fg2 = getContrastColor();
-
-    // fill background
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, cw, ch);
-
-    // set default stroke
-    ctx.strokeStyle = fg;
 
 
     function estimateCurveLength(a, b, c1, c2) {
@@ -138,6 +113,8 @@ export function moire(options) {
     drawPaths(stepsToPaths(simpleVectors, pathCount, trackWidth, drift1));
 
     */
+
+    let renderPaths = [];
 
 
     // Draw Stuff
@@ -272,21 +249,6 @@ export function moire(options) {
         });
 
         return paths;
-    }
-
-
-    // actually draw paths to canvas
-    function drawPaths(paths) {
-        // now go back and draw all then paths
-        paths.forEach((path) => {
-            if (!path.pts.length) return;
-            ctx.beginPath();
-            ctx.moveTo(...path.pts.shift());
-            path.pts.forEach((p) => {
-                ctx.lineTo(p[0], p[1]);
-            });
-            ctx.stroke();
-        });
     }
 
 
@@ -536,38 +498,22 @@ export function moire(options) {
 
 
 
-
-    // Drawing params independent of the track definition
+    // Path params
     // --------------------------------------
-    let trackWidth = SHORT * randomInRange(0.15, 0.3);
     let pathCount = randomInt(15, 30);
-    // set line weight based on number of paths
-    let weight = trackWidth / pathCount * randomInRange(0.13, 0.33);
-    ctx.lineWidth = weight;
+
     // for drift, 100 is 45deg, and 0 is parallel with path
     let drift1 = randomInRange(10, 120);
     let drift2 = randomInRange(10, 120);
     // usually sync drift so the angles match
     if (Math.random() < .80) drift2 = drift1;
 
-
-    // COLOR
-    // sometimes, use the same color for both
-    if (Math.random() < 0.3) {
-        fg2 = fg;
-    }
+    let trackWidth = SHORT * randomInRange(0.15, 0.3);
 
 
 
     // Create tracks and path vectors
     // --------------------------------------
-
-
-
-
-
-
-    //--------------------------------------
 
 
     let renderModes = [
@@ -581,23 +527,19 @@ export function moire(options) {
                 ...createTwoStepTrack(0.15, trackAngle, skew)
             );
 
-            // set style just before rendering because debug drawing may alter
-            ctx.strokeStyle = fg;
-            ctx.lineWidth = weight;
+            // REPLACE set color and weight
 
             // Draw it
-            drawPaths(stepsToPaths(v1, pathCount, trackWidth, drift1));
+            renderPaths.push(stepsToPaths(v1, pathCount, trackWidth, drift1));
 
             let v2 = createMultiSegmentCurve(
                 ...createTwoStepTrack(0.15, trackAngle, skew)
             );
 
-            // set style just before rendering because debug drawing may alter
-            ctx.strokeStyle = fg2;
-            ctx.lineWidth = weight;
+            // REPLACE set color and weight
 
             // Draw it
-            drawPaths(stepsToPaths(v2, pathCount, trackWidth, drift1));
+            renderPaths.push(stepsToPaths(v2, pathCount, trackWidth, drift1));
 
 
             /*ctx.strokeStyle = fg;
@@ -614,23 +556,19 @@ export function moire(options) {
                 ...createTwoStepTrack(0.15, trackAngle /* skew*/)
             );
 
-            // set style just before rendering because debug drawing may alter
-            ctx.strokeStyle = fg;
-            ctx.lineWidth = weight;
+            // REPLACE set color and weight
 
             // Draw it
-            drawPaths(stepsToPaths(v1, pathCount, trackWidth, drift1));
+            renderPaths.push(stepsToPaths(v1, pathCount, trackWidth, drift1));
 
             let v2 = createMultiSegmentCurve(
                 ...createTwoStepTrack(0.15, trackAngle /* skew*/)
             );
 
-            // set style just before rendering because debug drawing may alter
-            ctx.strokeStyle = fg2;
-            ctx.lineWidth = weight;
+            // REPLACE set color and weight
 
             // Draw it
-            drawPaths(stepsToPaths(v2, pathCount, trackWidth, drift1));
+            renderPaths.push(stepsToPaths(v2, pathCount, trackWidth, drift1));
 
 
             // ctx.strokeStyle = fg;
@@ -642,12 +580,10 @@ export function moire(options) {
         () => {
             note.add('separate paths, no relation');
 
-            // set style just before rendering because debug drawing may alter
-            ctx.strokeStyle = fg;
-            ctx.lineWidth = weight;
+            // REPLACE set color and weight
 
             // Draw it
-            drawPaths(
+            renderPaths.push(
                 stepsToPaths(
                     createMultiSegmentCurve(
                         ...createTwoStepTrack(0.15 /* angle, skew */)
@@ -659,12 +595,10 @@ export function moire(options) {
             );
 
 
-            // set style just before rendering because debug drawing may alter
-            ctx.strokeStyle = fg2;
-            ctx.lineWidth = weight;
+            // REPLACE set color and weight
 
             // Draw it
-            drawPaths(
+            renderPaths.push(
                 stepsToPaths(
                     createMultiSegmentCurve(
                         ...createTwoStepTrack(0.15 /* angle, skew */)
@@ -679,9 +613,11 @@ export function moire(options) {
         () => {
             note.add('single segment curves');
 
-            ctx.strokeStyle = fg;
+
+            // REPLACE set color and weight
+
             // Draw it
-            drawPaths(
+            renderPaths.push(
                 stepsToPaths(
                     createSingleSegmentCurve(
                         ...createSimpleTrack(0.15 /* angle, skew */)
@@ -692,9 +628,10 @@ export function moire(options) {
                 )
             );
 
-            ctx.strokeStyle = fg2;
+            // REPLACE set color and weight
+
             // Draw it
-            drawPaths(
+            renderPaths.push(
                 stepsToPaths(
                     createSingleSegmentCurve(
                         ...createSimpleTrack(0.15 /* angle, skew */)
@@ -722,6 +659,200 @@ export function moire(options) {
     // output any notes
     note.log();
 
+
+    return {
+        renderPaths,
+        pathCount,
+        opts,
+        trackWidth
+    }
+}
+
+
+export function moire_svg(options) {
+    const {
+        opts,
+        renderPaths,
+        pathCount,
+        trackWidth
+    } = define_moire(options);
+
+
+    let plotter = document.querySelector('svg.plotter');
+    plotter.innerHTML = '';
+    //plotter.setAttribute('width', cw);
+    //plotter.setAttribute('height', ch);
+    //plotter.setAttribute(`viewBox`,`0 0 ${cw} ${ch}`)
+
+    let allPaths = '';
+
+
+
+    // Color funcs
+    // --------------------------------------
+
+    let getSolidFill = getSolidColorFunction(opts.palette);
+
+    // shared colors
+    let bg = getSolidFill();
+    //bg = randItem(['#fcf9f0','#f3f2f1','#f4f9fb','#f6f4f2']);
+
+    // get palette of non-bg colors
+    let contrastPalette = [].concat(opts.palette);
+    contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    let getContrastColor = getSolidColorFunction(contrastPalette);
+
+    // shared foregrounds
+    let fg = getContrastColor();
+    let fg2 = getContrastColor();
+
+
+
+
+    function drawPaths(paths, color, weight) {
+
+        paths.forEach((path) => {
+            if (!path.pts.length) return;
+
+            let plotpath  = `<path \
+                stroke-width="${weight}" \
+                stroke-linecap="round" `;
+
+            plotpath += ` stroke="${color}" `;
+            plotpath += ` d="`;
+
+            let start = path.pts.shift();
+
+            //ctx.moveTo(...path.pts.shift());
+            plotpath += 'M' + start[0].toPrecision(4) + ',' + start[1].toPrecision(4);
+
+            path.pts.forEach((p) => {
+            //    ctx.lineTo(p[0], p[1]);
+                plotpath += 'L' + p[0].toPrecision(4) + ',' + p[1].toPrecision(4);
+            });
+
+            //ctx.stroke();
+            plotpath += '" />';
+            allPaths += plotpath;
+
+        });
+
+    }
+
+
+    drawPaths(renderPaths[0], fg, 1);
+    drawPaths(renderPaths[1], fg2, 1);
+
+    plotter.innerHTML += allPaths;
+}
+
+
+// Main function
+export function moire(options) {
+    const {
+        opts,
+        renderPaths,
+        pathCount,
+        trackWidth
+    } = define_moire(options);
+
+
+    let container = opts.container;
+    let cw = container.offsetWidth;
+    let ch = container.offsetHeight;
+    let SCALE = Math.min(cw, ch);
+    let LONG = Math.max(cw, ch);
+    let SHORT = Math.min(cw, ch);
+    let SPAN = Math.sqrt(LONG ** 2 + SHORT ** 2);
+    const AREA = cw * ch;
+    const ASPECT = LONG/SHORT;
+
+    let center = [cw/2, ch/2];
+
+    // Find or create canvas child
+    let el = container.querySelector('canvas');
+    let newEl = false;
+    if (!el) {
+        container.innerHTML = '';
+        el = document.createElement('canvas');
+        newEl = true;
+    }
+    if (newEl || opts.clear) {
+        el.width = cw;
+        el.height = ch;
+    }
+
+    let ctx = el.getContext('2d');
+
+
+    // Color funcs
+    // --------------------------------------
+
+    let getSolidFill = getSolidColorFunction(opts.palette);
+
+    // shared colors
+    let bg = getSolidFill();
+    //bg = randItem(['#fcf9f0','#f3f2f1','#f4f9fb','#f6f4f2']);
+
+    // get palette of non-bg colors
+    let contrastPalette = [].concat(opts.palette);
+    contrastPalette.splice(opts.palette.indexOf(bg), 1);
+    let getContrastColor = getSolidColorFunction(contrastPalette);
+
+    // shared foregrounds
+    let fg = getContrastColor();
+    let fg2 = getContrastColor();
+
+    // fill background
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, cw, ch);
+
+    // set default stroke
+    ctx.strokeStyle = fg;
+
+
+
+    // COLOR
+    // sometimes, use the same color for both
+    if (Math.random() < 0.3) {
+        fg2 = fg;
+    }
+
+
+    let pathColors = [fg, fg2];
+
+
+    // Drawing params independent of the track definition
+    // --------------------------------------
+
+    // set line weight based on number of paths
+    let weight = trackWidth / pathCount * randomInRange(0.13, 0.33);
+    ctx.lineWidth = weight;
+
+    // actually draw paths to canvas
+    function drawPaths(paths) {
+        // now go back and draw all then paths
+        paths.forEach((path) => {
+            if (!path.pts.length) return;
+            ctx.beginPath();
+            ctx.moveTo(...path.pts.shift());
+            path.pts.forEach((p) => {
+                ctx.lineTo(p[0], p[1]);
+            });
+            ctx.stroke();
+        });
+    }
+
+    renderPaths.forEach((pathSet, i) => {
+        //ctx.strokeStyle = pathColors[i % (pathColors.length - 1)];
+        //drawPaths(pathSet[0]);
+    });
+
+    ctx.strokeStyle = fg;
+    drawPaths(renderPaths[0]);
+    ctx.strokeStyle = fg2;
+    drawPaths(renderPaths[1]);
+
     // Finish up
     // --------------------------------------
 
@@ -732,7 +863,7 @@ export function moire(options) {
             noiseUtils.applyNoiseCanvas(el, opts.noiseInput);
         } else {
             // create noise pattern and apply
-            noiseUtils.addNoiseFromPattern(el, opts.addNoise, w / 3);
+            noiseUtils.addNoiseFromPattern(el, opts.addNoise, cw / 3);
         }
     }
 
@@ -741,5 +872,3 @@ export function moire(options) {
         container.appendChild(el);
     }
 }
-
-
