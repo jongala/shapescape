@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 54);
+/******/ 	return __webpack_require__(__webpack_require__.s = 53);
 /******/ })
 /************************************************************************/
 /******/ ({
@@ -414,10 +414,14 @@ var palettes = {
 
     ikb: ['#070033', '#00006b', '#00187c', '#002ea7', '#0b6fff', '#5c9eff', '#e9f4ff'],
 
+    torch: ['#230000', '#770022', '#bf0000', '#dd3400', '#ff7415', '#ff9d27', '#fffa50'],
+
     magma: ['#000004', '#3b0f70', '#8c2981', '#de4968', '#fe9f6d', '#fcfdbf'],
     inferno: ['#000004', '#420a68', '#932667', '#dd513a', '#fca50a', '#fcffa4'],
     plasma: ['#0d0887', '#6a00a8', '#b12a90', '#e16462', '#fca636', '#f0f921'],
-    viridis: ['#440154', '#414487', '#2a788e', '#22a884', '#7ad151', '#fde725']
+    viridis: ['#440154', '#414487', '#2a788e', '#22a884', '#7ad151', '#fde725'],
+
+    morley_rainbow: ['#817', '#a35', '#c66', '#e94', '#ed0', '#9d5', '#4d8', '#2cb', '#0bc', '#09c', '#36b', '#639']
 };
 
 exports.default = palettes;
@@ -1436,7 +1440,7 @@ var DEFAULTS = {
             ctx.moveTo.apply(ctx, _toConsumableArray(trailStart));
 
             if (RENDERTOSVG) {
-                plotpath += ' stroke="' + ctx.strokeStyle + '" ';
+                plotpath += ' stroke="' + ctx.strokeStyle + '" fill="none" stroke-linecap="' + STYLE + '" ';
                 plotpath += ' d="';
                 plotpath += 'M' + trailStart[0].toPrecision(4) + ',' + trailStart[1].toPrecision(4);
             }
@@ -2433,7 +2437,7 @@ function opacityTransforms(maxLen) {
 
 /***/ }),
 
-/***/ 54:
+/***/ 53:
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2537,7 +2541,7 @@ function loadOpts(opts, fast) {
     // set up main download link
     var a = document.getElementById('downloadExample');
     a.onclick = function () {
-        return doDownload(a, document.querySelector('#renderNode canvas'));
+        return doDownload(a, document.querySelector('#renderNode svg'));
     };
 }
 
@@ -2598,6 +2602,27 @@ function doDownload(anchor, el) {
             };
             anchor.click();
         }, 'image/png');
+    } else if (el.nodeName === 'svg') {
+
+        /*
+        let svg = document.querySelector('svg').outerHTML;
+        let blob = new Blob([svg], {type : 'image/svg+xml'});
+        e.target.href = URL.createObjectURL(blob);
+        */
+
+        console.log('Tried to download SVG');
+
+        var markup = el.outerHTML;
+        var _blob = new Blob([markup], { type: 'image/svg+xml' });
+        anchor.href = URL.createObjectURL(_blob);
+        anchor.onclick = function () {
+            anchor.onclick = function () {};
+            setTimeout(function () {
+                window.URL.revokeObjectURL(_blob);
+                anchor.removeAttribute('href');
+            });
+        };
+        anchor.click();
     }
 
     return false;

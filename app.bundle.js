@@ -412,10 +412,14 @@ var palettes = {
 
     ikb: ['#070033', '#00006b', '#00187c', '#002ea7', '#0b6fff', '#5c9eff', '#e9f4ff'],
 
+    torch: ['#230000', '#770022', '#bf0000', '#dd3400', '#ff7415', '#ff9d27', '#fffa50'],
+
     magma: ['#000004', '#3b0f70', '#8c2981', '#de4968', '#fe9f6d', '#fcfdbf'],
     inferno: ['#000004', '#420a68', '#932667', '#dd513a', '#fca50a', '#fcffa4'],
     plasma: ['#0d0887', '#6a00a8', '#b12a90', '#e16462', '#fca636', '#f0f921'],
-    viridis: ['#440154', '#414487', '#2a788e', '#22a884', '#7ad151', '#fde725']
+    viridis: ['#440154', '#414487', '#2a788e', '#22a884', '#7ad151', '#fde725'],
+
+    morley_rainbow: ['#817', '#a35', '#c66', '#e94', '#ed0', '#9d5', '#4d8', '#2cb', '#0bc', '#09c', '#36b', '#639']
 };
 
 exports.default = palettes;
@@ -6293,7 +6297,7 @@ var DEFAULTS = {
             ctx.moveTo.apply(ctx, _toConsumableArray(trailStart));
 
             if (RENDERTOSVG) {
-                plotpath += ' stroke="' + ctx.strokeStyle + '" ';
+                plotpath += ' stroke="' + ctx.strokeStyle + '" fill="none" stroke-linecap="' + STYLE + '" ';
                 plotpath += ' d="';
                 plotpath += 'M' + trailStart[0].toPrecision(4) + ',' + trailStart[1].toPrecision(4);
             }
@@ -11664,11 +11668,13 @@ function tricycles(options) {
     // function to draw @n radial lines out from a point
     function radiateFromPoint(p) {
         var n = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 36;
+        var color = arguments[2];
 
         var step = TWOPI / n;
         var R = LONG * 3;
         var offset = (0, _utils.randomInRange)(0, PI);
 
+        ctx.strokeStyle = color;
         for (var i = 0; i < n; i++) {
             ctx.beginPath();
             ctx.moveTo(p.x, p.y);
@@ -11697,39 +11703,43 @@ function tricycles(options) {
     // Draw Stuff
     // --------------------------------------
 
-    // Draw some points. We will step through, looking at three at a time,
-    // and define circles. Adjacent circles will have two points in common.
-    var points = [];
+    // Draw some anchors. We will step through, looking at three at a time,
+    // and define circles. Adjacent circles will have two anchors in common.
+    var anchors = [];
 
     // point placement function
     var quadrants = function quadrants() {
-        points.push([(0, _utils.randomInt)(0, cw / 2), (0, _utils.randomInt)(0, ch / 2)]);
-        points.push([(0, _utils.randomInt)(cw / 2, cw), (0, _utils.randomInt)(0, ch / 2)]);
-        points.push([(0, _utils.randomInt)(0, cw / 2), (0, _utils.randomInt)(ch / 2, ch)]);
-        points.push([(0, _utils.randomInt)(cw / 2, cw), (0, _utils.randomInt)(ch / 2, ch)]);
+        var anchors = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
 
-        // points.push([cw/2, randomInt(0, ch/2)]);
-        // points.push([cw/2, randomInt(ch/2, ch)]);
-        // points.push([randomInt(0, cw/2) , ch/2]);
-        // points.push([randomInt(cw/2, cw), ch/2]);
-
-        points = (0, _utils.shuffle)(points);
+        var margin = 0.1 * SHORT;
+        var minx = margin;
+        var maxx = cw - margin;
+        var miny = margin;
+        var maxy = ch - margin;
+        anchors.push([(0, _utils.randomInt)(minx, cw / 2), (0, _utils.randomInt)(miny, ch / 2)]);
+        anchors.push([(0, _utils.randomInt)(cw / 2, maxy), (0, _utils.randomInt)(miny, ch / 2)]);
+        anchors.push([(0, _utils.randomInt)(minx, cw / 2), (0, _utils.randomInt)(ch / 2, maxy)]);
+        anchors.push([(0, _utils.randomInt)(cw / 2, maxx), (0, _utils.randomInt)(ch / 2, maxy)]);
+        anchors = (0, _utils.shuffle)(anchors);
+        return anchors;
     };
 
     // point placement function
     var ring = function ring() {
+        var anchors = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+
         var steps = (0, _utils.randomInt)(8, 24);
         var inc = TWOPI / steps;
         var startAngle = (0, _utils.randomInRange)(TWOPI);
 
-        // baseline radius of the ellipse that plots the points
+        // baseline radius of the ellipse that plots the anchors
         var radiusFraction = (0, _utils.randomInRange)(20, 30) / 100;
 
         var offset = void 0;
         var _x = void 0,
             _y = void 0;
 
-        // go around the ellipse defined by canvas, dropping points
+        // go around the ellipse defined by canvas, dropping anchors
         for (var i = 0; i < steps; i++) {
             // alternate moving in and out by the offset fraction
             offset = i % 2 ? 1 : -1;
@@ -11738,21 +11748,31 @@ function tricycles(options) {
             _x = cw / 2 + cw * (radiusFraction + offset) * Math.cos(i * inc + startAngle);
             _y = ch / 2 + ch * (radiusFraction + offset) * Math.sin(i * inc + startAngle);
 
-            points.push([_x, _y]);
+            anchors.push([_x, _y]);
         }
 
-        // For every 10 points we have, drop 1
+        // For every 10 anchors we have, drop 1
         var skipCount = Math.floor(steps / 10);
         while (skipCount--) {
-            points.splice((0, _utils.randomInt)(points.length - 1), 1);
+            anchors.splice((0, _utils.randomInt)(anchors.length - 1), 1);
         }
+        return anchors;
     };
 
     // point placement function
     // TODO fix params
-    var alternate = function alternate(a, b, steps) {
+    var alternate = function alternate() {
+        var anchors = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+
+        var a = void 0,
+            b = void 0,
+            stepCount = void 0;
         var _x = void 0,
             _y = void 0;
+        var MAGIC_COUNT = 6;
+        var BIG_PROBABILITY = 0.125;
+        var BIG_OFFSET = 1.5;
+        var OFFSET_RANGE = [0.1, 0.4];
         // debug
         if (Math.random() < 0.5) {
             // left right
@@ -11765,31 +11785,32 @@ function tricycles(options) {
         }
 
         var v = (0, _utils.getVector)(a, b);
-        steps = Math.round(8 * v.length / SHORT);
-        var inc = v.length / steps;
+
+        stepCount = Math.round(MAGIC_COUNT * v.length / SHORT);
 
         _x = v.x;
         _y = v.y;
 
-        var offset = SCALE / 10;
+        var offset = void 0;
+
         var orthogonal = void 0;
 
-        for (var i = 0; i < steps; i++) {
-            _x += v.length / steps * Math.cos(v.angle);
-            _y += v.length / steps * Math.sin(v.angle);
+        for (var i = 0; i < stepCount; i++) {
+            _x += v.length / stepCount * Math.cos(v.angle);
+            _y += v.length / stepCount * Math.sin(v.angle);
 
             //drawCircle(ctx, _x, _y, 5, {fill:'green'});
 
             orthogonal = i % 2 ? PI / 2 : -PI / 2;
             orthogonal += v.angle;
 
-            offset = SCALE * (0, _utils.randomInRange)(0.1, 0.4);
+            offset = SCALE * _utils.randomInRange.apply(undefined, OFFSET_RANGE);
             // sometimes make big steps pop out for variety
-            if (Math.random() < 0.125) {
-                offset *= 1.5;
+            if (Math.random() < BIG_PROBABILITY) {
+                offset *= BIG_OFFSET;
             }
 
-            points.push([_x + offset * Math.cos(orthogonal), _y + offset * Math.sin(orthogonal)]);
+            anchors.push([_x + offset * Math.cos(orthogonal), _y + offset * Math.sin(orthogonal)]);
         }
 
         ctx.beginPath();
@@ -11797,19 +11818,21 @@ function tricycles(options) {
         ctx.lineTo.apply(ctx, _toConsumableArray(b));
         ctx.stroke();
 
-        // let split = randomInt(points.length);
-        // points = points.slice(0, split).concat(points.slice(split, -1));
+        // let split = randomInt(anchors.length);
+        // anchors = anchors.slice(0, split).concat(anchors.slice(split, -1));
+        return anchors;
     };
 
     // run setup functions according to style prop
     var setupFuncs = [];
+    console.log('tricycles:', STYLE);
     if (STYLE === 'simple') {
-        quadrants();
+        quadrants(anchors);
     } else if (STYLE === 'complex') {
-        (0, _utils.randItem)([alternate, ring])();
+        alternate(anchors);
     } else {
         // auto case
-        (0, _utils.randItem)([quadrants, alternate, ring])();
+        (0, _utils.randItem)([quadrants, alternate])(anchors);
     }
 
     // set up circles
@@ -11819,13 +11842,13 @@ function tricycles(options) {
     var margin = SCALE / (0, _utils.randomInt)(20, 60);
 
     // draw fewer rays when there will be many circles
-    var rayCount = 150 / Math.log(points.length);
-    var decorationThreshold = 0.66 / Math.log(points.length);
+    var rayCount = 150 / Math.log(anchors.length);
+    var decorationThreshold = 0.66 / Math.log(anchors.length);
 
-    // step through points:
+    // step through anchors:
     // define circles
-    for (var i = 0; i < points.length - 2; i++) {
-        var c = circumcenter.apply(undefined, _toConsumableArray(points.slice(i, i + 3)));
+    for (var i = 0; i < anchors.length - 2; i++) {
+        var c = circumcenter.apply(undefined, _toConsumableArray(anchors.slice(i, i + 3)));
 
         var color = getContrastColor();
         c.color = color;
@@ -11854,14 +11877,14 @@ function tricycles(options) {
         (0, _shapes.drawCircle)(ctx, c.x, c.y, c.r + margin, { stroke: null, fill: bg });
     });
 
-    // step through points to draw triangles
-    for (var i = 0; i < points.length - 2; i++) {
+    // step through anchors to draw triangles
+    for (var i = 0; i < anchors.length - 2; i++) {
         var _c = circles[i];
         var _color = _c.color;
 
         ctx.lineWidth = LINE2;
         ctx.setLineDash([LINE2 * 9, LINE2 * 6]);
-        drawTriPoints.apply(undefined, [ctx].concat(_toConsumableArray(points.slice(i, i + 3)), [_color]));
+        drawTriPoints.apply(undefined, [ctx].concat(_toConsumableArray(anchors.slice(i, i + 3)), [_color]));
         ctx.lineWidth = LINE1;
         ctx.setLineDash([]);
 
@@ -11869,7 +11892,7 @@ function tricycles(options) {
         // ctx.strokeStyle = color;
         // ctx.beginPath();
         // ctx.moveTo(c.x, c.y);
-        // ctx.lineTo(...points[i]);
+        // ctx.lineTo(...anchors[i]);
         // ctx.stroke();
     }
 
@@ -11883,24 +11906,24 @@ function tricycles(options) {
 
     // ---
 
-    // step through points
-    // draw connecting bar between shared points
+    // step through anchors
+    // draw connecting bar between shared anchors
     // alternates based on triangle pairs
     ctx.lineWidth = LINE1;
-    // for (var i = 0; i < points.length - 2; i++) {
+    // for (var i = 0; i < anchors.length - 2; i++) {
     //     let idx = (i % 2) ? i : i + 1;
 
     //     ctx.strokeStyle = fg;
     //     ctx.beginPath();
-    //     ctx.moveTo(...points[idx]);
-    //     ctx.lineTo(...points[idx + 1]);
+    //     ctx.moveTo(...anchors[idx]);
+    //     ctx.lineTo(...anchors[idx + 1]);
     //     ctx.stroke();
     // }
 
 
     // ---
-    // draw all points on top of everything
-    points.forEach(function (p) {
+    // draw all anchors on top of everything
+    anchors.forEach(function (p) {
         (0, _shapes.drawCircle)(ctx, p[0], p[1], SCALE / 100, { fill: fg });
     });
 
