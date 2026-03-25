@@ -181,20 +181,17 @@ export function tricycles(options) {
     // and define circles. Adjacent circles will have two points in common.
     let points = [];
 
-
-
     // point placement function
     let quadrants = function() {
-        points.push([randomInt(0, cw/2), randomInt(0, ch/2)]);
-        points.push([randomInt(cw/2, cw), randomInt(0, ch/2)]);
-        points.push([randomInt(0, cw/2), randomInt(ch/2, ch)]);
-        points.push([randomInt(cw/2, cw), randomInt(ch/2, ch)]);
-
-        // points.push([cw/2, randomInt(0, ch/2)]);
-        // points.push([cw/2, randomInt(ch/2, ch)]);
-        // points.push([randomInt(0, cw/2) , ch/2]);
-        // points.push([randomInt(cw/2, cw), ch/2]);
-
+        let margin = 0.1 * SHORT;
+        let minx = margin;
+        let maxx = cw - margin;
+        let miny = margin;
+        let maxy = ch - margin;
+        points.push([randomInt(minx, cw/2), randomInt(miny, ch/2)]);
+        points.push([randomInt(cw/2, maxy), randomInt(miny, ch/2)]);
+        points.push([randomInt(minx, cw/2), randomInt(ch/2, maxy)]);
+        points.push([randomInt(cw/2, maxx), randomInt(ch/2, maxy)]);
         points = shuffle(points);
     }
 
@@ -232,8 +229,12 @@ export function tricycles(options) {
 
     // point placement function
     // TODO fix params
-    let alternate = function(a, b, steps) {
+    let alternate = function(a, b, stepCount) {
         let _x, _y;
+        const MAGIC_COUNT = 6;
+        const BIG_PROBABILITY = 0.125;
+        const BIG_OFFSET = 1.5;
+        const OFFSET_RANGE = [0.1, 0.4];
         // debug
         if (Math.random() < 0.5) {
             // left right
@@ -245,30 +246,30 @@ export function tricycles(options) {
             b = [randomInRange(cw), ch];
         }
 
-
         let v = getVector(a, b);
-        steps = Math.round(8 * v.length/SHORT);
-        let inc = v.length / steps;
+
+        stepCount = Math.round(MAGIC_COUNT * v.length/SHORT);
 
         _x = v.x
         _y = v.y;
 
-        let offset = SCALE / 10;
+        let offset;
+
         let orthogonal;
 
-        for (var i=0; i < steps ; i++) {
-            _x += v.length/steps * Math.cos(v.angle);
-            _y += v.length/steps * Math.sin(v.angle);
+        for (var i=0; i < stepCount ; i++) {
+            _x += v.length/stepCount * Math.cos(v.angle);
+            _y += v.length/stepCount * Math.sin(v.angle);
 
             //drawCircle(ctx, _x, _y, 5, {fill:'green'});
 
             orthogonal = (i % 2)? PI/2 : -PI/2;
             orthogonal += v.angle;
 
-            offset = SCALE * randomInRange(0.1, 0.4);
+            offset = SCALE * randomInRange(...OFFSET_RANGE);
             // sometimes make big steps pop out for variety
-            if (Math.random() < 0.125) {
-                offset *= 1.5;
+            if (Math.random() < BIG_PROBABILITY) {
+                offset *= BIG_OFFSET;
             }
 
             points.push([_x + offset * Math.cos(orthogonal), _y + offset * Math.sin(orthogonal)]);
@@ -286,13 +287,14 @@ export function tricycles(options) {
 
     // run setup functions according to style prop
     let setupFuncs = [];
+    console.log('tricycles:', STYLE);
     if (STYLE === 'simple') {
         quadrants();
     } else if (STYLE === 'complex') {
-        randItem([alternate, ring])();
+        alternate();
     } else {
         // auto case
-        randItem([quadrants, alternate, ring])();
+        randItem([quadrants, alternate])();
     }
 
     // set up circles
