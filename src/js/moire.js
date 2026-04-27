@@ -706,21 +706,22 @@ export function moire_svg(options) {
     let fg = getContrastColor();
     let fg2 = getContrastColor();
 
-
+    let layerCount = 0;
 
 
     function drawPaths(paths, color, weight) {
+        allPaths += `<g \
+            fill="none" \
+            stroke="${color}"\
+            stroke-width="${weight}" \
+            stroke-linecap="round" \
+            inkscape:label="!layer${layerCount}" \
+            >`;
 
         paths.forEach((path) => {
             if (!path.pts.length) return;
 
-            let plotpath  = `<path \
-                fill="none" \
-                stroke-width="${weight}" \
-                stroke-linecap="round" `;
-
-            plotpath += ` stroke="${color}" `;
-            plotpath += ` d="`;
+            let plotpath  = `<path d="`;
 
             let start = path.pts.shift();
 
@@ -738,6 +739,8 @@ export function moire_svg(options) {
 
         });
 
+        allPaths += '</g>';
+        layerCount++;
     }
 
 
