@@ -14,6 +14,7 @@ const DEFAULTS = {
 
     style: 'auto', // one of modes
     layer: 'auto', // true | false | auto
+    fancy: 'auto', // 
     count: 0, // 0 for auto, or an integer
     weight: 0, // 0 for auto, or 1-10 for normalized weights
     contrast: true
@@ -83,6 +84,8 @@ export function truchet(options) {
     if (opts.layer === null || opts.layer === undefined || opts.layer == 'auto') {
         secondLayer = (Math.random() < 0.5);
     }
+
+    let FANCY = (opts.fancy === undefined || opts.fancy === 'auto') ? randItem([true, false]) : opts.fancy;
 
     // play with these random seeds
     let a,b,c;
@@ -156,6 +159,11 @@ export function truchet(options) {
         ctx.fillStyle = fill;
         ctx.closePath();
         ctx.fill();
+    }
+
+    function _dot(_, fill) {
+        fill = fill || getSolidFill();
+        drawCircle(ctx, w/2, h/2, w/4, {fill: fill});
     }
 
 
@@ -263,7 +271,21 @@ export function truchet(options) {
         }
     }
 
-    // gather our modes
+    // secondary modes: re-iterate on the cells, draw a second layer on top.
+    function dots () {
+        for (let i = 0; i < vcount; i++) {            
+            for (let j = 0; j < count; j++) {
+                if (Math.random() < 0.2) _dot();
+                ctx.translate(w, 0);
+            }
+            // carriage return
+            ctx.translate(-w * count, h);
+        }
+        resetTransform(ctx);
+    }
+
+
+    // gather our primary modes
     let modes = {
         circles,
         triangles,
@@ -283,6 +305,10 @@ export function truchet(options) {
         ctx.globalAlpha = 0.8;
         renderer('transparent', (opts.contrast)? weight/2:weight);
         ctx.globalAlpha = 1;
+    }
+
+    if (FANCY) {
+        dots();    
     }
 
     // add noise
